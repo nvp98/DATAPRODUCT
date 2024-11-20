@@ -1,0 +1,318 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data_Product</title>
+    <link href="~/img/logo_color.png" rel="icon">
+    <link href="~/img/logo_color.png" rel="apple-touch-icon">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Data_Product.styles.css" asp-append-version="true" />
+    <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="~/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="~/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="~/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="~/vendor/simple-datatables/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+
+    <!-- Template Main CSS File -->
+    <link href="~/css/style.css" rel="stylesheet">
+</head>
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
+}
+<body>
+    @if (!User.Identity.IsAuthenticated)
+    {
+        Context.Response.Redirect(Url.Action("Index", "DangNhap"));
+    }
+    <header id="header" class="header fixed-top d-flex align-items-center">
+
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="@Url.Action("Index", "Home")" class="logo d-flex align-items-center">
+                <img src="~/img/logoHP.png" alt="">
+                <!--<span class="d-none d-lg-block">NiceAdmin</span>-->
+            </a>
+            <i class="bi bi-list toggle-sidebar-btn"></i>
+        </div>
+
+        <nav class="header-nav ms-auto">
+            <ul class="d-flex align-items-center">
+
+                <li class="nav-item d-block d-lg-none">
+                    <a class="nav-link nav-icon search-bar-toggle " href="#">
+                        <i class="bi bi-search"></i>
+                    </a>
+                </li><!-- End Search Icon-->
+
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-primary badge-number">4</span>
+                    </a><!-- End Notification Icon -->
+
+             
+
+                </li><!-- End Notification Nav -->
+
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-chat-left-text"></i>
+                        <span class="badge bg-success badge-number">3</span>
+                    </a><!-- End Messages Icon -->
+
+                </li><!-- End Messages Nav -->
+
+                <li class="nav-item dropdown pe-3">
+
+                    @if(TaiKhoan != null)
+                    {
+                        var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
+
+                        <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+                            <img src="~/img/profile-img.jpg" alt="Profile" class="rounded-circle">
+                            <span class="d-none d-md-block dropdown-toggle ps-2"> @TaiKhoan.TenTaiKhoan : @TaiKhoan.HoVaTen </span>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+                            <li class="dropdown-header" style="background-color: #05428c;">
+                                <h6 style="color: white;font-size: 14px;">
+                                    @TaiKhoan.HoVaTen
+                                </h6>
+                                <span style="color: white;font-size: 13px;">@ViTri.TenViTri</span>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="@Url.Action("ThongTinTaiKhoan", "DangNhap")">
+                                    <i style="color: black;" class="bi bi-person"></i>
+                                    <span style="color: black;">Tài khoản</span>
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="@Url.Action("DoiMatKhau", "DangNhap")">
+                                    <i style="color: black;" class="bi bi-gear"></i>
+                                    <span style="color: black;">Đổi mật khẩu</span>
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="@Url.Action("Index", "DangNhap")">
+                                    <i style="color: red;" class="bi bi-box-arrow-right"></i>
+                                    <span style="color: black;">Đăng xuất</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    }
+                
+                </li>
+
+            </ul>
+        </nav><!-- End Icons Navigation -->
+
+    </header><!-- End Header -->
+    <aside id="sidebar" class="sidebar">
+        <ul class="sidebar-nav" id="sidebar-nav">
+            @if (TaiKhoan != null)
+            {
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 3)
+                {
+                    <li class="nav-heading">Quản trị hệ thống</li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index", "Home")">
+                            <i class="bi bi-houses"></i>
+                            <span>Trang chủ</span>
+                        </a>
+                    </li>
+
+                    <!-- End Dashboard Nav -->
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index", "TaiKhoan")">
+                            <i class="bi bi-people"></i>
+                            <span> Tài khoản</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index", "Quyen")">
+                            <i class="bi bi-person-rolodex"></i>
+                            <span> Phân quyền</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" data-bs-target="#icons-phongban" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-hospital"></i><span>Thông tin BP/NM</span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-phongban" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "PhongBan")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Phòng ban</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "Xuong")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> Phân xưởng</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "ChucVu")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> Chức vụ</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "Kip")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Ca/Kíp làm việc</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- End Icons Nav -->
+
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" data-bs-target="#icons-vattu" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-newspaper"></i><span>Thông tin vật tư</span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-vattu" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "NhomVatTu")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> Nhóm vật tư</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "VatTu")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> Vật tư giao nhận</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "MaLo")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> Mã lô</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- End Icons Nav -->
+                }
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 4)
+                {
+                    <li class="nav-heading" style="margin-top: 25px;">Quy trình thực hiện</li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index", "Menu")">
+                            <i class="bi bi-envelope-plus"></i>
+                            <span>Tạo yêu cầu</span>
+                        </a>
+                    </li>
+
+                    <!-- End F.A.Q Page Nav -->
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index","BM_11")">
+                            <i class="bi bi-envelope-arrow-down"></i>
+                            <span>Viêc tôi bắt đầu</span>
+                        </a>
+                    </li>
+
+                    <!-- End Contact Page Nav -->
+
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index", "XuLyPhieu")">
+                            <i class="bi bi-envelope-arrow-up"></i>
+                            <span>Việc đến tôi</span>
+                        </a>
+                    </li>
+                }
+
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 3)
+                {
+                    <li class="nav-heading" style="margin-top: 25px;">Kiểm soát phiếu</li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("PhieuBoSung","XuLyPhieu")">
+                            <i class="bi bi-envelope-open"></i>
+                            <span>Phiếu xác nhận phê duyệt</span>
+                        </a>
+                    </li>
+
+                    <!-- End F.A.Q Page Nav -->
+
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("PhieuNhanThongTin","XuLyPhieu")">
+                            <i class="bi bi-envelope-paper"></i>
+                            <span>Phiếu nhận thông tin</span>
+                        </a>
+                    </li>
+
+                    <!-- End F.A.Q Page Nav -->
+
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_11")">
+                            <i class="bi bi-envelope"></i>
+                            <span>Tất cả các phiếu</span>
+                        </a>
+                    </li>
+                }
+
+
+
+                <!-- End F.A.Q Page Nav -->
+            }
+
+        </ul>
+
+    </aside>
+    <main id="main" class="main" style="height:80%; padding: 0% 1% 0% 1%;">
+        @RenderBody()
+    </main><!-- End #main -->
+@*    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>*@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Vendor JS Files -->
+    <script src="~/vendor/apexcharts/apexcharts.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/vendor/chart.js/chart.umd.js"></script>
+    <script src="~/vendor/echarts/echarts.min.js"></script>
+    <script src="~/vendor/quill/quill.js"></script>
+    <script src="~/vendor/simple-datatables/simple-datatables.js"></script>
+    <script src="~/vendor/tinymce/tinymce.min.js"></script>
+    <script src="~/vendor/php-email-form/validate.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="~/js/main.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+@*    @await RenderSectionAsync("Scripts", required: false)*@
+</body>
+</html>

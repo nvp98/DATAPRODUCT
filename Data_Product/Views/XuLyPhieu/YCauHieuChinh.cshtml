@@ -1,0 +1,522 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+@model Data_Product.Models.Tbl_ChiTiet_BienBanGiaoNhan
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+}
+@{
+    int ID = Convert.ToInt32(ViewBag.Data);
+    var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID).FirstOrDefault();
+    var ID_YeuCau = _context.Tbl_YeuCauHieuChinh.Where(x => x.ID_BBGN == ID).FirstOrDefault();
+
+    //Thông tin phiếu cũ
+    var ID_BBGN_Cu = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGN_Cu).FirstOrDefault();
+
+    //Thông tin bên giao
+    var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BG).FirstOrDefault();
+    var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
+    var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BG.ID_PhanXuong).FirstOrDefault();
+    var ViTri_BG = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BG.ID_ChucVu).FirstOrDefault();
+
+    //Thông tin bên nhận
+    var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BN).FirstOrDefault();
+    var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BN.ID_PhongBan).FirstOrDefault();
+    var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BN.ID_PhanXuong).FirstOrDefault();
+    var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+}
+@using (Html.BeginForm("YCauHieuChinh", "XuLyPhieu", FormMethod.Post, new { enctype = "multipart/form-data", onsubmit = "submitForm(event)" }))
+{
+    <div class="app-main__outer">
+        <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+            <div class="tab-content">
+                <div class="row">
+                    <div class="card">
+                        <div class="row" style="width:100%">
+                            <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;width: -webkit-fill-available;">
+                                <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+                                    <span class="text-muted small pt-2 ps-1">
+                                        <b style="color:#06428b">
+                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
+                                        </b>
+                                    </span>
+                                </div><!-- End Recent Sales -->
+                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="0">
+                                        <i class="bi bi-floppy"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Lưu phiếu
+                                        </span>
+                                    </button>
+                                    <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
+                                        <i class="bi bi-send"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Gửi phiếu
+                                        </span>
+                                    </button>
+                                </div><!-- End Recent Sales -->
+                            </div>
+                        </div>
+                        <div class="row" style="width:100%;padding-top:7.5%;">
+                            <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 80px;padding: 1.7% 0% 0% 1%;border-radius: 10px;margin-left: 8px;">
+                                <span style="color:black; font-size:14px;">
+                                    Kíp 2C - Ngày 01 tháng 10 năm 2024
+                                </span>
+                            </div><!-- End Recent Sales -->
+                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1.5%;">
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Đại diện bên giao:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ThongTin_BG.TenTaiKhoan - @ThongTin_BG.HoVaTen
+                                        </span>
+                                    </div>
+
+                                </div>
+
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Chức vụ:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ViTri_BG.TenViTri
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            BP/NM:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @PhongBan_BG.TenPhongBan - @PhanXuong_BG.TenXuong
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row" style="width:100%">
+                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Đại diện bên giao:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ThongTin_BN.TenTaiKhoan - @ThongTin_BN.HoVaTen
+                                        </span>
+                                    </div>
+
+                                </div>
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Chức vụ:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ViTri_BN.TenViTri
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            BP/NM:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @PhongBan_BN.TenPhongBan - @PhanXuong_BN.TenXuong
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="width:100%; padding-bottom:1%;">
+                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1%;">
+
+                                <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:2%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Nhân viên thống kê phê duyệt:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;margin-right: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @Html.DropDownList("NhanVienTT", null, "----- Chọn nhân viên thông kê phê duyệt -----", new { id = "IDNhanVienTT", name = "IDNhanVienTT", @class = "marginTB5"})
+                                        </span>
+                                    </div>
+
+                                </div>
+
+                                <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:2%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Nhân viên thống kê nhận BBGN:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;margin-right: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @Html.DropDownList("NhanVien_TT_View", null, "----- Chọn nhân viên thông kê nhận BBGN -----", new { id = "IDNhanVienView", name = "IDNhanVienView", @class = "marginTB5" })
+                                        </span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="width:100%">
+                            <div class="col-lg-12" style="text-align: left;height: 200px;display: flex;">
+                                <div class="col-xxl-12 col-md-6" style="text-align:center; padding-top:2%;">
+                                    <h4>
+                                        <b>
+                                            BIÊN BẢN
+                                        </b>
+                                        <br />
+                                        <b>
+                                            GIAO NHẬN NGUYÊN/ NHIÊN/ VẬT TƯ
+                                        </b>
+                                        <br />
+                                        <b>
+                                          SAI THÔNG TIN
+                                        </b>
+                                    </h4>
+                                    <span style="color:black; font-size:14px;">
+                                        @ID_BBGN_Cu.SoPhieu
+                                    </span>
+                                </div>
+
+                            </div><!-- End Recent Sales -->
+                        </div>
+
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                    <thead>
+                                        <tr style="font-size:14px;">
+                                            <th width="50px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
+                                            <th class="text-center" rowspan="3" width="400px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
+                                            <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
+                                            <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
+                                            <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                        </tr>
+                                        <tr style="font-size:14px;">
+                                            <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">W (%)</th>
+                                            <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên giao</th>
+                                            <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên nhận</th>
+                                        </tr>
+                                        <tr style="font-size:14px;">
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int i = 1;
+                                            var List_detail = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID_BBGN_Cu.ID_BBGN).ToList();
+
+                                        }
+                                        @foreach (var item_ in List_detail)
+                                        {
+                                            <tr>
+                                                @{
+                                                    var ID_VT_Cu = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item_.ID_VatTu).FirstOrDefault();
+                                                    var ID_PB_Cu = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN_Cu.ID_PhongBan_BG).FirstOrDefault();
+                                                    var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item_.MaLo.Trim())).FirstOrDefault();
+                                                    var List = _context.Tbl_VatTu.ToList();
+                                                    var VatTu_Cu = await (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(ID_PB_Cu.TenNgan))
+                                                      select new Tbl_VatTu
+                                                      {
+                                                          ID_VatTu = a.ID_VatTu,
+                                                          TenVatTu = a.TenVatTu
+                                                      }).ToListAsync();
+                                                    ViewBag.VT_List = new SelectList(VatTu_Cu, "ID_VatTu", "TenVatTu", ID_VT_Cu.ID_VatTu);
+                                                }
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    @i
+                                                </td>
+
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' rows='1' value=" @ID_VT_Cu.TenVatTu" disabled="disabled"></input>
+                                                </td>
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' rows='1' value=" @ID_VT_Cu.DonViTinh" disabled="disabled"></input>
+
+                                                </td>
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' rows='1' value="  @ID_MaLo.TenMaLo" disabled="disabled"></input>
+
+                                                </td>
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' rows='1' value="@item_.DoAm_W" disabled="disabled"></input>
+                                                </td>
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+
+                                                    <input class='form-control' cols='20' rows='1' value="  @item_.KhoiLuong_BG" disabled="disabled"></input>
+
+                                                </td>
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' rows='1' value="@item_.KL_QuyKho_BG" disabled="disabled"></input>
+                                                </td>
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+
+                                                    <input class='form-control' cols='20' rows='1' value="@item_.KhoiLuong_BN" disabled="disabled"></input>
+
+                                                </td>
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' rows='1' value="@item_.KL_QuyKho_BN" disabled="disabled"></input>
+
+
+                                                </td>
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' rows='1' value=" @item_.GhiChu" disabled="disabled"> </input>
+
+                                                </td>
+                                            </tr>
+                                            i++;
+                                        }
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="row" style="width:100%">
+                            <div class="col-lg-12" style="text-align: left;height: 200px;display: flex;">
+                                <div class="col-xxl-12 col-md-6" style="text-align:center; padding-top:2%;">
+                                    <h4>
+                                        <b>
+                                            BIÊN BẢN
+                                        </b>
+                                        <br />
+                                        <b>
+                                            GIAO NHẬN NGUYÊN/ NHIÊN/ VẬT TƯ
+                                        </b>
+                                        <br />
+                                        <b>
+                                           CẦN HIỆU CHỈNH
+                                        </b>
+                                    </h4>
+                                    <span style="color:black; font-size:14px;">
+                                        @ID_BBGN.SoPhieu
+                                    </span>
+                                </div>
+
+                            </div><!-- End Recent Sales -->
+                        </div>
+
+
+                        <div class="card-body">
+                            <div class="table-responsive" style="height: 400px;">
+                                <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                    <thead>
+                                        <tr style="font-size:14px;">
+                                            <th width="50px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
+                                            <th class="text-center" rowspan="3" width="400px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
+                                            <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
+                                            <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
+                                            <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                        </tr>
+                                        <tr style="font-size:14px;">
+                                            <th width="100px" rowspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">W (%)</th>
+                                            <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên giao</th>
+                                            <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên nhận</th>
+                                        </tr>
+                                        <tr style="font-size:14px;">
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int i_ = 1;
+                                            var Models = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID).ToList();
+
+                                        }
+                                        @foreach (var item in Models)
+                                        {
+                                            <tr>
+                                                @{
+                                                    var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item.ID_VatTu).FirstOrDefault();
+                                                    var ID_PB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
+                                                    var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
+                                                    var List = _context.Tbl_VatTu.ToList();
+                                                    var VatTu = await (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(ID_PB.TenNgan))
+                                                                       select new Tbl_VatTu
+                                                                       {
+                                                                           ID_VatTu = a.ID_VatTu,
+                                                                           TenVatTu = a.TenVatTu
+                                                                       }).ToListAsync();
+                                                    ViewBag.VT_List = new SelectList(VatTu, "ID_VatTu", "TenVatTu", ID_VT.ID_VatTu);
+                                                }
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    @i_
+                                                </td>
+
+
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    <select class="form-control marginTB5 SelectVT" name="VatTu_@item.ID_CT_BBGN" id="VatTu_@item.ID_CT_BBGN" value=" @ID_VT.TenVatTu">
+                                                        <option value='0'>@ID_VT.TenVatTu</option>
+                                                        @foreach (var item_ in ViewBag.VT_List)
+                                                        {
+                                                            <option value='@item_.Value'>@item_.Text</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' id='donvitinh_@item.ID_CT_BBGN' name='donvitinh_@item.ID_CT_BBGN' placeholder='Đơn vị tính' rows='1' value=" @ID_VT.DonViTinh" disabled="disabled"></input>
+
+                                                </td>
+                                                @if (item.MaLo == "")
+                                                {
+                                                    <td class="text-center" style="font-size:14px;vertical-align:middle;">
+
+                                                        <select class="form-control marginTB5 SelectVT" id='lo_@item.ID_CT_BBGN' name='lo_@item.ID_CT_BBGN' placeholder='Lô' value=" @ID_MaLo.TenMaLo">
+                                                            <option value=''>--Mã lô--</option>
+                                                            @foreach (var item_ in ViewBag.MLList)
+                                                            {
+                                                                <option value='@item_.Value'>@item_.Text</option>
+                                                            }
+                                                        </select>
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td class="text-center" style="font-size:14px;vertical-align:middle;">
+
+                                                        <select class="form-control marginTB5 SelectVT" id='lo_@item.ID_CT_BBGN' name='lo_@item.ID_CT_BBGN' placeholder='Lô' value=" @ID_MaLo.TenMaLo">
+                                                            <option value='@ID_MaLo.ID_MaLo'> @ID_MaLo.TenMaLo</option>
+                                                            @foreach (var item_ in ViewBag.MLList)
+                                                            {
+                                                                <option value='@item_.Value'>@item_.Text</option>
+                                                            }
+                                                        </select>
+                                                    </td>
+
+                                                }
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' id='doam_@item.ID_CT_BBGN' name='doam_@item.ID_CT_BBGN' placeholder='Độ ẩm' rows='1' value="@item.DoAm_W"></input>
+                                                </td>
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' id='khoiluongbg_@item.ID_CT_BBGN' name='khoiluongbg_@item.ID_CT_BBGN' placeholder='Khối lượng' rows='1' value="  @item.KhoiLuong_BG"></input>
+                                                </td>
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' id='quykhobg_@item.ID_CT_BBGN' name='quykhobg_@item.ID_CT_BBGN' placeholder='KL quy khô' rows='1' value="@item.KL_QuyKho_BG" disabled="disabled"></input>
+                                                </td>
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' placeholder='Khối lượng' rows='1' value="" disabled="disabled"></input>
+                                                </td>
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' placeholder='KL quy khô' rows='1' value="" disabled="disabled"></input>
+                                                </td>
+
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    <input class='form-control' cols='20' id='ghichu_@item.ID_CT_BBGN' name='ghichu_@item.ID_CT_BBGN' placeholder='Đơn vị tính' rows='1' value="@item.GhiChu"></input>
+                                                </td>
+                                            </tr>
+
+                                            i_++;
+                                        }
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+<script type="text/javascript">
+    $(".SelectVT").chosen({
+        width: "100%"
+    });
+    $(".SelectQT").chosen({
+        width: "100%"
+    });
+    $("#IDTaiKhoan").chosen({
+        width: "100%"
+    });
+    $("#IDTaiKhoan").chosen({
+        width: "100%"
+    });
+    $("#IDKip").chosen({
+        width: "100%"
+    });
+    $("#IDNhanVienTT").chosen({
+        width: "100%"
+    });
+    $("#IDNhanVienView").chosen({
+        width: "100%"
+    });
+</script>

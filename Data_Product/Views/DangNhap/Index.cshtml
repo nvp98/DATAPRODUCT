@@ -1,0 +1,123 @@
+﻿@model Data_Product.Models.Tbl_TaiKhoan;
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data_Product</title>
+    <link href="~/img/logo_color.png" rel="icon">
+    <link href="~/img/logo_color.png" rel="apple-touch-icon">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Data_Product.styles.css" asp-append-version="true" />
+    <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="~/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="~/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="~/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="~/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="~/vendor/simple-datatables/style.css" rel="stylesheet">
+    <!-- Template Main CSS File -->
+    <link href="~/css/style.css" rel="stylesheet">
+</head>
+
+<style>
+    .sidebas {
+        position: fixed;
+        top: 0px;
+        left: 0;
+        bottom: 0;
+        width: 400px;
+        z-index: 996;
+        transition: all 0.3s;
+        padding: 15px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #aab7cf transparent;
+        box-shadow: 0px 0px 20px rgba(1, 41, 112, 0.1);
+        background-color: #fff;
+    }
+</style>
+<body>
+
+  <main>
+        <div style="padding: 0px;text-align: right;">
+   <img style="width: 100%;" src="~/img/logohp.jpg" alt="">
+    </div>
+
+    <aside id="sidebas" class="sidebas">
+        <div class="card-body" style="padding-top: 40%;">
+
+        <div class="pt-4 pb-2" style="text-align:center;margin-bottom:20%;">
+                    <img style="width:250px;" src="~/img/logoHP.png" alt="">
+        </div>
+
+                @using (Html.BeginForm("DangNhapTaiKhoan", "DangNhap", new { id = "myForm", @class = "row g-3 needs-validation" }))
+                {
+                    <form class="row g-3 needs-validation" novalidate>
+
+                        <div class="col-12" style="padding-bottom:7%;">
+                            <label for="yourUsername" class="form-label">Tài khoản</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="inputGroupPrepend"><i class="bi bi-person-bounding-box"></i></span>
+                                @Html.TextBoxFor(m => m.TenTaiKhoan, new { @class = "form-control", @placeholder = "UserName" ,required = "required", @style= "font-size: 14px;" })
+                                <div class="invalid-feedback">Vui lòng nhập tài khoản !</div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="yourPassword" class="form-label">Mật khẩu</label>
+                            <div class="input-group has-validation">
+                                <span class="input-group-text" id="inputGroupPrepend"><i class="bi bi-lock-fill"></i></span>
+                                @Html.PasswordFor(m => m.MatKhau, new { @class = "form-control", @placeholder = "Mật khẩu",required = "required", @style= "font-size: 14px;" })
+                                <div class="invalid-feedback">Vui lòng nhập mật khẩu !</div>
+                            </div>
+
+                            <div class="col-12" style="padding: 7% 0%;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="remember" value="true" id="rememberMe">
+                                    <label class="form-check-label" for="rememberMe" style="font-size:15px;">Ghi nhớ mật khẩu</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-primary w-100" type="submit">ĐĂNG NHẬP</button>
+                            </div>
+                    </form>
+                }
+
+
+        </div>
+
+  </aside>
+  </main><!-- End #main -->
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Vendor JS Files -->
+    <script src="~/vendor/apexcharts/apexcharts.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/vendor/chart.js/chart.umd.js"></script>
+    <script src="~/vendor/echarts/echarts.min.js"></script>
+    <script src="~/vendor/quill/quill.js"></script>
+    <script src="~/vendor/simple-datatables/simple-datatables.js"></script>
+    <script src="~/vendor/tinymce/tinymce.min.js"></script>
+    <script src="~/vendor/php-email-form/validate.js"></script>
+
+    <!-- Template Main JS File -->
+    <script src="~/js/main.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @*    @await RenderSectionAsync("Scripts", required: false)*@
+
+</body>
+
+</html>

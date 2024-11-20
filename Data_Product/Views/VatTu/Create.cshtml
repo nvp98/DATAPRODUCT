@@ -1,0 +1,63 @@
+﻿@model Data_Product.Models.Tbl_VatTu
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+
+@using (Html.BeginForm("Create", "VatTu", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-dialog" style="padding-top:1.5%;">
+        <div class="modal-content" style="max-width: none; width: 800px;">
+            <div class="modal-header" style="background-color: #F9F9F9;">
+                <h5 id="ModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Tên vật tư</label>
+                    @Html.EditorFor(model => model.TenVatTu, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                    @Html.ValidationMessageFor(model => model.TenVatTu, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Tên vật tư ( SAP )</label>
+                    @Html.EditorFor(model => model.TenVatTu_Sap, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                    @Html.ValidationMessageFor(model => model.TenVatTu_Sap, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Mã vật tư ( SAP )</label>
+                    @Html.EditorFor(model => model.MaVatTu_Sap, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                    @Html.ValidationMessageFor(model => model.MaVatTu_Sap, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Đơn vị tính</label>
+                    @Html.EditorFor(model => model.DonViTinh, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                    @Html.ValidationMessageFor(model => model.DonViTinh, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Tên BP/NM</label>
+                    @Html.DropDownList("ID_PhongBan", null, "", new { id = "multiSelect", @class = "form-control", @style = "width:100%", multiple = "multiple" })
+                </div>
+
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Tên nhóm vật tư</label>
+                    @Html.DropDownListFor(model => model.ID_NhomVatTu, ViewBag.VTList as SelectList, "----- Chọn nhóm vật tư ------", new {  @style="text-align: center;", @id = "IDNhomVatTu", @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.ID_NhomVatTu, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group" style="text-align: end;padding: 0% 3% 3% 3%;">
+                <input type="submit" style="border-radius: 10px;" value="Xác nhận" id="btnSubmit" class="btn btn-primary pull-right" />
+            </div>
+        </div>
+    </div>
+}
+<script>
+    $("#IDNhomVatTu").chosen({
+        width: "100%"
+    });
+    $(document).ready(function() {
+        $('#multiSelect').chosen({
+            width: '100%'
+        });
+    });
+</script>

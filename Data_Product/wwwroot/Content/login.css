@@ -1,0 +1,121 @@
+﻿body {
+    background-color: #fff;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+.bg-login {width: 100vw;height: 100vh;}
+#bg_container {width: 100vw;height: 100vh;overflow: hidden;}
+    #bg_container .ku-embed {
+        width: 100%;
+        height: 100vh;
+        filter: blur(4px);
+    }
+#content {
+    position: absolute;
+    top: 0px;
+    padding: 30px;
+    
+    /*text-shadow: #000 0px 1px;*/
+    width: 100%
+}
+.bg-login .main-content {
+    position: relative;
+    height: 100%;
+    opacity:90%;
+}
+
+.bg-login .content-centered {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 400px;
+   background-color:#fff;
+   border-radius:5px
+    
+}
+.card-header {
+    display: flex;
+    align-items: center;
+    border-bottom-width: 1px;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-right: 0.625rem;
+    height: 3.5rem;
+}
+.bg-login .form-control {
+    /*background: transparent;*/
+}
+
+.bg-login .content-centered .card-header {
+    height: 9rem;
+}
+
+.bg-login .content-centered .card p {
+    text-transform: uppercase !important;
+    padding: 1rem 0;
+    font-weight: bold !important;
+    color: #05428c;
+    font-size: large;
+}
+
+.bg-login .content-centered .form-group {
+    padding: .5rem 0;
+}
+
+.bg-login .container footer {
+    position: absolute;
+    bottom: 1%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+    .bg-login .container footer .text-c {
+        color: white;
+        text-align: center;
+    }
+.card-header {
+    padding: .75rem 1.25rem;
+    margin-bottom: 0;
+    color: inherit;
+    
+    border-bottom: 1px solid rgba(26, 54, 126, 0.125)
+}
+
+    .card-header:first-child {
+        border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0
+    }
+
+    .card-header + .list-group .list-group-item:first-child {
+        border-top: 0
+    }
+.card-body {
+    flex: 1 1 auto;
+    padding: 2.25rem 2.25rem 0.25rem 2.25rem;
+}
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    
+    background-clip: border-box;
+    border: 1px solid rgba(26, 54, 126, 0.125);
+    
+}
+.shadow-lg {
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 18%) !important;
+}
+.submit {
+    background-color: #0097d0;color:#fff;border-radius:0px
+}
+    .submit:hover {
+        background-color: #05418a
+    }
+    .login__icon {
+    position: absolute;
+    top: 11px;
+    left:5px;
+    color: #c8c8c8;
+}
+.login__field{position:relative}
+.login__field input{padding:6px 20px}

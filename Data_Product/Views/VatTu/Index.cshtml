@@ -1,0 +1,230 @@
+﻿@model IEnumerable<Data_Product.Models.Tbl_VatTu>
+@using Data_Product.Repositorys;
+@inject Data_Product.Repositorys.DataContext _context
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
+}
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="row" style="height: 120px;">
+                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width:-webkit-fill-available;">
+                            <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        DANH SÁCH VẬT TƯ GIAO NHẬN
+                                    </b>
+                                </span>
+                            </div>
+                            <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                <button id="btn-add" type="button" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        <i></i><span style="color: white;">Thêm mới</span>
+                                    </span>
+                                </button>
+
+
+                                <button id="btn-Import" type="button" class="btn btn-primary">
+                                    <i class="bi bi-box-arrow-up"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        <i></i><span style="color: white;">Import Excel</span>
+                                    </span>
+                                </button>
+                            </div><!-- End Recent Sales -->
+                    
+                        </div>
+                    </div>
+                  @*  Thêm mới*@
+                    <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("Create","VatTu")'></div>
+                    <script type="text/javascript">
+                        $('#btn-add').click(function () {
+                            var url = $('#myModal').data('url');
+                            $.get(url, function (data) {
+                                $("#myModal").html(data);
+                                $("#ModalTitle").html("THÊM MỚI THÔNG TIN");
+                                $("#myModal").modal('show');
+                            });
+                        });
+                    </script>
+
+                    @*    Import Excel*@
+                    <div class="modal fade" id="myModalImportExcel" role="dialog" data-url='@Url.Action("ImportExcel","VatTu")'></div>
+                    <script type="text/javascript">
+                        $('#btn-Import').click(function () {
+                            var url = $('#myModalImportExcel').data('url');
+                            $.get(url, function (data) {
+                                $("#myModalImportExcel").html(data);
+                                $("#ModalTitle").html("IMPORT DANH SÁCH");
+                                $("#myModalImportExcel").modal('show');
+                            });
+                        });
+                    </script>
+                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <input type="text" id="txtsearch" name="" placeholder="Tìm kiếm" class="form-control" value="@ViewBag.search">
+                            </div>
+                            <div class="col-md-2" style="text-align:left;">
+                                <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
+                                    <i class="bi bi-search"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Tìm kiếm
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive" style="height: 550px;">
+                            <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                <thead style="height: 60px;font-size: 14px;">
+                                    <tr>
+                                        <th class="text-center" width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên vật tư</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên vật tư (SAP)</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Mã vật tư (SAP)</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
+                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Đơn vị tính</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhóm vật tư</th>
+                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
+                                        <th class="text-center" rowspan="3" width="130px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int pageno = (int)pager.CurrentPage;
+                                        int itemperpage = (int)pager.PageSize;
+                                        int RowNo = ((pageno - 1) * itemperpage) + 1;
+                                    }
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="text-center">
+                                                @RowNo@{
+                                                    RowNo++;
+                                                }
+                                            </td>
+                                            <td style="font-size:14px;">@item.TenVatTu </td>
+                                            <td style="font-size:14px;">@item.TenVatTu_Sap </td>
+                                            <td style="font-size:14px;">@item.MaVatTu_Sap </td>
+
+                                            <td style="font-size:14px;">
+                                                @item.PhongBan
+                                            </td>
+                                            <td style="font-size:14px;">@item.DonViTinh </td>
+                                            <td style="font-size:14px;">@item.TenNhomVatTu </td>
+                                            @if (item.ID_TrangThai == 1)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <span> Hoạt động</span>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="text-center" style="font-size:14px;background-color: red;">
+                                                    <span style="color: white;"> Đã khóa</span>
+                                                </td>
+                                            }
+                                            <td class="text-center">
+                                                @if (item.ID_TrangThai == 1)
+                                                {
+                                                    <a class="btn btn-primary btn-sm" title="Khóa tài khoản" href="@Url.Action("Lock", "VatTu", new { id = item.ID_VatTu })"
+                                                       onclick="return confirm('Bạn muốn khóa tài khoản : @item.TenVatTu')">
+                                                        <i class="bi bi-lock-fill"></i>
+                                                    </a>
+                                                }
+                                                else
+                                                {
+
+                                                    <a class="btn btn-danger btn-sm" title="Khóa tài khoản" href="@Url.Action("Unlock", "VatTu", new { id = item.ID_VatTu })"
+                                                       onclick="return confirm('Bạn muốn khóa tài khoản : @item.TenVatTu')">
+                                                        <i class="bi bi-unlock-fill"></i>
+                                                    </a>
+                                                }
+@*
+                                                <a class="btn btn-danger btn-sm" title="Xóa" href="@Url.Action("Delete", "VatTu", new { id = item.ID_VatTu })"
+                                                   onclick="return confirm('Bạn muốn xóa vật tư : @item.TenVatTu')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>*@
+
+                                                <a class="btn btn-primary btn-sm" id="btn-edit_@item.ID_VatTu" title="Chỉnh sửa"><i class="bi bi-pencil-square"></i></a>
+                                                <div class="modal" id="myModaleF_@item.ID_VatTu" role="dialog" data-url='@Url.Action("Edit","VatTu",new{id = item.ID_VatTu})'></div>
+                                                <script type="text/javascript">
+                                                    $("#btn-edit_@item.ID_VatTu").click(function () {
+                                                        var url = $('#myModaleF_@item.ID_VatTu').data('url');
+                                                        $.get(url, function (data) {
+                                                            $("#myModaleF_@item.ID_VatTu").html(data);
+                                                            $("#ModalTitle").html("CHỈNH SỨA THÔNG TIN");
+                                                            $("#myModaleF_@item.ID_VatTu").modal('show');
+                                                        });
+                                                    });
+                                                </script>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+
+                        </div>
+                        <div class="container" style="margin:0px; padding:1% 0% 0% 0%;">
+                            @if (pager.TotalPages > 0)
+                            {
+                                <ul class="pagination justify-content-start ">
+                                    @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
+                                    {
+                                        <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
+                                            <a class="page-link" asp-asp-controller="VatTu" asp-action="Index" asp-route-page="@pge">@pge</a>
+
+                                        </li>
+                                    }
+                                    @if (pager.CurrentPage < pager.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" asp-asp-controller="VatTu" asp-action="Index" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" asp-asp-controller="VatTu" asp-action="Index" asp-route-page="@(pager.TotalPages)">Last</a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script type="text/javascript">
+    $("#btn-search").on('click', function () {
+        var search = $('#txtsearch').val();
+        window.location.href = '@Url.Action("Index", "VatTu")?search=' + search;
+    });
+</script>

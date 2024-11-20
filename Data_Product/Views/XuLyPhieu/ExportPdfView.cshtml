@@ -1,0 +1,289 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+@*@model IEnumerable<Data_Product.Models.Tbl_ChiTiet_BienBanGiaoNhan>*@
+@model dynamic
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/PrintView.cshtml";
+
+    //Pager pager = new Pager();
+    //int pageNo = 0;
+    //if (ViewBag.Pager != null)
+    //{
+    //    pager = ViewBag.Pager;
+    //    pageNo = pager.CurrentPage;
+    //}
+}
+@{
+    int ID = Convert.ToInt32(@Model.id);
+    var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID).FirstOrDefault();
+    var ID_TK = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID).FirstOrDefault();
+
+    //Thông tin bên giao
+    var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BG).FirstOrDefault();
+    var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
+    var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BG.ID_PhanXuong).FirstOrDefault();
+    var ViTri_BG = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BG.ID_ChucVu).FirstOrDefault();
+
+    //Thông tin bên nhận
+    var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BN).FirstOrDefault();
+    var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BN.ID_PhongBan).FirstOrDefault();
+    var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BN.ID_PhanXuong).FirstOrDefault();
+    var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
+    var ListCTBBGN = await (from a in _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID)
+                     join vt in _context.Tbl_VatTu on a.ID_VatTu equals vt.ID_VatTu
+                     select new Tbl_ChiTiet_BienBanGiaoNhan
+                             {
+                                 ID_CT_BBGN = a.ID_CT_BBGN,
+                                 ID_VatTu = a.ID_VatTu,
+                                 TenVatTu = vt.TenVatTu,
+                                 DonViTinh = vt.DonViTinh,
+                                 MaLo = a.MaLo,
+                                 DoAm_W = (double)a.DoAm_W,
+                                 KhoiLuong_BG = (double)a.KhoiLuong_BG,
+                                 KL_QuyKho_BG = (double)a.KL_QuyKho_BG,
+                                 KhoiLuong_BN = (double)a.KhoiLuong_BN,
+                                 KL_QuyKho_BN = (double)a.KL_QuyKho_BN,
+                                 GhiChu = a.GhiChu,
+                                 ID_BBGN = a.ID_BBGN
+                             }).ToListAsync();
+
+}
+
+<div style="width:95%">
+    <div>
+        <div class="" style="text-align: left;display: flex">
+            <div style="flex: 0 0 50%;width:80%;  float: left; font-weight: bold; font-size: 1.2rem; text-transform: uppercase;">
+                <img alt="Hòa Phát Dung Quất" src="https://report.hoaphatdungquat.vn/img/logoHP.png"  />
+                <div class="" style="margin-top: 0.5rem; font-weight:bold">CÔNG TY CỔ PHẦN THÉP</div>
+                <div class="" style="font-weight:bold ">HÒA PHÁT DUNG QUẤT</div>
+                <div style="width:50%;text-align:center">
+                    <div style=" font-size: 10px; padding-top:0.5%;">
+                       Số: @ID_BBGN.SoPhieu
+                    </div>
+                     @if (ID_BBGN.ID_BBGN_Cu != null)
+                    {
+                        var ID_BBGN_Cu = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGN_Cu).FirstOrDefault();
+
+                        <div style=" font-size: 10px;">
+                            Thay thế: @ID_BBGN_Cu.SoPhieu
+                          
+
+                        </div>
+                    }
+                </div>
+            </div>
+           
+            <div style="flex: 0 0 50%;width:20%; float:right;text-align:right; font-weight: bold;">
+                <span style="font-weight:bold">BM.11/QT.05</span>
+                <p><span style="font-style:italic;">Ngày hiệu lực:</span> 01/06/2023</p>
+            </div>
+        </div><!-- End Recent Sales -->
+        <div style="flex: 0 0 100%; width: 100%; margin-top:0">
+            <div style="text-align:center;margin-top:0; font-size: 1.5rem;font-weight:bold; text-transform:uppercase">
+                <h4 style="font-weight:bold">
+                        BIÊN BẢN <br />  GIAO NHẬN NGUYÊN/ NHIÊN/ VẬT TƯ
+                </h4>
+            </div>
+            <div class="text-muted small pt-0 ps-1" style="text-align:center; margin-top:0">
+                @{
+                    var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
+                    var Date = (DateTime)ID_BBGN.ThoiGianXuLyBG;
+                }
+                <i style="color:black;">
+                    Kíp @ID_Kip.TenCa@ID_Kip.TenKip Ngày @Date.ToString("dd") Tháng @Date.ToString("MM") Năm @Date.ToString("yyyy")
+                </i>
+
+            </div>
+        </div>
+        <div class="col-md-12 float-left">
+            Chúng tôi gồm:
+        </div>
+        <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+            <div style="width:36%"> 1. Đại diện bên giao: Ông/bà: @ThongTin_BG.HoVaTen</div>
+            <div style="width:33%">Chức vụ:  @ViTri_BG.TenViTri </div>
+            <div style="width:30%">BP: @PhongBan_BG.TenPhongBan</div>
+        </div>
+
+         <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+            <div style="width:36%"> 2. Đại diện bên nhận: Ông/bà: @ThongTin_BN.HoVaTen</div>
+            <div style="width:33%">Chức vụ:  @ViTri_BN.TenViTri </div>
+            <div style="width:30%">BP: @PhongBan_BN.TenPhongBan</div>
+        </div>
+         <div class="col-md-12 float-left" style="margin-bottom:8px;">
+            Cùng nhau thống nhất lập "Biên bản giao nhận NNVL" như sau:			
+        </div>
+    </div>
+ 
+    <div class="card-body" style="padding-top:1%;">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" cellpadding="0">
+                <thead>
+                    <tr style="font-size:14px;">
+                        <th width="30px" rowspan="3" style="vertical-align:middle; border: 1px solid black;">STT</th>
+                        <th class="text-center" rowspan="3" width="500px" style="vertical-align:middle; border: 1px solid black;">Tên nguyên/ nhiên/ phụ liệu</th>
+                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle; border: 1px solid black;">Đơn vị tính</th>
+                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle; border: 1px solid black;">Lô</th>
+                        <th class="text-center" colspan="5" width="200px" style="vertical-align:middle; border: 1px solid black;">Khối lượng vào/ra trong kíp</th>
+                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle; border: 1px solid black;">Ghi chú</th>
+                    </tr>
+                    <tr style="font-size:14px;">
+                        <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;">W (%)</th>
+                        <th width="150px" colspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;">KL bên giao</th>
+                        <th width="150px" colspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;">KL bên nhận</th>
+
+                    </tr>
+                    <tr style="font-size:14px;">
+                        <th width="150px" class="text-center" style="vertical-align:middle; border: 1px solid black;">Khối lượng</th>
+                        <th width="150px" class="text-center" style="vertical-align:middle; border: 1px solid black;">KL quy khô</th>
+
+                        <th width="150px" class="text-center" style="vertical-align:middle; border: 1px solid black;">Khối lượng</th>
+                        <th width="150px" class="text-center" style="vertical-align:middle; border: 1px solid black;">KL quy khô</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+
+                        int RowNo = 1;
+                    }
+                    @foreach (var item in ListCTBBGN)
+                    {
+                        <tr>
+                            <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                                @RowNo@{
+                                    RowNo++;
+                                }
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                                @item.TenVatTu
+                            </td>
+                            <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                                @item.DonViTinh
+                            </td>
+                            @if (item.MaLo == "")
+                            {
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                                </td>
+                            }
+                            else
+                            {
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                                    @{
+                                        var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
+                                    }
+                                    @ID_MaLo.TenMaLo
+                                </td>
+                            }
+
+                            <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
+                                @item.DoAm_W
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
+                                @item.KhoiLuong_BG
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
+                                @item.KL_QuyKho_BG
+                            </td>
+                            @if (@item.KhoiLuong_BN == 0)
+                            {
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                                </td>
+                            }
+                            else
+                            {
+                                <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
+                                    @item.KhoiLuong_BN
+                                </td>
+                            }
+                            @if (@item.KL_QuyKho_BN == 0)
+                            {
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                                </td>
+
+                            }
+                            else
+                            {
+                                <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
+                                    @item.KL_QuyKho_BN
+                                </td>
+                            }
+
+
+                            <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                                @item.GhiChu
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+    <u class="col-md-12 float-left" style="padding-top:1%;">
+            Ghi chú:
+        </u>
+        <div class="col-md-12 float-left">
+            <span style="font-style:italic;padding-left:16px"> - Áp dụng cho các nhà máy:  NM.LC, NM.TKVV, NM.VXM, NM.NL, NM.LG, NM.LT, NM.CT DAI, NM.CT QSP, NM.CTCK, BP.C, BP.VT, P.HCĐN…. Các bộ phận có liên quan khác (nhà thầu).</span>
+               
+        </div>
+        <div class="col-md-12 float-left">
+            <span style="font-style:italic;padding-left:16px"> - Khối lượng giao nhận được xác định qua cân băng tải/ chấm chuyến.</span>
+             
+        </div>
+
+
+    @if (ID_BBGN.ID_TrangThai_BBGN == 1)
+    {
+        <div class="col-lg-12" style="text-align: left;height: 150px;display: flex;">
+            <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
+
+                <div style="text-align: center;  padding-top:8px;">
+                      Bên nhận
+                </div>
+                <div style="text-align: center;  padding:2%;">
+                    <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">
+                </div>
+                <div style="text-align: center; margin-top:8px ">
+                   @ThongTin_BN.HoVaTen
+                </div>
+            </div>
+            <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
+
+                <div style="text-align: center; padding-top:8px;">
+                      Bên giao
+                </div>
+                <div style="text-align: center;  padding:2%;">
+                    <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">
+                </div>
+                <div style="text-align: center; margin-top:8px">
+                     @ThongTin_BG.HoVaTen
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- End Recent Sales -->
+    }
+
+</div>

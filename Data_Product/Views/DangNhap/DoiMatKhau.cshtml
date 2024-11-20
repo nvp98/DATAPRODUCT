@@ -1,0 +1,120 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+@model Data_Product.Models.Tbl_TaiKhoan
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
+}
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+    var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
+}
+@using (Html.BeginForm("DoiMatKhau", "DangNhap", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="pagetitle">
+    <div class="row" style="height: 120px;">
+        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width:-webkit-fill-available;">
+            <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+
+                <span class="text-muted small pt-2 ps-1">
+                    <b style="color:#06428b;font-size: 15px;">
+                     ĐỔI MẬT KHẨU
+                    </b>
+                </span>
+            </div>
+        </div>
+    </div>
+</div><!-- End Page Title -->
+<section class="section profile">
+    <div class="row">
+        <div class="col-xl-4">
+
+            <div class="card">
+                <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
+
+                        <img src="~/img/profile-img.jpg" alt="">
+                    <h2 style="font-size:20px; margin: 10% 0% 5% 0%;">@TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen</h2>
+                    <h3>@ViTri.TenViTri</h3>
+                    <div class="social-links mt-2">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-8">
+            <div class="card">
+                <div class="card-body pt-3">
+                    <!-- Bordered Tabs -->
+                    <ul class="nav nav-tabs nav-tabs-bordered">
+
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Đổi mật khẩu</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content pt-2" style="margin-top:5%;">
+
+                        <div class="tab-pane fade show active profile-overview" id="profile-overview">
+                            <form>
+
+                                <div class="row mb-3">
+                                    <label for="currentPassword" class="col-md-4 col-lg-3 col-form-label">Mật khẩu cũ</label>
+                                    <div class="col-md-8 col-lg-9">
+                                            @Html.EditorFor(model => model.MatKhauCu, new { htmlAttributes = new { @class = "form-control", type = "password", placeholder = "Nhập mật khẩu cũ" } })
+                                            @Html.ValidationMessageFor(model => model.MatKhauCu, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <label for="newPassword" class="col-md-4 col-lg-3 col-form-label">Mật khẩu mới</label>
+                                    <div class="col-md-8 col-lg-9">
+                                            @Html.EditorFor(model => model.MatKhau, new { htmlAttributes = new { @class = "form-control", type = "password", placeholder = "Nhập mật khẩu mới", onKeyUp = "checkPasswordStrength()" } })
+                                            @Html.ValidationMessageFor(model => model.MatKhau, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <label for="renewPassword" class="col-md-4 col-lg-3 col-form-label">Nhập lại mật khẩu mới</label>
+                                    <div class="col-md-8 col-lg-9">
+                                            @Html.EditorFor(model => model.MatKhauNhapLai, new { htmlAttributes = new { @class = "form-control", type = "password", placeholder = "Nhập lại mật khẩu mới", onKeyUp = "confirmpassword()" } })
+                                            @Html.ValidationMessageFor(model => model.MatKhauNhapLai, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                    <div class="text-right" style="margin-top:3%;">
+                                    <button type="submit" class="btn btn-primary">Xác nhận</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div><!-- End Bordered Tabs -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+}
+
+

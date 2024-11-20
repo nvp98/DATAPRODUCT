@@ -1,0 +1,191 @@
+﻿@model IEnumerable<Data_Product.Models.Tbl_Kip>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
+}
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="row" style="height: 120px;">
+                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width:-webkit-fill-available;">
+                            <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        DANH SÁCH KÍP LÀM VIỆC
+                                    </b>
+                                </span>
+                            </div>
+                            <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                <button id="btn-add" type="button" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        <i></i><span style="color: white;">Thêm mới</span>
+                                    </span>
+                                </button>
+                                <button id="btn-update" type="button" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        <i></i><span style="color: white;">Cập nhật</span>
+                                    </span>
+                                </button>
+                            </div><!-- End Recent Sales -->
+                            <script type="text/javascript">
+                                $('#btn-add').click(function () {
+                                    var url = $('#myModal').data('url');
+                                    $.get(url, function (data) {
+                                        $("#myModal").html(data);
+                                        $("#ModalTitle").html("THÊM MỚI THÔNG TIN");
+                                        $("#myModal").modal('show');
+                                    });
+                                });
+
+
+                                $('#btn-update').click(function () {
+                                    var url = $('#myModal_UpDate').data('url');
+                                    $.get(url, function (data) {
+                                        $("#myModal_UpDate").html(data);
+                                        $("#ModalTitle").html("CẬP NHẬT CA KÍP");
+                                        $("#myModal_UpDate").modal('show');
+                                    });
+                                });
+                            </script>
+                        </div>
+                    </div>
+                    <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("Create","Kip")'></div>
+                    <div class="modal" id="myModal_UpDate" role="dialog" data-url='@Url.Action("CapNhat_CaKip","Kip")'></div>
+                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <input type="text" id="txtsearch" name="" placeholder="Tìm kiếm" class="form-control" value="@ViewBag.search">
+                            </div>
+                            <div class="col-md-2" style="text-align:left;">
+                                <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
+                                    <i class="bi bi-search"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Tìm kiếm
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive" style="height: 550px;">
+                            <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                <thead style="height: 60px;font-size: 14px;">
+                                    <tr>
+                                        <th class="text-center" width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                       
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Ngày làm việc</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên ca</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên kíp</th>
+
+                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int pageno = (int)pager.CurrentPage;
+                                        int itemperpage = (int)pager.PageSize;
+                                        int RowNo = ((pageno - 1) * itemperpage) + 1;
+                                    }
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="text-center">
+                                                @RowNo@{
+                                                    RowNo++;
+                                                }
+                                            </td>
+                                            @{
+                                                DateTime Ngay = (DateTime)@item.NgayLamViec;
+                                            }
+                                            <td class="text-center"  style="font-size:14px;">@Ngay.ToString("dd/MM/yyyy") </td>
+                                            <td class="text-center" style="font-size:14px;">@item.TenCa </td>
+                                            <td class="text-center" style="font-size:14px;">@item.TenKip </td>
+
+                                            <td class="text-center">
+
+                                                <a class="btn btn-danger btn-sm" title="Xóa" href="@Url.Action("Delete", "Kip", new { id = item.ID_Kip })"
+                                                   onclick="return confirm('Bạn muốn xóa BP/NM : @item.TenKip')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                                <a class="btn btn-primary btn-sm" id="btn-edit_@item.ID_Kip" title="Chỉnh sửa"><i class="bi bi-pencil-square"></i></a>
+                                                <div class="modal" id="myModaleF_@item.ID_Kip" role="dialog" data-url='@Url.Action("Edit","Kip",new{id = item.ID_Kip})'></div>
+
+                                                <script type="text/javascript">
+                                                    $("#btn-edit_@item.ID_Kip").click(function () {
+                                                        var url = $('#myModaleF_@item.ID_Kip').data('url');
+                                                        $.get(url, function (data) {
+                                                            $("#myModaleF_@item.ID_Kip").html(data);
+                                                            $("#ModalTitle").html("CHỈNH SỨA THÔNG TIN");
+                                                            $("#myModaleF_@item.ID_Kip").modal('show');
+                                                        });
+                                                    });
+                                                </script>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+
+                        </div>
+                        <div class="container" style="margin:0px; padding:1% 0% 0% 0%;">
+                            @if (pager.TotalPages > 0)
+                            {
+                                <ul class="pagination justify-content-start ">
+                                    @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
+                                    {
+                                        <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
+                                            <a class="page-link" asp-asp-controller="VatTu" asp-action="Index" asp-route-page="@pge">@pge</a>
+
+                                        </li>
+                                    }
+                                    @if (pager.CurrentPage < pager.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" asp-asp-controller="VatTu" asp-action="Index" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" asp-asp-controller="VatTu" asp-action="Index" asp-route-page="@(pager.TotalPages)">Last</a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script type="text/javascript">
+    $("#btn-search").on('click', function () {
+        var search = $('#txtsearch').val();
+        window.location.href = '@Url.Action("Index", "Kip")?search=' + search;
+    });
+</script>

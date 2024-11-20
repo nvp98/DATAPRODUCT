@@ -1,0 +1,88 @@
+﻿@model Data_Product.Models.Tbl_TaiKhoan
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@using (Html.BeginForm("Create", "TaiKhoan", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-dialog" style="padding-top:1.5%;">
+        <div class="modal-content" style="max-width: none; width: 800px;">
+            <div class="modal-header" style="background-color: #F9F9F9;">
+                <h5 id="ModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <div style="display: flex;padding-bottom: 1.5%;">
+                    <div class="col-md-6">
+                        <label for="inputName5" class="form-label">Mã nhân viên</label>
+                        @Html.EditorFor(model => model.TenTaiKhoan, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.ValidationMessageFor(model => model.TenTaiKhoan, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6" style="padding-left: 1.5%;">
+                        <label for="inputPassword5" class="form-label">Họ và tên</label>
+                        @Html.EditorFor(model => model.HoVaTen, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.ValidationMessageFor(model => model.HoVaTen, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div style="display: flex;padding-bottom: 1.5%;">
+                    <div class="col-md-6">
+                        <label for="inputEmail5" class="form-label">Email</label>
+                        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6" style="padding-left: 1.5%;">
+                        <label for="inputPassword5" class="form-label">Mật khẩu</label>
+                        @Html.EditorFor(model => model.MatKhau, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.ValidationMessageFor(model => model.MatKhau, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div style="display: flex;padding-bottom: 1.5%;">
+                    <div class="col-md-6">
+                        <label for="inputEmail5" class="form-label">Phòng ban</label>
+                        @Html.DropDownListFor(model => model.ID_PhongBan, ViewBag.PBList as SelectList, "----- Chọn BP/NM ------", new {  @style="text-align: center;", @id = "IDPhongBan", @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.ID_PhongBan, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6" style="padding-left: 1.5%;">
+                        <label for="inputPassword5" class="form-label">Phân xưởng</label>
+                        @Html.DropDownListFor(model => model.ID_PhanXuong, ViewBag.XList as SelectList, "----- Chọn phân xưởng ------", new {  @style="text-align: center;", @id = "IDPhanXuong", @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.ID_PhanXuong, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div style="display: flex;padding-bottom: 1.5%;">
+                    <div class="col-md-6">
+                        <label for="inputEmail5" class="form-label">Chức vụ</label>
+                        @Html.DropDownListFor(model => model.ID_ChucVu, ViewBag.VTList as SelectList, "----- Chọn chức vụ ------", new {  @style="text-align: center;", @id = "IDChucVu", @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.ID_ChucVu, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6" style="padding-left: 1.5%;">
+                        <label for="inputPassword5" class="form-label">Số điện thoại</label>
+                        @Html.EditorFor(model => model.SoDienThoai, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.ValidationMessageFor(model => model.SoDienThoai, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Quyền đăng nhập</label>
+                    @Html.DropDownListFor(model => model.ID_Quyen, ViewBag.QList as SelectList, "----- Chọn quyền đăng nhập ------", new {  @style="text-align: center;", @id = "IDQuyen", @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.ID_Quyen, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group" style="text-align: end;padding: 0% 3% 3% 3%;">
+                <input type="submit" style="border-radius: 10px;" value="Xác nhận" id="btnSubmit" class="btn btn-primary pull-right" />
+            </div>
+        </div>
+    </div>
+}
+<script>
+    $("#IDPhongBan").chosen({
+        width: "100%"
+    });
+    $("#IDPhanXuong").chosen({
+        width: "100%"
+    });
+    $("#IDChucVu").chosen({
+        width: "100%"
+    });
+    $("#IDQuyen").chosen({
+        width: "100%"
+    });
+</script>

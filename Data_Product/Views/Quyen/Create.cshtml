@@ -1,0 +1,25 @@
+﻿@model Data_Product.Models.Tbl_Quyen
+<script src="~/Chonse/chosen.jquery.js"></script>
+<link href="~/Chonse/chosen.css" rel="stylesheet">
+@using (Html.BeginForm("Create", "Quyen", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-dialog" style="padding-top:1.5%;">
+        <div class="modal-content" style="max-width: none; width: 800px;">
+            <div class="modal-header" style="background-color: #F9F9F9;">
+                <h5 id="ModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Quyền đăng nhập</label>
+                    @Html.EditorFor(model => model.TenQuyen, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                    @Html.ValidationMessageFor(model => model.TenQuyen, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group" style="text-align: end;padding: 0% 3% 3% 3%;">
+                <input type="submit" style="border-radius: 10px;" value="Xác nhận" id="btnSubmit" class="btn btn-primary pull-right" />
+            </div>
+        </div>
+    </div>
+}

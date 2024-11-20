@@ -1,0 +1,48 @@
+﻿@model Data_Product.Models.Tbl_TaiKhoan
+<script src="~/Chonse/chosen.jquery.js"></script>
+<link href="~/Chonse/chosen.css" rel="stylesheet">
+@using (Html.BeginForm("Edit", "TaiKhoan", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-dialog">
+        <div class="modal-content" style="max-width: 2000px;">
+            <div class="modal-header">
+                <h5 id="ModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12 " style="text-align: center;">
+                        <label class="form-label fw-bold">Tên đăng nhập</label>
+                        @* @Html.DropDownListFor(model => model.ID_NV, ViewBag.NVList as SelectList, "---- Tên dăng nhập ----", new {  @style="text-align: center;",@id = "ID_NV", @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.ID_NV, "", new { @class = "text-danger" })*@
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 " style="text-align: center;">
+                        <label class="form-label fw-bold">Chữ ký</label>
+                        <input type="file" class="form-control" name="image" />
+                    </div>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <input type="submit" style="border-radius: 10px;margin-right: 4%;" value="Xác nhận" id="btnSubmit" class="btn btn-primary pull-right" />
+            </div>
+        </div>
+    </div>
+}
+<script>
+    $("#ID_NV").chosen({
+        width: "100%"
+    });
+    $("#ID_PhongBan").chosen({
+        width: "100%"
+    });
+    $("#ID_Quyen").chosen({
+        width: "100%"
+    });
+    $("#BDA_ID").chosen({
+        width: "100%"
+    });
+</script>

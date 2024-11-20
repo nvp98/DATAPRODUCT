@@ -1,0 +1,24 @@
+﻿@model Data_Product.Models.Tbl_Xuong
+<script src="~/Chonse/chosen.jquery.js"></script>
+<link href="~/Chonse/chosen.css" rel="stylesheet">
+@using (Html.BeginForm("ImportExcel", "Xuong", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    <div class="modal-dialog" style="padding-top:1.5%;">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #F9F9F9;">
+                <h5 id="ModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">Chọn file Excel Import</label>
+                    <input style="height: 41px;" type="file" id="file" name="file" class="form-control" onchange="checkfile(this);" />
+                </div>
+            </div>
+            <div class="form-group" style="text-align: end;padding: 0% 3% 3% 3%;">
+                <input type="submit" style="border-radius: 10px;" value="Xác nhận" id="btnSubmit" class="btn btn-primary pull-right" />
+            </div>
+        </div>
+    </div>
+}
