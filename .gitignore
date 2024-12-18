@@ -2,3 +2,38 @@
 **/bin/
 **/obj/
 
+## Log tệp
+*.log
+
+## Tệp cấu hình tạm thời và người dùng
+*.user
+*.userosscache
+*.suo
+*.sln.cache
+
+## Tệp tạm thời
+*.tmp
+*.temp
+*.log
+*.vspscc
+*.vssscc
+
+## VSCode
+.vscode/
+
+## Visual Studio
+.vs/
+
+## Thư viện
+*.pdb
+*.cache
+
+## Kết quả publish
+publish/
+dist/
+
+## Tệp nén hoặc đóng gói
+*.zip
+*.tar.gz
+*.7z
+*.rar
