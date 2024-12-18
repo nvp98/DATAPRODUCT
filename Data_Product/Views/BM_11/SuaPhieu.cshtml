@@ -57,12 +57,16 @@
                                                 Lưu phiếu
                                             </span>
                                         </button>
-                                        <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
-                                            <i class="bi bi-send"></i>
-                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                Gửi phiếu
-                                            </span>
-                                        </button>
+                                        @if (ID_BBGN.ThoiGianXuLyBG.ToString("dd/MM/yyyy") == DateTime.Now.AddDays(-1).ToString("dd/MM/yyyy") || ID_BBGN.ThoiGianXuLyBG.ToString("dd/MM/yyyy") == DateTime.Now.ToString("dd/MM/yyyy") || true)
+                                        {
+                                            <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
+                                                <i class="bi bi-send"></i>
+                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                    Gửi phiếu
+                                                </span>
+                                            </button>
+                                        }
+                                       
                                     </div><!-- End Recent Sales -->
 
                                 </div>
@@ -315,7 +319,7 @@
                                                 @{
                                                     int count = item.ID_CT_BBGN + 100;
                                                     var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item.ID_VatTu).FirstOrDefault();
-                                                    var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
+                                                    //var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
                                                     var ID_PB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
                                                     var List = _context.Tbl_VatTu.ToList();
                                                     var VatTu = await (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(ID_PB.TenNgan))
@@ -336,11 +340,19 @@
                                             
                                                 
                                                 <td style="font-size:14px;vertical-align:middle;">
-                                                    <select class="form-control marginTB5 SelectVT" name="VatTu_@count" id="VatTu_@item.ID_CT_BBGN" value=" @ID_VT?.TenVatTu">
-                                                        <option value='@ID_VT?.ID_VatTu'>@ID_VT?.TenVatTu</option>
+                                                    <select class="form-control marginTB5 SelectVT" name="VatTu_@count" id="VatTu_@count" value=" @ID_VT?.TenVatTu">
+                                                       @* <option value='@ID_VT?.ID_VatTu'>@ID_VT?.TenVatTu</option>*@
                                                         @foreach (var item_ in ViewBag.VT_List)
                                                         {
-                                                            <option value='@item_.Value'>@item_.Text</option>
+                                                            if (item_.Value == ID_VT?.ID_VatTu.ToString())
+                                                            {
+                                                                <option value='@item_.Value' selected>@item_.Text</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value='@item_.Value'>@item_.Text</option>
+                                                            }
+                                                            
                                                         }
                                                     </select>
                                                 </td>
@@ -352,12 +364,12 @@
                                                 {
                                                     <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                        <select class="form-control marginTB5 SelectVT" id='lo_@count' name='lo_@count' placeholder='Lô' value=" @ID_MaLo?.TenMaLo">
-                                                            <option value=''>--Mã lô--</option>
-                                                            @foreach (var item_ in ViewBag.MLList)
+                                                        <select class="form-control marginTB5" id='lo_@count' name='lo_@count' placeholder='Lô' value=" @item.MaLo">
+                                                            <option value=''></option>
+                                                           @* @foreach (var item_ in ViewBag.MLList)
                                                             {
                                                                 <option value='@item_.Value'>@item_.Text</option>
-                                                            }
+                                                            }*@
                                                         </select>
                                                     </td>
                                                 }
@@ -365,36 +377,36 @@
                                                 {
                                                     <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                        <select class="form-control marginTB5 SelectVT" id='lo_@count' name='lo_@count' placeholder='Lô' value=" @ID_MaLo?.TenMaLo">
-                                                            <option value='@ID_MaLo?.ID_MaLo'> @ID_MaLo?.TenMaLo</option>
-                                                            @foreach (var item_ in ViewBag.MLList)
+                                                        <select class="form-control marginTB5 " id='lo_@count' name='lo_@count' placeholder='Lô' value=" @item.MaLo">
+                                                            <option value='@item.MaLo'> @item.MaLo</option>
+                                                         @*   @foreach (var item_ in ViewBag.MLList)
                                                             {
                                                                 <option value='@item_.Value'>@item_.Text</option>
-                                                            }
+                                                            }*@
                                                         </select>
                                                     </td>
                                                     
                                                 }
 
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' id='doam_@count' name='doam_@count' placeholder='Độ ẩm' rows='1' value="@item.DoAm_W"></input>
+                                                    <input class='form-control' cols='20' id='doam_@count' name='doam_@count' type="number" step="0.001" placeholder='Độ ẩm' value="@item.DoAm_W.ToString(System.Globalization.CultureInfo.InvariantCulture)"></input>
 
                                                    
                                                 </td>
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                    <input class='form-control' cols='20' id='khoiluongbg_@count' name='khoiluongbg_@count' placeholder='Khối lượng' rows='1' value="  @item.KhoiLuong_BG"></input>
+                                                    <input class='form-control' cols='20' id='khoiluongbg_@count' name='khoiluongbg_@count' type="number" step="0.001" placeholder='Khối lượng' value="@item.KhoiLuong_BG.ToString(System.Globalization.CultureInfo.InvariantCulture)"></input>
                                                  
                                                 </td>
                                                 
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' id='quykhobg_@count' name='quykhobg_@count' placeholder='KL quy khô' rows='1' value="@item.KL_QuyKho_BG" disabled="disabled"></input>
+                                                    <input class='form-control' cols='20' id='quykhobg_@count' name='quykhobg_@count' placeholder='KL quy khô'  value="@item.KL_QuyKho_BG" disabled="disabled"></input>
                                                 </td>
                                                 @if(item.KhoiLuong_BN == 0)
                                                 {
                                                     <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                        <input class='form-control' cols='20' placeholder='Khối lượng' rows='1' disabled="disabled"></input>
+                                                        <input class='form-control' cols='20' placeholder='Khối lượng' disabled="disabled"></input>
 
                                                     </td>
 
@@ -510,20 +522,20 @@
                                                                                     </select>
                                                                             </td>
                                                                              <td >
-                                                                                    <select class="form-control marginTB5 SelectQT" id='lo_${i}' name='lo_${i}' placeholder='Lô'>
+                                                                                    <select class="form-control marginTB5 " id='lo_${i}' name='lo_${i}' placeholder='Lô'>
                                                                                          <option value =''>--Mã lô--</option>
-                                                                                            @foreach (var item in ViewBag.MLList)
+                                                                                           @* @foreach (var item in ViewBag.MLList)
                                                                                             {
                                                                                                 <option value='@item.Value'>@item.Text</option>
-                                                                                            }
+                                                                                            }*@
                                                                                     </select>
                                                                             </td>
                                                                              <td >
-                                                                                    <input class='form-control' cols='20' id='doam_${i}' name='doam_${i}' placeholder='W (%)' rows='1'></input>
+                                                                                        <input class='form-control' cols='20' id='doam_${i}' type="number" step="0.001" name='doam_${i}' placeholder='W (%)' rows='1'></input>
                                                                                 <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                             </td>
                                                                              <td >
-                                                                                   <input class='form-control' cols='20' id='khoiluongbg_${i}' name='khoiluongbg_${i}' placeholder='Khối lượng' rows='1'></input>
+                                                                                       <input class='form-control' cols='20' id='khoiluongbg_${i}' type="number" step="0.001" name='khoiluongbg_${i}' placeholder='Khối lượng' rows='1'></input>
                                                                                 <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                             </td>
                                                                              <td >
@@ -550,9 +562,9 @@
                 width: "100%"
             });
 
-            $(".SelectQT").chosen({
+          @*  $(".SelectQT").chosen({
                 width: "100%"
-            });
+            });*@
 
         });
     });
@@ -568,12 +580,25 @@
                 console.log(data1)
                 if (data1[0] != null) {
                     $("#NoiDung_" + id).empty();
-                        $.each(data1, function (index, row) {
-                            $("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")
-                        });
+                    $.each(data1, function (index, row) {
+                        $("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")
+                    });
                 }
                 else {
-                    $($("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")).empty();
+                    $("#NoiDung_" + id).empty();
+                }
+            });
+            $.get("/BM_11/MaLo", { IDVatTu: $(this).val() }, function (data1) {
+                $("#lo_" + id).empty();
+                if (data1[0] != null) {
+                    $("#lo_" + id).empty();
+                    $("#lo_" + id).append("<option value=''></option>")
+                    $.each(data1, function (index, row) {
+                        $("#lo_" + id).append("<option value ='" + row.tenMaLo + "' selected>" + row.tenMaLo + "</option>")
+                    });
+                }
+                else {
+                    $("#lo_" + id).empty();
                 }
             });
             $("#NoiDung_" + id).trigger("chosen:updated");

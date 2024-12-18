@@ -33,7 +33,7 @@
         <div class="tab-content">
             <div class="row">
                 <div class="card">
-                    <div class="row" style="width:300%; height: 120px;">
+                    <div class="row" style=" height: 120px;">
                         <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available;">
                             <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
 
@@ -89,8 +89,8 @@
                                 <thead style="height: 60px; font-size: 14px;">
                                     <tr>
                                         <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
-                                        <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
-
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung trích yếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Quy trình</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Số phiếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
@@ -109,182 +109,128 @@
                                     }
                                     @foreach (var item in Model)
                                     {
-                                        if(item.ID_QuyTrinh == 3)
-                                        {
-                                            <tr>
-                                                <td class="text-center">
-                                                    @RowNo@{
-                                                        RowNo++;
-                                                    }
-                                                </td>
-                                                @if (item.ID_TrangThai_BN == 0)
+                                        <tr>
+                                            <td class="text-center">
+                                                @RowNo@{
+                                                    RowNo++;
+                                                }
+                                            </td>
+                                            @if (item.ID_TrangThai_BN == 0)
+                                            {
+                                                if(item.ID_QuyTrinh == 3)
                                                 {
                                                     <td style="font-size:14px;color: #335FB3">
                                                         <a class="nav-link collapsed" href="@Url.Action("Phieudentoi_CauHieuChinh", "XuLyPhieu", new {id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
+                                                            BM.11/QT.05
                                                         </a>
                                                     </td>
                                                 }
                                                 else
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-
-                                                @if (item.ID_QuyTrinh == 1)
-                                                {
-                                                    <td style="font-size:14px;vertical-align:middle;">
-                                                        Tạo phiếu
-                                                    </td>
-                                                }
-                                                else if (item.ID_QuyTrinh == 2)
-                                                {
-                                                    <td style="font-size:14px;vertical-align:middle;">
-                                                        Bổ sung phiếu
-                                                    </td>
-                                                }
-                                                else if (item.ID_QuyTrinh == 3)
-                                                {
-                                                    <td style="font-size:14px;vertical-align:middle;">
-                                                        Đề nghị hiệu chỉnh
-                                                    </td>
-                                                }
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    @item.SoPhieu
-                                                </td>
-                                                @{
-                                                    var BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BG).FirstOrDefault();
-                                                    var BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BN).FirstOrDefault();
-                                                }
-                                                <td class="text-left" style="font-size:14px;vertical-align:middle;">
-                                                    @BG.TenTaiKhoan
-                                                    <br>
-                                                    @BG.HoVaTen
-                                                </td>
-                                                <td class="text-left" style="font-size:14px;vertical-align:middle;">
-                                                    @BN.TenTaiKhoan
-                                                    <br>
-                                                    @BN.HoVaTen
-                                                </td>
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.ThoiGianXuLyBG.ToString("dd/MM/yyyy")</td>
-                                                @if (@item.ThoiGianXuLyBN == DateTime.Parse("0001/01/01"))
-                                                {
-                                                    <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    </td>
-
-                                                }
-                                                else
-                                                {
-                                                    DateTime ThoiGianXuly = (DateTime)@item.ThoiGianXuLyBN;
-                                                    <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                        @ThoiGianXuly.ToString("dd/MM/yyyy")
-                                                    </td>
-                                                }
-                                                @if (item.ID_TrangThai_BN == 0)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-warning" style="width: 120px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Chưa xử lý
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BN == 1)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-success" style="width: 120px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đã xử lý
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BN == 2)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 120px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Yêu cầu hiệu chỉnh
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                            </tr>
-                                        }
-                                        else
-                                        {
-                                            <tr>
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;"> 1 </td>
-                                                @if (item.ID_TrangThai_BN == 0)
                                                 {
                                                     <td style="font-size:14px;color: #335FB3">
                                                         <a class="nav-link collapsed" href="@Url.Action("Phieudentoi", "XuLyPhieu", new {id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
+                                                            BM.11/QT.05
                                                         </a>
                                                     </td>
                                                 }
 
-                                                @if (item.ID_QuyTrinh == 1)
-                                                {
-                                                    <td style="font-size:14px;vertical-align:middle;">
-                                                        Tạo phiếu
-                                                    </td>
-                                                }
-                                                else if (item.ID_QuyTrinh == 2)
-                                                {
-                                                    <td style="font-size:14px;vertical-align:middle;">
-                                                        Bổ sung phiếu
-                                                    </td>
-                                                }
-                                                else if (item.ID_QuyTrinh == 3)
-                                                {
-                                                    <td style="font-size:14px;vertical-align:middle;">
-                                                        Yêu cầu hiệu chỉnh
-                                                    </td>
-                                                }
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    @item.SoPhieu
+                                            }
+                                            else
+                                            {
+                                                <td style="font-size:14px;color: #335FB3">
+                                                    <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
+                                                        BM.11/QT.05
+                                                    </a>
                                                 </td>
-                                                @{
-                                                    var BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BG).FirstOrDefault();
-                                                    var BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BN).FirstOrDefault();
-                                                }
-                                                <td class="text-left" style="font-size:14px;vertical-align:middle;">
-                                                    @BG.TenTaiKhoan
-                                                    <br>
-                                                    @BG.HoVaTen
+                                            }
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @item.NoiDungTrichYeu
+                                            </td>
+                                            @if (item.ID_QuyTrinh == 1)
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Tạo phiếu
                                                 </td>
-                                                <td class="text-left" style="font-size:14px;vertical-align:middle;">
-                                                    @BN.TenTaiKhoan
+                                            }
+                                            else if (item.ID_QuyTrinh == 2)
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Bổ sung phiếu
+                                                </td>
+                                            }
+                                            else if (item.ID_QuyTrinh == 3)
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Đề nghị hiệu chỉnh
+                                                </td>
+                                            }
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @item.SoPhieu
+                                            </td>
+                                            @{
+                                                var BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BG).FirstOrDefault();
+                                                var BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BN).FirstOrDefault();
+                                            }
+                                            <td class="text-left" style="font-size:14px;vertical-align:middle;">
+                                                @BG.TenTaiKhoan
                                                 <br>
-                                                    @BN.HoVaTen
+                                                @BG.HoVaTen
+                                            </td>
+                                            <td class="text-left" style="font-size:14px;vertical-align:middle;">
+                                                @BN.TenTaiKhoan
+                                                <br>
+                                                @BN.HoVaTen
+                                            </td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.ThoiGianXuLyBG.ToString("dd/MM/yyyy")</td>
+                                            @if (@item.ThoiGianXuLyBN == DateTime.Parse("0001/01/01"))
+                                            {
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 </td>
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.ThoiGianXuLyBG.ToString("dd/MM/yyyy")</td>
-                                                @if (@item.ThoiGianXuLyBN == DateTime.Parse("0001/01/01"))
-                                                {
-                                                    <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    </td>
 
+                                            }
+                                            else
+                                            {
+                                                DateTime ThoiGianXuly = (DateTime)@item.ThoiGianXuLyBN;
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    @ThoiGianXuly.ToString("dd/MM/yyyy")
+                                                </td>
+                                            }
+                                            @if (item.ID_TrangThai_BBGN == 5) //xóa phiếu
+                                            {
+                                                var xulyxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                                if (xulyxoa.TinhTrang_BN == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-warning" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Chưa xử lý Xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (xulyxoa.TinhTrang_KH == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-warning" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Chờ PKH xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
                                                 }
                                                 else
                                                 {
-                                                    DateTime ThoiGianXuly = (DateTime)@item.ThoiGianXuLyBN;
-                                                    <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                        @ThoiGianXuly.ToString("dd/MM/yyyy")
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Đã xóa phiếu
+                                                            </span>
+                                                        </button>
                                                     </td>
                                                 }
+                                            }
+                                            else
+                                            {
                                                 @if (item.ID_TrangThai_BN == 0)
                                                 {
                                                     <td class="text-center" style="font-size:14px;">
@@ -310,13 +256,13 @@
                                                     <td class="text-center" style="font-size:14px;">
                                                         <button type="button" class="btn btn-danger" style="width: 120px;">
                                                             <span class="small pt-2 ps-1" style="color: white;">
-                                                                Yêu cầu hiệu chỉnh
+                                                                Hủy phiếu
                                                             </span>
                                                         </button>
                                                     </td>
                                                 }
-                                            </tr>
-                                        }
+                                            }
+                                        </tr>
                                     }
                                 </tbody>
                             </table>

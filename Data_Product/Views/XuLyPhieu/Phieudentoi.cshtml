@@ -70,7 +70,7 @@
                                     <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="0">
                                         <i class="bi bi-send"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
-                                            Yêu cầu hiệu chỉnh
+                                            Không xác nhận phiếu
                                         </span>
                                     </button>
                                 </div><!-- End Recent Sales -->
@@ -178,7 +178,7 @@
                         <div class="row" style="width:100%; padding-bottom:1%;">
                             <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 110px;padding: 0.5% 1% 0% 1%;border-radius: 10px;margin-left: 8px;">
                                 <span style="color:black; font-size:14px;">
-                                   Ý kiến yêu cầu hiệu chỉnh ( Nếu có ):
+                                   Lý do không xác nhận phiếu ( Nếu có ):
                                 </span>
                                 <input class='form-control' id='ykien' name='ykien' style="height:50px;margin-top: 0.5%;" cols='20' rows='1' value=""></input>
                             </div><!-- End Recent Sales -->
@@ -191,8 +191,8 @@
                                         <tr style="font-size:14px;">
                                             <th width="50px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
                                             <th class="text-center" rowspan="3" width="500px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
-                                            <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
-                                            <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
+                                            <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
+                                            <th class="text-center" rowspan="3" width="250px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
                                             <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
                                             <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
                                         </tr>
@@ -236,53 +236,42 @@
                                                 </td>
 
                                                 <td style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' rows='1' value=" @ID_VT?.TenVatTu" disabled="disabled"></input>
+                                                    <input class='form-control' cols='20' rows='1' value="@ID_VT?.TenVatTu" disabled="disabled"></input>
                                                 </td>
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' rows='1' value=" @ID_VT?.DonViTinh" disabled="disabled"></input>
+                                                    <input class='form-control' cols='20' rows='1' value="@ID_VT?.DonViTinh" disabled="disabled"></input>
 
                                                 </td>
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    @{
-                                                        var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
-                                                    }
-                                                    @if(item.MaLo.Trim() == "")
-                                                    {
-                                                        <input class='form-control' cols='20' rows='1' value="" disabled="disabled"></input>
-                                                    }
-                                                    else
-                                                    {
-                                                        <input class='form-control' cols='20' rows='1' value=" @ID_MaLo.TenMaLo" disabled="disabled"></input>
-                                                    }
-                                                    
+                                                 
+                                                   <input class='form-control' cols='20' rows='1' value="@item.MaLo" disabled="disabled"></input>
                                                 </td>
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                     <input class='form-control' cols='20' rows='1' value="@item.DoAm_W" disabled="disabled"></input>
                                                 </td>
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                    <input class='form-control' cols='20' rows='1' value="  @item.KhoiLuong_BG" disabled="disabled"></input>
+                                                    <input class='form-control' cols='20' rows='1' value="@item.KhoiLuong_BG" disabled="disabled"></input>
 
                                                 </td>
 
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' placeholder='KL quy khô' rows='1' value="@item.KL_QuyKho_BG" disabled="disabled"></input>
+                                                    <input class='form-control' cols='20' placeholder='KL quy khô' rows='1' value="@item.KL_QuyKho_BG" readonly></input>
                                                 </td>
 
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                    <input class='form-control' cols='20' id='khoiluongbn_@item.ID_CT_BBGN' name='khoiluongbn_@item.ID_CT_BBGN' placeholder='Khối lượng' rows='1' value="@item.KhoiLuong_BG"></input>
+                                                    <input class='form-control' cols='20' id='khoiluongbn_@item.ID_CT_BBGN' name='khoiluongbn_@item.ID_CT_BBGN' placeholder='Khối lượng' type="number" step="0.001" rows='1' value="@item.KhoiLuong_BG.ToString(System.Globalization.CultureInfo.InvariantCulture)"></input>
 
                                                 </td>
 
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' id='quykhobn_@item.ID_CT_BBGN' name='quykhobn_@item.ID_CT_BBGN' placeholder='KL quy khô' rows='1' value="@item.KL_QuyKho_BG" disabled="disabled"></input>
-
+                                                    <input class='form-control' cols='20' id='quykhobn_@item.ID_CT_BBGN' name='quykhobn_@item.ID_CT_BBGN' placeholder='KL quy khô' rows='1' value="@item.KL_QuyKho_BG" readonly></input>
 
                                                 </td>
 
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' id='ghichu_@item.ID_CT_BBGN' name='ghichu_@item.ID_CT_BBGN' placeholder='Đơn vị tính' rows='1' value=" @item.GhiChu"></input>
+                                                    <input class='form-control' cols='20' id='ghichu_@item.ID_CT_BBGN' name='ghichu_@item.ID_CT_BBGN' placeholder='' rows='1' value="@item.GhiChu"></input>
 
                                                 </td>
                                             </tr>

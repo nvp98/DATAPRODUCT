@@ -29,6 +29,12 @@ namespace Data_Product.Models
         public int ID_QuyTrinh { get; set; }
         public Nullable<int> ID_BBGN_Cu { get; set; }
         public string? FileBBGN { get; set; }
+        public DateTime NgayTao { get; set; }
+        public string Kip { get; set; }
+        public string Ca { get; set; }
+        public string? NoiDungTrichYeu { get; set; }
+        public Boolean IsDelete { get; set; }
+        public Boolean IsLock { get; set; }
         [NotMapped]
         public string[] IDNhanVien { get; set; }
     }

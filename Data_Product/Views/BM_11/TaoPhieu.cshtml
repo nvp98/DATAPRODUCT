@@ -27,7 +27,7 @@
         pageNo = pager.CurrentPage;
     }
 }
-@using (Html.BeginForm("TaoPhieu", "BM_11", FormMethod.Post, new { enctype = "multipart/form-data", onsubmit = "submitForm(event)" }))
+@using (Html.BeginForm("TaoPhieu", "BM_11", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
 {
     <div class="app-main__outer">
         <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
@@ -36,7 +36,7 @@
                     <div class="card">
 
                         <div class="row" style="width:100%">
-                            <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;width: -webkit-fill-available;">
+                            <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;">
                                 <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
                                     <span class="text-muted small pt-2 ps-1">
                                         <b style="color:#06428b">
@@ -44,14 +44,14 @@
                                         </b>
                                     </span>
                                 </div><!-- End Recent Sales -->
-                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
-                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="0">
-                                        <i class="bi bi-floppy"></i>
+                                <div class="col-4 " style="padding: 2%  2%  2% 0%; ">
+                                    <button type="button" class="btn btn-danger" onclick="window.location.href='@Url.Action("Index", "Menu")';">
+                                        <i class="bi bi-x-lg"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
-                                            Lưu phiếu
+                                            Hủy bỏ
                                         </span>
                                     </button>
-                                    <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
+                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
                                         <i class="bi bi-send"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Gửi phiếu
@@ -82,21 +82,23 @@
                                     </div>
                                     <script type="text/javascript">
                                         $("#ID_Day").change(function () {
-                                            console.log("1")
-                                            $.get("/BM_11/Ngay", { Ngay: $("#ID_Day").val() }, function (data) {
-                                                console.log(data)
-                                                if (data[0] != null) {
-                                                    $("#IDCa").empty();
-                                                    //$("#IDCa").append("<option value ='" + null + "'>" + "--Chọn Ca--" + "</option>")
-                                                    $.each(data, function (index, row) {
-                                                        $("#IDCa").append("<option value ='" + row.iD_Kip + "' >" + row.tenCa + "</option>");
-                                                    });
-                                                }
-                                                else {
-                                                    $("#IDCa").empty();
-                                                    $("#IDCa").append("<option value ='" + 0 + "'>" + "--Không có ca làm việc--" + "</option>")
-                                                }
-                                            });
+                                            $("#CaKip").empty();
+                                            //$("#IDCa").empty();
+                                            $('#IDCa').prop('selectedIndex', 0);
+                                            //$.get("/BM_11/Ngay", { Ngay: $("#ID_Day").val() }, function (data) {
+                                            //    console.log(data)
+                                            //    if (data[0] != null) {
+                                            //        $("#IDCa").empty();
+                                            //        $("#IDCa").append("<option value ='" + null + "'>" + "--Chọn Ca--" + "</option>")
+                                            //        $.each(data, function (index, row) {
+                                            //            $("#IDCa").append("<option value ='" + row.iD_Kip + "' >" + row.tenCa + "</option>");
+                                            //        });
+                                            //    }
+                                            //    else {
+                                            //        $("#IDCa").empty();
+                                            //        $("#IDCa").append("<option value ='" + 0 + "'>" + "--Không có ca làm việc--" + "</option>")
+                                            //    }
+                                            //});
                                         });
                                     </script>
 
@@ -144,16 +146,37 @@
                                         <span style="color:black; font-size:14px;">
                                             <select class="form-control marginTB5 SelectCA" name="IDCa" id="IDCa">
                                                 <option value='null'>-- Ca làm việc --</option>
-                                                @foreach (var item in ViewBag.IDKip)
+                                                <option value='1'>1</option>
+                                                <option value='2'>2</option>
+                                               @* @foreach (var item in ViewBag.IDKip)
                                                 {
                                                     <option value='@item.Value'>@item.Text</option>
-                                                }
+                                                }*@
                                             </select>
                                         </span>
+                                       @* <script type="text/javascript">
+                                            $("#IDCa").change(function () {
+                                                $("#CaKip").empty();
+                                                $.get("/BM_11/Kip", { IDKip: $("#IDCa").val() }, function (data) {
+                                                    console.log(data)
+                                                    if (data[0] != null) {
+                                                        $("#CaKip").empty();
+                                                        //$("#ID_TaiKhoan").append("<option value ='" + null + "'>" + "--Chọn hợp đồng--" + "</option>")
+                                                        $.each(data, function (index, row) {
+                                                            $("#CaKip").append("<option value ='" + row.iD_Kip + "' selected>" + row.tenKip + "</option>");
+                                                        });
+                                                    }
+                                                    else {
+                                                        $("#CaKip").empty();
+                                                        $("#CaKip").append("<option value ='" + 0 + "'>" + "--Không có kíp làm việc--" + "</option>")
+                                                    }
+                                                });
+                                            });
+                                        </script>*@
                                         <script type="text/javascript">
                                             $("#IDCa").change(function () {
-                                                console.log("1")
-                                                $.get("/BM_11/Kip", { IDKip: $("#IDCa").val() }, function (data) {
+                                                $("#CaKip").empty();
+                                                $.get("/BM_11/KipN", { Ngay: $("#ID_Day").val(), Ca: $("#IDCa").val() }, function (data) {
                                                     console.log(data)
                                                     if (data[0] != null) {
                                                         $("#CaKip").empty();
@@ -352,6 +375,16 @@
                          
                             </div><!-- End Recent Sales -->
                         </div>*@
+
+                        <div class="row" style="width:100%; padding-bottom:1%;">
+                            <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 110px;padding: 0.5% 1% 0% 1%;border-radius: 10px;margin-left: 8px;">
+                                <span style="color:black; font-size:14px;">
+                                    Nội dung trích yếu:
+                                </span>
+                                <input class='form-control' id='NoiDungTrichYeu' name='NoiDungTrichYeu' style="height:50px;margin-top: 0.5%;" cols='20' rows='1' value=""></input>
+                            </div><!-- End Recent Sales -->
+                        </div>
+
                         <div class="card-body" style="padding-top: 1%;">
                             <div class="table-responsive" style="height: 400px;">
                                 <table class="table table-bordered table-hover" id="table" cellpadding="0">
@@ -400,6 +433,44 @@
         </div>
     </div>
 }
+
+<script>
+    $(document).ready(function () {
+        $('#TaoPhieu').on('submit', function (e) {
+           @* e.preventDefault(); // Ngăn gửi form mặc định*@
+            let isValid = true;
+            let selectedValueCaKip = $('#CaKip').val();
+            let BenNhan = $('#IDTaiKhoan').val();
+            // Kiểm tra nếu chưa chọn giá trị hợp lệ
+            if (selectedValueCaKip == null) {
+                isValid = false;
+                alert('Vui lòng chọn Ca Kíp!');
+                return false; // Ngăn form submit
+            }
+           
+            if (!BenNhan) {
+                isValid = false;
+                alert('Vui lòng chọn Nhân viên bên nhận!');
+                return false; // Ngăn form submit
+            }
+            const table = document.getElementById('table');
+            const rowCount = table.getElementsByTagName('tr').length - 4; // Trừ đi dòng tiêu đề (thead)
+            console.log(rowCount);
+            if (rowCount < 1) {
+                isValid = false;
+                alert('Bảng phải có ít nhất một dòng dữ liệu!');
+                return false; // Ngăn form submit
+            }
+            // Nếu tất cả đều hợp lệ, thực hiện hành động
+            if (isValid) {
+                @*alert('Dữ liệu hợp lệ. Tiến hành gửi form!');*@
+                // Thực hiện gửi form nếu cần
+                return true;
+            }
+        });
+    });
+</script>
+
 <script type="text/javascript">
     const dateInput = document.getElementById("ID_Day");
     const today = new Date();
@@ -509,7 +580,7 @@
                     });            
                 }
                 else {
-                    $($("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")).empty();
+                    $("#NoiDung_" + id).empty();
                 }
             });
             $.get("/BM_11/MaLo", { IDVatTu: $(this).val() }, function (data1) {
@@ -518,11 +589,11 @@
                     $("#lo_" + id).empty();
                     $("#lo_" + id).append("<option value=''></option>")
                     $.each(data1, function (index, row) {
-                        $("#lo_" + id).append("<option value ='" + row.iD_MaLo + "' selected>" + row.tenMaLo + "</option>")
+                        $("#lo_" + id).append("<option value ='" + row.tenMaLo + "' selected>" + row.tenMaLo + "</option>")
                     });
                 }
                 else {
-                    $($("#lo_" + id).append("<option value ='" + row.iD_MaLo + "' selected>" + row.tenMaLo + "</option>")).empty();
+                    $("#lo_" + id).empty();
                 }
             });
             @*$("#lo_" + id).trigger("chosen:updated");*@

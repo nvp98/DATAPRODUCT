@@ -1,4 +1,5 @@
-﻿using Data_Product.Common;
+﻿using ClosedXML.Excel;
+using Data_Product.Common;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using DocumentFormat.OpenXml.InkML;
@@ -157,11 +158,15 @@ namespace Data_Product.Controllers
                 List<string> selectedValues = (from v in _context.Tbl_VatTuMaLo.Where(x => x.ID_MaLo == id)
                                             join pb in _context.Tbl_VatTu on v.ID_VatTu equals pb.ID_VatTu
                                             select new Tbl_VatTu { ID_VatTu = pb.ID_VatTu, TenVatTu = pb.TenVatTu }).Select(p=>p.TenVatTu).ToList();
-                //List<string> stringList = selectedValues.ConvertAll(i => i.ToString());
-                //List<string> stringList = new List<string> { "129"};
+                var selectedValuesStr = new List<string>();
+                foreach (var item in _context.Tbl_VatTuMaLo.Where(x => x.ID_MaLo == id))
+                {
+                    if (item.ID_VatTu != 0) { selectedValuesStr.Add(item.ID_VatTu.ToString()); }
+                }
                 // Tạo SelectList và đánh dấu các mục đã chọn
                 ViewBag.ID_VatTu = new SelectList(vt, "ID_VatTu", "TenVatTu");
                 ViewBag.ID_VatTuSelec = selectedValues;
+                ViewBag.selectedValues = selectedValuesStr.ToArray();
                 ViewBag.ID_MaLo = id;
             }
             else
@@ -426,6 +431,55 @@ namespace Data_Product.Controllers
             }
 
             return RedirectToAction("Index", "MaLo");
+        }
+
+        public IActionResult ExportToExcel()
+        {
+            var data = (from a in _context.Tbl_MaLo
+                        select new Tbl_MaLo
+                        {
+                            ID_MaLo = a.ID_MaLo,
+                            TenMaLo = a.TenMaLo,
+                            PhongBan = a.PhongBan,
+                            ID_TinhTrang = (int)a.ID_TinhTrang,
+                            VatTu = (from v in _context.Tbl_VatTuMaLo.Where(x => x.ID_MaLo == a.ID_MaLo)
+                                     join pb in _context.Tbl_VatTu on v.ID_VatTu equals pb.ID_VatTu
+                                     select new Tbl_VatTu { ID_VatTu = pb.ID_VatTu, TenVatTu = pb.TenVatTu }).ToList(),
+                        }).ToList();
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("MaLo");
+                //Header
+                worksheet.Cell(1, 1).Value = "STT";
+                worksheet.Cell(1, 2).Value = "Tên mã lô";
+                worksheet.Cell(1, 3).Value = "Mã Vật tư";
+                //value
+                int row = 2; int stt = 1;
+                foreach (var item in data)
+                {
+                    worksheet.Cell(row, 1).Value = stt;
+                    worksheet.Cell(row, 2).Value = item.TenMaLo;
+                    worksheet.Cell(row, 3).Value = item.VatTu.Select(x=>x.TenVatTu).ToArray().ToString();
+                    if (item.VatTu.Count() != 0)
+                    {
+                        var selectedValues = new List<string>(); // ID các giá trị mặc định
+
+                        foreach (var vattu in item.VatTu)
+                        {
+                            selectedValues.Add(vattu.TenVatTu.ToString());
+                        }
+                        worksheet.Cell(row, 3).Value = string.Join(", ", selectedValues);
+                    }
+                    
+                        row++; stt++;
+                }
+
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0; // Reset con trỏ stream về đầu
+
+                return File(stream, System.Net.Mime.MediaTypeNames.Application.Octet, "DanhSachMaLo.xlsx");
+            }
         }
 
     }

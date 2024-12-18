@@ -31,7 +31,7 @@
                 <div class="card">
                     <div class="row" style="height: 120px;">
                         <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width:-webkit-fill-available;">
-                            <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+                            <div class="col-6" style="text-align: left;padding: 2%  2%  2% 0%; ">
 
                                 <span class="text-muted small pt-2 ps-1">
                                     <b style="color:#06428b;font-size: 15px;">
@@ -55,7 +55,11 @@
                                     </span>
                                 </button>
                             </div><!-- End Recent Sales -->
-                    
+                            <div class="col-2" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                <form method="get" asp-controller="VatTu" asp-action="ExportToExcel">
+                                    <button type="submit" class="btn btn-primary">Download Excel</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                   @*  Thêm mới*@
@@ -132,7 +136,7 @@
                                             <td style="font-size:14px;">@item.TenVatTu_Sap </td>
                                             <td style="font-size:14px;">@item.MaVatTu_Sap </td>
 
-                                            <td style="font-size:14px;">
+                                            <td style="font-size:14px;max-width:200px" width="200px">
                                                 @item.PhongBan
                                             </td>
                                             <td style="font-size:14px;">@item.DonViTinh </td>
@@ -181,6 +185,10 @@
                                                             $("#ModalTitle").html("CHỈNH SỨA THÔNG TIN");
                                                             $("#myModaleF_@item.ID_VatTu").modal('show');
                                                         });
+                                                    });
+                                                    // Reset nội dung modal sau khi đóng
+                                                    $("#myModaleF_@item.ID_VatTu").on('hidden.bs.modal', function () {
+                                                        $(this).find('.modal-body').html(''); // Clear nội dung cũ
                                                     });
                                                 </script>
                                             </td>

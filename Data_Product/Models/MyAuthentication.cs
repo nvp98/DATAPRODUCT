@@ -9,4 +9,9 @@
             _contextAccessor = contextAccessor;
         }
     }
+    public static class GlobalVariables
+    {
+        public static int ID_PKH = 70;
+        public static string HPDQ02384 = "HPDQ02384";
+    }
 }

@@ -4,8 +4,8 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 -->
 <Project>
   <PropertyGroup>
-    <_PublishTargetUrl>D:\Publish\PRODUCTION_SERVER</_PublishTargetUrl>
-    <History>True|2024-11-19T08:22:04.6552436Z;True|2024-11-19T13:31:52.9809419+07:00;True|2024-11-19T11:31:52.7539929+07:00;True|2024-11-19T10:25:24.4502585+07:00;True|2024-11-15T13:32:53.9260807+07:00;</History>
+    <_PublishTargetUrl>D:\Publish\PRODUCTDATA</_PublishTargetUrl>
+    <History>True|2024-12-18T01:20:13.8978093Z;True|2024-12-18T08:13:21.3949194+07:00;True|2024-12-18T08:09:44.8234495+07:00;True|2024-12-18T08:01:37.1292993+07:00;True|2024-12-17T16:26:20.0444613+07:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>

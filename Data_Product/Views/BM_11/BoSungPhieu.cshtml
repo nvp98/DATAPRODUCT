@@ -27,7 +27,7 @@
         pageNo = pager.CurrentPage;
     }
 }
-@using (Html.BeginForm("BoSungPhieu", "BM_11", FormMethod.Post, new { enctype = "multipart/form-data", onsubmit = "submitForm(event)" }))
+@using (Html.BeginForm("BoSungPhieu", "BM_11", FormMethod.Post, new { enctype = "multipart/form-data", id = "BoSungPhieu" }))
 {
     <div class="app-main__outer">
         <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
@@ -44,14 +44,14 @@
                                         </b>
                                     </span>
                                 </div><!-- End Recent Sales -->
-                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
-                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="0">
-                                        <i class="bi bi-floppy"></i>
+                                <div class="col-4 " style="padding: 2%  2%  2% 0%; ">
+                                    <button type="button" class="btn btn-danger" onclick="window.location.href='@Url.Action("Index", "Menu")';">
+                                        <i class="bi bi-x-lg"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
-                                            Lưu phiếu
+                                            Hủy bỏ
                                         </span>
                                     </button>
-                                    <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
+                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
                                         <i class="bi bi-send"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Gửi phiếu
@@ -82,9 +82,9 @@
                                                 console.log(data)
                                                 if (data[0] != null) {
                                                     $("#IDCa").empty();
-                                                    //$("#ID_TaiKhoan").append("<option value ='" + null + "'>" + "--Chọn hợp đồng--" + "</option>")
+                                                    $("#IDCa").append("<option value ='" + null + "'>" + "--Chọn Ca--" + "</option>")
                                                     $.each(data, function (index, row) {
-                                                        $("#IDCa").append("<option value ='" + row.iD_Kip + "' selected>" + row.tenCa + "</option>");
+                                                        $("#IDCa").append("<option value ='" + row.iD_Kip + "' >" + row.tenCa + "</option>");
                                                     });
                                                 }
                                                 else {
@@ -252,6 +252,22 @@
                                                 }
                                             });
                                         });
+                                        $("#IDTaiKhoan").change(function () {
+                                            $.get("/BM_11/TaiKhoanTK", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                                if (data[0] != null) {
+
+                                                    $("#IDNhanVienView").empty();
+                                                    //$("#IDVatTu").append("<option value ='" + null + "'>" + "--Chọn nguyên/nhiên/vật tư--" + "</option>")
+                                                    $.each(data, function (index, row) {
+                                                        $("#IDNhanVienView").append("<option value ='" + row.iD_TaiKhoan + "' selected>" + row.hoVaTen + "</option>");
+                                                    });
+                                                }
+                                                else {
+                                                    $("#IDNhanVienView").empty();
+                                                    $("#IDNhanVienView").append("<option value ='" + 0 + "'>" + "--Không có nhân viên thống kê nhận--" + "</option>")
+                                                }
+                                            });
+                                        });
                                     </script>
 
 
@@ -277,7 +293,6 @@
                                     </div>
                                     <script type="text/javascript">
                                         $("#IDTaiKhoan").change(function () {
-                                            console.log("1")
                                             $.get("/BM_11/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
                                                 console.log(data)
                                                 if (data[0] != null) {
@@ -314,7 +329,7 @@
                                     </div>
                                     <div style="padding-left: 3%;margin-right: 3%;">
                                         <span style="color:black; font-size:14px;">
-                                            @Html.DropDownList("NhanVienTT", null, "----- Chọn nhân viên thông kê phê duyệt -----", new { id = "IDNhanVienTT", name = "IDNhanVienTT", @class = "marginTB5"})
+                                            @Html.DropDownList("NhanVienTT", null, "----- Chọn nhân viên thông kê phê duyệt -----", new { id = "IDNhanVienTT", name = "IDNhanVienTT", @class = "marginTB5 form-control"})
                                         </span>
                                     </div>
 
@@ -328,7 +343,7 @@
                                     </div>
                                     <div style="padding-left: 3%;margin-right: 3%;">
                                         <span style="color:black; font-size:14px;">
-                                            @Html.DropDownList("NhanVien_TT_View", null, "----- Chọn nhân viên thông kê nhận BBGN -----", new { id = "IDNhanVienView", name = "IDNhanVienView", @class = "marginTB5" })
+                                            @Html.DropDownList("NhanVien_TT_View", null, "----- Chọn nhân viên thông kê nhận BBGN -----", new { id = "IDNhanVienView", name = "IDNhanVienView", @class = "marginTB5 form-control" })
                                         </span>
                                     </div>
 
@@ -336,6 +351,14 @@
                             </div>
                         </div>
 
+                        <div class="row" style="width:100%; padding-bottom:1%;">
+                            <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 110px;padding: 0.5% 1% 0% 1%;border-radius: 10px;margin-left: 8px;">
+                                <span style="color:black; font-size:14px;">
+                                    Nội dung trích yếu:
+                                </span>
+                                <input class='form-control' id='NoiDungTrichYeu' name='NoiDungTrichYeu' style="height:50px;margin-top: 0.5%;" cols='20' rows='1' value=""></input>
+                            </div><!-- End Recent Sales -->
+                        </div>
 
                         <div class="card-body">
                             <div class="table-responsive" style="height: 300px;">
@@ -385,6 +408,56 @@
         </div>
     </div>
 }
+
+<script>
+    $(document).ready(function () {
+        $('#BoSungPhieu').on('submit', function (e) {
+            @*e.preventDefault(); // Ngăn gửi form mặc định*@
+            let isValid = true;
+            let selectedValueCaKip = $('#IDCa').val();
+            let BenNhan = $('#IDTaiKhoan').val();
+            let ThongKe = $('#IDNhanVienTT').val();
+            let ThongKeView = $('#IDNhanVienView').val();
+            // Kiểm tra nếu chưa chọn giá trị hợp lệ
+            if (selectedValueCaKip == 'null') {
+                isValid = false;
+                alert('Vui lòng chọn Ca Kíp!');
+                return false; // Ngăn form submit
+            }
+
+            if (!BenNhan) {
+                isValid = false;
+                alert('Vui lòng chọn Nhân viên bên nhận!');
+                return false; // Ngăn form submit
+            }
+            if (!ThongKe) {
+                isValid = false;
+                alert('Vui lòng chọn Nhân viên thống kê phê duyệt!');
+                return false; // Ngăn form submit
+            }
+            if (!ThongKeView) {
+                isValid = false;
+                alert('Vui lòng chọn Nhân viên thống kê nhận thông tin!');
+                return false; // Ngăn form submit
+            }
+            const table = document.getElementById('table');
+            const rowCount = table.getElementsByTagName('tr').length - 4; // Trừ đi dòng tiêu đề (thead)
+            console.log(rowCount);
+            if (rowCount < 1) {
+                isValid = false;
+                alert('Bảng phải có ít nhất một dòng dữ liệu!');
+                return false; // Ngăn form submit
+            }
+            // Nếu tất cả đều hợp lệ, thực hiện hành động
+            if (isValid) {
+    @*alert('Dữ liệu hợp lệ. Tiến hành gửi form!');*@
+                    // Thực hiện gửi form nếu cần
+                        return true;
+            }
+        });
+    });
+</script>
+
 <script>
     $(document).ready(function () {
         var i = 2;
@@ -466,7 +539,7 @@
         var id = $(this).attr('id').split('_')[1];
         if (id != "null") {
             $.get("/BM_11/DonViTinh", { IDVatTu: $(this).val() }, function (data1) {
-                console.log(data1)
+                
                 if (data1[0] != null) {
                     $("#NoiDung_" + id).empty();
     @*      $("#NoiDung_" + id).append("<option value ='" + null + "'>" + "--Chọn Nội dung--" + "</option>");*@
@@ -475,7 +548,7 @@
                         });
                 }
                 else {
-                    $($("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")).empty();
+                    $("#NoiDung_" + id).empty();
                 }
             });
             $.get("/BM_11/MaLo", { IDVatTu: $(this).val() }, function (data1) {
@@ -484,11 +557,11 @@
                     $("#lo_" + id).empty();
                     $("#lo_" + id).append("<option value=''></option>")
                     $.each(data1, function (index, row) {
-                        $("#lo_" + id).append("<option value ='" + row.iD_MaLo + "' selected>" + row.tenMaLo + "</option>")
+                        $("#lo_" + id).append("<option value ='" + row.tenMaLo + "' selected>" + row.tenMaLo + "</option>")
                     });
                 }
                 else {
-                    $($("#lo_" + id).append("<option value ='" + row.iD_MaLo + "' selected>" + row.tenMaLo + "</option>")).empty();
+                    $("#lo_" + id).empty();
                 }
             });
             $("#NoiDung_" + id).trigger("chosen:updated");
@@ -513,7 +586,7 @@
     $("#IDNhanVienTT").chosen({
         width: "100%"
     }); 
-    $("#IDNhanVienView").chosen({
+   @* $("#IDNhanVienView").chosen({
         width: "100%"
-    });
+    });*@
 </script>

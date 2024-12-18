@@ -1,4 +1,5 @@
-﻿using Data_Product.Models;
+﻿using ClosedXML.Excel;
+using Data_Product.Models;
 using Data_Product.Repositorys;
 using ExcelDataReader;
 using Microsoft.AspNetCore.Mvc;
@@ -144,6 +145,23 @@ namespace Data_Product.Controllers
                 List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
                 ViewBag.ID_PhongBan = new SelectList(pb, "TenNgan", "TenPhongBan");
                 ViewBag.ID_VatTu = id;
+
+                //var selectedValues = new List<string>(); // ID các giá trị mặc định
+
+                //foreach (var item in res1)
+                //{
+                //    var idquyen = item.ID_Xuong != 0 ? item.ID_Xuong : 0;
+                //    if (item.ID_Xuong != 0) { selectedValues.Add(item.ID_Xuong.ToString()); }
+                //}
+                //// Tạo SelectList và đánh dấu giá trị mặc định
+                //var selectList = xuong.Select(role => new SelectListItem
+                //{
+                //    Value = role.ID_Xuong.ToString(),
+                //    Text = role.TenXuong,
+                //}).ToList();
+                //ViewBag.SelectedValue = selectedValues.ToArray();
+                //ViewBag.ListQuyen_Them = selectList;
+
             }
             else
             {
@@ -384,6 +402,56 @@ namespace Data_Product.Controllers
             }
 
             return RedirectToAction("Index", "VatTu");
+        }
+
+        public IActionResult ExportToExcel()
+        {
+            var data = (from a in _context.Tbl_VatTu
+                        join vt in _context.Tbl_NhomVatTu on a.ID_NhomVatTu equals vt.ID_NhomVatTu into joinedT
+                        from vt in joinedT.DefaultIfEmpty()
+                        select new Tbl_VatTu
+                        {
+                            ID_VatTu = a.ID_VatTu,
+                            TenVatTu = a.TenVatTu,
+                            MaVatTu_Sap = a.MaVatTu_Sap ?? default,
+                            TenVatTu_Sap = a.TenVatTu_Sap,
+                            DonViTinh = a.DonViTinh,
+                            ID_NhomVatTu = (int)a.ID_NhomVatTu,
+                            TenNhomVatTu = vt.TenNhomVatTu,
+                            PhongBan = a.PhongBan,
+                            ID_TrangThai = (int?)a.ID_TrangThai ?? default,
+                        }).ToList();
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("VatTu");
+                //Header
+                worksheet.Cell(1, 1).Value = "STT";
+                worksheet.Cell(1, 2).Value = "Tên vật tư";
+                worksheet.Cell(1, 3).Value = "Tên vật tư (SAP)";
+                worksheet.Cell(1, 4).Value = "Mã vật tư (SAP)";
+                worksheet.Cell(1, 5).Value = "Tên BP/NM";
+                worksheet.Cell(1, 6).Value = "Đơn vị tính";
+                worksheet.Cell(1, 7).Value = "Nhóm vật tư";
+                //value
+                int row = 2; int stt = 1;
+                foreach (var item in data)
+                {
+                    worksheet.Cell(row, 1).Value = stt;
+                    worksheet.Cell(row, 2).Value = item.TenVatTu;
+                    worksheet.Cell(row, 3).Value = item.TenVatTu_Sap;
+                    worksheet.Cell(row, 4).Value = item.MaVatTu_Sap;
+                    worksheet.Cell(row, 5).Value = item.PhongBan;
+                    worksheet.Cell(row, 6).Value = item.DonViTinh;
+                    worksheet.Cell(row, 7).Value = item.TenNhomVatTu;
+                    row++; stt++;
+                }
+
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0; // Reset con trỏ stream về đầu
+
+                return File(stream, System.Net.Mime.MediaTypeNames.Application.Octet, "DanhSachVatTu.xlsx");
+            }
         }
     }
 }

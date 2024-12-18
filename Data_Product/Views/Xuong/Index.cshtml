@@ -1,6 +1,6 @@
 ﻿@model IEnumerable<Data_Product.Models.Tbl_Xuong>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+@inject Data_Product.Repositorys.DataContext _context
 @if (TempData["msgSuccess"] != null)
 {
     @Html.Raw(TempData["msgSuccess"])
@@ -29,7 +29,7 @@
                 <div class="card">
                     <div class="row" style="height: 120px;">
                         <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width:-webkit-fill-available;">
-                            <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+                            <div class="col-6" style="text-align: left;padding: 2%  2%  2% 0%; ">
 
                                 <span class="text-muted small pt-2 ps-1">
                                     <b style="color:#06428b;font-size: 15px;">
@@ -54,7 +54,11 @@
                                 </button>
 
                             </div><!-- End Recent Sales -->
-
+                            <div class="col-2" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                <form method="get" asp-controller="Xuong" asp-action="ExportToExcel">
+                                    <button type="submit" class="btn btn-primary">Download Excel</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                  @*   Thêm mới*@
@@ -103,8 +107,9 @@
                                 <thead style="height: 60px;font-size: 14px;">
                                     <tr>
                                         <th class="text-center" width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
-                                        <th class="text-center" rowspan="3" width="500px" style="vertical-align:middle;background-color: #f7f7f7;">Tên xưởng</th>
-                                        <th class="text-center" rowspan="3" width="400px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên xưởng</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Thống kê xử lý</th>
                                         <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
                                     </tr>
@@ -117,6 +122,7 @@
                                     }
                                     @foreach (var item in Model)
                                     {
+                                        var dsThongKe = _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == item.ID_Xuong).ToList();
                                         <tr>
                                             <td class="text-center">
                                                 @RowNo@{
@@ -125,6 +131,23 @@
                                             </td>
                                             <td style="font-size:14px;">@item.TenXuong </td>
                                             <td style="font-size:14px;">@item.TenPhongBan </td>
+                                            @if (dsThongKe.Count() != 0)
+                                            {
+                                                <td class="text-center" id="myTd_@item.ID_Xuong" style="font-size:14px;">
+                                                    @foreach(var k in dsThongKe)
+                                                    {
+                                                        var nv = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == k.ID_TaiKhoan).FirstOrDefault();
+                                                        <script>
+                                                            $("#myTd_@item.ID_Xuong").append('<span> - @nv.TenTaiKhoan @nv.HoVaTen</span> <br/>')
+                                                        </script>
+                                                    }
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                </td>
+                                            }
                                             @if (item.ID_TrangThai == 1)
                                             {
                                                 <td class="text-center" style="font-size:14px;">

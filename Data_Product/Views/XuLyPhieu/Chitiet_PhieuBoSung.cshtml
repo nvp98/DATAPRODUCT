@@ -58,25 +58,51 @@
                                     </b>
                                 </span>
                             </div><!-- End Recent Sales -->
-                            <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
-                                <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
-                                    <a href="@Url.Action("HuyPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN })">
-                                        <i class="bi bi-send-x" style="color: white;"></i>
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Hủy phiếu
-                                        </span>
-                                    </a>
-                                </button>
+                            @if (ID_BBGN.ID_TrangThai_BBGN == 5 && !ID_BBGN.IsDelete)
+                            {
+                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                    <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
+                                        <a href="@Url.Action("KH_XoaPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN,tinhtrang =0 })">
+                                            <i class="bi bi-send-x" style="color: white;"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                Không xóa phiếu
+                                            </span>
+                                        </a>
+                                    </button>
 
-                                <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
-                                    <a href="@Url.Action("XacNhanPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN })">
-                                        <i class="bi bi-floppy" style="color: white;"></i>
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Xác nhận phiếu
-                                        </span>
-                                    </a>
-                                </button>
-                            </div>
+                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
+                                        <a href="@Url.Action("KH_XoaPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN,tinhtrang =1 })">
+                                            <i class="bi bi-floppy" style="color: white;"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                PKH Xác nhận xóa phiếu
+                                            </span>
+                                        </a>
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                    <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
+                                        <a href="@Url.Action("HuyPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN })">
+                                            <i class="bi bi-send-x" style="color: white;"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                Hủy phiếu
+                                            </span>
+                                        </a>
+                                    </button>
+
+                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
+                                        <a href="@Url.Action("XacNhanPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN })">
+                                            <i class="bi bi-floppy" style="color: white;"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                Xác nhận phiếu
+                                            </span>
+                                        </a>
+                                    </button>
+                                </div>
+                            }
+                            
 
 
                         </div>
@@ -234,6 +260,65 @@
                             </div>
                         </div>
                     </div>
+                    @if (ID_BBGN.ID_QuyTrinh == 2 || ID_BBGN.ID_QuyTrinh == 3)
+                    {
+                        var ID_TK = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID).FirstOrDefault();
+                        var ThongTin_NVTT = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan).FirstOrDefault();
+                        var ThongTin_NVTT_View = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan_View).FirstOrDefault();
+                        var PKHPheDuyet = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGN).FirstOrDefault();
+
+                        <div class="row" style="width:100%; padding-bottom:1%;">
+                            <div class="col-lg-12" style="text-align: left;height: 80px;border-radius: 10px;display: flex;">
+
+                                <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:2%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Nhân viên thống kê phê duyệt:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;margin-right: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ThongTin_NVTT?.TenTaiKhoan - @ThongTin_NVTT?.HoVaTen
+                                        </span>
+                                        @if (PKHPheDuyet.ID_TrangThai == 1)
+                                        {
+                                            <span class="text-danger">(Đã phê duyệt phiếu)</span>
+                                        }
+                                        else if (PKHPheDuyet.ID_TrangThai == 2)
+                                        {
+                                            <span class="text-danger">(Không duyệt phiếu)</span>
+                                        }
+                                        else if (PKHPheDuyet.ID_TrangThai == 3)
+                                        {
+                                            <span class="text-danger">(BN Hủy phiếu)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">(Chưa xử lý)</span>
+                                        }
+                                    </div>
+
+                                </div>
+
+                                <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:2%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Nhân viên thống kê nhận BBGN:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;margin-right: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ThongTin_NVTT_View?.TenTaiKhoan - @ThongTin_NVTT_View?.HoVaTen
+                                        </span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- End Recent Sales -->
+                    }
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover" id="table" cellpadding="0">
@@ -281,19 +366,16 @@
                                                 @item.DonViTinh
                                             </td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                @{
-                                                    var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
-                                                }
-                                                @ID_MaLo.TenMaLo
+                                                @item.MaLo
                                             </td>
                                             <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                @item.DoAm_W
+                                                @item.DoAm_W.ToString("F2")
                                             </td>
                                             <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                @item.KhoiLuong_BG
+                                                @item.KhoiLuong_BG.ToString("F3")
                                             </td>
                                             <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                @item.KL_QuyKho_BG
+                                                @item.KL_QuyKho_BG.ToString("F3")
                                             </td>
                                             @if (@item.KhoiLuong_BN == 0)
                                             {
@@ -304,7 +386,7 @@
                                             else
                                             {
                                                 <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                    @item.KhoiLuong_BN
+                                                    @item.KhoiLuong_BN.ToString("F3")
                                                 </td>
                                             }
                                             @if (@item.KL_QuyKho_BN == 0)
@@ -317,7 +399,7 @@
                                             else
                                             {
                                                 <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                    @item.KL_QuyKho_BN
+                                                    @item.KL_QuyKho_BN.ToString("F3")
                                                 </td>
                                             }
 
@@ -333,46 +415,67 @@
                         </div>
 
                     </div>
-                    @if (ID_BBGN.ID_TrangThai_BBGN == 2)
-                    {
-                        <div class="col-lg-12" style="text-align: left;height: 150px;display: flex;">
-                            <div class="col-xxl-6 col-md-6">
+                    <div class="col-lg-12" style="text-align: left;height: 150px;display: flex;">
+                        <div class="col-xxl-6 col-md-6">
 
-                                <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
-                                    <b>
-                                        Bên nhận
-                                    </b>
-                                </div>
-                                <div style="text-align: center; font-size: 14px; padding:2%;">
-                                    <img src="~/img/logoHP.png" alt="">
-                                </div>
-                                <div style="text-align: center; font-size: 14px;">
-                                    <b>
-                                        @ThongTin_BG.HoVaTen
-                                    </b>
-                                </div>
+                            <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
+                                <b>
+                                    Bên nhận
+                                </b>
                             </div>
-                            <div class="col-xxl-6 col-md-6">
+                            <div style="text-align: center; font-size: 14px; padding:2%;">
+                                @if (ID_BBGN.ID_TrangThai_BN == 1)
+                                {
+                                    if (@ThongTin_BN.ChuKy != null)
+                                    {
+                                        <img src="@ThongTin_BN.ChuKy" alt="" height="50px">
+                                    }
+                                    else
+                                    {
+                                        <div style="height:50px" class="text-danger">Đã ký <br /> (Chưa có chữ ký)</div>
+                                    }
 
-                                <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
-                                    <b>
-                                        Bên giao
-                                    </b>
-                                </div>
-                                <div style="text-align: center; font-size: 14px; padding:2%;">
-                                    <img src="~/img/logoHP.png" alt="">
-                                </div>
-                                <div style="text-align: center; font-size: 14px;">
-                                    <b>
-                                        @ThongTin_BN.HoVaTen
-                                    </b>
-                                </div>
+                                }
+                                else if (ID_BBGN.ID_TrangThai_BN == 0)
+                                {
+                                    <div style="height:50px" class="text-danger">Chưa xử lý</div>
+                                }
+                                else if (ID_BBGN.ID_TrangThai_BN == 2)
+                                {
+                                    <div style="height:50px" class="text-danger">Không xác nhận</div>
+                                }
                             </div>
+                            <div style="text-align: center; font-size: 14px;">
+                                <b>
+                                    @ThongTin_BN.HoVaTen
+                                </b>
+                            </div>
+                        </div>
+                        <div class="col-xxl-6 col-md-6">
 
+                            <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
+                                <b>
+                                    Bên giao
+                                </b>
+                            </div>
+                            <div style="text-align: center; font-size: 14px; padding:2%;">
+                                @if (ThongTin_BG.ChuKy != null)
+                                {
+                                    <img src="@ThongTin_BG.ChuKy" alt="" height="50px">
+                                }
+                                else
+                                {
+                                    <div style="height:50px" class="text-danger">Đã ký<br /> (Chưa có chữ ký)</div>
+                                }
+                            </div>
+                            <div style="text-align: center; font-size: 14px;">
+                                <b>
+                                    @ThongTin_BG.HoVaTen
+                                </b>
+                            </div>
                         </div>
 
-                        <!-- End Recent Sales -->
-                    }
+                    </div>
 
                 </div>
             </div>

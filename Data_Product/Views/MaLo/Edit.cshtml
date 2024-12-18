@@ -38,10 +38,15 @@
     </div>
 }
 <script>
+    // Chuyển danh sách từ ViewBag sang định dạng JSON
+    
     $(document).ready(function () {
         $('#multiSelectII').chosen({
             width: '100%'
         });
+        var defaultValues = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.selectedValues));
+        //const defaultValues = @ViewBag.SelectedValue; // Các giá trị mặc định
+        $("#multiSelectII").val(defaultValues).trigger("chosen:updated");
         //$("#multiSelectII").trigger("chosen:updated");
     });
 </script>

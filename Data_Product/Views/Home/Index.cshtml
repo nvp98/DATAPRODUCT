@@ -13,39 +13,43 @@
                     <!-- Sales Card -->
                     <div class="col-xxl-3 col-md-6">
                         <div class="card info-card sales-card">
+                            <a href="@Url.Action("Index","BM_11")">
+                                <div class="card-body" style="padding: 15px;">
 
-                            <div class="card-body" style="padding: 15px;">
- 
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-send-plus"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6 style="text-align: left;">145</h6>
-                                        <span class="small pt-2 ps-1" style="color:#06428b ">Việc của tôi trong ngày</span>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-send-plus"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6 style="text-align: left;">@ViewBag.ViecToiBatDau</h6>
+                                            <span class="small pt-2 ps-1" style="color:#06428b ">Việc tôi bắt đầu trong ngày</span>
 
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
+                            
 
                         </div>
                     </div><!-- End Sales Card -->
                     <!-- Revenue Card -->
                     <div class="col-xxl-3 col-md-6">
                         <div class="card info-card revenue-card">
+                            <a href="@Url.Action("Index", "XuLyPhieu")">
+                                <div class="card-body" style="padding: 15px;">
 
-                            <div class="card-body" style="padding: 15px;">
-
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-send-arrow-down"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6 style="text-align: left;">264</h6>
-                                        <span class="small pt-2 ps-1" style="color:#06428b ">Việc đến tôi trong ngày</span>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-send-arrow-down"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6 style="text-align: left;">@ViewBag.ViecDenToi</h6>
+                                            <span class="small pt-2 ps-1" style="color:#06428b ">Việc đến tôi trong ngày</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </a>
+                           
 
                         </div>
                     </div><!-- End Revenue Card -->
@@ -53,38 +57,44 @@
                     <div class="col-xxl-3 col-xl-12">
 
                         <div class="card info-card customers-card">
-                            <div class="card-body" style="padding: 15px;">
-  
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-send-slash"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6 style="text-align: left;">1244</h6>
-                                        <span class="small pt-2 ps-1" style="color:#06428b ">Chưa xử lý trong ngày</span>
-                                    </div>
-                                </div>
+                            <a href="@Url.Action("Index", "XuLyPhieu")">
+                                <div class="card-body" style="padding: 15px;">
 
-                            </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-send-slash"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6 style="text-align: left;">@ViewBag.ChuaXuLy</h6>
+                                            <span class="small pt-2 ps-1" style="color:#06428b ">Chưa xử lý trong ngày</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </a>
+                            
                         </div>
 
                     </div><!-- End Customers Card -->
                     <div class="col-xxl-3 col-xl-12">
 
                         <div class="card info-card customers-card">
-                            <div class="card-body" style="padding: 15px;">
-         
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-send-check"></i>
-                                    </div>
-                                    <div class="ps-3">
-                                        <h6 style="text-align: left;">1244</h6>
-                                        <span class="small pt-2 ps-1" style="color:#06428b ">Đã xử lý trong ngày</span>
-                                    </div>
-                                </div>
+                            <a href="@Url.Action("Index", "XuLyPhieu")">
+                                <div class="card-body" style="padding: 15px;">
 
-                            </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-send-check"></i>
+                                        </div>
+                                        <div class="ps-3">
+                                            <h6 style="text-align: left;">@ViewBag.DaXuLy</h6>
+                                            <span class="small pt-2 ps-1" style="color:#06428b ">Đã xử lý trong ngày</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </a>
+                            
                         </div>
 
                     </div><!-- End Customers Card -->
@@ -106,7 +116,7 @@
                                 </ul>
                             </div>
 
-                            <div class="card-body">
+                           @* <div class="card-body">
                                 <h5 class="card-title">PHIẾU CHƯA XỬ LÝ</h5>
 
                                 <table class="table table-borderless datatable">
@@ -120,45 +130,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <th scope="row"><a href="#">2457</a></th>
-                                            <td class="text-center">Brandon Jacob</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2147</a></th>
-                                            <td class="text-center">Bridie Kessler</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2049</a></th>
-                                            <td class="text-center">Ashleigh Langosh</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2644</a></th>
-                                            <td class="text-center">Angus Grady</td>
-                                            <td>Sửa phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2644</a></th>
-                                            <td class="text-center">Raheem Rejected</td>
-                                            <td>Sửa phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
+                                       
                                     </tbody>
                                 </table>
 
-                            </div>
+                            </div>*@
 
                         </div>
                     </div><!-- End Recent Sales -->
@@ -178,7 +154,7 @@
                                 </ul>
                             </div>
 
-                            <div class="card-body">
+                           @* <div class="card-body">
                                 <h5 class="card-title">PHIẾU CHƯA XỬ LÝ</h5>
 
                                 <table class="table table-borderless datatable">
@@ -192,45 +168,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <th scope="row"><a href="#">2457</a></th>
-                                            <td class="text-center">Brandon Jacob</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-warning">Đang xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2147</a></th>
-                                            <td class="text-center">Bridie Kessler</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-warning">Đang xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2049</a></th>
-                                            <td class="text-center">Ashleigh Langosh</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-warning">Đang xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2644</a></th>
-                                            <td class="text-center">Angus Grady</td>
-                                            <td>Sửa phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-warning">Đang xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2644</a></th>
-                                            <td class="text-center">Raheem Rejected</td>
-                                            <td>Sửa phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-warning">Đang xử lý</span></td>
-                                        </tr>
+                                       
                                     </tbody>
                                 </table>
 
-                            </div>
+                            </div>*@
 
                         </div>
                     </div><!-- End Recent Sales -->
@@ -250,7 +192,7 @@
                                 </ul>
                             </div>
 
-                            <div class="card-body">
+                           @* <div class="card-body">
                                 <h5 class="card-title">PHIẾU YÊU CẦU CỦA TÔI</h5>
 
                                 <table class="table table-borderless datatable">
@@ -264,45 +206,11 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <th scope="row"><a href="#">2457</a></th>
-                                            <td class="text-center">Brandon Jacob</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2147</a></th>
-                                            <td class="text-center">Bridie Kessler</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2049</a></th>
-                                            <td class="text-center">Ashleigh Langosh</td>
-                                            <td>Tạo phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2644</a></th>
-                                            <td class="text-center">Angus Grady</td>
-                                            <td>Sửa phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
-                                        <tr>
-                                            <th scope="row"><a href="#">2644</a></th>
-                                            <td class="text-center">Raheem Rejected</td>
-                                            <td>Sửa phiếu</td>
-                                            <td>04/10/2024</td>
-                                            <td><span class="badge bg-success">Đã xử lý</span></td>
-                                        </tr>
+                                       
                                     </tbody>
                                 </table>
 
-                            </div>
+                            </div>*@
 
                         </div>
                     </div><!-- End Recent Sales -->

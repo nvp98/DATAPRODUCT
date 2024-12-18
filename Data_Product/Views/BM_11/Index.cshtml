@@ -89,8 +89,8 @@
                                 <thead style="height: 60px;font-size: 14px;">
                                     <tr>
                                         <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
-                                        <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
-                                      
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung trích yếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Quy trình</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Số phiếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
@@ -108,107 +108,33 @@
                                     }
                                     @foreach (var item in Model)
                                     {
-                                        var ID_TrinhKy = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                        var ID_TrinhKy = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault() ?? new Tbl_TrinhKyBoSung();
                                         <tr>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 @RowNo@{
                                                     RowNo++;
                                                 }
                                             </td>
-                                            @if(item.ID_QuyTrinh == 3)
+                                            @if (item.ID_QuyTrinh != 1 && ID_TrinhKy.ID_TaiKhoan ==0)
                                             {
-                                                @if (item.ID_TrangThai_BG == 1 || item.ID_TrangThai_BG == 3 || 
-                                                     item.ID_TrangThai_BG == 4 || item.ID_TrangThai_BG == 0 && ID_TrinhKy?.ID_TrangThai == 1 ||
-                                                     item.ID_TrangThai_BG == 5 && item.ID_TrangThai_BBGN == 5)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 0)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("YCauHieuChinh", "XuLyPhieu", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 2 && ID_TrinhKy.ID_TrangThai == 2 || item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 2)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("SuaPhieu", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BBGN == 3 && ID_TrinhKy.ID_TrangThai == 3 || item.ID_TrangThai_BBGN == 5 && ID_TrinhKy.ID_TrangThai == 5)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
+                                                <td style="font-size:14px;color: #335FB3">
+                                                    <a class="nav-link collapsed" href="@Url.Action("YCauHieuChinh", "XuLyPhieu", new{id = item.ID_BBGN})">
+                                                        BM.11/QT.05
+                                                    </a>
+                                                </td>
                                             }
-                                            else if(item.ID_QuyTrinh == 1)
+                                            else
                                             {
-                                                @if (item.ID_TrangThai_BG == 1 || item.ID_TrangThai_BG == 3 || item.ID_TrangThai_BG == 4 ||
-                                                     item.ID_TrangThai_BG == 5 && item.ID_TrangThai_BBGN == 5)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 0 || item.ID_TrangThai_BG == 2)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("SuaPhieu", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
+                                                <td style="font-size:14px;color: #335FB3">
+                                                    <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
+                                                        BM.11/QT.05
+                                                    </a>
+                                                </td>
                                             }
-                                            else if(item.ID_QuyTrinh == 2 )
-                                            {
-                                                @if (item.ID_TrangThai_BG == 1 || item.ID_TrangThai_BG == 3 || 
-                                                     item.ID_TrangThai_BG == 4 || item.ID_TrangThai_BG == 0 && ID_TrinhKy?.ID_TrangThai == 1 ||
-                                                     item.ID_TrangThai_BG == 5 && item.ID_TrangThai_BBGN == 5)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 0)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("SuaPhieu_PhieuBoSung", "XuLyPhieu", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 2 && ID_TrinhKy.ID_TrangThai == 2 || item.ID_TrangThai_BG == 0 && item.ID_TrangThai_BN == 0 && ID_TrinhKy.ID_TrangThai == 2)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("SuaPhieu", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BBGN == 3 && ID_TrinhKy.ID_TrangThai == 3 || item.ID_TrangThai_BBGN == 5 && ID_TrinhKy.ID_TrangThai == 3)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                            }
+                                            <td style="font-size:14px;">
+                                               @item.NoiDungTrichYeu
+                                            </td>
+
                                             @if (item.ID_QuyTrinh == 1)
                                             {
                                                 <td style="font-size:14px;vertical-align:middle;">
@@ -305,168 +231,114 @@
                                                 }
                                             }
 
-                                            @if (item.ID_QuyTrinh == 2 && ID_TrinhKy != null || item.ID_QuyTrinh == 3 && ID_TrinhKy != null)
+                                            @if (item.ID_TrangThai_BBGN ==0)
                                             {
-                                                @if (item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 0)
+                                                if (item.ID_QuyTrinh != 1 && item.ID_TrangThai_BN == 1)
                                                 {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-info" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đang lưu
-                                                            </span>
-                                                        </button>
-                                                    </td>
+                                                    if (ID_TrinhKy.ID_TrangThai == 0)
+                                                    {
+                                                        <td class="text-center" style="font-size:14px;">
+                                                            <button type="button" class="btn btn-primary" style="width: 150px;">
+                                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                                    P.KH Đang xử lý
+                                                                </span>
+                                                            </button>
+                                                        </td>
+                                                    }
                                                 }
-                                                else if (item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 1 && item.ID_TrangThai_BN == 0|| 
-                                                         item.ID_TrangThai_BG == 1 && ID_TrinhKy.ID_TrangThai == 1 && item.ID_TrangThai_BN == 0 ||
-                                                         item.ID_TrangThai_BG == 1 && ID_TrinhKy.ID_TrangThai == 2 && item.ID_TrangThai_BN == 0 ||
-                                                         item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 2 && item.ID_TrangThai_BN == 0)
+                                                else
                                                 {
                                                     <td class="text-center" style="font-size:14px;">
                                                         <button type="button" class="btn btn-warning" style="width: 150px;">
                                                             <span class="small pt-2 ps-1" style="color: white;">
                                                                 Đang xử lý
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 1 && item.ID_TrangThai_BN == 1 && ID_TrinhKy.ID_TrangThai == 2 ||
-                                                         item.ID_TrangThai_BG == 1 && item.ID_TrangThai_BN == 1 && item.ID_TrangThai_BBGN == 1)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Hoàn tất
-                                                            </span>
-                                                        </button>
-                                                        <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("HuyPhieu_PheDuyet","XuLyPhieu", new{id = item.ID_BBGN})'></div>
-                                                        <script type="text/javascript">
-                                                            $('#btn-add').click(function () {
-                                                                var url = $('#myModal').data('url');
-                                                                $.get(url, function (data) {
-                                                                    $("#myModal").html(data);
-                                                                    $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
-                                                                    $("#myModal").modal('show');
-                                                                });
-                                                            });
-                                                        </script>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 4 && item.ID_TrangThai_BN == 4 && ID_TrinhKy.ID_TrangThai == 3)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                P. KH hủy phiếu
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 2 && ID_TrinhKy.ID_TrangThai == 2)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Yêu cầu hiệu chỉnh
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 3 && item.ID_TrangThai_BBGN == 3)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đề nghị hiệu chỉnh
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 5 && item.ID_TrangThai_BBGN == 5)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                              Hủy phiếu
                                                             </span>
                                                         </button>
                                                     </td>
                                                 }
                                             }
-                                            else
+                                            else if (item.ID_TrangThai_BBGN == 1)
                                             {
-                                                @if (item.ID_TrangThai_BG == 0 && item.ID_TrangThai_BN == 0)
+                                            <td class="text-center" style="font-size:14px;">
+                                                <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
+                                                    <span class="small pt-2 ps-1" style="color: white;">
+                                                        Hoàn tất
+                                                    </span>
+                                                </button>
+                                               @* <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("HuyPhieu_PheDuyet","XuLyPhieu", new{id = item.ID_BBGN})'></div>
+                                                <script type="text/javascript">
+                                                    $('#btn-add').click(function () {
+                                                        var url = $('#myModal').data('url');
+                                                        $.get(url, function (data) {
+                                                            $("#myModal").html(data);
+                                                            $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
+                                                            $("#myModal").modal('show');
+                                                        });
+                                                    });
+                                                </script>*@
+                                            </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 2)
+                                            {
+                                            <td class="text-center" style="font-size:14px;">
+                                                <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                    <span class="small pt-2 ps-1" style="color: white;">
+                                                        BN Hủy phiếu
+                                                    </span>
+                                                </button>
+                                            </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 3)
+                                            {
+                                            <td class="text-center" style="font-size:14px;">
+                                                    <button type="button" class="btn btn-secondary" style="width: 150px;">
+                                                    <span class="small pt-2 ps-1" style="color: white;">
+                                                        Đề nghị hiệu chỉnh
+                                                    </span>
+                                                </button>
+                                            </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 4)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            P. KH hủy phiếu
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 5)
+                                            {
+                                                var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                                if (checkxoa != null && checkxoa.TinhTrang_BN == 1 && checkxoa.TinhTrang_KH == 0)
                                                 {
                                                     <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-info" style="width: 150px;">
+                                                        <button type="button" class="btn btn-primary" style="width: 150px;">
                                                             <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đang lưu
+                                                                Chờ PKH Xóa phiếu
                                                             </span>
                                                         </button>
                                                     </td>
                                                 }
-                                                else if (item.ID_TrangThai_BG == 1 && item.ID_TrangThai_BN == 0)
+                                                else
                                                 {
                                                     <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-warning" style="width: 150px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
                                                             <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đang xử lý
+                                                                BN đang xóa phiếu
                                                             </span>
                                                         </button>
                                                     </td>
                                                 }
-                                                else if (item.ID_TrangThai_BG == 1 && item.ID_TrangThai_BN == 1)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button id="btn-add-bs" type="button" type="button" class="btn btn-success" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Hoàn tất
-                                                            </span>
-                                                        </button>
-                                                        <div class="modal" id="myModal_bs" role="dialog" data-url='@Url.Action("HuyPhieu_PheDuyet","XuLyPhieu", new{id = item.ID_BBGN})'></div>
-                                                        <script type="text/javascript">
-                                                            $('#btn-add-bs').click(function () {
-                                                                var url = $('#myModal_bs').data('url');
-                                                                $.get(url, function (data) {
-                                                                    $("#myModal_bs").html(data);
-                                                                    $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
-                                                                    $("#myModal_bs").modal('show');
-                                                                });
-                                                            });
-                                                        </script>
-                                                    </td>
+                                                @*<td class="text-center" style="font-size:14px;">
+                                                <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                Xóa phiếu
+                                                </span>
+                                                </button>
+                                                </td>*@
 
-                                                }
-                                                else if (item.ID_TrangThai_BG == 2 && item.ID_TrangThai_BN == 0)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Yêu cầu hiệu chỉnh
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 3 && item.ID_TrangThai_BBGN == 3)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đề nghị hiệu chỉnh
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 5 && item.ID_TrangThai_BBGN == 5)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Hủy phiếu
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
                                             }
 
                                         </tr>
@@ -508,6 +380,7 @@
 
 </div>
 <script type="text/javascript">
+    localStorage.setItem("IsShowBT", "0");
     $("#btn-search").on('click', function () {
         var ID_TrangThai = $('#ID_TrangThai').val();
         window.location.href = '@Url.Action("Index", "BM_11")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();

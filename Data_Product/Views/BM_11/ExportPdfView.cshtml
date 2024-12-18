@@ -37,14 +37,18 @@
 
     //Thông tin bên giao
     var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BG).FirstOrDefault();
-    var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
-    var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BG.ID_PhanXuong).FirstOrDefault();
+    //var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
+    //var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BG.ID_PhanXuong).FirstOrDefault();
+    var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
+    var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BG).FirstOrDefault();
     var ViTri_BG = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BG.ID_ChucVu).FirstOrDefault();
 
     //Thông tin bên nhận
     var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BN).FirstOrDefault();
-    var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BN.ID_PhongBan).FirstOrDefault();
-    var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BN.ID_PhanXuong).FirstOrDefault();
+    //var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BN.ID_PhongBan).FirstOrDefault();
+    //var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BN.ID_PhanXuong).FirstOrDefault();
+    var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BN).FirstOrDefault();
+    var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BN).FirstOrDefault();
     var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
 
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
@@ -70,14 +74,14 @@
 
 }
 
-<div style="width:100%">
+<div style="padding:0px 30px 0px 50px">
     <div>
         <div class="" style="text-align: left;display: flex;margin-bottom:0">
-            <div style="flex: 0 0 50%;width:80%;  float: left; font-weight: bold; font-size: 1.2rem; text-transform: uppercase;">
-                <img alt="Hòa Phát Dung Quất" src="https://report.hoaphatdungquat.vn/img/logoHP.png"  />
-                <div class="" style="margin-top: 0.5rem; font-weight:bold">CÔNG TY CỔ PHẦN THÉP</div>
-                <div class="" style="font-weight:bold ">HÒA PHÁT DUNG QUẤT</div>
-                <div style="width:50%;text-align:center">
+            <div style="flex: 0 0 50%;width:80%;  float: left; font-weight: bold; font-size: 1rem; text-transform: uppercase;">
+                <img alt="Hòa Phát Dung Quất" src="https://report.hoaphatdungquat.vn/img/logoHP.png" width="205" />
+                <div class="" style="margin-top: 0; font-weight:bold">CÔNG TY CỔ PHẦN THÉP</div>
+                <div class="" style="font-weight:bold;margin-left:10px ">HÒA PHÁT DUNG QUẤT</div>
+                <div style="width:40%;text-align:center;">
                     <div style=" font-size: 10px; padding-top:0.5%;">
                        Số: @ID_BBGN.SoPhieu
                     </div>
@@ -94,38 +98,41 @@
            
             <div style="flex: 0 0 50%;width:20%; float:right;text-align:right; font-weight: bold;">
                 <span style="font-weight:bold">BM.11/QT.05</span>
-                <p style="margin-top:0"><span style="font-style:italic;">Ngày hiệu lực:</span> 01/06/2023</p>
+                <div style="margin-top:0"><span style="font-style:italic;">Ngày hiệu lực:</span> 01/09/2024</div>
+                <div style="margin-top:0"><span style="font-style:italic;">Lần sửa đổi:</span> 01</div>
             </div>
         </div><!-- End Recent Sales -->
         <div style="flex: 0 0 100%; width: 100%; margin-top:0">
             <div style="text-align:center;margin-top:0; font-size: 1.5rem;font-weight:bold; text-transform:uppercase">
-                <h4 style="font-weight:bold">
-                        BIÊN BẢN <br />  GIAO NHẬN NGUYÊN/ NHIÊN/ VẬT TƯ
-                </h4>
+                BIÊN BẢN <br />  GIAO NHẬN NGUYÊN/NHIÊN/VẬT LIỆU
+                @*<h4 style="font-weight:bold">
+                        BIÊN BẢN <br />  GIAO NHẬN NGUYÊN/NHIÊN/VẬT LIỆU
+                </h4>*@
             </div>
-            <div class="text-muted small pt-0" style="text-align:center; margin-top:0">
+            <div class="text-muted small pt-0" style="text-align:center; margin-top:0;font-style: italic;">
                 @{
                     var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
                     var Date = (DateTime)ID_BBGN.ThoiGianXuLyBG;
                 }
-                <i style="color:black;">
-                    Kíp @ID_Kip.TenCa@ID_Kip.TenKip Ngày @Date.ToString("dd") Tháng @Date.ToString("MM") Năm @Date.ToString("yyyy")
-                </i>
+                Kíp @ID_Kip.TenCa@ID_Kip.TenKip ngày @Date.ToString("dd") tháng @Date.ToString("MM") Năm @Date.ToString("yyyy")
+              @*  <i style="color:black;">
+                    
+                </i>*@
             </div>
         </div>
         <div class="col-md-12 float-left">
             Chúng tôi gồm:
         </div>
         <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-            <div style="width:36%"> 1. Đại diện bên giao: Ông/bà: @ThongTin_BG.HoVaTen</div>
-            <div style="width:33%">Chức vụ:  @ViTri_BG.TenViTri </div>
-            <div style="width:30%">BP: @PhongBan_BG.TenPhongBan</div>
+            <div style="width:37%"> 1. Đại diện bên giao: Ông/bà: @ThongTin_BG.HoVaTen</div>
+            <div style="width:38%">Chức vụ:  @ViTri_BG.TenViTri </div>
+            <div style="width:25%">BP: @PhongBan_BG.TenPhongBan</div>
         </div>
 
          <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-            <div style="width:36%"> 2. Đại diện bên nhận: Ông/bà: @ThongTin_BN.HoVaTen</div>
-            <div style="width:33%">Chức vụ:  @ViTri_BN.TenViTri </div>
-            <div style="width:30%">BP: @PhongBan_BN.TenPhongBan</div>
+            <div style="width:37%"> 2. Đại diện bên nhận: Ông/bà: @ThongTin_BN.HoVaTen</div>
+            <div style="width:38%">Chức vụ:  @ViTri_BN.TenViTri </div>
+            <div style="width:25%">BP: @PhongBan_BN.TenPhongBan</div>
         </div>
          <div class="col-md-12 float-left" style="margin-bottom:8px;">
             Cùng nhau thống nhất lập "Biên bản giao nhận NNVL" như sau:			
@@ -134,28 +141,47 @@
  
     <div class="card-body" style="padding-top:1%;">
         <div class="table-responsive">
-            <table class="table table-bordered table-hover" style="border-collapse: collapse;" cellpadding="0">
+            <table  style="border-collapse: collapse; width: 100%; " cellpadding="0">
                 <thead>
-                    <tr style="font-size:14px;">
-                        <th width="30px" rowspan="3" style="vertical-align:middle; border: 1px solid black;">STT</th>
-                        <th class="text-center" rowspan="3" width="500px" style="vertical-align:middle; border: 1px solid black;">Tên nguyên/ nhiên/ phụ liệu</th>
-                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle; border: 1px solid black;">Đơn vị tính</th>
-                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle; border: 1px solid black;">Lô</th>
-                        <th class="text-center" colspan="5" width="200px" style="vertical-align:middle; border: 1px solid black;">Khối lượng vào/ra trong kíp</th>
-                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle; border: 1px solid black;">Ghi chú</th>
+                    @*<tr style="font-size:14px;">
+                        <th rowspan="3" style="vertical-align:middle; border: 1px solid black;width:1%">STT</th>
+                        <th class="text-center" rowspan="3"  style="vertical-align:middle; border: 1px solid black;width:30%">Tên nguyên/ nhiên/ phụ liệu</th>
+                        <th class="text-center" rowspan="3" style="vertical-align:middle; border: 1px solid black;width:3%">ĐVT</th>
+                        <th class="text-center" rowspan="3" style="vertical-align:middle; border: 1px solid black;width:5%">Lô</th>
+                        <th class="text-center" colspan="5" style="vertical-align:middle; border: 1px solid black;width:50%">Khối lượng vào/ra trong kíp</th>
+                        <th class="text-center" rowspan="3"  style="vertical-align:middle; border: 1px solid black;width:10%">Ghi chú</th>
                     </tr>
                     <tr style="font-size:14px;">
-                        <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;">W (%)</th>
-                        <th width="150px" colspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;">KL bên giao</th>
-                        <th width="150px" colspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;">KL bên nhận</th>
+                        <th  rowspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;width:10%">W (%)</th>
+                        <th  colspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;width:20%">KL bên giao</th>
+                        <th  colspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black;width:20%">KL bên nhận</th>
 
                     </tr>
                     <tr style="font-size:14px;">
-                        <th width="150px" class="text-center" style="vertical-align:middle; border: 1px solid black;">Khối lượng</th>
-                        <th width="150px" class="text-center" style="vertical-align:middle; border: 1px solid black;">KL quy khô</th>
+                        <th class="text-center" style="vertical-align:middle; border: 1px solid black;width:10%">Khối lượng</th>
+                        <th  class="text-center" style="vertical-align:middle; border: 1px solid black;width:10%">KL quy khô</th>
 
-                        <th width="150px" class="text-center" style="vertical-align:middle; border: 1px solid black;">Khối lượng</th>
-                        <th width="150px" class="text-center" style="vertical-align:middle; border: 1px solid black;">KL quy khô</th>
+                        <th  class="text-center" style="vertical-align:middle; border: 1px solid black;width:10%">Khối lượng</th>
+                        <th  class="text-center" style="vertical-align:middle; border: 1px solid black;width:10%">KL quy khô</th>
+                    </tr>*@
+                    <tr>
+                        <th rowspan="3" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 5%;">STT</th>
+                        <th rowspan="3" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 29%;">Tên nguyên/ nhiên/ phụ liệu</th>
+                        <th rowspan="3" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">ĐVT</th>
+                        <th rowspan="3" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Lô</th>
+                        <th colspan="5" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 25%;" colspan="5">Khối lượng vào/ra trong kíp</th>
+                        <th rowspan="3" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Ghi chú</th>
+                    </tr>
+                    <tr>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px;width: 8%;" rowspan="2">W (%)</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 16%;" colspan="2">KL bên giao</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 16%;" colspan="2">KL bên nhận</th>
+                    </tr>
+                    <tr>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Khối lượng</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">KL quy khô</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Khối lượng</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">KL quy khô</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -166,15 +192,15 @@
                     @foreach (var item in ListCTBBGN)
                     {
                         <tr>
-                            <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
+                            <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;">
                                 @RowNo@{
                                     RowNo++;
                                 }
                             </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                            <td style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
                                 @item.TenVatTu
                             </td>
-                            <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
+                            <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;text-align:center">
                                 @item.DonViTinh
                             </td>
                             @if (item.MaLo == "")
@@ -184,7 +210,7 @@
                             }
                             else
                             {
-                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
+                                <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;text-align:center">
                                     @{
                                         var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
                                     }
@@ -192,14 +218,14 @@
                                 </td>
                             }
 
-                            <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;text-align:center">
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
                                 @item.DoAm_W
                             </td>
-                            <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
-                                @item.KhoiLuong_BG
+                            <td style="font-size:14px;vertical-align:middle;text-align: right;padding-right:8px; border: 1px solid black;">
+                                @item.KhoiLuong_BG.ToString("F3")
                             </td>
-                            <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
-                                @item.KL_QuyKho_BG
+                            <td style="font-size:14px;vertical-align:middle;text-align: right;padding-right:8px; border: 1px solid black;">
+                                @item.KL_QuyKho_BG.ToString("F3")
                             </td>
                             @if (@item.KhoiLuong_BN == 0)
                             {
@@ -208,8 +234,8 @@
                             }
                             else
                             {
-                                <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
-                                    @item.KhoiLuong_BN
+                                <td style="font-size:14px;vertical-align:middle;text-align: right;padding-right:8px; border: 1px solid black;">
+                                    @item.KhoiLuong_BN.ToString("F3")
                                 </td>
                             }
                             @if (@item.KL_QuyKho_BN == 0)
@@ -220,13 +246,13 @@
                             }
                             else
                             {
-                                <td style="font-size:14px;vertical-align:middle;text-align: right; border: 1px solid black;">
-                                    @item.KL_QuyKho_BN
+                                <td style="font-size:14px;vertical-align:middle;text-align: right;padding-right:8px; border: 1px solid black;">
+                                    @item.KL_QuyKho_BN.ToString("F3")
                                 </td>
                             }
 
 
-                            <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">
+                            <td class="text-center" style="font-size:14px;padding-left:8px;vertical-align:middle; border: 1px solid black;">
                                 @item.GhiChu
                             </td>
                         </tr>
@@ -237,7 +263,7 @@
         </div>
 
     </div>
-    <u class="col-md-12 float-left" style="padding-top:1%;">
+    <u class="col-md-12 float-left" style="padding-top:1%;font-weight:bold;font-style:italic;">
             Ghi chú:
         </u>
         <div class="col-md-12 float-left">
@@ -256,13 +282,13 @@
             <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
 
                 <div style="text-align: center;  padding-top:8px;">
-                      Bên nhận
+                      Đại diện Bên nhận
                 </div>
                 <div style="text-align: center;  padding:2%;">
                          @if(ThongTin_BN.ChuKy != null)
                                     {
                         var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BN.ChuKy;
-                        <img src="@lin" alt="" height="50px">
+                        <img src="@lin" alt="" height="50">
                                     }
                                     else
                                     {
@@ -277,13 +303,13 @@
             <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
 
                 <div style="text-align: center; padding-top:8px;">
-                      Bên giao
+                      Đại diện Bên giao
                 </div>
                 <div style="text-align: center;  padding:2%;">
                     @if(ThongTin_BG.ChuKy != null)
                                     {
                         var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BG.ChuKy;
-                        <img src="@lin" alt="" height="50px">
+                        <img src="@lin" alt="" height="50">
                                     }
                                     else
                                     {

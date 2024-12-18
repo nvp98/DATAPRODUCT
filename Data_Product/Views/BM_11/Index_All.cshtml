@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<Data_Product.Models.Tbl_BienBanGiaoNhan>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @using Data_Product.Repositorys;
+@using System.Security.Claims;
 @inject Data_Product.Repositorys.DataContext _context
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -28,6 +29,19 @@
     }
 
 }
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
+}
+<style>
+    thead th {
+        position: sticky;
+        top: 0; /* Cố định ở trên */
+        background-color: #f9f9f9; /* Đặt màu nền cho thead */
+        z-index: 10; /* Chống bị đè bởi các phần tử khác */
+    }
+</style>
 <div class="app-main__outer">
     <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
         <div class="tab-content">
@@ -36,37 +50,73 @@
                     <div class="row" style="width:100%; height: 120px;">
                         <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available;">
                             <div class="col-12" style="text-align: left;padding: 2%  2%  2% 0%; display: flex; ">
-                                <div class="col-9">
+                                <div class="col-6">
                                     <span class="text-muted small pt-2 ps-1">
                                         <b style="color:#06428b;font-size: 15px;">
                                             PHIẾU YÊU CẦU ĐẾN TÔI
                                         </b>
                                     </span>
                                 </div>          
-                                <div class="col-3" style="text-align: right;">
-                                    <button type="submit" class="btn btn-primary" id="btn-Export">
+                                <div class="col-6 d-flex" style="">
+                                    <button type="submit" class="btn btn-primary" style="margin-right:8px" id="btn-Export">
                                         <i class="bi bi-file-earmark-excel"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Xuất Excel
                                         </span>
                                     </button>
+                                    @if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
+                                    {
+                                        <button type="submit" class="btn btn-primary" style="margin-right:8px" onclick="SubmitForm()">Check phiếu đã xử lý</button>
+                                    }
+                                    @if (TaiKhoan.TenTaiKhoan == GlobalVariables.HPDQ02384 || TaiKhoan.ID_Quyen == 1)
+                                    {
+                                        <button id="btn-Khoa" type="button" class="btn btn-primary ">
+                                            <i class="bi bi-box-arrow-up"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                <i></i><span style="color: white;">Xử lý khóa phiếu</span>
+                                            </span>
+                                        </button>
+                                    }
+
+                                    
                                 </div>
-              
+                                <!-- Submit Button -->
+                                
                
 
                             </div>
                         </div>
            
                     </div>
+                    <div class="modal fade" id="myModalKhoa" role="dialog" data-url='@Url.Action("KhoaPhieu","BM_11")'></div>
+                    <script type="text/javascript">
+                        $('#btn-Khoa').click(function () {
+                            var url = $('#myModalKhoa').data('url');
+                            $.get(url, function (data) {
+                                $("#myModalKhoa").html(data);
+                                $("#ModalTitle").html("Khóa Xử lý");
+                                $("#myModalKhoa").modal('show');
+                            });
+                        });
+                    </script>
                     <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
                         <div class="row">
-                     
+                            <div class="col-md-2 ">
+                                <span class="text-center" style="margin-top: 8px">
+                                    <b style="font-size: 15px;
+                                       color: black;">TÌM KIẾM :</b>
+                                </span>
+                                <div style="">
+                                    <input type="text" id="txtsearch" name="" placeholder="Tìm kiếm" class="form-control" value="@ViewBag.search">
+                                </div>
+                               
+                            </div>
                             <div class="col-md-2">
                                 <span class="text-center" style="margin-top: 8px">
                                     <b style="font-size: 15px;
                                        color: black;">TỪ NGÀY :</b>
                                 </span>
-                                <div style="margin-top: 5%;">
+                                <div style="">
                                     @Html.TextBox("begind", null, new { @id = "begind", @type = "date", @class = "form-control" })
                                 </div>
                               
@@ -75,42 +125,168 @@
                                 <span class="text-center" style="margin-top: 8px; padding-bottom:0.5%">
                                     <b style="font-size: 15px; color: black;">ĐẾN NGÀY :</b>
                                 </span>
-                                <div style="margin-top: 5%;">
+                                <div style="">
                                     @Html.TextBox("endd", null, new { @id = "endd", @type = "date", @class = "form-control" })
                                 </div>
                             </div>
-                            <div class="col-md-3">
-                                <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">PHÒNG BAN :</b></span>
-                                <div style="margin-top: 5%;">
-                                    @Html.DropDownList("PBList", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBan", @class = "form-control"})
-                                </div>
-                             
-              
-                            </div>
-                            <div class="col-md-3">
-                                <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">BÊN LÊN BBGN :</b></span>
-                                <div style="margin-top: 5%;">
-                                        @Html.DropDownList("selectedOption", ViewBag.Options as List<SelectListItem>, "--- Chọn bên lên BBGN --- ", new { id = "ID_DaiDien", @class = "form-control"})
+                            <div class="col-md-2">
+                                <span class="text-center" style="margin-top: 8px; padding-bottom:0.5%">
+                                    <b style="font-size: 15px; color: black;">QUY TRÌNH:</b>
+                                </span>
+                                <div style="">
+                                    @Html.DropDownList("QuyTrinh", null, "----  Chọn Quy trình  ----", new { id = "ID_QuyTrinh", @class = "form-control"})
                                 </div>
                             </div>
-                            <div class="col-md-2" style="text-align:left;margin-top: 2.5%;">
-                                <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
+                            <div class="col-md-2">
+                                <span class="text-center" style="margin-top: 8px; padding-bottom:0.5%">
+                                    <b style="font-size: 15px; color: black;">CA/KÍP:</b>
+                                </span>
+                                <div style="">
+                                    @Html.DropDownList("Kip", null, "----  Chọn Ca/Kíp  ----", new { id = "Kip", @class = "form-control",multiple = "multiple"})
+                                </div>
+                            </div>
+                            <div class="col-md-2" style="text-align:left;">
+                                <button class="btn btn-primary float-end mt-2" id="btn-search" style="border-radius: 5px;">
                                     <i class="bi bi-search"></i>
                                     <span class="small pt-2 ps-1" style="color: white;">
                                         Tìm kiếm
                                     </span>
                                 </button>
                             </div>
+                            <div class="row mt-2">
+                                <div class="col-md-3">
+                                    <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">PHÒNG BAN BÊN GIAO :</b></span>
+                                    <div style="">
+                                        @Html.DropDownList("PBListBG", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBanBG", @class = "form-control"})
+                                    </div>
+                                </div>
+                                <script type="text/javascript">
+                                    var IDPB =$("#ID_PhongBanBG").val();
+                                    if(IDPB != null){
+                                        $.get("/BM_11/Xuong", { IDPhongBan: $("#ID_PhongBanBG").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#XuongBG").empty();
+                                                $("#XuongBG").append("<option value ='" + null + "'>" + "--Chọn xưởng--" + "</option>")
+                                                $.each(data, function (index, row) {
+                                                    
+                                                    if (@ViewBag.ID_XuongBG == row.iD_Xuong){
+                                                        $("#XuongBG").append("<option value ='" + row.iD_Xuong + "' selected>" + row.tenXuong + "</option>");
+                                                    }
+                                                    else{                                                    
+                                                        $("#XuongBG").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                                                    }
+                                                });
+                                            }
+                                            else {
+                                                $("#XuongBG").empty();
+                                                $("#XuongBG").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+                                            }
+                                        });
+                                    }
+                                    $("#ID_PhongBanBG").change(function () {
+                                        $.get("/BM_11/Xuong", { IDPhongBan: $("#ID_PhongBanBG").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#XuongBG").empty();
+                                                $("#XuongBG").append("<option value ='" + null + "'>" + "--Chọn xưởng--" + "</option>")
+                                                $.each(data, function (index, row) {
+                                                    $("#XuongBG").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#XuongBG").empty();
+                                                $("#XuongBG").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <div class="col-md-3">
+                                    <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">XƯỞNG BÊN GIAO :</b></span>
+                                    <div style="">
+                                        <select class="marginTB5 form-control" id="XuongBG" name="XuongBG" >
+
+                                        </select>
+                                        @*@Html.DropDownList("PBListBG", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBan", @class = "form-control"})*@
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">PHÒNG BAN BÊN NHẬN :</b></span>
+                                    <div style="">
+                                        @Html.DropDownList("PBListBN", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBanBN", @class = "form-control"})
+                                    </div>
+                                </div>
+                                <script type="text/javascript">
+                                    var IDPB = $("#ID_PhongBanBN").val();
+                                    
+                                    if (IDPB != null) {
+                                        $.get("/BM_11/Xuong", { IDPhongBan: $("#ID_PhongBanBN").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#XuongBN").empty();
+                                                $("#XuongBN").append("<option value ='" + null + "'>" + "--Chọn Xưởng--" + "</option>")
+                                                $.each(data, function (index, row) {
+
+                                                    if (@ViewBag.ID_XuongBN == row.iD_Xuong){
+                                                        $("#XuongBN").append("<option value ='" + row.iD_Xuong + "' selected>" + row.tenXuong + "</option>");
+                                                    }
+                                                    else{
+                                                        $("#XuongBN").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                                                    }
+                                                   
+                                                });
+                                            }
+                                            else {
+                                                $("#XuongBN").empty();
+                                                $("#XuongBN").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+                                            }
+                                        });
+                                    }
+                                    $("#ID_PhongBanBN").change(function () {
+                                        $.get("/BM_11/Xuong", { IDPhongBan: $("#ID_PhongBanBN").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#XuongBN").empty();
+                                                $("#XuongBN").append("<option value ='" + null + "'>" + "--Chọn Xưởng--" + "</option>")
+                                                $.each(data, function (index, row) {
+                                                    $("#XuongBN").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#XuongBN").empty();
+                                                $("#XuongBN").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <div class="col-md-3">
+                                    <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">XƯỞNG BÊN NHẬN :</b></span>
+                                    <div style="">
+                                        <select class="marginTB5 form-control" id="XuongBN" name="XuongBN"></select>
+                                        @*@Html.DropDownList("PBListBG", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBan", @class = "form-control"})*@
+                                    </div>
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive" style="height: 550px;">
+                            
+                            <form method="post" id="myForm">
                             <table class="table table-bordered table-hover" id="table" cellpadding="0">
                                 <thead style="height: 60px;font-size: 14px;">
                                     <tr>
-                                        <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
-                                        <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
-
+                                        <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7; ">STT</th>
+                                        @if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
+                                        {
+                                           <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">
+                                                    <input type="checkbox" id="selectAll" /> Chọn Tất Cả<br />
+                                           </th>
+                                           
+                                        }
+                                        @if (TaiKhoan.TenTaiKhoan == GlobalVariables.HPDQ02384 || TaiKhoan.ID_Quyen == 1)
+                                        {
+                                        <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Khóa</th>
+                                        }
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung trích yếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Quy trình</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Số phiếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
@@ -129,101 +305,62 @@
                                     @foreach (var item in Model)
                                     {
                                         var ID_TrinhKy = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
-                                        <tr>
+                                        var checkColor = _context.Tbl_PKHXuLyPhieu.Where(x => x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                            string mau = "";
+                                            if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
+                                            {
+                                                mau = checkColor != null ? "table-success" : "";
+                                            }
+                                            <tr class="@mau">
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 @RowNo@{
                                                     RowNo++;
                                                 }
                                             </td>
-                                            @if (item.ID_QuyTrinh == 3)
-                                            {
-                                                @if (item.ID_TrangThai_BG == 1 || item.ID_TrangThai_BG == 3 || item.ID_TrangThai_BG == 4 || item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 1)
+                                                @if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
                                                 {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
+                                                    if(mau != "")
+                                                    {
+                                                        <td class="text-center">
+                                                            <input type="checkbox" name="CheckedselectedItems" checked disabled value="@item.ID_BBGN" />
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center">
+                                                            <input type="checkbox" class="itemCheckbox" name="selectedItems" value="@item.ID_BBGN" />
+                                                        </td>
+                                                    }
+                                                   
                                                 }
-                                                else if (item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 0)
+                                                @if (TaiKhoan.TenTaiKhoan == GlobalVariables.HPDQ02384 || TaiKhoan.ID_Quyen == 1)
                                                 {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("YCauHieuChinh", "XuLyPhieu", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
+                                                    if (item.IsLock == false)
+                                                    {
+                                                        <td class="text-center" style="font-size:14px;">
+                                                            <a class="btn btn-success btn-sm" title="Khóa phiếu" href="@Url.Action("Lock", "BM_11", new { id = item.ID_BBGN })"
+                                                               onclick="return confirm('Bạn muốn khóa phiếu : @item.SoPhieu')">
+                                                                <i class="bi bi-unlock-fill"></i>
+
+                                                            </a>
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center" style="font-size:14px;">
+                                                            <a class="btn btn-danger btn-sm" title="Mở Khóa phiếu" href="@Url.Action("Unlock", "BM_11", new { id = item.ID_BBGN })"
+                                                               onclick="return confirm('Bạn muốn mở khóa phiếu : @item.SoPhieu')">
+                                                                <i class="bi bi-lock-fill"></i>
+                                                            </a>
+                                                        </td>
+                                                    }
                                                 }
-                                                else if (item.ID_TrangThai_BG == 2 && ID_TrinhKy.ID_TrangThai == 2 || item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 2)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("SuaPhieu", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BBGN == 3 && ID_TrinhKy.ID_TrangThai == 3)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                            }
-                                            else if (item.ID_QuyTrinh == 1)
-                                            {
-                                                @if (item.ID_TrangThai_BG == 1 || item.ID_TrangThai_BG == 3 || item.ID_TrangThai_BG == 4)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 0 || item.ID_TrangThai_BG == 2)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("SuaPhieu", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                            }
-                                            else if (item.ID_QuyTrinh == 2)
-                                            {
-                                                @if (item.ID_TrangThai_BG == 1 || item.ID_TrangThai_BG == 3 || item.ID_TrangThai_BG == 4 || item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 1)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 0)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("SuaPhieu_PhieuBoSung", "XuLyPhieu", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 2 && ID_TrinhKy.ID_TrangThai == 2 || item.ID_TrangThai_BG == 0 && item.ID_TrangThai_BN == 0 && ID_TrinhKy.ID_TrangThai == 2)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("SuaPhieu", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BBGN == 3 && ID_TrinhKy.ID_TrangThai == 3)
-                                                {
-                                                    <td style="font-size:14px;color: #335FB3">
-                                                        <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                        </a>
-                                                    </td>
-                                                }
-                                            }
+                                                <td style="font-size:14px;color: #335FB3">
+                                                <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
+                                                    BM.11/QT.05
+                                                </a>
+                                            </td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NoiDungTrichYeu</td>
                                             @if (item.ID_QuyTrinh == 1)
                                             {
                                                 <td style="font-size:14px;vertical-align:middle;">
@@ -255,7 +392,7 @@
                                                 var BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BN).FirstOrDefault();
                                             }
                                             <td class="text-left" style="font-size:14px;vertical-align:middle;">@BN.TenTaiKhoan<br> @BN.HoVaTen</td>
-                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.ThoiGianXuLyBG.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayTao.ToString("dd/MM/yyyy hh:mm:ss")</td>
 
                                             @if (item.ID_QuyTrinh == 1)
                                             {
@@ -319,44 +456,76 @@
                                                 }
                                             }
 
-                                            @if (item.ID_QuyTrinh == 2 && ID_TrinhKy != null || item.ID_QuyTrinh == 3 && ID_TrinhKy != null)
+                                            @if (item.ID_TrangThai_BBGN == 0)
                                             {
-                                                @if (item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 0)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-info" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đang lưu
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 1 && item.ID_TrangThai_BN == 0 ||
-                                                item.ID_TrangThai_BG == 1 && ID_TrinhKy.ID_TrangThai == 1 && item.ID_TrangThai_BN == 0 ||
-                                                item.ID_TrangThai_BG == 1 && ID_TrinhKy.ID_TrangThai == 2 && item.ID_TrangThai_BN == 0 ||
-                                                item.ID_TrangThai_BG == 0 && ID_TrinhKy.ID_TrangThai == 2 && item.ID_TrangThai_BN == 0)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-warning" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đang xử lý
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 1 && item.ID_TrangThai_BN == 1 && ID_TrinhKy.ID_TrangThai == 2 ||
-                                                          item.ID_TrangThai_BG == 1 && item.ID_TrangThai_BN == 1 && ID_TrinhKy.ID_TrangThai == 3)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-success" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Hoàn tất
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 4 && item.ID_TrangThai_BN == 4 && ID_TrinhKy.ID_TrangThai == 3)
-                                                {
+                                                    if(item.ID_QuyTrinh != 1 && item.ID_TrangThai_BN ==1)
+                                                    {
+                                                        if(ID_TrinhKy.ID_TrangThai == 0)
+                                                        {
+                                                            <td class="text-center" style="font-size:14px;">
+                                                                <button type="button" class="btn btn-primary" style="width: 150px;">
+                                                                    <span class="small pt-2 ps-1" style="color: white;">
+                                                                       P.KH Đang xử lý
+                                                                    </span>
+                                                                </button>
+                                                            </td>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center" style="font-size:14px;">
+                                                            <button type="button" class="btn btn-warning" style="width: 150px;">
+                                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                                    Đang xử lý
+                                                                </span>
+                                                            </button>
+                                                        </td>
+                                                    }
+                                                   
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 1)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Hoàn tất
+                                                        </span>
+                                                    </button>
+                                                    @*<div class="modal" id="myModal" role="dialog" data-url='@Url.Action("HuyPhieu_PheDuyet","XuLyPhieu", new{id = item.ID_BBGN})'></div>
+                                                    <script type="text/javascript">
+                                                        $('#btn-add').click(function () {
+                                                            var url = $('#myModal').data('url');
+                                                            $.get(url, function (data) {
+                                                                $("#myModal").html(data);
+                                                                $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
+                                                                $("#myModal").modal('show');
+                                                            });
+                                                        });
+                                                    </script>*@
+                                                </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 2)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            BN Hủy phiếu
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 3)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-secondary" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Đề nghị hiệu chỉnh
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 4)
+                                            {
                                                     <td class="text-center" style="font-size:14px;">
                                                         <button type="button" class="btn btn-danger" style="width: 150px;">
                                                             <span class="small pt-2 ps-1" style="color: white;">
@@ -364,107 +533,108 @@
                                                             </span>
                                                         </button>
                                                     </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 2 && ID_TrinhKy.ID_TrangThai == 2)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
+                                             }
+                                             else if (item.ID_TrangThai_BBGN == 5)
+                                             {
+                                                    var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                                    if (checkxoa != null && checkxoa.TinhTrang_BN == 1 && checkxoa.TinhTrang_KH == 0)
+                                                    {
+                                                        <td class="text-center" style="font-size:14px;">
+                                                            <button type="button" class="btn btn-primary" style="width: 150px;">
+                                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                                   Chờ PKH Xóa phiếu
+                                                                </span>
+                                                            </button>
+                                                        </td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td class="text-center" style="font-size:14px;">
+                                                            <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                                   BN đang xóa phiếu
+                                                                </span>
+                                                            </button>
+                                                        </td>
+                                                    }
+                                                    @*<td class="text-center" style="font-size:14px;">
                                                         <button type="button" class="btn btn-danger" style="width: 150px;">
                                                             <span class="small pt-2 ps-1" style="color: white;">
-                                                                Yêu cầu hiệu chỉnh
+                                                                Xóa phiếu
                                                             </span>
                                                         </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 3 && item.ID_TrangThai_BBGN == 3)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đề nghị hiệu chỉnh
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                            }
-                                            else
-                                            {
-                                                @if (item.ID_TrangThai_BG == 0 && item.ID_TrangThai_BN == 0)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-info" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đang lưu
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 1 && item.ID_TrangThai_BN == 0)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-warning" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đang xử lý
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 1 && item.ID_TrangThai_BN == 1)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-success" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Hoàn tất
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 2 && item.ID_TrangThai_BN == 0)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Yêu cầu hiệu chỉnh
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.ID_TrangThai_BG == 3 && item.ID_TrangThai_BBGN == 3)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Đề nghị hiệu chỉnh
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
+                                                    </td>*@
+                                              
                                             }
 
                                         </tr>
                                     }
                                 </tbody>
-
                             </table>
-
+                            </form>
                         </div>
                         <div class="container" style="margin:0px; padding:1% 0% 0% 0%;">
                             @if (pager.TotalPages > 0)
                             {
                                 <ul class="pagination justify-content-start ">
+
                                     @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
                                     {
+                                        var seach = @ViewContext.HttpContext.Request.Query["search"];
+                                        var ID_PhongBanBG = @ViewContext.HttpContext.Request.Query["ID_PhongBanBG"];
+                                        var ID_XuongBG = @ViewContext.HttpContext.Request.Query["ID_XuongBG"];
+                                        var ID_PhongBanBN = @ViewContext.HttpContext.Request.Query["ID_PhongBanBN"];
+                                        var ID_XuongBN = @ViewContext.HttpContext.Request.Query["ID_XuongBN"];
+                                        var begind = @ViewContext.HttpContext.Request.Query["begind"];
+                                        var endd = @ViewContext.HttpContext.Request.Query["endd"];
+                                        var ID_QuyTrinh = @ViewContext.HttpContext.Request.Query["ID_QuyTrinh"];
+                                        var Kip = @ViewContext.HttpContext.Request.Query["Kip"];
                                         <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All" asp-route-page="@pge">@pge</a>
-
+                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All" asp-route-page="@pge"
+                                       asp-route-ID_PhongBanBG="@ID_PhongBanBG"
+                                       asp-route-ID_XuongBG="@ID_XuongBG"
+                                       asp-route-ID_XuongBN="@ID_XuongBN"
+                                       asp-route-ID_PhongBanBN="@ID_PhongBanBN"
+                                       asp-route-begind="@begind"
+                                       asp-route-endd="@endd"
+                                       asp-route-ID_QuyTrinh="@ID_QuyTrinh"
+                                       asp-route-Kip="@Kip">@pge</a>
                                         </li>
                                     }
                                     @if (pager.CurrentPage < pager.TotalPages)
                                     {
+                                        var seach = @ViewContext.HttpContext.Request.Query["search"];
+                                        var ID_PhongBanBG = @ViewContext.HttpContext.Request.Query["ID_PhongBanBG"];
+                                        var ID_XuongBG = @ViewContext.HttpContext.Request.Query["ID_XuongBG"];
+                                        var ID_PhongBanBN = @ViewContext.HttpContext.Request.Query["ID_PhongBanBN"];
+                                        var ID_XuongBN = @ViewContext.HttpContext.Request.Query["ID_XuongBN"];
+                                        var begind = @ViewContext.HttpContext.Request.Query["begind"];
+                                        var endd = @ViewContext.HttpContext.Request.Query["endd"];
+                                        var ID_QuyTrinh = @ViewContext.HttpContext.Request.Query["ID_QuyTrinh"];
+                                        var Kip = @ViewContext.HttpContext.Request.Query["Kip"];
                                         <li class="page-item">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
+                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All"
+                                       asp-route-ID_PhongBanBG="@ID_PhongBanBG"
+                                       asp-route-ID_XuongBG="@ID_XuongBG"
+                                       asp-route-ID_XuongBN="@ID_XuongBN"
+                                       asp-route-ID_PhongBanBN="@ID_PhongBanBN"
+                                       asp-route-begind="@begind"
+                                       asp-route-endd="@endd"
+                                       asp-route-ID_QuyTrinh="@ID_QuyTrinh"
+                                       asp-route-Kip="@Kip"
+                                            asp-route-page="@(pager.CurrentPage + 1)">Next</a>
                                         </li>
                                         <li class="page-item">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All" asp-route-page="@(pager.TotalPages)">Last</a>
+                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All"
+                                       asp-route-ID_PhongBanBG="@ID_PhongBanBG"
+                                       asp-route-ID_XuongBG="@ID_XuongBG"
+                                       asp-route-ID_XuongBN="@ID_XuongBG"
+                                       asp-route-ID_PhongBanBN="@ID_PhongBanBN"
+                                       asp-route-begind="@begind"
+                                       asp-route-endd="@endd"
+                                       asp-route-ID_QuyTrinh="@ID_QuyTrinh"
+                                       asp-route-Kip="@Kip"
+                                            asp-route-page="@(pager.TotalPages)">Last</a>
                                         </li>
                                     }
                                 </ul>
@@ -478,24 +648,65 @@
     </div>
 
 </div>
+<script>
+    document.getElementById('selectAll').addEventListener('change', function () {
+        // Lấy tất cả các checkbox có class là itemCheckbox
+        const checkboxes = document.querySelectorAll('.itemCheckbox');
+
+        // Nếu checkbox "Chọn Tất Cả" được chọn thì tất cả đều được chọn
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+
+    // Cập nhật trạng thái của "Chọn Tất Cả" khi bỏ chọn bất kỳ checkbox nào
+    document.querySelectorAll('.itemCheckbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            // Kiểm tra nếu có bất kỳ checkbox nào chưa chọn
+            selectAllCheckbox.checked = Array.from(document.querySelectorAll('.itemCheckbox'))
+                .every(item => item.checked);
+        });
+    });
+</script>
 <script type="text/javascript">
+
+
+    localStorage.setItem("IsShowBT", "1");
+
+    function SubmitForm(){
+        const queryParams = window.location.search; // Lấy ?id=123&name=John
+        const form = document.getElementById("myForm");
+        form.action = "/BM_11/ProcessSelected" + queryParams;
+        form.submit();
+    }
+
+
     $("#btn-search").on('click', function () {
-        var ID_PhongBan = $('#ID_PhongBan').val();
-        var ID_DaiDien = $('#ID_DaiDien').val();
-        window.location.href = '@Url.Action("Index_All", "BM_11")?ID_PhongBan=' + ID_PhongBan + '&ID_DaiDien=' + $('#ID_DaiDien').val() + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
+        var ID_PhongBanBG = $('#ID_PhongBanBG').val();
+        var ID_PhongBanBN = $('#ID_PhongBanBN').val();
+        var XuongBG = $('#XuongBG').val();
+        var XuongBN = $('#XuongBN').val();
+        window.location.href = '@Url.Action("Index_All", "BM_11")?ID_PhongBanBG=' + ID_PhongBanBG + '&ID_XuongBG=' + XuongBG + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val() + '&ID_PhongBanBN=' + ID_PhongBanBN + '&ID_XuongBN=' + XuongBN + '&ID_QuyTrinh=' + $("#ID_QuyTrinh").val() +  '&Kip=' + $("#Kip").val() + '&search=' + $("#txtsearch").val();
     });
 
     $('#btn-Export').click(function () {
-        var ID_PhongBan = $('#ID_PhongBan').val();
-        var ID_DaiDien = $('#ID_DaiDien').val();
-        window.location.href = '@Url.Action("ExportToExcel_All", "BM_11")?ID_PhongBan=' + $('#ID_PhongBan').val() + '&ID_DaiDien=' + $('#ID_DaiDien').val() + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
+        var ID_PhongBanBG = $('#ID_PhongBanBG').val();
+        var ID_PhongBanBN = $('#ID_PhongBanBN').val();
+        var XuongBG = $('#XuongBG').val();
+        var XuongBN = $('#XuongBN').val();
+        window.location.href = '@Url.Action("ExportToExcel_All", "BM_11")?ID_PhongBanBG=' + ID_PhongBanBG + '&ID_XuongBG=' + XuongBG + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val() + '&ID_PhongBanBN=' + ID_PhongBanBN + '&ID_XuongBN=' + XuongBN + '&ID_QuyTrinh=' + $("#ID_QuyTrinh").val() + '&Kip=' + $("#Kip").val();
 
     });
 
     $("#ID_PhongBan").chosen({
         width: "100%"
     });
-    $("#ID_DaiDien").chosen({
+    $("#Kip").chosen({
         width: "100%"
-    }); 
+    });
+    // Chuyển danh sách từ ViewBag sang định dạng JSON
+    var defaultValuesPB = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.KipSelec));
+    //const defaultValues = @ViewBag.SelectedValue; // Các giá trị mặc định
+    $("#Kip").val(defaultValuesPB).trigger("chosen:updated");
 </script>

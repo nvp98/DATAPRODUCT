@@ -32,7 +32,7 @@
         <div class="tab-content">
             <div class="row">
                 <div class="card">
-                    <div class="row" style="width:300%; height: 120px;">
+                    <div class="row" style=" height: 120px;">
                         <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available;">
                             <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
 
@@ -86,6 +86,7 @@
                                     <tr>
                                         <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
                                         <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung trích yếu</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Quy trình</th>
                                         <th class="text-center" rowspan="3" width="250px" style="vertical-align:middle;background-color: #f7f7f7;">Số phiếu</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
@@ -113,10 +114,10 @@
                                             </td>
                                             <td style="font-size:14px;color: #335FB3">
                                                 <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                    BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
+                                                    BM.11/QT.05
                                                 </a>
                                             </td>
-
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NoiDungTrichYeu</td>
                                             @if (item.ID_QuyTrinh == 1)
                                             {
                                                 <td style="font-size:14px;vertical-align:middle;">
@@ -158,32 +159,63 @@
                                                     @ThoiGianXuly.ToString("dd/MM/yyyy")
                                                 </td>
                                             }
-                                            @if (item_.ID_TrangThai == 1)
+                                            @if (item.ID_TrangThai_BBGN == 0)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-warning" style="width: 120px;">
+                                                    <button type="button" class="btn btn-warning" style="width: 150px;">
                                                         <span class="small pt-2 ps-1" style="color: white;">
-                                                            Chưa xử lý
+                                                            Đang xử lý
                                                         </span>
                                                     </button>
                                                 </td>
                                             }
-                                            else if (item_.ID_TrangThai == 2)
+                                            else if (item.ID_TrangThai_BBGN == 1)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-success" style="width: 120px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
                                                         <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đã xử lý
+                                                            Hoàn tất
                                                         </span>
                                                     </button>
                                                 </td>
                                             }
-                                            else if (item_.ID_TrangThai == 3)
+                                            else if (item.ID_TrangThai_BBGN == 2)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-danger" style="width: 120px;">
+                                                    <button type="button" class="btn btn-danger" style="width: 150px;">
                                                         <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đã hủy
+                                                            BN Hủy phiếu
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 3)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Đề nghị hiệu chỉnh
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 4)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            P. KH hủy phiếu
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.ID_TrangThai_BBGN == 5)
+                                            {
+
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Xóa phiếu
                                                         </span>
                                                     </button>
                                                 </td>

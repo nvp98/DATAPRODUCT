@@ -1,4 +1,5 @@
-﻿using Data_Product.Common;
+﻿using ClosedXML.Excel;
+using Data_Product.Common;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using ExcelDataReader;
@@ -261,6 +262,43 @@ namespace Data_Product.Controllers
             }
 
             return RedirectToAction("Index", "Xuong");
+        }
+
+        public IActionResult ExportToExcel()
+        {
+            var data = (from a in _context.Tbl_Xuong
+                        join pb in _context.Tbl_PhongBan on a.ID_PhongBan equals pb.ID_PhongBan
+                        select new Tbl_Xuong
+                        {
+                            ID_Xuong = a.ID_Xuong,
+                            TenXuong = a.TenXuong,
+                            ID_PhongBan = (int)a.ID_PhongBan,
+                            TenPhongBan = pb.TenPhongBan,
+                            ID_TrangThai = (int?)a.ID_TrangThai ?? default
+                        }).ToList();
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Xuong");
+                //Header
+                worksheet.Cell(1, 1).Value = "STT";
+                worksheet.Cell(1, 2).Value = "Tên xưởng";
+                worksheet.Cell(1, 3).Value = "Tên BP/NM";
+                //value
+                int row = 2; int stt = 1;
+                foreach (var item in data)
+                {
+                    worksheet.Cell(row, 1).Value = stt;
+                    worksheet.Cell(row, 2).Value = item.TenXuong;
+                    worksheet.Cell(row, 3).Value = item.TenPhongBan;
+                    row++; stt++;
+                }
+
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0; // Reset con trỏ stream về đầu
+
+                return File(stream, System.Net.Mime.MediaTypeNames.Application.Octet, "DanhSachXuong.xlsx");
+            }
         }
     }
 }

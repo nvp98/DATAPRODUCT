@@ -42,6 +42,7 @@
                         string List_BP = "";
 
                         string[] arrList = item.PhongBan.Split(',');
+                        var selectedValues = new List<string>();
                         foreach (var ar in arrList)
                         {
                             if (ar != "")
@@ -49,9 +50,11 @@
                                 //int ID_PhongBan = Convert.ToInt32(ar);
                                 var TenPhongBan = _context.Tbl_PhongBan.Where(x => x.TenNgan == ar).FirstOrDefault();
                                 List_BP = String.Concat(TenPhongBan.TenPhongBan + ", " + List_BP);
+                                selectedValues.Add(TenPhongBan.TenNgan.ToString());
                             }
 
                         }
+                        ViewBag.SelectedValue = selectedValues.ToArray();
                         string TenBP = List_BP.Substring(0, (@List_BP.Length - 2));
                     }
                     <input name="PhongBan" type="text" style="margin-bottom: 1%;" disabled="disabled" class="form-control" id="PhongBan" value="@TenBP">
@@ -71,6 +74,10 @@
     </div>
 }
 <script>
+    // Chuyển danh sách từ ViewBag sang định dạng JSON
+    var defaultValues = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(@ViewBag.SelectedValue));
+    //const defaultValues = @ViewBag.SelectedValue; // Các giá trị mặc định
+    $("#multiSelect").val(defaultValues).trigger("chosen:updated");
     $("#IDNhomVatTu").chosen({
         width: "100%"
     });

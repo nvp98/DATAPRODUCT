@@ -34,6 +34,12 @@ namespace Data_Product.Models
         [NotMapped]
         public string? TenQuyen { get; set; }
         public string? ChuKy { get; set; }
+        public string? PhongBan_Them { get; set; }
+        public string? Quyen_Them { get; set; }
+        [NotMapped]
+        public string[] ListPhongBan_Them { get; set; }
+        [NotMapped]
+        public string[] ListQuyen_Them { get; set; }
         public Nullable<int> ID_TrangThai { get; set; }
     }
 }

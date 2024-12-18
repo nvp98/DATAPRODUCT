@@ -89,9 +89,9 @@ namespace Data_Product.Controllers
                     allDaysOfYear.Add(date);  // Thêm ngày vào danh sách
                 }
 
-                List<Tbl_Kip> ds = _context.Tbl_Kip.Where(x => x.NgayLamViec >= startDate && x.NgayLamViec <= endDate).ToList();
-                _context.Tbl_Kip.RemoveRange(ds);
-                _context.SaveChanges();
+                //List<Tbl_Kip> ds = _context.Tbl_Kip.Where(x => x.NgayLamViec >= startDate && x.NgayLamViec <= endDate).ToList();
+                //_context.Tbl_Kip.RemoveRange(ds);
+                //_context.SaveChanges();
 
                 foreach (DateTime date in allDaysOfYear)
                 {
@@ -103,17 +103,20 @@ namespace Data_Product.Controllers
                             int flag = 0;
                                 for (int i = 1; i < 3; i++)
                                 {
+                                    var kipcheck = _context.Tbl_Kip.Where(x=>x.NgayLamViec == date && x.TenCa == i.ToString()).FirstOrDefault();
                                     if (_DO.TenKip == "A")
                                     {
                                         if(flag == 0)
                                         {
-                                            _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "A", i.ToString());
-                                            Kip = _DO.TenKip;
-                                        flag++;
-                                    }
+                                             if(kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}",kipcheck.ID_Kip, date, "A", i.ToString());
+                                             else _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "A", i.ToString());
+                                             Kip = _DO.TenKip;
+                                             flag++;
+                                        }
                                         else
                                         {
-                                            var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "B", i.ToString());
+                                            if (kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, "B", i.ToString());
+                                            else  _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "B", i.ToString());
                                             Kip = "B";
                                         }
                                        
@@ -122,28 +125,32 @@ namespace Data_Product.Controllers
                                     {
                                         if (flag == 0)
                                         {
-                                            _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "B", i.ToString());
-                                            Kip = _DO.TenKip;
-                                        flag++;
-                                    }
-                                        else
-                                        {
-                                            var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "C", i.ToString());
-                                        Kip = "C";
-                                        }
-                                    
-                                    }
-                                    else if (_DO.TenKip == "C")
-                                    {
-                                        if (flag == 0)
-                                        {
-                                            _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "C", i.ToString());
+                                            if (kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, "B", i.ToString());
+                                            else _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "B", i.ToString());
                                             Kip = _DO.TenKip;
                                             flag++;
                                         }
                                         else
                                         {
-                                            var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "A", i.ToString());
+                                            if (kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, "C", i.ToString());
+                                            else _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "C", i.ToString());
+                                            Kip = "C";
+                                            }
+                                    
+                                        }
+                                    else if (_DO.TenKip == "C")
+                                    {
+                                        if (flag == 0)
+                                        {
+                                            if (kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, "C", i.ToString());
+                                            else  _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "C", i.ToString());
+                                            Kip = _DO.TenKip;
+                                            flag++;
+                                        }
+                                        else
+                                        {
+                                            if (kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, "A", i.ToString());
+                                            else _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "A", i.ToString());
                                             Kip = "A";
                                         }
                                     
@@ -152,7 +159,9 @@ namespace Data_Product.Controllers
                             }
                             else
                             {
-                                var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, _DO.TenKip, _DO.TenCa);
+                                var kipcheck = _context.Tbl_Kip.Where(x => x.NgayLamViec == date && x.TenCa == _DO.TenCa).FirstOrDefault();
+                                if(kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, _DO.TenKip, _DO.TenCa);
+                                else _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, _DO.TenKip, _DO.TenCa);
                                 Kip = _DO.TenKip;
                             }
 
@@ -161,19 +170,23 @@ namespace Data_Product.Controllers
                         {
                             for (int i = 1; i < 3; i++)
                             {
-                                if (Kip == "A")
+                            var kipcheck = _context.Tbl_Kip.Where(x => x.NgayLamViec == date && x.TenCa == i.ToString()).FirstOrDefault();
+                            if (Kip == "A")
                                 {
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "B", i.ToString());
+                                    if(kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, "B", i.ToString());
+                                    else _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "B", i.ToString());
                                     Kip = "B";
                                 }
                                 else if (Kip == "B")
                                 {
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "C", i.ToString());
+                                    if (kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, "C", i.ToString());
+                                    else _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "C", i.ToString());
                                     Kip = "C";
                                 }
                                 else if (Kip == "C")
                                 {
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "A", i.ToString());
+                                    if (kipcheck != null) _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_update {0},{1},{2},{3}", kipcheck.ID_Kip, date, "A", i.ToString());
+                                    else  _context.Database.ExecuteSqlRaw("EXEC Tbl_Kip_insert {0},{1},{2}", date, "A", i.ToString());
                                     Kip = "A";
                                 }
 

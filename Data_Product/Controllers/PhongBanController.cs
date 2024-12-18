@@ -1,4 +1,5 @@
-﻿using Data_Product.Models;
+﻿using ClosedXML.Excel;
+using Data_Product.Models;
 using Data_Product.Repositorys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -170,5 +171,44 @@ namespace Data_Product.Controllers
 
             return RedirectToAction("Index", "PhongBan");
         }
+
+        public IActionResult ExportToExcel()
+        {
+            var data = (from a in _context.Tbl_PhongBan
+                            select new Tbl_PhongBan
+                            {
+                                ID_PhongBan = a.ID_PhongBan,
+                                TenPhongBan = a.TenPhongBan,
+                                TenNgan = a.TenNgan,
+                                ID_TrangThai = (int?)a.ID_TrangThai ?? default
+                            }).ToList();
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("PhongBan");
+                //Header
+                worksheet.Cell(1, 1).Value = "STT";
+                worksheet.Cell(1, 2).Value = "Tên Phòng Ban";
+                worksheet.Cell(1, 3).Value = "Tên ngắn";
+                //value
+                //worksheet.Cell(2, 1).Value = 1;
+                //worksheet.Cell(2, 2).Value = "John Doe";
+                //worksheet.Cell(2, 3).Value = 30;
+                int row = 2; int stt = 1;
+                foreach (var item in data)
+                {
+                    worksheet.Cell(row, 1).Value = stt;
+                    worksheet.Cell(row, 2).Value = item.TenPhongBan;
+                    worksheet.Cell(row, 3).Value = item.TenNgan;
+                    row++; stt++;
+                }
+
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Position = 0; // Reset con trỏ stream về đầu
+
+                return File(stream, System.Net.Mime.MediaTypeNames.Application.Octet, "DanhSachPhongBan.xlsx");
+            }
+        }
+
     }
 }

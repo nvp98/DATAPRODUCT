@@ -25,6 +25,10 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_TrangThai> Tbl_TrangThai { get; set; }
         public DbSet<Tbl_TrangThai_PheDuyet> Tbl_TrangThai_PheDuyet { get; set; }
         public DbSet<Tbl_VatTuMaLo> Tbl_VatTuMaLo { get; set; }
+        public DbSet<Tbl_ThongKeXuong> Tbl_ThongKeXuong { get; set; }
+        public DbSet<Tbl_PKHXuLyPhieu> Tbl_PKHXuLyPhieu { get; set; }
+        public DbSet<Tbl_XuLyXoaPhieu> Tbl_XuLyXoaPhieu { get; set; }
+        public DbSet<Tbl_ThoiGianKhoa> Tbl_ThoiGianKhoa { get; set; }
 
     }
 }
