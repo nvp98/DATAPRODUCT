@@ -211,14 +211,39 @@
                                             }
                                             else if (item.ID_TrangThai_BBGN == 5)
                                             {
+                                                var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                                if (checkxoa != null && checkxoa.TinhTrang_BN == 1 && checkxoa.TinhTrang_KH == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-primary" style="width: 150px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Chờ PKH Xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (checkxoa != null && checkxoa.TinhTrang_BN == 0 && checkxoa.TinhTrang_KH == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                BN đang xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Đã xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
 
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Xóa phiếu
-                                                        </span>
-                                                    </button>
-                                                </td>
+                                              
                                             }
                                         </tr>
 

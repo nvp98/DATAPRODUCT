@@ -12,7 +12,7 @@
     <link href="~/img/logo_color.png" rel="icon">
     <link href="~/img/logo_color.png" rel="apple-touch-icon">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @*<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />*@
     <link rel="stylesheet" href="~/Data_Product.styles.css" asp-append-version="true" />
     <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="~/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
@@ -25,6 +25,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+
 
     <!-- Template Main CSS File -->
     <link href="~/css/style.css" rel="stylesheet">
@@ -207,13 +208,21 @@
                 }
                 // quản lý lô
                 List<string> valuesToCheckLo = new List<string> { "1","2","3","6" };
-                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || valuesToCheckLo.Any(value => ListQuyen.Contains(value)))
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 )
                 {
-                    <li class="nav-item">
+                   
+                }
+                <li class="nav-item">
+                    @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || valuesToCheckLo.Any(value => ListQuyen.Contains(value)))
+                    {
                         <a class="nav-link collapsed" data-bs-target="#icons-vattu" data-bs-toggle="collapse" href="#">
                             <i class="bi bi-newspaper"></i><span>Thông tin vật tư</span><i class="bi bi-chevron-down ms-auto"></i>
                         </a>
-                        <ul id="icons-vattu" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                    }
+                    
+                    <ul id="icons-vattu" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                        @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3)
+                        {
                             <li>
                                 <a class="nav-link collapsed" href="@Url.Action("Index", "NhomVatTu")">
                                     <i class="bi bi-circle"></i>
@@ -226,15 +235,20 @@
                                     <span> Vật tư giao nhận</span>
                                 </a>
                             </li>
+                        }
+
+                        @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || valuesToCheckLo.Any(value => ListQuyen.Contains(value)))
+                        {
                             <li>
                                 <a class="nav-link collapsed" href="@Url.Action("Index", "MaLo")">
                                     <i class="bi bi-circle"></i>
                                     <span> Mã lô</span>
                                 </a>
                             </li>
-                        </ul>
-                    </li>
-                }
+                        }
+
+                    </ul>
+                </li>
                 List<string> QuyenTaoYC = new List<string> { "1", "2", "3", "4" };
                 if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 4 || QuyenTaoYC.Any(value => ListQuyen.Contains(value)))
                 {
@@ -314,9 +328,9 @@
         @RenderBody()
     </main><!-- End #main -->
 @*    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>*@
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    @*<script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>*@
+    @*<script src="~/js/site.js" asp-append-version="true"></script>*@
 
     <!-- Vendor JS Files -->
     <script src="~/vendor/apexcharts/apexcharts.min.js"></script>
@@ -330,9 +344,9 @@
 
     <!-- Template Main JS File -->
     <script src="~/js/main.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
+    @*<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>*@
+    @*<script src="~/js/site.js" asp-append-version="true"></script>*@
 @*    @await RenderSectionAsync("Scripts", required: false)*@
 </body>
 </html>

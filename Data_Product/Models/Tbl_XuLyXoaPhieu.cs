@@ -14,5 +14,6 @@ namespace Data_Product.Models
         public DateTime? NgayXuLy_KH { get; set; }
         public int TinhTrang_KH { get; set; }
         public int ID_TrangThai { get; set; }
+        public int? ID_TaiKhoanKH_View { get; set; }
     }
 }

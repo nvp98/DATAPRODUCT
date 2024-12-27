@@ -1,7 +1,14 @@
 ﻿@model IEnumerable<Data_Product.Models.Tbl_VatTu>
 @using Data_Product.Repositorys;
 @inject Data_Product.Repositorys.DataContext _context
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<!-- DataTables -->
+<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
 @if (TempData["msgSuccess"] != null)
 {
@@ -24,6 +31,7 @@
     }
 
 }
+
 <div class="app-main__outer">
     <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
         <div class="tab-content">
@@ -87,7 +95,7 @@
                             });
                         });
                     </script>
-                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
+                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;display:none">
                         <div class="row">
                             <div class="col-md-5">
                                 <input type="text" id="txtsearch" name="" placeholder="Tìm kiếm" class="form-control" value="@ViewBag.search">
@@ -103,19 +111,19 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive" style="height: 550px;">
-                            <table class="table table-bordered table-hover" id="table" cellpadding="0">
-                                <thead style="height: 60px;font-size: 14px;">
+                        <div class="table-responsive" style="">
+                            <table class="table table-bordered table-hover" id="tableID" cellpadding="0">
+                                <thead style="font-size: 14px;">
                                     <tr>
-                                        <th class="text-center" width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên vật tư</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên vật tư (SAP)</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Mã vật tư (SAP)</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
-                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Đơn vị tính</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhóm vật tư</th>
-                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
-                                        <th class="text-center" rowspan="3" width="130px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
+                                        <th class="text-center" width="30px"    style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên vật tư</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên vật tư (SAP)</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Mã vật tư (SAP)</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
+                                        <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Đơn vị tính</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhóm vật tư</th>
+                                        <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
+                                        <th class="text-center"    width="130px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -234,5 +242,30 @@
     $("#btn-search").on('click', function () {
         var search = $('#txtsearch').val();
         window.location.href = '@Url.Action("Index", "VatTu")?search=' + search;
+    });
+    //$(document).ready(function () {
+    //    //$('#table').DataTable({
+    //    //    "paging": true, // Phân trang
+    //    //    "searching": true, // Tìm kiếm
+    //    //    "ordering": true // Sắp xếp
+    //    //});
+    //    if ($('#table').length) {
+    //        $('#exampleTable').DataTable();
+    //    } else {
+    //        console.error("Bảng không tồn tại trong DOM");
+    //    }
+    //});
+</script>
+<script>
+    $(document).ready(function () {
+        $('#tableID').DataTable({
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            fixedHeader: true, // Kích hoạt FixedHeader
+            scrollY: '70vh', // Chiều cao của vùng cuộn (vertical height)
+            scrollCollapse: true, // Cho phép bảng co lại khi có ít dữ liệu
+            //paging: false // Tắt phân trang nếu cần
+        });
     });
 </script>

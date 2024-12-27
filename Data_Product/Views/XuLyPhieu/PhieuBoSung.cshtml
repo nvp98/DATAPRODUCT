@@ -183,46 +183,87 @@
                                                     @ThoiGianXuly.ToString("dd/MM/yyyy")
                                                 </td>
                                             }
-                                            @if (item_.ID_TrangThai == 0)
+
+                                            @if (item.ID_TrangThai_BBGN == 5)
                                             {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-warning" style="width: 120px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Chưa xử lý
-                                                        </span>
-                                                    </button>
-                                                </td>
+                                                var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                                if (checkxoa != null && checkxoa.TinhTrang_BN == 1 && checkxoa.TinhTrang_KH == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-primary" style="width: 150px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Chờ PKH Xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (checkxoa != null && checkxoa.TinhTrang_BN == 0 && checkxoa.TinhTrang_KH == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                BN đang xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Đã xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+
                                             }
-                                            else if (item_.ID_TrangThai == 1)
+                                            else
                                             {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-success" style="width: 120px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đã xử lý
-                                                        </span>
-                                                    </button>
-                                                </td>
+                                                @if (item_.ID_TrangThai == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-warning" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Chưa xử lý
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (item_.ID_TrangThai == 1)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-success" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Đã xử lý
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (item_.ID_TrangThai == 2)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Đã hủy
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (item_.ID_TrangThai == 3)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                BN Đã hủy
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
                                             }
-                                            else if (item_.ID_TrangThai == 2)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-danger" style="width: 120px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đã hủy
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item_.ID_TrangThai == 3)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-danger" style="width: 120px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            BN Đã hủy
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
+
+                                           
                                         </tr>
 
                                     }

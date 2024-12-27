@@ -646,7 +646,7 @@ namespace Data_Product.Controllers
             ViewBag.TTList = new SelectList(_context.Tbl_TrangThai_PheDuyet.ToList(), "ID_TrangThai_PheDuyet", "TenTrangThai", ID_TrangThai);
 
             var res = await (from a in _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_TaiKhoanKH == TaiKhoan.ID_TaiKhoan && x.TinhTrang_BN ==1)
-                             join bb in _context.Tbl_BienBanGiaoNhan.Where(x =>  x.ID_TrangThai_BBGN == 5 && !x.IsDelete) on a.ID_BBGN equals bb.ID_BBGN
+                             join bb in _context.Tbl_BienBanGiaoNhan.Where(x =>  x.ID_TrangThai_BBGN == 5) on a.ID_BBGN equals bb.ID_BBGN
                              select new Tbl_XuLyXoaPhieu
                              {
                                  ID = a.ID,
@@ -657,7 +657,7 @@ namespace Data_Product.Controllers
                                  NgayXuLy_BN =a.NgayXuLy_BN,
                                  NgayXuLy_KH =a.NgayXuLy_KH,
                                  ID_BBGN = a.ID_BBGN,
-                                 ID_TrangThai = a.ID_TrangThai
+                                 ID_TrangThai = a.TinhTrang_KH
                              }).OrderBy(x=>x.TinhTrang_KH).OrderByDescending(x => x.NgayXuLy_KH).ToListAsync();
 
             if (ID_TrangThai != null) res = res.Where(x => x.ID_TrangThai == ID_TrangThai).ToList();
@@ -1081,8 +1081,8 @@ namespace Data_Product.Controllers
                     bbgn.IsDelete = true;
                     //var result_BBGN = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_XacNhanBBGN {0},{1}", id, 1);
                     Tbl_XuLyXoaPhieu xoaphieu = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == id).FirstOrDefault();
-                    xoaphieu.TinhTrang_BN = 1;
-                    xoaphieu.NgayXuLy_BN = DateTime.Now;
+                    xoaphieu.TinhTrang_KH = 1;
+                    xoaphieu.NgayXuLy_KH = DateTime.Now;
                     _context.SaveChanges();
                 }
 
@@ -1118,6 +1118,24 @@ namespace Data_Product.Controllers
                                  ID_TrangThai = a.ID_TrangThai
                              }).OrderByDescending(x => x.NgayTrinhKy).ToListAsync();
 
+            var dsPhieuXoa = await (from a in  _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_TaiKhoanKH_View == TaiKhoan.ID_TaiKhoan)
+                             join b in _context.Tbl_BienBanGiaoNhan on a.ID_BBGN equals b.ID_BBGN
+                             select new Tbl_TrinhKyBoSung
+                             {
+                                 ID_TrinhKy = a.ID,
+                                 ID_BBGN = a.ID_BBGN,
+                                 SoPhieu = b.SoPhieu,
+                                 ID_TaiKhoan = a.ID_TaiKhoanKH,
+                                 NgayTrinhKy = (DateTime)b.NgayTao,
+                                 NgayXuLy = (DateTime)a.NgayXuLy_BN,
+                                 ID_TrangThai = a.ID_TrangThai
+                             }).OrderByDescending(x => x.NgayTrinhKy).ToListAsync();
+            if(dsPhieuXoa != null)
+            {
+                res.AddRange(dsPhieuXoa.ToList());
+            }
+
+
             if (begind == null && endd == null && ID_TrangThai == null)
             {
                 res = res.Where(x => x.NgayTrinhKy >= startDay && x.NgayTrinhKy <= endDay).ToList();
@@ -1130,7 +1148,7 @@ namespace Data_Product.Controllers
             {
                 res = res.Where(x => x.NgayTrinhKy >= begind && x.NgayTrinhKy <= endd && x.ID_TrangThai == ID_TrangThai).ToList();
             }
-            const int pageSize = 20;
+            const int pageSize = 1000;
             if (page < 1)
             {
                 page = 1;
@@ -1159,7 +1177,15 @@ namespace Data_Product.Controllers
 
             ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
 
-            ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
+            var NhanVien_TTView = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == BBGN.ID_Xuong_BN)
+                                     join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
+                                     select new Tbl_TaiKhoan
+                                     {
+                                         ID_TaiKhoan = a.ID_TaiKhoan,
+                                         HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
+                                     }).ToListAsync();
+
+            ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TTView, "ID_TaiKhoan", "HoVaTen");
             ViewBag.NhanVienBN = new SelectList(_context.Tbl_TaiKhoan.Where(x=>x.ID_TaiKhoan == BBGN.ID_NhanVien_BN), "ID_TaiKhoan", "HoVaTen");
 
             return PartialView();
@@ -1182,12 +1208,13 @@ namespace Data_Product.Controllers
                         check.TinhTrang_KH = 0;
                         check.ID_BBGN = id;
                         check.ID_TrangThai = 0;
+                        check.ID_TaiKhoanKH_View = _DO.ID_TaiKhoanKH_View;
                     }
                     else
                     {
                         Tbl_XuLyXoaPhieu phieu = new Tbl_XuLyXoaPhieu()
                         {
-                            ID_BBGN = id,ID_TaiKhoanBN=_DO.ID_TaiKhoanBN,ID_TaiKhoanKH=_DO.ID_TaiKhoanKH,TinhTrang_BN =0,TinhTrang_KH =0,ID_TrangThai=0
+                            ID_BBGN = id,ID_TaiKhoanBN=_DO.ID_TaiKhoanBN,ID_TaiKhoanKH=_DO.ID_TaiKhoanKH,TinhTrang_BN =0,TinhTrang_KH =0,ID_TrangThai=0,ID_TaiKhoanKH_View =_DO.ID_TaiKhoanKH_View
                        };
                         _context.Tbl_XuLyXoaPhieu.Add(phieu);
                     }

@@ -109,7 +109,7 @@ namespace Data_Product.Controllers
             this.ViewBag.Pager = pager;
             return View(data);
         }
-        public async Task<IActionResult> Index_All(string search,int? ID_QuyTrinh,DateTime? begind, DateTime? endd, int? ID_PhongBanBG,int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN,string Kip, int page = 1)
+        public async Task<IActionResult> Index_All(string search,int? ID_QuyTrinh,DateTime? begind, DateTime? endd, int? ID_PhongBan, int? ID_Xuong, int? ID_PhongBanBG,int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN,string Kip, int page = 1)
         {
 
             DateTime Now = DateTime.Now;
@@ -179,11 +179,16 @@ namespace Data_Product.Controllers
             };
 
             ViewBag.Kip = new SelectList(myList, "Value", "Text");
+            ViewBag.PBList = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBan);
             ViewBag.PBListBG = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBG);
             ViewBag.PBListBN = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBN);
+            ViewBag.ID_Xuong = ID_Xuong ?? 0;
             ViewBag.ID_XuongBG = ID_XuongBG??0;
             ViewBag.ID_XuongBN = ID_XuongBN??0;
             //res = res.Where(x => x.ThoiGianXuLyBG >= startDay && x.ThoiGianXuLyBG <= endDay).ToList();
+
+            if (ID_PhongBan != null) res = res.Where(x => x.ID_PhongBan_BG == ID_PhongBan || x.ID_PhongBan_BN == ID_PhongBan).ToList();
+            if (ID_Xuong != null) res = res.Where(x => x.ID_Xuong_BG == ID_Xuong || x.ID_Xuong_BN == ID_Xuong).ToList();
 
             if (ID_PhongBanBG != null ) res = res.Where(x => x.ID_PhongBan_BG == ID_PhongBanBG).ToList();
             if (ID_XuongBG != null) res = res.Where(x => x.ID_Xuong_BG == ID_XuongBG).ToList();
@@ -297,7 +302,7 @@ namespace Data_Product.Controllers
 
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
 
-            var VatTu = await (from a in _context.Tbl_VatTu.Where(x=>x.PhongBan.Contains(TenBP))
+            var VatTu = await (from a in _context.Tbl_VatTu.Where(x=>x.PhongBan.Contains(TenBP) && x.ID_TrangThai ==1)
                                   select new Tbl_VatTu
                                   {
                                       ID_VatTu = a.ID_VatTu,
@@ -813,7 +818,7 @@ namespace Data_Product.Controllers
 
             ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
 
-            var VatTu = await (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(TenBP))
+            var VatTu = await (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(TenBP) && x.ID_TrangThai == 1)
                                select new Tbl_VatTu
                                {
                                    ID_VatTu = a.ID_VatTu,
@@ -1263,7 +1268,7 @@ namespace Data_Product.Controllers
             var ID = _context.Tbl_TaiKhoan.Where(x=>x.ID_TaiKhoan == IDTaiKhoan).FirstOrDefault();
             string ID_PhongBan = ID.ID_PhongBan.ToString();
 
-            var NguyenLieu = await (from a in _context.Tbl_VatTu                 
+            var NguyenLieu = await (from a in _context.Tbl_VatTu.Where(x=>x.ID_TrangThai ==1)                 
                                   select new Tbl_VatTu
                                   {
                                       ID_VatTu = a.ID_VatTu,
@@ -1654,7 +1659,7 @@ namespace Data_Product.Controllers
                 return RedirectToAction("Index_Detai", "BM_11", new { id = BBGN_ID });
             }
         }
-        public async Task<IActionResult> ExportToExcel_All(string search, int? ID_QuyTrinh, DateTime? begind, DateTime? endd, int? ID_PhongBanBG, int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN, string Kip)
+        public async Task<IActionResult> ExportToExcel_All(string search, int? ID_QuyTrinh, DateTime? begind, DateTime? endd, int? ID_PhongBan, int? ID_Xuong, int? ID_PhongBanBG, int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN, string Kip)
         {
             try
             {
@@ -1680,6 +1685,8 @@ namespace Data_Product.Controllers
                 {
                     BBGN = BBGN.Where(x => x.ID_QuyTrinh == ID_QuyTrinh).ToList();
                 }
+                if (ID_PhongBan != null) BBGN = BBGN.Where(x => x.ID_PhongBan_BG == ID_PhongBan || x.ID_PhongBan_BN == ID_PhongBan).ToList();
+                if (ID_Xuong != null) BBGN = BBGN.Where(x => x.ID_Xuong_BG == ID_Xuong || x.ID_Xuong_BN == ID_Xuong).ToList();
                 if (ID_PhongBanBG != null) BBGN = BBGN.Where(x => x.ID_PhongBan_BG == ID_PhongBanBG).ToList();
                 if (ID_XuongBG != null) BBGN = BBGN.Where(x => x.ID_Xuong_BG == ID_XuongBG).ToList();
                 if (ID_PhongBanBN != null) BBGN = BBGN.Where(x => x.ID_PhongBan_BN == ID_PhongBanBN).ToList();

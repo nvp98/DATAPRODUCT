@@ -22,6 +22,13 @@
                     @Html.ValidationMessageFor(model => model.ID_TaiKhoanKH, "", new { @class = "text-danger" })
                 </div>
 
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">  Nhân viên thống kê nhận thông tin</label>
+                    @Html.DropDownListFor(model => model.ID_TaiKhoanKH_View, ViewBag.NhanVien_TT_View as SelectList, "----- Chọn nhân viên thống kê nhận thông tin ------", new {  @style="text-align: center;", @id = "ID_TaiKhoanKH_View", @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.ID_TaiKhoanKH_View, "", new { @class = "text-danger" })
+                </div>
+
+
               @*  <div class="col-md-12" style="padding-bottom: 1.5%;">
                     <label for="inputEmail5" class="form-label"> Nhân viên thống kê nhận BBGN</label>
                     @Html.DropDownListFor(model => model.ID_TaiKhoan_View, ViewBag.NhanVien_TT_View as SelectList, "----- Chọn nhân viên thống kê nhận BBGN ------", new {  @style="text-align: center;", @id = "ID_TaiKhoan_View", @class = "form-control" })
@@ -35,7 +42,7 @@
     </div>
 }
 <script>
-    $("#ID_TaiKhoan_View").chosen({
+    $("#ID_TaiKhoanKH_View").chosen({
         width: "100%"
     });
     $("#ID_TaiKhoan").chosen({

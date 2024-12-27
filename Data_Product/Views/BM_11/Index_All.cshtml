@@ -154,7 +154,61 @@
                                 </button>
                             </div>
                             <div class="row mt-2">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
+                                    <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">PHÒNG BAN :</b></span>
+                                    <div style="">
+                                        @Html.DropDownList("PBList", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBan", @class = "form-control"})
+                                    </div>
+                                </div>
+                                <script type="text/javascript">
+                                    var IDPBC = $("#ID_PhongBan").val();
+                                    if (IDPBC != null) {
+                                        $.get("/BM_11/Xuong", { IDPhongBan: $("#ID_PhongBan").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#Xuong").empty();
+                                                $("#Xuong").append("<option value ='" + null + "'>" + "--Chọn xưởng--" + "</option>")
+                                                $.each(data, function (index, row) {
+
+                                                    if (@ViewBag.ID_Xuong == row.iD_Xuong) {
+                                                        $("#Xuong").append("<option value ='" + row.iD_Xuong + "' selected>" + row.tenXuong + "</option>");
+                                                    }
+                                                    else {
+                                                        $("#Xuong").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                                                    }
+                                                });
+                                            }
+                                            else {
+                                                $("#Xuong").empty();
+                                                $("#Xuong").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+                                            }
+                                        });
+                                    }
+                                    $("#ID_PhongBan").change(function () {
+                                        $.get("/BM_11/Xuong", { IDPhongBan: $("#ID_PhongBan").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#Xuong").empty();
+                                                $("#Xuong").append("<option value ='" + null + "'>" + "--Chọn xưởng--" + "</option>")
+                                                $.each(data, function (index, row) {
+                                                    $("#Xuong").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#Xuong").empty();
+                                                $("#Xuong").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <div class="col-md-2">
+                                    <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">XƯỞNG :</b></span>
+                                    <div style="">
+                                        <select class="marginTB5 form-control" id="Xuong" name="Xuong">
+                                        </select>
+                                        @*@Html.DropDownList("PBListBG", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBan", @class = "form-control"})*@
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2">
                                     <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">PHÒNG BAN BÊN GIAO :</b></span>
                                     <div style="">
                                         @Html.DropDownList("PBListBG", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBanBG", @class = "form-control"})
@@ -199,7 +253,7 @@
                                         });
                                     });
                                 </script>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">XƯỞNG BÊN GIAO :</b></span>
                                     <div style="">
                                         <select class="marginTB5 form-control" id="XuongBG" name="XuongBG" >
@@ -208,7 +262,7 @@
                                         @*@Html.DropDownList("PBListBG", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBan", @class = "form-control"})*@
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">PHÒNG BAN BÊN NHẬN :</b></span>
                                     <div style="">
                                         @Html.DropDownList("PBListBN", null, "----  Chọn BP/NM  ----", new { id = "ID_PhongBanBN", @class = "form-control"})
@@ -255,7 +309,7 @@
                                         });
                                     });
                                 </script>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">XƯỞNG BÊN NHẬN :</b></span>
                                     <div style="">
                                         <select class="marginTB5 form-control" id="XuongBN" name="XuongBN"></select>
@@ -583,6 +637,8 @@
                                         var seach = @ViewContext.HttpContext.Request.Query["search"];
                                         var ID_PhongBanBG = @ViewContext.HttpContext.Request.Query["ID_PhongBanBG"];
                                         var ID_XuongBG = @ViewContext.HttpContext.Request.Query["ID_XuongBG"];
+                                        var ID_PhongBan = @ViewContext.HttpContext.Request.Query["ID_PhongBan"];
+                                        var ID_Xuong = @ViewContext.HttpContext.Request.Query["ID_Xuong"];
                                         var ID_PhongBanBN = @ViewContext.HttpContext.Request.Query["ID_PhongBanBN"];
                                         var ID_XuongBN = @ViewContext.HttpContext.Request.Query["ID_XuongBN"];
                                         var begind = @ViewContext.HttpContext.Request.Query["begind"];
@@ -591,6 +647,8 @@
                                         var Kip = @ViewContext.HttpContext.Request.Query["Kip"];
                                         <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
                                             <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All" asp-route-page="@pge"
+                                       asp-route-ID_PhongBan="@ID_PhongBan"
+                                       asp-route-ID_Xuong="@ID_Xuong"
                                        asp-route-ID_PhongBanBG="@ID_PhongBanBG"
                                        asp-route-ID_XuongBG="@ID_XuongBG"
                                        asp-route-ID_XuongBN="@ID_XuongBN"
@@ -606,6 +664,8 @@
                                         var seach = @ViewContext.HttpContext.Request.Query["search"];
                                         var ID_PhongBanBG = @ViewContext.HttpContext.Request.Query["ID_PhongBanBG"];
                                         var ID_XuongBG = @ViewContext.HttpContext.Request.Query["ID_XuongBG"];
+                                        var ID_PhongBan = @ViewContext.HttpContext.Request.Query["ID_PhongBan"];
+                                        var ID_Xuong = @ViewContext.HttpContext.Request.Query["ID_Xuong"];
                                         var ID_PhongBanBN = @ViewContext.HttpContext.Request.Query["ID_PhongBanBN"];
                                         var ID_XuongBN = @ViewContext.HttpContext.Request.Query["ID_XuongBN"];
                                         var begind = @ViewContext.HttpContext.Request.Query["begind"];
@@ -614,6 +674,8 @@
                                         var Kip = @ViewContext.HttpContext.Request.Query["Kip"];
                                         <li class="page-item">
                                             <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All"
+                                       asp-route-ID_PhongBan="@ID_PhongBan"
+                                       asp-route-ID_Xuong="@ID_Xuong"
                                        asp-route-ID_PhongBanBG="@ID_PhongBanBG"
                                        asp-route-ID_XuongBG="@ID_XuongBG"
                                        asp-route-ID_XuongBN="@ID_XuongBN"
@@ -626,6 +688,8 @@
                                         </li>
                                         <li class="page-item">
                                             <a class="page-link" asp-asp-controller="BM_11" asp-action="Index_All"
+                                       asp-route-ID_PhongBan="@ID_PhongBan"
+                                       asp-route-ID_Xuong="@ID_Xuong"
                                        asp-route-ID_PhongBanBG="@ID_PhongBanBG"
                                        asp-route-ID_XuongBG="@ID_XuongBG"
                                        asp-route-ID_XuongBN="@ID_XuongBG"
@@ -683,25 +747,29 @@
 
 
     $("#btn-search").on('click', function () {
+        var ID_PhongBan = $('#ID_PhongBan').val();
         var ID_PhongBanBG = $('#ID_PhongBanBG').val();
         var ID_PhongBanBN = $('#ID_PhongBanBN').val();
+        var Xuong = $('#Xuong').val();
         var XuongBG = $('#XuongBG').val();
         var XuongBN = $('#XuongBN').val();
-        window.location.href = '@Url.Action("Index_All", "BM_11")?ID_PhongBanBG=' + ID_PhongBanBG + '&ID_XuongBG=' + XuongBG + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val() + '&ID_PhongBanBN=' + ID_PhongBanBN + '&ID_XuongBN=' + XuongBN + '&ID_QuyTrinh=' + $("#ID_QuyTrinh").val() +  '&Kip=' + $("#Kip").val() + '&search=' + $("#txtsearch").val();
+        window.location.href = '@Url.Action("Index_All", "BM_11")?ID_PhongBanBG=' + ID_PhongBanBG + '&ID_XuongBG=' + XuongBG + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val() + '&ID_PhongBan=' + ID_PhongBan + '&ID_Xuong=' + Xuong + '&ID_PhongBanBN=' + ID_PhongBanBN + '&ID_XuongBN=' + XuongBN + '&ID_QuyTrinh=' + $("#ID_QuyTrinh").val() + '&Kip=' + $("#Kip").val() + '&search=' + $("#txtsearch").val();
     });
 
     $('#btn-Export').click(function () {
+        var ID_PhongBan = $('#ID_PhongBan').val();
         var ID_PhongBanBG = $('#ID_PhongBanBG').val();
         var ID_PhongBanBN = $('#ID_PhongBanBN').val();
+        var Xuong = $('#Xuong').val();
         var XuongBG = $('#XuongBG').val();
         var XuongBN = $('#XuongBN').val();
-        window.location.href = '@Url.Action("ExportToExcel_All", "BM_11")?ID_PhongBanBG=' + ID_PhongBanBG + '&ID_XuongBG=' + XuongBG + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val() + '&ID_PhongBanBN=' + ID_PhongBanBN + '&ID_XuongBN=' + XuongBN + '&ID_QuyTrinh=' + $("#ID_QuyTrinh").val() + '&Kip=' + $("#Kip").val();
+        window.location.href = '@Url.Action("ExportToExcel_All", "BM_11")?ID_PhongBanBG=' + ID_PhongBanBG + '&ID_XuongBG=' + XuongBG + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val() + '&ID_PhongBan=' + ID_PhongBan + '&ID_Xuong=' + Xuong + '&ID_PhongBanBN=' + ID_PhongBanBN + '&ID_XuongBN=' + XuongBN + '&ID_QuyTrinh=' + $("#ID_QuyTrinh").val() + '&Kip=' + $("#Kip").val();
 
     });
 
-    $("#ID_PhongBan").chosen({
-        width: "100%"
-    });
+    //$("#ID_PhongBan").chosen({
+    //    width: "100%"
+    //});
     $("#Kip").chosen({
         width: "100%"
     });

@@ -1,8 +1,15 @@
 ﻿@model IEnumerable<Data_Product.Models.Tbl_TaiKhoan>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
 @inject Data_Product.Repositorys.DataContext _context
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<!-- DataTables -->
+<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 @if (TempData["msgSuccess"] != null)
 {
     @Html.Raw(TempData["msgSuccess"])
@@ -87,7 +94,7 @@
                         });
                     </script>
                    
-                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
+                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;display:none">
                         <div class="row">
                             <div class="col-md-2">
                                 <input type="text" id="txtsearch" name="" placeholder="Tìm kiếm" class="form-control" value="@ViewBag.search">
@@ -116,21 +123,21 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive" style="height: 550px;">
+                        <div class="table-responsive" style="">
                             <table class="table table-bordered table-hover" id="table" cellpadding="0">
-                                <thead style="height: 60px;font-size: 14px;">
+                                <thead style="font-size: 14px;">
                                     <tr>
-                                        <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên đăng nhập</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Họ và tên</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Phòng ban</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Chức vụ</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Quyền đăng nhập</th>
-                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Phòng ban bổ sung</th>
-                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Quyền bổ sung</th>
-                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Phân quyền xử lý xưởng</th>
-                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
-                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
+                                        <th width="30px"    style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên đăng nhập</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Họ và tên</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Phòng ban</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Chức vụ</th>
+                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Quyền đăng nhập</th>
+                                        <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Phòng ban bổ sung</th>
+                                        <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Quyền bổ sung</th>
+                                        <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Phân quyền xử lý xưởng</th>
+                                        <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
+                                        <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -307,3 +314,16 @@
     </div>
 
 </div>
+<script>
+    $(document).ready(function () {
+        $('#table').DataTable({
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            fixedHeader: true, // Kích hoạt FixedHeader
+            scrollY: '70vh', // Chiều cao của vùng cuộn (vertical height)
+            scrollCollapse: true, // Cho phép bảng co lại khi có ít dữ liệu
+            //paging: false // Tắt phân trang nếu cần
+        });
+    });
+</script>

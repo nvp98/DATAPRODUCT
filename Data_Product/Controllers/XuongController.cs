@@ -35,17 +35,17 @@ namespace Data_Product.Controllers
                 res = res.Where(x => x.TenXuong.Contains(search)).ToList();
 
             }
-            const int pageSize = 20;
-            if (page < 1)
-            {
-                page = 1;
-            }
-            int resCount = res.Count;
-            var pager = new Pager(resCount, page, pageSize);
-            int recSkip = (page - 1) * pageSize;
-            var data = res.Skip(recSkip).Take(pager.PageSize).ToList();
-            this.ViewBag.Pager = pager;
-            return View(data);
+            //const int pageSize = 20;
+            //if (page < 1)
+            //{
+            //    page = 1;
+            //}
+            //int resCount = res.Count;
+            //var pager = new Pager(resCount, page, pageSize);
+            //int recSkip = (page - 1) * pageSize;
+            //var data = res.Skip(recSkip).Take(pager.PageSize).ToList();
+            //this.ViewBag.Pager = pager;
+            return View(res);
         }
         public async Task<IActionResult> Create()
         {
