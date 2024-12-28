@@ -401,9 +401,38 @@ namespace Data_Product.Controllers
                         Direction = System.Data.ParameterDirection.Output,
                     };
 
-                    var result_new = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},@ID_BBGN OUTPUT",
+                    //// file đính kèm
+                    //if (FileDinhKem != null && FileDinhKem.Length > 0)
+                    //{
+                    //    // Lấy tên file gốc và phần mở rộng
+                    //    var originalFileName = Path.GetFileNameWithoutExtension(FileDinhKem.FileName);
+                    //    var fileExtension = Path.GetExtension(FileDinhKem.FileName);
+
+                    //    // Tạo tên file mới với thời gian
+                    //    var newFileName = $"{originalFileName}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
+
+                    //    // Đường dẫn lưu file (thư mục cần tồn tại trước)
+                    //    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", newFileName);
+
+                    //    // Lưu file vào server
+                    //    using (var stream = new FileStream(path, FileMode.Create))
+                    //    {
+                    //        FileDinhKem.CopyTo(stream);
+                    //    }
+
+                    //    // Lưu path vào DB
+                    //    if (path != "" && path != null)
+                    //    {
+                    //        // lưu vào đường dẫn tương đối
+                    //        filedk = $"/uploads/{newFileName}";
+                    //    }
+
+                    //    //ViewBag.Message = "File uploaded successfully: " + fileName;
+                    //}
+
+                    var result_new = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},@ID_BBGN OUTPUT",
                                                           ThongTin_BG.ID_TaiKhoan, ThongTin_BG.ID_PhongBan, ThongTin_BG.ID_PhanXuong, ThongTin_BG.ID_ChucVu, ThoiGianXuLyBG, 1,
-                                                          ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, ID_BBGN.ID_Kip, 0, 3, ID_BBGN.Kip, ID_BBGN.Ca, ID_BBGN.NoiDungTrichYeu, Output_ID_BBGN);
+                                                          ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, ID_BBGN.ID_Kip, 0, 3, ID_BBGN.Kip, ID_BBGN.Ca, ID_BBGN.NoiDungTrichYeu,ID_BBGN.FileDinhKem, Output_ID_BBGN);
                     BBGN_IDNew = Convert.ToInt32(Output_ID_BBGN.Value);
 
                     // Update ID phiếu cũ
@@ -1197,7 +1226,7 @@ namespace Data_Product.Controllers
             DateTime NgayTao = DateTime.Now;
             try
             {
-                if(_DO.ID_TaiKhoanKH != 0 && _DO.ID_TaiKhoanKH != null)
+                if(_DO.ID_TaiKhoanKH != 0 && _DO.ID_TaiKhoanKH_View != null)
                 {
                     var check = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == id).FirstOrDefault();
                     if (check != null)
@@ -1223,7 +1252,7 @@ namespace Data_Product.Controllers
                 }
                 else
                 {
-                    TempData["msgError"] = "<script>alert('Vui lòng chọn Thống kê phê duyệt');</script>";
+                    TempData["msgError"] = "<script>alert('Vui lòng chọn Thống kê phê duyệt và nhận thông tin');</script>";
                     return RedirectToAction("Index_Detai", "BM_11", new {id= id });
                 }
                 

@@ -342,7 +342,7 @@ namespace Data_Product.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> TaoPhieu(Tbl_ChiTiet_BienBanGiaoNhan _DO, IFormCollection formCollection)
+        public async Task<IActionResult> TaoPhieu(Tbl_ChiTiet_BienBanGiaoNhan _DO, IFormCollection formCollection, IFormFile FileDinhKem)
         {
             int IDTaiKhoan = 0;
             int IDKip = 0;
@@ -351,6 +351,7 @@ namespace Data_Product.Controllers
             string ID_Day = "";
             string ID_ca = "";
             string NoiDungTrichYeu = "";
+            string filedk = "";
             List<Tbl_ChiTiet_BienBanGiaoNhan> Tbl_ChiTiet_BienBanGiaoNhan = new List<Tbl_ChiTiet_BienBanGiaoNhan>();
             try
             {
@@ -366,7 +367,7 @@ namespace Data_Product.Controllers
                         ID_ca = formCollection["IDCa"];
                         NoiDungTrichYeu = formCollection["NoiDungTrichYeu"];
                     }
-                    if (key.Key != "__RequestVerificationToken" && key.Key != "IDCa" && key.Key != "NoiDungTrichYeu" && key.Key != "NoiDungTrichYeu" && key.Key != "IDTaiKhoan" && key.Key != "xacnhan" && key.Key == "ghichu_" + key.Key.Split('_')[1] )
+                    if (key.Key != "__RequestVerificationToken" && key.Key != "IDCa" && key.Key != "FileDinhKem" && key.Key != "NoiDungTrichYeu" && key.Key != "NoiDungTrichYeu" && key.Key != "IDTaiKhoan" && key.Key != "xacnhan" && key.Key == "ghichu_" + key.Key.Split('_')[1] )
                     {
                         Tbl_ChiTiet_BienBanGiaoNhan.Add(new Tbl_ChiTiet_BienBanGiaoNhan()
                         {
@@ -379,6 +380,7 @@ namespace Data_Product.Controllers
                         });
                     }
                 }
+                
                 //Inser thông tin phiếu giao nhận
                 if (IDTaiKhoan != 0 && XacNhan != "")
                 {
@@ -454,6 +456,7 @@ namespace Data_Product.Controllers
                         SqlDbType = System.Data.SqlDbType.Int,
                         Direction = System.Data.ParameterDirection.Output,
                     };
+
                     if (XacNhan == "0" && XacNhan != "") // lưu
                     {
 
@@ -496,9 +499,38 @@ namespace Data_Product.Controllers
                             var vattu = _context.Tbl_VatTu.Where(x => x.ID_VatTu == Tbl_ChiTiet_BienBanGiaoNhan[0].ID_VatTu).FirstOrDefault();
                             NoiDungTrichYeu = vattu.TenVatTu;
                         }
-                        var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},@ID_BBGN OUTPUT",
+                        // file đính kèm
+                        if (FileDinhKem != null && FileDinhKem.Length > 0)
+                        {
+                            // Lấy tên file gốc và phần mở rộng
+                            var originalFileName = Path.GetFileNameWithoutExtension(FileDinhKem.FileName);
+                            var fileExtension = Path.GetExtension(FileDinhKem.FileName);
+
+                            // Tạo tên file mới với thời gian
+                            var newFileName = $"{originalFileName}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
+
+                            // Đường dẫn lưu file (thư mục cần tồn tại trước)
+                            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", newFileName);
+
+                            // Lưu file vào server
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                FileDinhKem.CopyTo(stream);
+                            }
+
+                            // Lưu path vào DB
+                            if (path != "" && path != null)
+                            {
+                                // lưu vào đường dẫn tương đối
+                                filedk = $"/uploads/{newFileName}";
+                            }
+
+                            //ViewBag.Message = "File uploaded successfully: " + fileName;
+                        }
+
+                        var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},@ID_BBGN OUTPUT",
                                                                ThongTin_BG.ID_TaiKhoan, ThongTin_BG.ID_PhongBan, ThongTin_BG.ID_PhanXuong, ThongTin_BG.ID_ChucVu, ThoiGianXuLyBG, 1,
-                                                               ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, ID_Kip.ID_Kip, 0, 1, ID_Kip.TenKip, ID_Kip.TenCa, NoiDungTrichYeu, Output_ID_BBGN);
+                                                               ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, ID_Kip.ID_Kip, 0, 1, ID_Kip.TenKip, ID_Kip.TenCa, NoiDungTrichYeu,filedk, Output_ID_BBGN);
                         BBGN_ID = Convert.ToInt32(Output_ID_BBGN.Value);
 
                         foreach (var item in Tbl_ChiTiet_BienBanGiaoNhan)
@@ -858,7 +890,7 @@ namespace Data_Product.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BoSungPhieu(Tbl_ChiTiet_BienBanGiaoNhan _DO, IFormCollection formCollection)
+        public async Task<IActionResult> BoSungPhieu(Tbl_ChiTiet_BienBanGiaoNhan _DO, IFormCollection formCollection, IFormFile FileDinhKem)
         {
             int IDTaiKhoan = 0;
             int IDNhanVienTT = 0;
@@ -869,6 +901,7 @@ namespace Data_Product.Controllers
             string XacNhan = "";
             int BBGN_ID = 0;
             string NoiDungTrichYeu = "";
+            string filedk = "";
             List<Tbl_ChiTiet_BienBanGiaoNhan> Tbl_ChiTiet_BienBanGiaoNhan = new List<Tbl_ChiTiet_BienBanGiaoNhan>();
             try
             {
@@ -886,7 +919,7 @@ namespace Data_Product.Controllers
                         IDNhanVien_TT_View = Convert.ToInt32(formCollection["NhanVien_TT_View"]);
                         NoiDungTrichYeu = formCollection["NoiDungTrichYeu"];
                     }
-                    if (key.Key != "__RequestVerificationToken" && key.Key != "NoiDungTrichYeu" && key.Key != "IDTaiKhoan" && key.Key != "NhanVienTT"
+                    if (key.Key != "__RequestVerificationToken" &&  key.Key != "FileDinhKem" && key.Key != "NoiDungTrichYeu" && key.Key != "IDTaiKhoan" && key.Key != "NhanVienTT"
                         && key.Key != "ID_Day" && key.Key != "IDCa" && key.Key != "NhanVien_TT_View"
                         && key.Key != "xacnhan" && key.Key == "ghichu_" + key.Key.Split('_')[1])
                         {
@@ -1037,9 +1070,37 @@ namespace Data_Product.Controllers
                             var vattu = _context.Tbl_VatTu.Where(x => x.ID_VatTu == Tbl_ChiTiet_BienBanGiaoNhan[0].ID_VatTu).FirstOrDefault();
                             NoiDungTrichYeu = vattu.TenVatTu;
                         }
-                        var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},@ID_BBGN OUTPUT",
+                        // file đính kèm
+                        if (FileDinhKem != null && FileDinhKem.Length > 0)
+                        {
+                            // Lấy tên file gốc và phần mở rộng
+                            var originalFileName = Path.GetFileNameWithoutExtension(FileDinhKem.FileName);
+                            var fileExtension = Path.GetExtension(FileDinhKem.FileName);
+
+                            // Tạo tên file mới với thời gian
+                            var newFileName = $"{originalFileName}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
+
+                            // Đường dẫn lưu file (thư mục cần tồn tại trước)
+                            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", newFileName);
+
+                            // Lưu file vào server
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                FileDinhKem.CopyTo(stream);
+                            }
+
+                            // Lưu path vào DB
+                            if (path != "" && path != null)
+                            {
+                                // lưu vào đường dẫn tương đối
+                                filedk = $"/uploads/{newFileName}";
+                            }
+
+                            //ViewBag.Message = "File uploaded successfully: " + fileName;
+                        }
+                        var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},@ID_BBGN OUTPUT",
                                                                ThongTin_BG.ID_TaiKhoan, ThongTin_BG.ID_PhongBan, ThongTin_BG.ID_PhanXuong, ThongTin_BG.ID_ChucVu, ThoiGianXuLyBG, 1,
-                                                               ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, Kip, 0, 2, ID_Kip.TenKip, ID_Kip.TenCa,NoiDungTrichYeu, Output_ID_BBGN);
+                                                               ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, Kip, 0, 2, ID_Kip.TenKip, ID_Kip.TenCa,NoiDungTrichYeu,filedk, Output_ID_BBGN);
                         BBGN_ID = Convert.ToInt32(Output_ID_BBGN.Value);
 
                         foreach (var item in Tbl_ChiTiet_BienBanGiaoNhan)

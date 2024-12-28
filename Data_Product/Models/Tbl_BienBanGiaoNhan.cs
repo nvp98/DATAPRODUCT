@@ -29,6 +29,7 @@ namespace Data_Product.Models
         public int ID_QuyTrinh { get; set; }
         public Nullable<int> ID_BBGN_Cu { get; set; }
         public string? FileBBGN { get; set; }
+        public string? FileDinhKem { get; set; }
         public DateTime NgayTao { get; set; }
         public string Kip { get; set; }
         public string Ca { get; set; }
