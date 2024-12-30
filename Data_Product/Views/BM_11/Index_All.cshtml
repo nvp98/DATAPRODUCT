@@ -41,6 +41,12 @@
         background-color: #f9f9f9; /* Đặt màu nền cho thead */
         z-index: 10; /* Chống bị đè bởi các phần tử khác */
     }
+
+    th:hover {
+        background-color: #f2f2f2; /* Màu nền thay đổi khi hover */
+        cursor: pointer; /* Hiển thị con trỏ chỉ tay */
+        color: #007bff;
+    }
 </style>
 <div class="app-main__outer">
     <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
@@ -777,4 +783,36 @@
     var defaultValuesPB = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.KipSelec));
     //const defaultValues = @ViewBag.SelectedValue; // Các giá trị mặc định
     $("#Kip").val(defaultValuesPB).trigger("chosen:updated");
+</script>
+<script>
+    document.querySelectorAll("#table th").forEach((headerCell, index) => {
+        headerCell.addEventListener("click", () => sortTable(index)); // Gọi hàm sortTable với columnIndex tương ứng
+    });
+    function sortTable(columnIndex) {
+        const table = document.getElementById("table");
+        const rows = Array.from(table.rows).slice(1); // Lấy tất cả các hàng trừ tiêu đề
+        const isAscending = table.getAttribute("data-sort-direction") !== "asc"; // Kiểm tra hướng sắp xếp hiện tại
+
+        // Sắp xếp hàng
+        rows.sort((a, b) => {
+            const cellA = a.cells[columnIndex].innerText.trim();
+            const cellB = b.cells[columnIndex].innerText.trim();
+
+            if (!isNaN(cellA) && !isNaN(cellB)) {
+                // So sánh số
+                return isAscending ? cellA - cellB : cellB - cellA;
+            } else {
+                // So sánh chuỗi
+                return isAscending
+                    ? cellA.localeCompare(cellB)
+                    : cellB.localeCompare(cellA);
+            }
+        });
+
+        // Xóa dữ liệu cũ và thêm dữ liệu đã sắp xếp
+        rows.forEach(row => table.tBodies[0].appendChild(row));
+
+        // Cập nhật trạng thái sắp xếp
+        table.setAttribute("data-sort-direction", isAscending ? "asc" : "desc");
+    }
 </script>
