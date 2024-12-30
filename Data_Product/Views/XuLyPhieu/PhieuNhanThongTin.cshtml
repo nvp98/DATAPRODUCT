@@ -2,6 +2,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @using Data_Product.Repositorys;
 @inject Data_Product.Repositorys.DataContext _context
+@using System.Security.Claims;
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
@@ -25,7 +26,8 @@
         pager = ViewBag.Pager;
         pageNo = pager.CurrentPage;
     }
-
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
 }
 <div class="app-main__outer">
     <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
@@ -41,6 +43,12 @@
                                         PHIẾU YÊU CẦU ĐẾN TÔI NHẬN THÔNG TIN
                                     </b>
                                 </span>
+                            </div>
+                            <div class="col-4">
+                                @if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
+                                {
+                                    <button type="submit" class="btn btn-primary" style="margin-right:8px" onclick="SubmitForm()">Check phiếu đã xử lý</button>
+                                }
                             </div>
                         </div>
                     </div>
@@ -81,10 +89,18 @@
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
+                            <form method="post" id="myForm">
                             <table class="table table-bordered table-hover" id="table" cellpadding="0">
                                 <thead style="height: 60px; font-size: 14px;">
                                     <tr>
                                         <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        @if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
+                                        {
+                                            <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">
+                                                <input type="checkbox" id="selectAll" /> Chọn Tất Cả<br />
+                                            </th>
+
+                                        }
                                         <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung trích yếu</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Quy trình</th>
@@ -105,13 +121,34 @@
                                     @foreach (var item_ in Model)
                                     {
                                         var item = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == item_.ID_BBGN).FirstOrDefault();
-
-                                        <tr>
+                                        var checkColor = _context.Tbl_PKHXuLyPhieu.Where(x => x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                        string mau = "";
+                                        if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
+                                        {
+                                            mau = checkColor != null ? "table-success" : "";
+                                        }
+                                        <tr class="@mau">
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 @RowNo@{
                                                     RowNo++;
                                                 }
                                             </td>
+                                            @if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
+                                            {
+                                                if (mau != "")
+                                                {
+                                                    <td class="text-center">
+                                                        <input type="checkbox" name="CheckedselectedItems" checked disabled value="@item.ID_BBGN" />
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td class="text-center">
+                                                        <input type="checkbox" class="itemCheckbox" name="selectedItems" value="@item.ID_BBGN" />
+                                                    </td>
+                                                }
+
+                                            }
                                             <td style="font-size:14px;color: #335FB3">
                                                 <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
                                                     BM.11/QT.05
@@ -251,7 +288,7 @@
                                 </tbody>
 
                             </table>
-
+                            </form>
                         </div>
                         <div class="container" style="margin:0px; padding:1% 0% 0% 0%;">
                             @if (pager.TotalPages > 0)
@@ -284,7 +321,36 @@
     </div>
 
 </div>
+<script>
+    document.getElementById('selectAll').addEventListener('change', function () {
+        // Lấy tất cả các checkbox có class là itemCheckbox
+        const checkboxes = document.querySelectorAll('.itemCheckbox');
+
+        // Nếu checkbox "Chọn Tất Cả" được chọn thì tất cả đều được chọn
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+
+    // Cập nhật trạng thái của "Chọn Tất Cả" khi bỏ chọn bất kỳ checkbox nào
+    document.querySelectorAll('.itemCheckbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            // Kiểm tra nếu có bất kỳ checkbox nào chưa chọn
+            selectAllCheckbox.checked = Array.from(document.querySelectorAll('.itemCheckbox'))
+                .every(item => item.checked);
+        });
+    });
+</script>
 <script type="text/javascript">
+
+    function SubmitForm() {
+        const queryParams = window.location.search; // Lấy ?id=123&name=John
+        const form = document.getElementById("myForm");
+        form.action = "/XuLyPhieu/ProcessSelected" + queryParams;
+        form.submit();
+    }
+
     $("#btn-search").on('click', function () {
         var ID_TrangThai = $('#ID_TrangThai').val();
         window.location.href = '@Url.Action("PhieuNhanThongTin", "XuLyPhieu")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();

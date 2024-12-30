@@ -1447,76 +1447,302 @@ namespace Data_Product.Controllers
 
         public async Task<IActionResult> SaoChepPhieu(int id)
         {
+            DateTime DayNow = DateTime.Now;
+            String Day = DayNow.ToString("dd/MM/yyyy");
+            DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
+
+            var chitiet_BBGN = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == id).ToList();
+            ViewBag.ChiTietBBGN = chitiet_BBGN;
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+            string TenBP = PhongBan.TenNgan.ToString();
+
+
+            List<Tbl_NhomVatTu> vt = _context.Tbl_NhomVatTu.ToList();
+            ViewBag.VTList = new SelectList(vt, "ID_NhomVatTu", "TenNhomVatTu");
+
+
+            List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
+            ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
+
+            var NhanVien = await (from a in _context.Tbl_TaiKhoan
+                                  select new Tbl_TaiKhoan
+                                  {
+                                      ID_TaiKhoan = a.ID_TaiKhoan,
+                                      HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                                  }).ToListAsync();
+
+            ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
+
+            var VatTu = await (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(TenBP) && x.ID_TrangThai == 1)
+                               select new Tbl_VatTu
+                               {
+                                   ID_VatTu = a.ID_VatTu,
+                                   TenVatTu = a.TenVatTu
+                               }).ToListAsync();
+
+            ViewBag.VTList = new SelectList(VatTu, "ID_VatTu", "TenVatTu");
+
+            var MaLo = await (from a in _context.Tbl_MaLo
+                              select new Tbl_MaLo
+                              {
+                                  ID_MaLo = a.ID_MaLo,
+                                  TenMaLo = a.TenMaLo
+                              }).ToListAsync();
+
+            ViewBag.MLList = new SelectList(MaLo, "ID_MaLo", "TenMaLo");
+
+            var CaKip = await (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == NgayLamViec)
+                               select new Tbl_Kip
+                               {
+                                   ID_Kip = a.ID_Kip,
+                                   TenCa = a.TenCa
+                               }).ToListAsync();
+            ViewBag.IDKip = new SelectList(CaKip, "ID_Kip", "TenCa");
+
+
+
+            var NV = await (from a in _context.Tbl_TaiKhoan
+                            select new Tbl_TaiKhoan
+                            {
+                                ID_TaiKhoan = a.ID_TaiKhoan,
+                                HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                            }).ToListAsync();
+
+            ViewBag.IDNhanVien = new SelectList(NV, "ID_TaiKhoan", "HoVaTen");
+            return PartialView();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaoChepPhieu(Tbl_ChiTiet_BienBanGiaoNhan _DO, IFormCollection formCollection, IFormFile FileDinhKem)
+        {
+            int IDTaiKhoan = 0;
+            int IDKip = 0;
+            string XacNhan = "";
             int BBGN_ID = 0;
+            string ID_Day = "";
+            string ID_ca = "";
+            string NoiDungTrichYeu = "";
+            string filedk = "";
+            List<Tbl_ChiTiet_BienBanGiaoNhan> Tbl_ChiTiet_BienBanGiaoNhan = new List<Tbl_ChiTiet_BienBanGiaoNhan>();
             try
             {
-                // Phát sinh phiếu mới
-                var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == id).FirstOrDefault();
-                // Thông tin bên giao
-                var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BG).FirstOrDefault();
-                var ThongTin_BP_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
-                // Thông tin bên nhận
-                var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BN).FirstOrDefault();
-                var ThongTin_BP_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BN.ID_PhongBan).FirstOrDefault();
 
-                // Thông tin ca kíp
-                var cakip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
-                //var cakipnew = _context.Tbl_Kip.Where(x=>x.)
-                DateTime Day = (DateTime)ID_BBGN.ThoiGianXuLyBG;
-                string Day_Convert = Day.ToString("dd-MM-yyyy");
-                DateTime ThoiGianXuLyBG = DateTime.ParseExact(Day_Convert, "dd-MM-yyyy", CultureInfo.InvariantCulture);
-                string stt = "";
-                var count = _context.Tbl_BienBanGiaoNhan.Where(x => x.ThoiGianXuLyBG == ThoiGianXuLyBG).Count();
-                int len = count.ToString().Length;
-                if (len == 1)
+                foreach (var key in formCollection.ToList())
                 {
-                    stt = "00" + (count + 1);
-                }
-                else if (len == 2)
-                {
-                    stt = "0" + (count + 1);
-                }
-                else if (len == 3)
-                {
-                    stt = (count + 1).ToString();
-                }
-                string SoPhieu = ThongTin_BP_BG.TenNgan + "-" + ThongTin_BP_BN.TenNgan + "-" + "1C" + "-" +
-                                    ThoiGianXuLyBG.ToString("dd") + ThoiGianXuLyBG.ToString("MM") + ThoiGianXuLyBG.ToString("yy") + stt;
-
-                var Output_ID_BBGN = new SqlParameter
-                {
-                    ParameterName = "ID_BBGN",
-                    SqlDbType = System.Data.SqlDbType.Int,
-                    Direction = System.Data.ParameterDirection.Output,
-                };
-                var result_new = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},@ID_BBGN OUTPUT",
-                                                          ThongTin_BG.ID_TaiKhoan, ThongTin_BG.ID_PhongBan, ThongTin_BG.ID_PhanXuong, ThongTin_BG.ID_ChucVu, ThoiGianXuLyBG, 0,
-                                                          ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, ID_BBGN.ID_Kip, 1,1,"A","1", Output_ID_BBGN);
-                BBGN_ID = Convert.ToInt32(Output_ID_BBGN.Value);
-
-                var List = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == id).ToList();
-                foreach (var item in List)
-                {
-                    
-                    if (BBGN_ID != 0)
+                    if (key.Key != "__RequestVerificationToken")
                     {
-                        var result_Vitri = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8}",
-                                                                                          item.ID_VatTu, item.MaLo, item.DoAm_W, item.KhoiLuong_BG, item.KL_QuyKho_BG, 0, 0, null, BBGN_ID);
+                        IDTaiKhoan = Convert.ToInt32(formCollection["IDTaiKhoan"]);
+                        IDKip = Convert.ToInt32(formCollection["IDKip"]);
+                        XacNhan = formCollection["xacnhan"];
+                        ID_Day = formCollection["ID_Day"];
+                        ID_ca = formCollection["IDCa"];
+                        NoiDungTrichYeu = formCollection["NoiDungTrichYeu"];
+                    }
+                    if (key.Key != "__RequestVerificationToken" && key.Key != "IDCa" && key.Key != "FileDinhKem" && key.Key != "NoiDungTrichYeu" && key.Key != "NoiDungTrichYeu" && key.Key != "IDTaiKhoan" && key.Key != "xacnhan" && key.Key == "ghichu_" + key.Key.Split('_')[1])
+                    {
+                        Tbl_ChiTiet_BienBanGiaoNhan.Add(new Tbl_ChiTiet_BienBanGiaoNhan()
+                        {
+                            ID_VatTu = Convert.ToInt32(formCollection["VatTu_" + key.Key.Split('_')[1]]),
+                            MaLo = formCollection["lo_" + key.Key.Split('_')[1]],
+                            DoAm_W = double.TryParse(formCollection["doam_" + key.Key.Split('_')[1]], NumberStyles.Any, CultureInfo.InvariantCulture, out var value) ? value : 0,
+                            KhoiLuong_BG = double.TryParse(formCollection["khoiluongbg_" + key.Key.Split('_')[1]], NumberStyles.Any, CultureInfo.InvariantCulture, out var s) ? s : 0,
+                            //KL_QuyKho_BG = double.Parse(formCollection["quykhobg_" + key.Key.Split('_')[1]]),
+                            GhiChu = formCollection["ghichu_" + key.Key.Split('_')[1]]
+                        });
+                    }
+                }
+
+                //Inser thông tin phiếu giao nhận
+                if (IDTaiKhoan != 0 && XacNhan != "")
+                {
+
+                    // Thông tin bên giao
+                    var MBVN_BG = User.FindFirstValue(ClaimTypes.Name);
+                    var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == MBVN_BG).FirstOrDefault();
+                    var ThongTin_BP_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
+
+                    // Thông tin bên nhận
+                    var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == IDTaiKhoan).FirstOrDefault();
+                    var ThongTin_BP_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BN.ID_PhongBan).FirstOrDefault();
+
+                    // Thông tin ca kíp làm việc
+                    //var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == IDKip).FirstOrDefault();
+                    //DateTime Ngay_KipCa = (DateTime)ID_Kip.NgayLamViec;
+                    //string Ngay = Ngay_KipCa.ToString("dd-MM-yyyy");
+                    //DateTime NgayXuLy = DateTime.ParseExact(Ngay, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+
+                    // Thông tin ca kíp làm việc
+                    DateTime date = DateTime.Parse(ID_Day);
+                    string day_bs = date.ToString("dd-MM-yyyy");
+                    DateTime NgayXuLy = DateTime.ParseExact(day_bs, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                    int Kip = Convert.ToInt32(ID_ca); // 1 ngày 2 đêm
+                    //var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == Kip).FirstOrDefault();
+                    var ID_Kip = _context.Tbl_Kip.Where(x => x.TenCa == ID_ca && x.NgayLamViec == NgayXuLy).FirstOrDefault();
+                    // Kiểm tra lại thông tin ca kíp làm việc 
+                    if (ID_Kip == null)
+                    {
+                        TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra lại ca kíp làm việc');</script>";
+                        return RedirectToAction("TaoPhieu", "BM_11");
+                    }
+
+                    // Kiểm tra điều kiện không nhập dữ liệu 
+                    if (Tbl_ChiTiet_BienBanGiaoNhan.Count == 0)
+                    {
+                        TempData["msgSuccess"] = "<script>alert('Vui lòng điền thông tin vật tư giao nhận');</script>";
+                        return RedirectToAction("TaoPhieu", "BM_11");
+                    }
+                    var checkList = Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.KhoiLuong_BG == 0).ToList();
+                    if (checkList.Count() != 0)
+                    {
+                        TempData["msgSuccess"] = "<script>alert('Khối lượng bên giao không để trống');</script>";
+                        return RedirectToAction("TaoPhieu", "BM_11");
+                    }
+
+
+                    //DateTime Day = DateTime.Now;
+                    //string Day_Convert = Day.ToString("dd-MM-yyyy");
+                    DateTime ThoiGianXuLyBG = DateTime.ParseExact(day_bs, "dd-MM-yyyy", CultureInfo.InvariantCulture); // ngày chọn
+
+                    string stt = "";
+                    var count = _context.Tbl_BienBanGiaoNhan.Where(x => x.ThoiGianXuLyBG == ThoiGianXuLyBG).Count();
+                    int len = count.ToString().Length;
+                    if (len == 1)
+                    {
+                        stt = "00" + (count + 1);
+                    }
+                    else if (len == 2)
+                    {
+                        stt = "0" + (count + 1);
+                    }
+                    else if (len == 3)
+                    {
+                        stt = (count + 1).ToString();
+                    }
+                    string SoPhieu = ThongTin_BP_BG.TenNgan + "-" + ThongTin_BP_BN.TenNgan + "-" + ID_Kip.TenCa + ID_Kip.TenKip + "-" +
+                                        NgayXuLy.ToString("dd") + NgayXuLy.ToString("MM") + NgayXuLy.ToString("yy") + stt;
+
+                    var Output_ID_BBGN = new SqlParameter
+                    {
+                        ParameterName = "ID_BBGN",
+                        SqlDbType = System.Data.SqlDbType.Int,
+                        Direction = System.Data.ParameterDirection.Output,
+                    };
+
+                    if (XacNhan == "0" && XacNhan != "") // lưu
+                    {
+
+                        //var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},@ID_BBGN OUTPUT",
+                        //                                       ThongTin_BG.ID_TaiKhoan, ThongTin_BG.ID_PhongBan, ThongTin_BG.ID_PhanXuong, ThongTin_BG.ID_ChucVu, ThoiGianXuLyBG, 0,
+                        //                                       ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, ID_Kip.ID_Kip, 0, 1, ID_Kip.TenKip, ID_Kip.TenCa, Output_ID_BBGN);
+                        //BBGN_ID = Convert.ToInt32(Output_ID_BBGN.Value);
+
+                        // // insert chi tiết BBGN
+                        //foreach (var item in Tbl_ChiTiet_BienBanGiaoNhan)
+                        //{
+                        //    double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
+                        //    //double KL_QuyKho = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
+                        //    double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                        //    if (BBGN_ID != 0)
+                        //    { 
+                        //        if(item.MaLo != "" && item.MaLo != null)
+                        //        {
+
+                        //            var result_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8}",
+                        //                                                     item.ID_VatTu, item.MaLo, item.DoAm_W, item.KhoiLuong_BG, KL_QuyKho, 0, 0, item.GhiChu, BBGN_ID);
+
+                        //        }  
+                        //        else
+                        //        {
+                        //            var result_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8}",
+                        //                                                   item.ID_VatTu, "", item.DoAm_W, item.KhoiLuong_BG, KL_QuyKho, 0, 0, item.GhiChu, BBGN_ID);
+                        //        }    
+
+
+                        //    }
+
+                        //}
+                        TempData["msgSuccess"] = "<script>alert('Thêm mới thành công');</script>";
+                    }
+                    else if (XacNhan == "1" && XacNhan != "") // gửi phiếu
+                    {
+                        if (NoiDungTrichYeu == "" || NoiDungTrichYeu == null)
+                        {
+                            var vattu = _context.Tbl_VatTu.Where(x => x.ID_VatTu == Tbl_ChiTiet_BienBanGiaoNhan[0].ID_VatTu).FirstOrDefault();
+                            NoiDungTrichYeu = vattu.TenVatTu;
+                        }
+                        // file đính kèm
+                        if (FileDinhKem != null && FileDinhKem.Length > 0)
+                        {
+                            // Lấy tên file gốc và phần mở rộng
+                            var originalFileName = Path.GetFileNameWithoutExtension(FileDinhKem.FileName);
+                            var fileExtension = Path.GetExtension(FileDinhKem.FileName);
+
+                            // Tạo tên file mới với thời gian
+                            var newFileName = $"{originalFileName}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
+
+                            // Đường dẫn lưu file (thư mục cần tồn tại trước)
+                            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", newFileName);
+
+                            // Lưu file vào server
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                FileDinhKem.CopyTo(stream);
+                            }
+
+                            // Lưu path vào DB
+                            if (path != "" && path != null)
+                            {
+                                // lưu vào đường dẫn tương đối
+                                filedk = $"/uploads/{newFileName}";
+                            }
+
+                            //ViewBag.Message = "File uploaded successfully: " + fileName;
+                        }
+
+                        var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},@ID_BBGN OUTPUT",
+                                                               ThongTin_BG.ID_TaiKhoan, ThongTin_BG.ID_PhongBan, ThongTin_BG.ID_PhanXuong, ThongTin_BG.ID_ChucVu, ThoiGianXuLyBG, 1,
+                                                               ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, ID_Kip.ID_Kip, 0, 1, ID_Kip.TenKip, ID_Kip.TenCa, NoiDungTrichYeu, filedk, Output_ID_BBGN);
+                        BBGN_ID = Convert.ToInt32(Output_ID_BBGN.Value);
+
+                        foreach (var item in Tbl_ChiTiet_BienBanGiaoNhan)
+                        {
+                            double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
+                            //double KL_QuyKho = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
+                            double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                            if (BBGN_ID != 0)
+                            {
+                                if (item.MaLo != "" && item.MaLo != null)
+                                {
+
+                                    var result_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8}",
+                                                                           item.ID_VatTu, item.MaLo, item.DoAm_W, item.KhoiLuong_BG, KL_QuyKho, item.KhoiLuong_BG, KL_QuyKho, item.GhiChu, BBGN_ID);
+                                }
+                                else
+                                {
+                                    var result_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8}",
+                                                                           item.ID_VatTu, "", item.DoAm_W, item.KhoiLuong_BG, KL_QuyKho, item.KhoiLuong_BG, KL_QuyKho, item.GhiChu, BBGN_ID);
+                                }
+                            }
+
+                        }
+                        TempData["msgSuccess"] = "<script>alert('Trình ký thành công');</script>";
+                        return RedirectToAction("Index_Detai", "BM_11", new { id = BBGN_ID });
                     }
 
                 }
-
-                TempData["msgSuccess"] = "<script>alert('Sao chép phiếu thành công');</script>";
             }
             catch (Exception e)
             {
-                TempData["msgError"] = "<script>alert('Sao chép phiếu thất bại');</script>";
-                return RedirectToAction("Index_Detai", "BM_11", new { id = id });
+                TempData["msgError"] = "<script>alert('Thêm mới thất bại');</script>";
+                return RedirectToAction("TaoPhieu", "BM_11");
             }
 
-
-            return RedirectToAction("Index", "BM_11");
+            return RedirectToAction("SuaPhieu", "BM_11", new { id = BBGN_ID });
         }
+
         public async Task<IActionResult> ExportToExcel(int BBGN_ID)
         {
             try

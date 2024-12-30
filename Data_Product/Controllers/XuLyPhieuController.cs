@@ -1190,6 +1190,33 @@ namespace Data_Product.Controllers
             return View(data);
         }
 
+        [HttpPost]
+        public IActionResult ProcessSelected(List<int> selectedItems)
+        {
+            if (selectedItems != null && selectedItems.Any())
+            {
+                var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+                // Xử lý danh sách ID được chọn
+                foreach (var id in selectedItems)
+                {
+                    // Lưu vào database
+                    _context.Tbl_PKHXuLyPhieu.Add(new Tbl_PKHXuLyPhieu
+                    {
+                        ID_BBGN = id,
+                        ID_TaiKhoan = TaiKhoan.ID_TaiKhoan,
+                        NgayXuLy = DateTime.Now,
+                        TinhTrang = true
+                    });
+                }
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("PhieuNhanThongTin", "XuLyPhieu");
+        }
+
+        
+
 
         public async Task<IActionResult> HuyPhieu_PheDuyet(int id)
         {
@@ -1283,6 +1310,31 @@ namespace Data_Product.Controllers
             }
 
             return number;
+        }
+
+        [HttpPost]
+        public IActionResult ProcessSelectedXLPhieu(List<int> selectedCheck)
+        {
+            if (selectedCheck != null && selectedCheck.Any())
+            {
+                var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+                // Xử lý danh sách ID được chọn
+                foreach (var id in selectedCheck)
+                {
+                    // Lưu vào database
+                    _context.Tbl_PKHXuLyPhieu.Add(new Tbl_PKHXuLyPhieu
+                    {
+                        ID_BBGN = id,
+                        ID_TaiKhoan = TaiKhoan.ID_TaiKhoan,
+                        NgayXuLy = DateTime.Now,
+                        TinhTrang = true
+                    });
+                }
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("PhieuBoSung", "XuLyPhieu");
         }
 
     }

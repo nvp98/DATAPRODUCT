@@ -59,7 +59,7 @@
                 <div class="card">
                     <div class="row" style="width:100%">
                         <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;width: -webkit-fill-available;">
-                            <div class="col-5" style="text-align: left;padding: 2%  2%  2% 0%; ">
+                            <div class="col-4" style="text-align: left;padding: 2%  2%  2% 0%; ">
                                 <span class="text-muted small pt-2 ps-1">
                                     <b style="color:#06428b">
                                         BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
@@ -97,7 +97,7 @@
                                         </a>
                                     </button>
                                 </div>
-                                <div class="col-3" style="text-align: right;padding: 2%  2%  2% 0%; " id="showFunc" >
+                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; " id="showFunc" >
                                    @* @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 3)
                                     {
                                         <button type="submit" class="btn btn-primary" id="btn-Export">
@@ -129,14 +129,7 @@
                                     </button>*@
                                     
                                    
-                                   @* <button type="submit" class="btn btn-success">
-                                        <a href="@Url.Action("SaoChepPhieu", "BM_11", new { id = ID_BBGN.ID_BBGN })">
-                                            <i class="bi bi-clipboard-check" style="color: white;"></i>
-                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                Copy phiếu
-                                            </span>
-                                        </a>
-                                    </button>*@
+                                 
                                     @if (ThongTin_BG.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && !ID_BBGN.IsLock)
                                     {
                                         <button type="submit" class="btn btn-warning">
@@ -147,14 +140,14 @@
                                                 </span>
                                             </a>
                                         </button>
-                                        @*<button type="submit" class="btn btn-danger">
-                                            <a href="@Url.Action("", "BM_11", new { id = ID_BBGN.ID_BBGN })">
-                                                <i class="bi bi-x-circle" style="color: white;"></i>
+                                        <button type="submit" class="btn btn-primary">
+                                            <a href="@Url.Action("SaoChepPhieu", "BM_11", new { id = ID_BBGN.ID_BBGN })">
+                                                <i class="bi bi-clipboard-check" style="color: white;"></i>
                                                 <span class="small pt-2 ps-1" style="color: white;">
-                                                    Xóa Phiếu
+                                                    Copy tạo phiếu
                                                 </span>
                                             </a>
-                                        </button>*@
+                                        </button>
                                         <button id="btn-delete" type="button" type="button" class="btn btn-danger" style="width: 150px;">
                                             <i class="bi bi-x-circle" style="color: white;"></i>
                                             <span class="small pt-2 ps-1" style="color: white;">
