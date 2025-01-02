@@ -452,7 +452,7 @@
                                                 var BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BN).FirstOrDefault();
                                             }
                                             <td class="text-left" style="font-size:14px;vertical-align:middle;">@BN.TenTaiKhoan<br> @BN.HoVaTen</td>
-                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayTao.ToString("dd/MM/yyyy hh:mm:ss")</td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayTao.ToString("dd/MM/yyyy HH:mm:ss")</td>
 
                                             @if (item.ID_QuyTrinh == 1)
                                             {

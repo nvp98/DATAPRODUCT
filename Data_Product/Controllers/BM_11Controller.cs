@@ -158,16 +158,19 @@ namespace Data_Product.Controllers
                                  NoiDungTrichYeu = a.NoiDungTrichYeu,
                                  IsLock =a.IsLock
                              }).OrderByDescending(x=>x.NgayTao).ToListAsync();
-            if (TaiKhoan.ID_Quyen == 7)
-            {
-                pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan  || ListPB.Contains(x.TenNgan)).ToList();
-                res = res.Where(x => x.ID_PhongBan_BG == TaiKhoan.ID_PhongBan || x.ID_PhongBan_BN == TaiKhoan.ID_PhongBan || ListPBInt.Contains(x.ID_PhongBan_BG)|| ListPBInt.Contains(x.ID_PhongBan_BN)).ToList();
-            }
-            else if(TaiKhoan.ID_Quyen == 4)
-            {
-                res = res.Where(x => x.ID_PhongBan_BG == TaiKhoan.ID_PhongBan || x.ID_PhongBan_BN == TaiKhoan.ID_PhongBan).ToList();
-                pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).ToList();
-            }
+            //if (TaiKhoan.ID_Quyen == 7)
+            //{
+            //    pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan  || ListPB.Contains(x.TenNgan)).ToList();
+            //    res = res.Where(x => x.ID_PhongBan_BG == TaiKhoan.ID_PhongBan || x.ID_PhongBan_BN == TaiKhoan.ID_PhongBan || ListPBInt.Contains(x.ID_PhongBan_BG)|| ListPBInt.Contains(x.ID_PhongBan_BN)).ToList();
+            //}
+            //else if(TaiKhoan.ID_Quyen == 4)
+            //{
+            //    res = res.Where(x => x.ID_PhongBan_BG == TaiKhoan.ID_PhongBan || x.ID_PhongBan_BN == TaiKhoan.ID_PhongBan).ToList();
+            //    pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).ToList();
+            //}
+            // Filter Quyền Bổ sung
+            pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan || ListPB.Contains(x.TenNgan)).ToList();
+            res = res.Where(x => x.ID_PhongBan_BG == TaiKhoan.ID_PhongBan || x.ID_PhongBan_BN == TaiKhoan.ID_PhongBan || ListPBInt.Contains(x.ID_PhongBan_BG) || ListPBInt.Contains(x.ID_PhongBan_BN)).ToList();
             var myList = new List<SelectListItem>
             {
                 new SelectListItem { Text = "1A", Value = "1A" },
