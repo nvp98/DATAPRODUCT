@@ -159,8 +159,9 @@ namespace Data_Product.Controllers
                     {
                         var detail = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_CT_BBGN == item.ID_CT_BBGN).FirstOrDefault();
                         double QuyKho = (item.KhoiLuong_BN * (100 - detail.DoAm_W) / 100);
-                        //double KL_QuyKhoNhan = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
-                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                        // Làm tròn đến 4 chữ số thập phân
+                        double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
                         var up_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_update_BN {0},{1},{2},{3}", item.ID_CT_BBGN, item.KhoiLuong_BN, KL_QuyKho, item.GhiChu);
                     }
                     //var result_yeucau = _context.Database.ExecuteSqlRaw("EXEC Tbl_YeuCauHieuChinh_insert {0},{1}", YKienHieuChinh, id);
@@ -187,8 +188,9 @@ namespace Data_Product.Controllers
                     {
                         var detail = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_CT_BBGN == item.ID_CT_BBGN).FirstOrDefault();
                         double QuyKho = (item.KhoiLuong_BN * (100 - detail.DoAm_W) / 100);
-                        //double KL_QuyKhoNhan = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
-                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                        // Làm tròn đến 4 chữ số thập phân
+                        double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
                         var up_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_update_BN {0},{1},{2},{3}", item.ID_CT_BBGN, item.KhoiLuong_BN, KL_QuyKho, item.GhiChu);
                     }
                     if (ID_BBGN.ID_QuyTrinh == 1)
@@ -445,8 +447,10 @@ namespace Data_Product.Controllers
                         if (BBGN_IDNew != 0)
                         {
                             double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
-                            //double KL_QuyKho = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
-                            double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                            decimal intermediate = Math.Round(((decimal)item.KhoiLuong_BG * (100m - (decimal)item.DoAm_W) / 100m), 15); // 15 là độ chính xác cao của Excel
+                            // Làm tròn đến 4 chữ số thập phân
+                            double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                            double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
                             var result_Vitri = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8}",
                                                                        item.ID_VatTu, item.MaLo, item.DoAm_W, item.KhoiLuong_BG, KL_QuyKho, item.KhoiLuong_BG, KL_QuyKho, item.GhiChu, BBGN_IDNew);
 
@@ -553,8 +557,9 @@ namespace Data_Product.Controllers
                     {
                         var detail = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_CT_BBGN == item.ID_CT_BBGN).FirstOrDefault();
                         double QuyKho = (item.KhoiLuong_BN * (100 - detail.DoAm_W) / 100);
-                        //double KL_QuyKhoNhan = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
-                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                        // Làm tròn đến 4 chữ số thập phân
+                        double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
                         var up_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_update_BN {0},{1},{2},{3}", item.ID_CT_BBGN, item.KhoiLuong_BN, KL_QuyKho, item.GhiChu);
                     }
 
@@ -586,8 +591,9 @@ namespace Data_Product.Controllers
                     {
                         var detail = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_CT_BBGN == item.ID_CT_BBGN).FirstOrDefault();
                         double QuyKho = (item.KhoiLuong_BN * (100 - detail.DoAm_W) / 100);
-                        //double KL_QuyKhoNhan = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
-                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                        // Làm tròn đến 4 chữ số thập phân
+                        double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
                         var up_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_update_BN {0},{1},{2},{3}", item.ID_CT_BBGN, item.KhoiLuong_BN, KL_QuyKho, item.GhiChu);
                     }
                     var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_XacNhanBN {0},{1}", id, 1);
@@ -860,8 +866,9 @@ namespace Data_Product.Controllers
                         var ID_CT = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_CT_BBGN == ID_CT_BBGN).FirstOrDefault();
 
                         double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
-                        //double KL_QuyKho = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
-                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                        // Làm tròn đến 4 chữ số thập phân
+                        double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
 
                         if (ID_CT == null)
                         {
@@ -938,8 +945,9 @@ namespace Data_Product.Controllers
                         var ID_CT = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_CT_BBGN == ID_CT_BBGN).FirstOrDefault();
 
                         double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
-                        //double KL_QuyKho = Math.Round(QuyKho + 0.00001, 3, MidpointRounding.AwayFromZero);
-                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(QuyKho, 3), 3, MidpointRounding.ToEven);
+                        // Làm tròn đến 4 chữ số thập phân
+                        double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
                         if (ID_CT == null)
                         {
                             if (item.MaLo != "" && item.MaLo != null)
