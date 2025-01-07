@@ -542,10 +542,11 @@ namespace Data_Product.Controllers
 
                         foreach (var item in Tbl_ChiTiet_BienBanGiaoNhan)
                         {
-                            double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
-                            // Làm tròn đến 4 chữ số thập phân
-                            double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
-                            double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                            double QuyKho = item.KhoiLuong_BG * 100 - item.DoAm_W* item.KhoiLuong_BG;
+                            //double KL_QuyKho = Math.Round(dividedNumber, 3, MidpointRounding.AwayFromZero);
+                            // Chia cho 100 và làm tròn chính xác đến 3 chữ số thập phân
+                            double dividedNumber = QuyKho / 100;
+                            double KL_QuyKho = RoundLikeExcel(dividedNumber, 3);
                             if (BBGN_ID != 0)
                             {
                                 if (item.MaLo != "" && item.MaLo != null)
@@ -676,10 +677,13 @@ namespace Data_Product.Controllers
                     {
                         var ID_CT_BBGN = item.ID_CT_BBGN - 100;
                         var ID_CT = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_CT_BBGN == ID_CT_BBGN).FirstOrDefault();
-                        double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
-                        // Làm tròn đến 4 chữ số thập phân
-                        double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
-                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                        //double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
+                        //// Làm tròn đến 4 chữ số thập phân
+                        //double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                        //double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                        double QuyKho = item.KhoiLuong_BG * 100 - item.DoAm_W * item.KhoiLuong_BG;
+                        double dividedNumber = QuyKho / 100;
+                        double KL_QuyKho = RoundLikeExcel(dividedNumber, 3);
                         if (ID_CT == null)
                         {
                             if (item.MaLo != "" && item.MaLo != null)
@@ -753,10 +757,13 @@ namespace Data_Product.Controllers
                         var ID_CT_BBGN = item.ID_CT_BBGN - 100;
                         var ID_CT = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_CT_BBGN == ID_CT_BBGN).FirstOrDefault();
 
-                        double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
-                        // Làm tròn đến 4 chữ số thập phân
-                        double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
-                        double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                        //double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
+                        //// Làm tròn đến 4 chữ số thập phân
+                        //double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                        //double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                        double QuyKho = item.KhoiLuong_BG * 100 - item.DoAm_W * item.KhoiLuong_BG;
+                        double dividedNumber = QuyKho / 100;
+                        double KL_QuyKho = RoundLikeExcel(dividedNumber, 3);
                         if (ID_CT == null)
                         {
                             var result_detail = _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8}",
@@ -1117,10 +1124,13 @@ namespace Data_Product.Controllers
                         {
                             if (BBGN_ID != 0)
                             {
-                                double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
-                                // Làm tròn đến 4 chữ số thập phân
-                                double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
-                                double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                                //double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
+                                //// Làm tròn đến 4 chữ số thập phân
+                                //double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                                //double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                                double QuyKho = item.KhoiLuong_BG * 100 - item.DoAm_W * item.KhoiLuong_BG;
+                                double dividedNumber = QuyKho / 100;
+                                double KL_QuyKho = RoundLikeExcel(dividedNumber, 3);
 
 
                                 if (item.MaLo != "" && item.MaLo != null)
@@ -1253,23 +1263,55 @@ namespace Data_Product.Controllers
             return RedirectToAction("YCauHieuChinh", "XuLyPhieu", new { id = BBGN_ID});
         }
 
+        static double RoundLikeExcel(double value, int decimals)
+        {
+            // Chuyển đổi sang decimal để đảm bảo độ chính xác
+            decimal decimalValue = (decimal)value;
+
+            // Nhân giá trị với 10^decimals để loại bỏ phần thập phân
+            decimal multiplier = (decimal)Math.Pow(10, decimals);
+            decimal scaledValue = decimalValue * multiplier;
+
+            // Làm tròn giá trị scaledValue về số nguyên gần nhất (MidpointRounding.AwayFromZero)
+            decimal roundedValue = Math.Round(scaledValue, 0, MidpointRounding.AwayFromZero);
+
+            // Chia ngược lại để đưa về dạng thập phân với đúng số chữ số
+            return (double)(roundedValue / multiplier);
+        }
+
         static double AdjustIfLastDigitIsFive(double number, int precision)
         {
             // Tăng độ chính xác (dịch dấu thập phân để lấy chữ số cuối)
-            double multiplier = Math.Pow(10, precision + 1);
-            double shiftedNumber = number * multiplier;
+            //double multiplier = Math.Pow(10, precision + 1);
+            //double shiftedNumber = number * multiplier;
 
-            // Lấy phần nguyên để kiểm tra chữ số cuối
-            int lastDigit = (int)Math.Abs(shiftedNumber) % 10;
+            //// Lấy phần nguyên để kiểm tra chữ số cuối
+            //int lastDigit = (int)Math.Abs(shiftedNumber) % 10;
 
-            // Nếu chữ số cuối là 5, cộng thêm một lượng nhỏ
-            if (lastDigit == 5)
-            {
-                double adjustment = 1 / multiplier;
-                number += adjustment; // Cộng thêm lượng nhỏ
-            }
+            //// Nếu chữ số cuối là 5, cộng thêm một lượng nhỏ
+            //if (lastDigit == 5)
+            //{
+            //    double adjustment = 1 / multiplier;
+            //    number += adjustment; // Cộng thêm lượng nhỏ
+            //}
+            // Tính hệ số để làm tròn
+            //double factor = Math.Pow(10, precision);
+            //// Làm tròn số nhân lên, rồi chia ngược lại
+            ////double roundedValue = Math.Round(number * factor, MidpointRounding.ToEven) / factor;
+            //// Xác định giá trị trung điểm
+            //double multiplied = number * factor;
+            //double midpoint = Math.Truncate(multiplied) + 0.5;
 
-            return number;
+            //// Kiểm tra nếu lớn hơn hoặc bằng trung điểm, làm tròn lên
+            //if (multiplied >= midpoint)
+            //    return Math.Ceiling(multiplied) / factor;
+            //else
+            //    return Math.Floor(multiplied) / factor;
+
+            double factor = Math.Pow(10, precision + 1);
+            return Math.Round(number * factor) / factor;
+
+            //return roundedValue;
         }
 
         public async Task<IActionResult> ChucVu(int IDTaiKhoan)
@@ -1720,10 +1762,13 @@ namespace Data_Product.Controllers
 
                         foreach (var item in Tbl_ChiTiet_BienBanGiaoNhan)
                         {
-                            double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
-                            // Làm tròn đến 4 chữ số thập phân
-                            double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
-                            double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                            //double QuyKho = (item.KhoiLuong_BG * (100 - item.DoAm_W) / 100);
+                            //// Làm tròn đến 4 chữ số thập phân
+                            //double roundedTo4 = Math.Round(QuyKho, 4, MidpointRounding.AwayFromZero);
+                            //double KL_QuyKho = Math.Round(AdjustIfLastDigitIsFive(roundedTo4, 3), 3, MidpointRounding.ToEven);
+                            double QuyKho = item.KhoiLuong_BG * 100 - item.DoAm_W * item.KhoiLuong_BG;
+                            double dividedNumber = QuyKho / 100;
+                            double KL_QuyKho = RoundLikeExcel(dividedNumber, 3);
                             if (BBGN_ID != 0)
                             {
                                 if (item.MaLo != "" && item.MaLo != null)
