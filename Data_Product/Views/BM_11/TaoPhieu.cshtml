@@ -530,7 +530,7 @@
                                                                                 </select>
                                                                         </td>
                                                                          <td >
-                                                                              <select class="form-control marginTB5 "id='lo_${i}' name='lo_${i}' placeholder='Lô'>
+                                                                              <select class="form-control marginTB5 malo" id='lo_${i}' name='lo_${i}' placeholder='Lô'>
                                                                                          <option value =''>--Mã lô--</option>
                                                                                         
                                                                                 </select>
@@ -570,6 +570,9 @@
                 $(".SelectQT").chosen({
                     width: "100%"
                 });
+                $(".malo").chosen({
+                    width: "100%"
+                });
             });
      });
     $("#table").on("click", ".delItem", function () {
@@ -595,7 +598,7 @@
                 $("#lo_" + id).empty();
                 if (data1[0] != null ) {
                     $("#lo_" + id).empty();
-                    $("#lo_" + id).append("<option value=''></option>")
+                    $("#lo_" + id).append("<option value=''>--Không lô--</option>")
                     $.each(data1, function (index, row) {
                         $("#lo_" + id).append("<option value ='" + row.tenMaLo + "' selected>" + row.tenMaLo + "</option>")
                     });
@@ -604,8 +607,10 @@
                     $("#lo_" + id).empty();
                 }
             });
-            @*$("#lo_" + id).trigger("chosen:updated");*@
-
+            setTimeout(() => {
+                $("#lo_" + id).trigger("chosen:updated");
+            }, 100);
+           
             $("#NoiDung_" + id).trigger("chosen:updated");
         }
         else {

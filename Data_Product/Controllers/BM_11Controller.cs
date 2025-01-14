@@ -1371,7 +1371,7 @@ namespace Data_Product.Controllers
         }
         public async Task<IActionResult> MaLo(int IDVatTu)
         {
-            var dvt = await (from a in _context.Tbl_MaLo
+            var dvt = await (from a in _context.Tbl_MaLo.Where(x=>x.ID_TinhTrang == 1)
                              join x in _context.Tbl_VatTuMaLo.Where(x=>x.ID_VatTu == IDVatTu) on a.ID_MaLo equals x.ID_MaLo
                              select new Tbl_MaLo
                              {
