@@ -308,8 +308,8 @@
                     <!-- End F.A.Q Page Nav -->
                    
                 }
-                List<string> QuyenQLBBGN = new List<string> { "1","2", "3","4","7" };
-                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || TaiKhoan.ID_Quyen == 4 || QuyenQLBBGN.Any(value => ListQuyen.Contains(value)))
+                List<string> QuyenQLBBGN = new List<string> { "1","2", "3","4","7","8" };
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || TaiKhoan.ID_Quyen == 4 || TaiKhoan.ID_Quyen == 8 || QuyenQLBBGN.Any(value => ListQuyen.Contains(value)))
                 {
                     <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_11")">

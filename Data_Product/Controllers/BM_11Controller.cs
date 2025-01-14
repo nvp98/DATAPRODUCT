@@ -171,8 +171,12 @@ namespace Data_Product.Controllers
             // Filter Quyền Bổ sung
             if(TaiKhoan.ID_Quyen > 3)
             {
-                pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan || ListPB.Contains(x.TenNgan)).ToList();
-                res = res.Where(x => x.ID_PhongBan_BG == TaiKhoan.ID_PhongBan || x.ID_PhongBan_BN == TaiKhoan.ID_PhongBan || ListPBInt.Contains(x.ID_PhongBan_BG) || ListPBInt.Contains(x.ID_PhongBan_BN)).ToList();
+                if(TaiKhoan.ID_Quyen != 8)
+                {
+                    pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan || ListPB.Contains(x.TenNgan)).ToList();
+                    res = res.Where(x => x.ID_PhongBan_BG == TaiKhoan.ID_PhongBan || x.ID_PhongBan_BN == TaiKhoan.ID_PhongBan || ListPBInt.Contains(x.ID_PhongBan_BG) || ListPBInt.Contains(x.ID_PhongBan_BN)).ToList();
+                }
+                
             }
            
             var myList = new List<SelectListItem>
