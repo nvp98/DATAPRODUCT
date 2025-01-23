@@ -7,6 +7,8 @@
 
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @if (TempData["msgSuccess"] != null)
 {
     @Html.Raw(TempData["msgSuccess"])
@@ -510,7 +512,7 @@
                                                                             </a>                                                                  
                                                                          </td>
                                                                         <td>
-                                                                              <select class="form-control marginTB5 SelectVT" name="VatTu_${i}" id="VatTu_${i}">
+                                                                            <select class="form-control marginTB5 SelectVT" name="VatTu_${i}" id="VatTu_${i}" style="width: 100%">
                                                                               <option value ='null'>------ Chọn nguyên/nhiên/vật tư ------</option>
                                                                               @foreach (var item in ViewBag.VTList)
                                                                                 {
@@ -530,7 +532,7 @@
                                                                                 </select>
                                                                         </td>
                                                                          <td >
-                                                                              <select class="form-control marginTB5 malo" id='lo_${i}' name='lo_${i}' placeholder='Lô'>
+                                                                                      <select class="form-control marginTB5 malo" id='lo_${i}' name='lo_${i}' style="width: 100%" placeholder='Lô'>
                                                                                          <option value =''>--Mã lô--</option>
                                                                                         
                                                                                 </select>
@@ -564,15 +566,17 @@
                                                                     </tr>`);
                 i++;
                 $("#vt").before(renderList);
-                $(".SelectVT").chosen({
+               @* $(".SelectVT").chosen({
                     width: "100%"
-                });
+                });*@
                 $(".SelectQT").chosen({
                     width: "100%"
                 });
-                $(".malo").chosen({
+               @* $(".malo").chosen({
                     width: "100%"
-                });
+                });*@
+                $('.SelectVT').select2();
+                $('.malo').select2();
             });
      });
     $("#table").on("click", ".delItem", function () {
@@ -600,16 +604,16 @@
                     $("#lo_" + id).empty();
                     $("#lo_" + id).append("<option value=''>--Không lô--</option>")
                     $.each(data1, function (index, row) {
-                        $("#lo_" + id).append("<option value ='" + row.tenMaLo + "' selected>" + row.tenMaLo + "</option>")
+                        $("#lo_" + id).append("<option value ='" + row.tenMaLo + "' >" + row.tenMaLo + "</option>")
                     });
                 }
                 else {
                     $("#lo_" + id).empty();
                 }
             });
-            setTimeout(() => {
+           @* setTimeout(() => {
                 $("#lo_" + id).trigger("chosen:updated");
-            }, 100);
+            }, 100);*@
            
             $("#NoiDung_" + id).trigger("chosen:updated");
         }
