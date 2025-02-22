@@ -2766,7 +2766,7 @@ namespace Data_Product.Controllers
             var ID_XuongBG = Request.Query["ID_XuongBG"];
             var begind = Request.Query["begind"];
             var endd = Request.Query["endd"];
-            var ID_PhongBanBN = Request.Query["ID_PhongBan"];
+            var ID_PhongBanBN = Request.Query["ID_PhongBanBN"];
             var ID_XuongBN = Request.Query["ID_XuongBN"];
             var ID_QuyTrinh = Request.Query["ID_QuyTrinh"];
             var Kip = Request.Query["Kip"];
