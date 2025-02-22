@@ -134,7 +134,7 @@ namespace Data_Product.Controllers
                 }
             }
             //ViewBag.TTList = new SelectList(_context.Tbl_TrangThai.ToList(), "ID_TrangThai", "TenTrangThai", ID_TrangThai);
-            var res = await (from a in _context.Tbl_BienBanGiaoNhan.Where(x=> x.ThoiGianXuLyBG >= startDay && x.ThoiGianXuLyBG <= endDay && !x.IsDelete)
+            var res = await (from a in _context.Tbl_BienBanGiaoNhan.Where(x=> x.ThoiGianXuLyBG >= startDay && x.ThoiGianXuLyBG <= endDay)
                              select new Tbl_BienBanGiaoNhan
                              {
                                  ID_BBGN = a.ID_BBGN,
@@ -156,8 +156,13 @@ namespace Data_Product.Controllers
                                  ID_BBGN_Cu = (int?)a.ID_BBGN_Cu ?? default,
                                  NgayTao = a.NgayTao,
                                  NoiDungTrichYeu = a.NoiDungTrichYeu,
-                                 IsLock =a.IsLock
+                                 IsLock =a.IsLock,
+                                 IsDelete = a.IsDelete
                              }).OrderByDescending(x=>x.NgayTao).ToListAsync();
+            if(TaiKhoan.TenTaiKhoan != "HPDQ18461")
+            {
+                res = res.Where(x=> !x.IsDelete).ToList();
+            }
             //if (TaiKhoan.ID_Quyen == 7)
             //{
             //    pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan  || ListPB.Contains(x.TenNgan)).ToList();
@@ -246,6 +251,38 @@ namespace Data_Product.Controllers
             this.ViewBag.Pager = pager;
             return View(data);
         }
+
+        public async Task<IActionResult> ViewXoaPhieuBBGN(int? id, int? page)
+        {
+            if (id == null)
+            {
+                TempData["msgError"] = "<script>alert('Có lỗi xảy ra');</script>";
+
+                return RedirectToAction("Index_All", "BM_11");
+            }
+
+            var res = await (from a in _context.Tbl_XuLyXoaPhieu
+                             join bb in _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_TrangThai_BBGN == 5 && x.ID_BBGN == id) on a.ID_BBGN equals bb.ID_BBGN
+                             select new Tbl_XuLyXoaPhieu
+                             {
+                                 ID = a.ID,
+                                 ID_TaiKhoanBN = a.ID_TaiKhoanBN,
+                                 TinhTrang_BN = a.TinhTrang_BN,
+                                 ID_TaiKhoanKH = a.ID_TaiKhoanKH,
+                                 TinhTrang_KH = a.TinhTrang_KH,
+                                 NgayXuLy_BN = a.NgayXuLy_BN,
+                                 NgayXuLy_KH = a.NgayXuLy_KH,
+                                 ID_BBGN = a.ID_BBGN,
+                                 ID_TrangThai = a.TinhTrang_KH
+                             }).OrderBy(x => x.TinhTrang_KH).FirstOrDefaultAsync();
+            var tknhan = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == res.ID_TaiKhoanBN).FirstOrDefault();
+            var tkkh = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == res.ID_TaiKhoanKH).FirstOrDefault();
+            ViewBag.TaiKhoanBN = tknhan.TenTaiKhoan+"-"+tknhan.HoVaTen;
+            ViewBag.TaiKhoanKH = tkkh.TenTaiKhoan + "-" + tkkh.HoVaTen;
+
+            return PartialView(res);
+        }
+
         public async Task<IActionResult> Index_Detai(int id)
         { 
             var res = await (from a in _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == id)
@@ -415,6 +452,15 @@ namespace Data_Product.Controllers
                     DateTime date = DateTime.Parse(ID_Day);
                     string day_bs = date.ToString("dd-MM-yyyy");
                     DateTime NgayXuLy = DateTime.ParseExact(day_bs, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+                    // Kiểm tra ngày xử lý có đúng điều kiện không
+                    DateTime today = DateTime.Today;      // Ngày hiện tại (không có giờ)
+                    DateTime yesterday = today.AddDays(-1); // Ngày hôm qua
+                    if (NgayXuLy.Date != today && NgayXuLy.Date != yesterday)
+                    {
+                        TempData["msgSuccess"] = "<script>alert('Đã quá thời gian tạo phiếu cho ngày "+ NgayXuLy.ToString("dd-MM-yyyy") + "');</script>";
+                        return RedirectToAction("TaoPhieu", "BM_11");
+                    }
+
                     int Kip = Convert.ToInt32(ID_ca); // 1 ngày 2 đêm
                     //var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == Kip).FirstOrDefault();
                     var ID_Kip = _context.Tbl_Kip.Where(x => x.TenCa == ID_ca && x.NgayLamViec == NgayXuLy).FirstOrDefault();
@@ -2714,11 +2760,13 @@ namespace Data_Product.Controllers
                 }
                 _context.SaveChanges();
             }
+            var ID_PhongBan = Request.Query["ID_PhongBan"];
+            var ID_Xuong = Request.Query["ID_Xuong"];
             var ID_PhongBanBG = Request.Query["ID_PhongBanBG"];
             var ID_XuongBG = Request.Query["ID_XuongBG"];
             var begind = Request.Query["begind"];
             var endd = Request.Query["endd"];
-            var ID_PhongBanBN = Request.Query["ID_PhongBanBN"];
+            var ID_PhongBanBN = Request.Query["ID_PhongBan"];
             var ID_XuongBN = Request.Query["ID_XuongBN"];
             var ID_QuyTrinh = Request.Query["ID_QuyTrinh"];
             var Kip = Request.Query["Kip"];
@@ -2728,7 +2776,9 @@ namespace Data_Product.Controllers
                 ID_XuongBN= ID_XuongBN,
                 ID_QuyTrinh= ID_QuyTrinh,
                 Kip= Kip,
-                search= search
+                search= search,
+                ID_PhongBan = ID_PhongBan,
+                ID_Xuong = ID_Xuong
             }); // Quay lại trang danh sách
         }
 

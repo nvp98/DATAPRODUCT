@@ -1,0 +1,47 @@
+﻿@model Data_Product.Models.Tbl_XuLyXoaPhieu
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+
+<div class="modal-dialog" style="padding-top:1.5%;">
+    <div class="modal-content" style="max-width: none; width: 800px;">
+        <div class="modal-header" style="background-color: #F9F9F9;">
+            <h5 id="ModalTitle"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div style="display: flex;padding-bottom: 1.5%;">
+                <div class="col-md-6">
+                    <label for="inputName5" class="form-label">Bên nhận xóa phiếu</label>
+                    <input type="text" class="form-control" name="TenTaiKhoan" id="TenTaiKhoan" value="@ViewBag.TaiKhoanBN">
+                </div>
+                <div class="col-md-6" style="padding-left: 1.5%;">
+                    <label for="inputPassword5" class="form-label">Tình trạng xử lý</label>
+                    @if(Model.TinhTrang_BN == 1)
+                    {
+                        <div type="text" class="form-control" name="TenTaiKhoan" >Đã xử lý</div>
+                    }
+                    else
+                    {
+                        <div type="text" class="form-control" name="TenTaiKhoan">Chưa xử lý</div>
+                    }
+                </div>
+            </div>
+            <div style="display: flex;padding-bottom: 1.5%;">
+                <div class="col-md-6">
+                    <label for="inputName5" class="form-label">P.KH xóa phiếu</label>
+                    <input type="text" class="form-control" name="TenTaiKhoan" id="TenTaiKhoan" value="@ViewBag.TaiKhoanKH">
+                </div>
+                <div class="col-md-6" style="padding-left: 1.5%;">
+                    <label for="inputPassword5" class="form-label">Tình trạng xử lý</label>
+                    @if (Model.TinhTrang_KH == 1)
+                    {
+                        <div type="text" class="form-control" name="TenTaiKhoan">Đã xử lý</div>
+                    }
+                    else
+                    {
+                        <div type="text" class="form-control" name="TenTaiKhoan">Chưa xử lý</div>
+                    }
+                </div>
+            </div>
+    </div>
+</div>

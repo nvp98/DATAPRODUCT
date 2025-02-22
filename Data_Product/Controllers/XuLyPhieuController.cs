@@ -355,6 +355,13 @@ namespace Data_Product.Controllers
                         TempData["msgSuccess"] = "<script>alert('Vui lòng chọn nhân viên thống kê nhận BBGN');</script>";
                         return RedirectToAction("YCauHieuChinh", "XuLyPhieu", new { id = id });
                     }
+                    // check trùng phiếu điều chỉnh cũ
+                    var checkphieucu = _context.Tbl_BienBanGiaoNhan.FirstOrDefault(x => x.ID_BBGN_Cu == id || (x.ID_TrangThai_BBGN != 1 && x.ID_BBGN ==id));
+                    if(checkphieucu != null)
+                    {
+                        TempData["msgSuccess"] = "<script>alert('BBGN này đã được đề nghị hiệu chỉnh trước đó');</script>";
+                        return RedirectToAction("YCauHieuChinh", "XuLyPhieu", new { id = id });
+                    }
                     // lấy dữ liệu từ form
                     foreach (var key in formCollection.ToList())
                     {
@@ -704,14 +711,14 @@ namespace Data_Product.Controllers
                                  TinhTrang_BN =a.TinhTrang_BN,
                                  ID_TaiKhoanKH =a.ID_TaiKhoanKH,
                                  TinhTrang_KH =a.TinhTrang_KH,
-                                 NgayXuLy_BN =a.NgayXuLy_BN,
+                                 NgayXuLy_BN =bb.NgayTao, // điều kiện lọc ngày tạo
                                  NgayXuLy_KH =a.NgayXuLy_KH,
                                  ID_BBGN = a.ID_BBGN,
-                                 ID_TrangThai = a.TinhTrang_KH
+                                 ID_TrangThai = a.TinhTrang_KH,
                              }).OrderBy(x=>x.TinhTrang_KH).ToListAsync();
 
             if (ID_TrangThai != null) res = res.Where(x => x.ID_TrangThai == ID_TrangThai).ToList();
-            if (begind != null && endd != null) res = res.Where(x => x.NgayXuLy_KH >= startDay && x.NgayXuLy_KH <= endDay).ToList();
+            res = res.Where(x => x.NgayXuLy_BN >= startDay && x.NgayXuLy_BN <= endDay).ToList();
             //if (begind == null && endd == null && ID_TrangThai == null)
             //{
             //    res = res.Where(x => x.NgayTrinhKy >= startDay && x.NgayTrinhKy <= endDay).ToList();
@@ -724,7 +731,7 @@ namespace Data_Product.Controllers
             //{
             //    res = res.Where(x => x.NgayTrinhKy >= begind && x.NgayTrinhKy <= endd && x.ID_TrangThai == ID_TrangThai).ToList();
             //}
-            const int pageSize = 20;
+            const int pageSize = 1000;
             if (page < 1)
             {
                 page = 1;
@@ -1157,12 +1164,15 @@ namespace Data_Product.Controllers
         {
             DateTime Now = DateTime.Now;
             DateTime startDay = new DateTime(Now.Year, Now.Month, 1);
-            DateTime endDay = startDay.AddMonths(1).AddDays(-1);
+            DateTime endDay = Now;
+
+            if (begind != null) startDay = (DateTime)begind;
+            if (endd != null) endDay = (DateTime)endd;
 
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
 
-            ViewBag.TTList = new SelectList(_context.Tbl_TrangThai_PheDuyet.ToList(), "ID_TrangThai_PheDuyet", "TenTrangThai", ID_TrangThai);
+            ViewBag.TTList = new SelectList(_context.Tbl_TrangThai.ToList(), "ID_TrangThai", "TenTrangThai", ID_TrangThai);
             var res = await (from a in _context.Tbl_TrinhKyBoSung.Where(x => x.ID_TaiKhoan_View == TaiKhoan.ID_TaiKhoan && x.ID_TrangThai != 0)
                              join bb in _context.Tbl_BienBanGiaoNhan.Where(x=>!x.IsDelete) on a.ID_BBGN equals bb.ID_BBGN
                              select new Tbl_TrinhKyBoSung
@@ -1171,9 +1181,9 @@ namespace Data_Product.Controllers
                                  ID_BBGN = a.ID_BBGN,
                                  SoPhieu = bb.SoPhieu,
                                  ID_TaiKhoan = a.ID_TaiKhoan,
-                                 NgayTrinhKy = (DateTime)a.NgayTrinhKy,
+                                 NgayTrinhKy = bb.NgayTao, // điều kiện lọc ngày tạo
                                  NgayXuLy = (DateTime)a.NgayXuLy,
-                                 ID_TrangThai = a.ID_TrangThai
+                                 ID_TrangThai = bb.ID_TrangThai_BBGN
                              }).OrderByDescending(x => x.NgayTrinhKy).ToListAsync();
 
             var dsPhieuXoa = await (from a in  _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_TaiKhoanKH_View == TaiKhoan.ID_TaiKhoan)
@@ -1184,28 +1194,30 @@ namespace Data_Product.Controllers
                                  ID_BBGN = a.ID_BBGN,
                                  SoPhieu = b.SoPhieu,
                                  ID_TaiKhoan = a.ID_TaiKhoanKH,
-                                 NgayTrinhKy = (DateTime)b.NgayTao,
+                                 NgayTrinhKy = (DateTime)b.NgayTao, // điều kiện lọc ngày tạo
                                  NgayXuLy = (DateTime)a.NgayXuLy_BN,
-                                 ID_TrangThai = a.ID_TrangThai
+                                 ID_TrangThai = b.ID_TrangThai_BBGN
                              }).OrderByDescending(x => x.NgayTrinhKy).ToListAsync();
             if(dsPhieuXoa != null)
             {
                 res.AddRange(dsPhieuXoa.ToList());
             }
 
+            if (ID_TrangThai != null) res = res.Where(x => x.ID_TrangThai == ID_TrangThai).ToList();
+            res = res.Where(x => x.NgayTrinhKy >= startDay && x.NgayTrinhKy <= endDay).ToList();
 
-            if (begind == null && endd == null && ID_TrangThai == null)
-            {
-                res = res.Where(x => x.NgayTrinhKy >= startDay && x.NgayTrinhKy <= endDay).ToList();
-            }
-            else if (begind != null && endd != null && ID_TrangThai == null)
-            {
-                res = res.Where(x => x.NgayTrinhKy >= begind && x.NgayTrinhKy <= endd).ToList();
-            }
-            else if (begind != null && endd != null && ID_TrangThai != null)
-            {
-                res = res.Where(x => x.NgayTrinhKy >= begind && x.NgayTrinhKy <= endd && x.ID_TrangThai == ID_TrangThai).ToList();
-            }
+            //if (begind == null && endd == null && ID_TrangThai == null)
+            //{
+            //    res = res.Where(x => x.NgayTrinhKy >= startDay && x.NgayTrinhKy <= endDay).ToList();
+            //}
+            //else if (begind != null && endd != null && ID_TrangThai == null)
+            //{
+            //    res = res.Where(x => x.NgayTrinhKy >= begind && x.NgayTrinhKy <= endd).ToList();
+            //}
+            //else if (begind != null && endd != null && ID_TrangThai != null)
+            //{
+            //    res = res.Where(x => x.NgayTrinhKy >= begind && x.NgayTrinhKy <= endd && x.ID_TrangThai == ID_TrangThai).ToList();
+            //}
             const int pageSize = 1000;
             if (page < 1)
             {
@@ -1282,6 +1294,12 @@ namespace Data_Product.Controllers
             DateTime NgayTao = DateTime.Now;
             try
             {
+                var bbgn = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == id).FirstOrDefault();
+                if(bbgn.ID_TrangThai_BBGN != 1)
+                {
+                    TempData["msgError"] = "<script>alert('Phiếu đang được hiệu chỉnh, không thể xóa phiếu này');</script>";
+                    return RedirectToAction("Index_Detai", "BM_11", new { id = id });
+                }
                 if(_DO.ID_TaiKhoanKH != 0 && _DO.ID_TaiKhoanKH_View != null)
                 {
                     var check = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == id).FirstOrDefault();

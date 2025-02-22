@@ -239,17 +239,17 @@
                                     @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
                                     {
                                         <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
-                                            <a class="page-link" asp-asp-controller="XuLyPhieu" asp-action="PhieuBoSung" asp-route-page="@pge">@pge</a>
+                                            <a class="page-link" asp-asp-controller="XuLyPhieu" asp-action="PKHXoaPhieu" asp-route-page="@pge">@pge</a>
 
                                         </li>
                                     }
                                     @if (pager.CurrentPage < pager.TotalPages)
                                     {
                                         <li class="page-item">
-                                            <a class="page-link" asp-asp-controller="XuLyPhieu" asp-action="PhieuBoSung" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
+                                            <a class="page-link" asp-asp-controller="XuLyPhieu" asp-action="PKHXoaPhieu" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
                                         </li>
                                         <li class="page-item">
-                                            <a class="page-link" asp-asp-controller="XuLyPhieu" asp-action="PhieuBoSung" asp-route-page="@(pager.TotalPages)">Last</a>
+                                            <a class="page-link" asp-asp-controller="XuLyPhieu" asp-action="PKHXoaPhieu" asp-route-page="@(pager.TotalPages)">Last</a>
                                         </li>
                                     }
                                 </ul>

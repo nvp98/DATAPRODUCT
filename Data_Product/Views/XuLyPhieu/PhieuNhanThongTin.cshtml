@@ -182,7 +182,7 @@
                                                 var BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BN).FirstOrDefault();
                                             }
                                             <td style="font-size:14px;vertical-align:middle;text-align: left;">@BN.TenTaiKhoan <br> @BN.HoVaTen</td>
-                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.ThoiGianXuLyBG.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayTao.ToString("dd/MM/yyyy")</td>
                                             @if (@item_.NgayXuLy == DateTime.Parse("0001/01/01") || @item_.NgayXuLy == null)
                                             {
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">

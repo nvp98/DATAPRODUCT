@@ -607,7 +607,7 @@
                                                             </button>
                                                         </td>
                                                     }
-                                                    else
+                                                    else if (checkxoa != null && checkxoa.TinhTrang_BN == 0 && checkxoa.TinhTrang_KH == 0)
                                                     {
                                                         <td class="text-center" style="font-size:14px;">
                                                             <button type="button" class="btn btn-danger" style="width: 150px;">
@@ -617,13 +617,28 @@
                                                             </button>
                                                         </td>
                                                     }
-                                                    @*<td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Xóa phiếu
-                                                            </span>
-                                                        </button>
-                                                    </td>*@
+                                                    else
+                                                    {
+                                                        <div class="modal fade" id="myModalViewXoa" role="dialog" data-url='@Url.Action("ViewXoaPhieuBBGN","BM_11", new {id = item.ID_BBGN})'></div>
+                                                        <td class="text-center" style="font-size:14px;">
+                                                            <button type="button" class="btn btn-danger" id="btn-vxoa_@item.ID_BBGN" style="width: 150px;">
+                                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                                    Phiếu đã xóa
+                                                                </span>
+                                                            </button>
+                                                        </td>
+                                                        <script type="text/javascript">
+                                                            $('#btn-vxoa_@item.ID_BBGN').click(function () {
+                                                                var url = $('#myModalViewXoa').data('url');
+                                                                $.get(url, function (data) {
+                                                                    $("#myModalViewXoa").html(data);
+                                                                    $("#ModalTitle").html("Xem xử lý xóa");
+                                                                    $("#myModalViewXoa").modal('show');
+                                                                });
+                                                            });
+                                                        </script>
+                                                    }
+                                                   
                                               
                                             }
 
