@@ -29,6 +29,8 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_PKHXuLyPhieu> Tbl_PKHXuLyPhieu { get; set; }
         public DbSet<Tbl_XuLyXoaPhieu> Tbl_XuLyXoaPhieu { get; set; }
         public DbSet<Tbl_ThoiGianKhoa> Tbl_ThoiGianKhoa { get; set; }
-
+        public DbSet<Tbl_BBGNGangLong> Tbl_BBGNGangLong { get; set; }
+        public DbSet<Tbl_ChiTiet_BBGNGangLong> Tbl_ChiTiet_BBGNGangLong { get; set; }
+        public DbSet<Tbl_LoCao> Tbl_LoCao { get; set; }
     }
 }
