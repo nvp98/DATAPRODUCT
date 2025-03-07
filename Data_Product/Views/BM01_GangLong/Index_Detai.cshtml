@@ -3,7 +3,7 @@
 @using Data_Product.Repositorys;
 @using Microsoft.EntityFrameworkCore;
 @inject Data_Product.Repositorys.DataContext _context
-@model IEnumerable<Data_Product.Models.Tbl_ChiTiet_BienBanGiaoNhan>
+@model IEnumerable<Data_Product.Models.Tbl_ChiTiet_BBGNGangLong>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
@@ -30,7 +30,7 @@
 }
 @{
     int ID = Convert.ToInt32(ViewBag.Data);
-    var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID).FirstOrDefault();
+    var ID_BBGN = _context.Tbl_BBGNGangLong.Where(x => x.ID_BBGL == ID).FirstOrDefault();
     var ID_TK = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID).FirstOrDefault();
 
     //Thông tin bên giao
@@ -66,8 +66,7 @@
                                     </b>
                                 </span>
                             </div><!-- End Recent Sales -->
-                            
-                            @if (ID_BBGN.ID_TrangThai_BBGN == 1)
+                            @if (ID_BBGN.TinhTrang_BG == 1)
                             {
                                 <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
                                     <button type="submit" class="btn btn-primary" id="btn-Export">
@@ -76,10 +75,10 @@
                                             Xuất Excel
                                         </span>
                                     </button>
-                                    @if (ID_BBGN.FileBBGN != null)
+                                    @if (ID_BBGN.FileBBGL != null)
                                     {
                                         <button type="submit" class="btn btn-info">
-                                            <a href="@ID_BBGN.FileBBGN" target="_blank">
+                                            <a href="@ID_BBGN.FileBBGL" target="_blank">
                                                 <i class="bi bi-filetype-pdf" style="color: white;"></i>
                                                 <span class="small pt-2 ps-1" style="color: white;">
                                                     Xem pdf
@@ -89,7 +88,7 @@
                                     }
 
                                     <button type="submit" class="btn btn-info">
-                                        <a href="@Url.Action("GenerateAndSavePdf", "BM_11", new { id = ID_BBGN.ID_BBGN })">
+                                        <a href="@Url.Action("GenerateAndSavePdf", "BM01_Ganglong", new { id = ID_BBGN.ID_BBGL })">
                                             <i class="bi bi-filetype-pdf" style="color: white;"></i>
                                             <span class="small pt-2 ps-1" style="color: white;">
                                                 Xuất PDF
@@ -97,8 +96,8 @@
                                         </a>
                                     </button>
                                 </div>
-                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; " id="showFunc" >
-                                   @* @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 3)
+                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; " id="showFunc">
+                                    @* @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 3)
                                     {
                                         <button type="submit" class="btn btn-primary" id="btn-Export">
                                             <i class="bi bi-file-earmark-excel"></i>
@@ -118,7 +117,7 @@
                                         </a>
                                         </button>
                                     }
-                                    
+
                                     <button type="submit" class="btn btn-info">
                                         <a href="@Url.Action("GenerateAndSavePdf", "BM_11", new { id = ID_BBGN.ID_BBGN })">
                                             <i class="bi bi-filetype-pdf" style="color: white;"></i>
@@ -127,13 +126,13 @@
                                             </span>
                                         </a>
                                     </button>*@
-                                    
-                                   
-                                 
-                                    @if (ThongTin_BG.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && !ID_BBGN.IsLock)
+
+
+
+                                    @if (ThongTin_BG.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan)
                                     {
                                         <button type="submit" class="btn btn-warning">
-                                            <a href="@Url.Action("YCauHieuChinh", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN })">
+                                            <a href="@Url.Action("YCauHieuChinh", "XuLyPhieu", new { id = ID_BBGN.ID_BBGL })">
                                                 <i class="bi bi-send-x-fill" style="color: white;"></i>
                                                 <span class="small pt-2 ps-1" style="color: white;">
                                                     Đề nghị hiệu chỉnh
@@ -141,7 +140,7 @@
                                             </a>
                                         </button>
                                         <button type="submit" class="btn btn-primary">
-                                            <a href="@Url.Action("SaoChepPhieu", "BM_11", new { id = ID_BBGN.ID_BBGN })">
+                                            <a href="@Url.Action("SaoChepPhieu", "BM01_GangLong", new { id = ID_BBGN.ID_BBGL })">
                                                 <i class="bi bi-clipboard-check" style="color: white;"></i>
                                                 <span class="small pt-2 ps-1" style="color: white;">
                                                     Copy tạo phiếu
@@ -156,17 +155,17 @@
                                         </button>
 
                                     }
-                                   
+
                                 </div>
                             }
-                            else if (ID_BBGN.ID_TrangThai_BBGN == 5) //xóa phiếu
+                            else if (ID_BBGN.TinhTrang_BN == 5) //xóa phiếu
                             {
-                                var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGN && x.ID_TaiKhoanBN == TaiKhoan.ID_TaiKhoan && x.TinhTrang_BN ==0).FirstOrDefault();
-                                if(checkxoa != null)
+                                var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGL && x.ID_TaiKhoanBN == TaiKhoan.ID_TaiKhoan && x.TinhTrang_BN == 0).FirstOrDefault();
+                                if (checkxoa != null)
                                 {
                                     <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
                                         <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
-                                            <a href="@Url.Action("BN_XoaPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN,tinhtrang =0 })">
+                                            <a href="@Url.Action("BN_XoaPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGL,tinhtrang =0 })">
                                                 <i class="bi bi-send-x" style="color: white;"></i>
                                                 <span class="small pt-2 ps-1" style="color: white;">
                                                     Không xóa phiếu
@@ -175,7 +174,7 @@
                                         </button>
 
                                         <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
-                                            <a href="@Url.Action("BN_XoaPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGN,tinhtrang =1 })">
+                                            <a href="@Url.Action("BN_XoaPhieu", "XuLyPhieu", new { id = ID_BBGN.ID_BBGL,tinhtrang =1 })">
                                                 <i class="bi bi-floppy" style="color: white;"></i>
                                                 <span class="small pt-2 ps-1" style="color: white;">
                                                     Xác nhận xóa phiếu
@@ -184,24 +183,24 @@
                                         </button>
                                     </div>
                                 }
-                            }                           
+                            }
 
                             <script type="text/javascript">
                                 $('#btn-Export').click(function () {
-                                    window.location.href = '@Url.Action("ExportToExcel","BM_11")?BBGN_ID=' + @ID;
+                                window.location.href = '@Url.Action("ExportToExcel", "BM01_GangLong")?BBGN_ID=' + @ID;
                                 });
                             </script>
                         </div>
                     </div>
-                    <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("HuyPhieu_PheDuyet","XuLyPhieu", new{id = ID_BBGN.ID_BBGN})'></div>
+                    <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("HuyPhieu_PheDuyet", "XuLyPhieu", new { id = ID_BBGN.ID_BBGL })'></div>
                     <script type="text/javascript">
                         $('#btn-delete').click(function () {
-                            var url = $('#myModal').data('url');
-                            $.get(url, function (data) {
-                                $("#myModal").html(data);
-                                $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
-                                $("#myModal").modal('show');
-                            });
+                        var url = $('#myModal').data('url');
+                        $.get(url, function (data) {
+                        $("#myModal").html(data);
+                        $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
+                        $("#myModal").modal('show');
+                        });
                         });
                     </script>
                     <div class="row" style="width:100%;padding-top:7.5%;">
@@ -215,16 +214,18 @@
                                     </b>
 
                                 </div>
-                                @if (ID_BBGN.ID_BBGN_Cu != null)
+                                @if (ID_BBGN?.ID_BBGL != null)
                                 {
-                                    var ID_BBGN_Cu = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGN_Cu).FirstOrDefault();
+                                    var ID_BBGN_Cu = _context.Tbl_BBGNGangLong.FirstOrDefault(x => x.ID_BBGL == ID_BBGN.ID_BBGL);
 
-                                    <div style="text-align: center; width: 45%; font-size: 14px; padding-top:0.5%;">
-                                        <a href="@Url.Action("Index_Detai", "BM_11", new { id = ID_BBGN_Cu.ID_BBGN })">
-                                            @ID_BBGN_Cu.SoPhieu
-                                        </a>
-
-                                    </div>
+                                    if (ID_BBGN_Cu != null)
+                                    {
+                                        <div style="text-align: center; width: 45%; font-size: 14px; padding-top:0.5%;">
+                                            <a href="@Url.Action("Index_Detai", "BM01_GangLong", new { id = ID_BBGN_Cu.ID_BBGL })">
+                                                @ID_BBGN_Cu.SoPhieu
+                                            </a>
+                                        </div>
+                                    }
                                 }
                                 <div style="text-align: center; width: 45%; font-size: 14px; padding-top:0.5%;">
                                     @ID_BBGN.SoPhieu
@@ -242,15 +243,15 @@
                                         GIAO NHẬN NGUYÊN/ NHIÊN/ VẬT TƯ
                                     </b>
                                 </h4>
-                                <span class="text-muted small pt-2 ps-1" >
+                                <span class="text-muted small pt-2 ps-1">
                                     @{
                                         var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
-                                        var Date = (DateTime)ID_BBGN.ThoiGianXuLyBG;
+                                        var Date = (DateTime)ID_BBGN.NgayXuLy_BG;
                                     }
                                     <i style="color:black;">
                                         Kíp @ID_Kip.TenCa@ID_Kip.TenKip Ngày @Date.ToString("dd") Tháng @Date.ToString("MM") Năm @Date.ToString("yyyy")
                                     </i>
-                                  
+
                                 </span>
                             </div>
                             <div class="col-xxl-4 col-md-6" style="text-align: right;">
@@ -363,7 +364,7 @@
                     {
                         var ThongTin_NVTT = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan).FirstOrDefault();
                         var ThongTin_NVTT_View = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan_View).FirstOrDefault();
-                        var PKHPheDuyet = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGN).FirstOrDefault();
+                        var PKHPheDuyet = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGL).FirstOrDefault();
 
                         <div class="row" style="width:100%; padding-bottom:1%;">
                             <div class="col-lg-12" style="text-align: left;height: 80px;border-radius: 10px;display: flex;">
@@ -378,7 +379,7 @@
                                         <span style="color:black; font-size:14px;">
                                             @ThongTin_NVTT?.TenTaiKhoan - @ThongTin_NVTT?.HoVaTen
                                         </span>
-                                        @if(PKHPheDuyet.ID_TrangThai == 1)
+                                        @if (PKHPheDuyet.ID_TrangThai == 1)
                                         {
                                             <span class="text-danger">(Đã phê duyệt phiếu)</span>
                                         }
@@ -418,8 +419,8 @@
                         <!-- End Recent Sales -->
                     }
                     @{
-                        var lydo = _context.Tbl_YeuCauHieuChinh.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGN).FirstOrDefault();
-                        if(lydo != null)
+                        var lydo = _context.Tbl_YeuCauHieuChinh.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGL).FirstOrDefault();
+                        if (lydo != null)
                         {
                             <div class="row" style="width:100%; padding-bottom:1%;">
                                 <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 110px;padding: 0.5% 1% 0% 1%;border-radius: 10px;margin-left: 8px;">
@@ -431,8 +432,8 @@
                             </div>
                         }
                     }
-                    
-                    @if(ID_BBGN.FileDinhKem != null && ID_BBGN.FileDinhKem != "")
+
+                    @if (ID_BBGN.FileDinhKem != null && ID_BBGN.FileDinhKem != "")
                     {
                         <div class="row" style="width:100%; padding-bottom:1%;">
                             <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;padding: 0.5%;border-radius: 10px;margin-left: 8px;">
@@ -452,24 +453,15 @@
                                 <thead>
                                     <tr style="font-size:14px;">
                                         <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
-                                        <th class="text-center" rowspan="3" width="500px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
-                                        <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
-                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
-                                    </tr>
-                                    <tr style="font-size:14px;">
-                                        <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">W (%)</th>
-                                        <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên giao</th>
-                                        <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên nhận</th>
-
-                                    </tr>
-                                    <tr style="font-size:14px;">
-                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
-                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
-
-                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
-                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+                                        <th class="text-center" width="400px" style="vertical-align:middle;background-color: #f9f9f9">Lò cao</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Mẻ</th>
+                                        <th class="text-center" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Số Thùng</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Thời gian</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Số ID</th>
+                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL thùng & Gang lỏng (kg)</th>
+                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL thùng</th>
+                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL gang lỏng</th>
+                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -478,85 +470,81 @@
                                         int itemperpage = (int)pager.PageSize;
                                         int RowNo = ((pageno - 1) * itemperpage) + 1;
                                     }
-                                    @foreach(var item in Model)
+                                    @foreach (var item in Model)
                                     {
-                                         <tr>
+                                        <tr>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                @RowNo@{
-                                                    RowNo++;
-                                                }
+                                                @(RowNo++)
                                             </td>
-                                            <td style="font-size:14px;vertical-align:middle;">
-                                               @item.TenVatTu
-                                            </td>
-                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                @item.DonViTinh
-                                            </td>
-                                            @if(item.MaLo == "" || item.MaLo == null)
+                                            @if (item.ID_LoCao == 1)
                                             {
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                </td>
-                                            }
-                                            else
-                                            {
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                   @* @{
-                                                        var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
-                                                    }*@
-                                                    @item.MaLo
-                                                </td>
-                                            }
-
-                                            <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                @item.DoAm_W.ToString("F2")
-                                            </td>
-                                            <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                @item.KhoiLuong_BG.ToString("F3")
-                                            </td>
-                                            <td  style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                @item.KL_QuyKho_BG.ToString("F3")
-                                            </td>
-                                            @if (@item.KhoiLuong_BN == 0)
-                                            {
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                  
-                                                </td>
-                                            }
-                                            else
-                                            {
-                                                <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                    @item.KhoiLuong_BN.ToString("F3")
-                                                </td>
-                                            }
-                                            @if (@item.KL_QuyKho_BN == 0)
-                                            {
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                   
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Lò Cao 1
                                                 </td>
 
                                             }
-                                            else
+                                            else if (item.ID_LoCao == 2)
                                             {
-                                                <td style="font-size:14px;vertical-align:middle;text-align: right;">
-                                                    @item.KL_QuyKho_BN.ToString("F3")
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Lò Cao 2
                                                 </td>
                                             }
-                                   
-                                
+                                            else if (item.ID_LoCao == 3)
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Lò Cao 3
+                                                </td>
+                                            }
+
+                                            else if (item.ID_LoCao == 4)
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Lò Cao 4
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Lò Cao 5
+                                                </td>
+
+                                            }
+
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @item.SoMeGang
+                                            </td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @item.ThoiGian
+                                            </td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @item.SoThung
+                                            </td>
+                                            <td style="font-size:14px;vertical-align:middle;text-align:right;">
+                                                @item.SoID.ToString()
+                                            </td>
+                                            <td style="font-size:14px;vertical-align:middle;text-align:right;">
+                                                @item.KL_ThungGang.ToString("F3")
+                                            </td>
+                                            <td style="font-size:14px;vertical-align:middle;text-align:right;">
+                                                @item.KL_Thung.ToString("F3")
+                                            </td>
+                                            <td style="font-size:14px;vertical-align:middle;text-align:right;">
+                                                @(item.KL_Gang == 0 ? "" : item.KL_Gang.ToString("F3"))
+                                            </td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 @item.GhiChu
                                             </td>
-                                         </tr>            
+                                        </tr>
                                     }
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td colspan="5" class="text-center"><strong>Tổng</strong></td>
-                                        <td id="totalKL_BG" class="text-end" style="font-size:14px;">@Model.Sum(p=>p.KhoiLuong_BG).ToString("F3")</td>
-                                        <td id="totalQK_BG" class="text-end" style="font-size:14px;">@Model.Sum(p=>p.KL_QuyKho_BG).ToString("F3")</td>
-                                        <td id="totalKL_BN" class="text-end" style="font-size:14px;">@Model.Sum(p=>p.KhoiLuong_BN).ToString("F3")</td>
-                                        <td id="totalQK_BN" class="text-end" style="font-size:14px;">@Model.Sum(p=>p.KL_QuyKho_BN).ToString("F3")</td>
-                                        <td ></td>
+                                        <td colspan="6" class="text-center"><strong>Tổng</strong></td>
+                                        <td id="totalKL_BG" class="text-end" style="font-size:14px;">@Model.Sum(p => p.KL_ThungGang).ToString("F3")</td>
+                                        <td id="totalQK_BG" class="text-end" style="font-size:14px;">@Model.Sum(p => p.KL_Thung).ToString("F3")</td>
+                                        <td id="totalKL_BN" class="text-end" style="font-size:14px;">@Model.Sum(p => p.KL_Gang).ToString("F3")</td>
+
+                                        <td></td>
                                     </tr>
                                 </tfoot>
 
@@ -573,7 +561,7 @@
                                 </b>
                             </div>
                             <div style="text-align: center; font-size: 14px; padding:2%;">
-                                @if (ID_BBGN.ID_TrangThai_BN == 1)
+                                @if (ID_BBGN.TinhTrang_BN == 1)
                                 {
                                     if (@ThongTin_BN.ChuKy != null)
                                     {
@@ -585,11 +573,11 @@
                                     }
 
                                 }
-                                else if (ID_BBGN.ID_TrangThai_BN == 0)
+                                else if (ID_BBGN.TinhTrang_BN == 0)
                                 {
                                     <div style="height:50px" class="text-danger">Chưa xử lý</div>
                                 }
-                                else if (ID_BBGN.ID_TrangThai_BN == 2)
+                                else if (ID_BBGN.TinhTrang_BN == 2)
                                 {
                                     <div style="height:50px" class="text-danger">Không xác nhận</div>
                                 }
@@ -625,7 +613,7 @@
                         </div>
 
                     </div>
-            
+
                 </div>
             </div>
         </div>
@@ -636,7 +624,7 @@
     document.addEventListener("DOMContentLoaded", function () {
         // Lấy giá trị từ localStorage
         const savedValue = localStorage.getItem("IsShowBT");
-       
+
         // Kiểm tra giá trị có tồn tại
         if (savedValue ==="1") {
             // Hiển thị giá trị lên màn hình

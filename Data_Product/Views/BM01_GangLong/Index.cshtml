@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Data_Product.Models.Tbl_BienBanGiaoNhan>
+﻿@model IEnumerable<Data_Product.Models.Tbl_BBGNGangLong>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @using Data_Product.Repositorys;
 @inject Data_Product.Repositorys.DataContext _context
@@ -68,10 +68,10 @@
                                 @Html.TextBox("endd", null, new { @id = "endd", @type = "date", @class = "form-control" })
                             </div>
                             <div class="col-md-1" style="padding-top:0.5%;text-align: right;">
-                                <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;" >TRẠNG THÁI :</b></span>
+                                <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">TRẠNG THÁI :</b></span>
                             </div>
                             <div class="col-md-2">
-                                @Html.DropDownList("TTList", null, "----  Trạng thái phiếu  ----", new { id = "ID_TrangThai", @class = "form-control"})
+                                @Html.DropDownList("TTList", null, "----  Trạng thái phiếu  ----", new { id = "ID_TrangThai", @class = "form-control" })
                             </div>
                             <div class="col-md-2" style="text-align:left;">
                                 <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
@@ -108,31 +108,31 @@
                                     }
                                     @foreach (var item in Model)
                                     {
-                                        var ID_TrinhKy = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault() ?? new Tbl_TrinhKyBoSung();
+                                        var ID_TrinhKy = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == item.ID_BBGL).FirstOrDefault() ?? new Tbl_TrinhKyBoSung();
                                         <tr>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 @RowNo@{
                                                     RowNo++;
                                                 }
                                             </td>
-                                            @if (item.ID_QuyTrinh != 1 && ID_TrinhKy.ID_TaiKhoan ==0)
+                                            @*  @if (item.ID_QuyTrinh != 1 && ID_TrinhKy.ID_TaiKhoan ==0)
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("YCauHieuChinh", "XuLyPhieu", new{id = item.ID_BBGN})">
-                                                        BM.11/QT.05
+                                                    <a class="nav-link collapsed" href="@Url.Action("YCauHieuChinh", "XuLyPhieu", new{id = item.ID_BBGL})">
+                                                       BM01
                                                     </a>
                                                 </td>
-                                            }
-                                            else
-                                            {
-                                                <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM_11", new{id = item.ID_BBGN})">
-                                                        BM.11/QT.05
-                                                    </a>
-                                                </td>
-                                            }
+                                            } *@
+
+
+                                            <td style="font-size:14px;color: #335FB3">
+                                                <a class="nav-link collapsed" href="@Url.Action("Index_Detai", "BM01_GangLong", new{id = item.ID_BBGL})">
+                                                    BM01
+                                                </a>
+                                            </td>
+
                                             <td style="font-size:14px;">
-                                               @item.NoiDungTrichYeu
+                                                @item.NoiDungTrichYeu
                                             </td>
 
                                             @if (item.ID_QuyTrinh == 1)
@@ -166,11 +166,11 @@
                                                 var BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BN).FirstOrDefault();
                                             }
                                             <td class="text-left" style="font-size:14px;vertical-align:middle;">@BN.TenTaiKhoan<br> @BN.HoVaTen</td>
-                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.ThoiGianXuLyBG.ToString("dd/MM/yyyy")</td>
-                                          
-                                            @if(item.ID_QuyTrinh == 1)
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayXuLy_BG.ToString("dd/MM/yyyy")</td>
+
+                                            @if (item.ID_QuyTrinh == 1)
                                             {
-                                                @if (@item.ThoiGianXuLyBN == DateTime.Parse("0001/01/01"))
+                                                @if (@item.NgayXuLy_BN == DateTime.Parse("0001/01/01"))
                                                 {
                                                     <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                     </td>
@@ -178,7 +178,7 @@
                                                 }
                                                 else
                                                 {
-                                                    DateTime ThoiGianXuly = (DateTime)@item.ThoiGianXuLyBN;
+                                                    DateTime ThoiGianXuly = (DateTime)@item.NgayXuLy_BN;
                                                     <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                         @ThoiGianXuly.ToString("dd/MM/yyyy")
                                                     </td>
@@ -186,7 +186,7 @@
                                             }
                                             else
                                             {
-                                                if(ID_TrinhKy != null)
+                                                if (ID_TrinhKy != null)
                                                 {
                                                     if (ID_TrinhKy.ID_TrangThai == 3)
                                                     {
@@ -197,7 +197,7 @@
                                                     }
                                                     else
                                                     {
-                                                        if (@item.ThoiGianXuLyBN == DateTime.Parse("0001/01/01") || @item.ThoiGianXuLyBN == null)
+                                                        if (@item.NgayXuLy_BN == DateTime.Parse("0001/01/01") || @item.NgayXuLy_BN == null)
                                                         {
                                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                             </td>
@@ -205,7 +205,7 @@
                                                         }
                                                         else
                                                         {
-                                                            DateTime ThoiGianXuly = (DateTime)@item.ThoiGianXuLyBN;
+                                                            DateTime ThoiGianXuly = (DateTime)@item.NgayXuLy_BN;
                                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                                 @ThoiGianXuly.ToString("dd/MM/yyyy")
                                                             </td>
@@ -214,16 +214,15 @@
                                                 }
                                                 else
                                                 {
-                                                    @if (@item.ThoiGianXuLyBN == DateTime.Parse("0001/01/01") || @item.ThoiGianXuLyBN == null)
+                                                    @if (@item.NgayXuLy_BN == DateTime.Parse("0001/01/01") || @item.NgayXuLy_BN == null)
                                                     {
                                                         <td class="text-center" style="font-size:14px;vertical-align:middle;">
-
                                                         </td>
 
                                                     }
                                                     else
                                                     {
-                                                        DateTime ThoiGianXuly = (DateTime)@item.ThoiGianXuLyBN;
+                                                        DateTime ThoiGianXuly = (DateTime)@item.NgayXuLy_BN;
                                                         <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                             @ThoiGianXuly.ToString("dd/MM/yyyy")
                                                         </td>
@@ -231,9 +230,9 @@
                                                 }
                                             }
 
-                                            @if (item.ID_TrangThai_BBGN ==0)
+                                            @if (item.TinhTrang_BN == 0)
                                             {
-                                                if (item.ID_QuyTrinh != 1 && item.ID_TrangThai_BN == 1)
+                                                if (item.ID_QuyTrinh != 1 && item.TinhTrang_BN == 1)
                                                 {
                                                     if (ID_TrinhKy.ID_TrangThai == 0)
                                                     {
@@ -257,48 +256,38 @@
                                                     </td>
                                                 }
                                             }
-                                            else if (item.ID_TrangThai_BBGN == 1)
+                                            else if (item.TinhTrang_BN == 1)
                                             {
-                                            <td class="text-center" style="font-size:14px;">
-                                                <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
-                                                    <span class="small pt-2 ps-1" style="color: white;">
-                                                        Hoàn tất
-                                                    </span>
-                                                </button>
-                                               @* <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("HuyPhieu_PheDuyet","XuLyPhieu", new{id = item.ID_BBGN})'></div>
-                                                <script type="text/javascript">
-                                                    $('#btn-add').click(function () {
-                                                        var url = $('#myModal').data('url');
-                                                        $.get(url, function (data) {
-                                                            $("#myModal").html(data);
-                                                            $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
-                                                            $("#myModal").modal('show');
-                                                        });
-                                                    });
-                                                </script>*@
-                                            </td>
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Hoàn tất
+                                                        </span>
+                                                    </button>
+
+                                                </td>
                                             }
-                                            else if (item.ID_TrangThai_BBGN == 2)
+                                            else if (item.TinhTrang_BN == 2)
                                             {
-                                            <td class="text-center" style="font-size:14px;">
-                                                <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                    <span class="small pt-2 ps-1" style="color: white;">
-                                                        BN Hủy phiếu
-                                                    </span>
-                                                </button>
-                                            </td>
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button type="button" class="btn btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            BN Hủy phiếu
+                                                        </span>
+                                                    </button>
+                                                </td>
                                             }
-                                            else if (item.ID_TrangThai_BBGN == 3)
+                                            else if (item.TinhTrang_BN == 3)
                                             {
-                                            <td class="text-center" style="font-size:14px;">
+                                                <td class="text-center" style="font-size:14px;">
                                                     <button type="button" class="btn btn-secondary" style="width: 150px;">
-                                                    <span class="small pt-2 ps-1" style="color: white;">
-                                                        Đề nghị hiệu chỉnh
-                                                    </span>
-                                                </button>
-                                            </td>
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Đề nghị hiệu chỉnh
+                                                        </span>
+                                                    </button>
+                                                </td>
                                             }
-                                            else if (item.ID_TrangThai_BBGN == 4)
+                                            else if (item.TinhTrang_BN == 4)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
                                                     <button type="button" class="btn btn-danger" style="width: 150px;">
@@ -308,9 +297,9 @@
                                                     </button>
                                                 </td>
                                             }
-                                            else if (item.ID_TrangThai_BBGN == 5)
+                                            else if (item.TinhTrang_BN == 5)
                                             {
-                                                var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                                var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == item.ID_BBGL).FirstOrDefault();
                                                 if (checkxoa != null && checkxoa.TinhTrang_BN == 1 && checkxoa.TinhTrang_KH == 0)
                                                 {
                                                     <td class="text-center" style="font-size:14px;">
@@ -331,13 +320,6 @@
                                                         </button>
                                                     </td>
                                                 }
-                                                @*<td class="text-center" style="font-size:14px;">
-                                                <button type="button" class="btn btn-danger" style="width: 150px;">
-                                                <span class="small pt-2 ps-1" style="color: white;">
-                                                Xóa phiếu
-                                                </span>
-                                                </button>
-                                                </td>*@
 
                                             }
 
@@ -355,17 +337,17 @@
                                     @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
                                     {
                                         <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@pge">@pge</a>
+                                            <a class="page-link" asp-asp-controller="BM01_GangLong" asp-action="Index" asp-route-page="@pge">@pge</a>
 
                                         </li>
                                     }
                                     @if (pager.CurrentPage < pager.TotalPages)
                                     {
                                         <li class="page-item">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
+                                            <a class="page-link" asp-asp-controller="BM01_GangLong" asp-action="Index" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
                                         </li>
                                         <li class="page-item">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@(pager.TotalPages)">Last</a>
+                                            <a class="page-link" asp-asp-controller="BM01_GangLong" asp-action="Index" asp-route-page="@(pager.TotalPages)">Last</a>
                                         </li>
                                     }
                                 </ul>
@@ -383,7 +365,7 @@
     localStorage.setItem("IsShowBT", "0");
     $("#btn-search").on('click', function () {
         var ID_TrangThai = $('#ID_TrangThai').val();
-        window.location.href = '@Url.Action("Index", "BM_11")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
+        window.location.href = '@Url.Action("Index", "BM01_GangLong")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
     });
 
     $("#ID_TrangThai").chosen({

@@ -66,7 +66,7 @@
                         <span class="badge bg-primary badge-number">4</span>
                     </a><!-- End Notification Icon -->
 
-             
+
 
                 </li><!-- End Notification Nav -->
 
@@ -81,7 +81,7 @@
 
                 <li class="nav-item dropdown pe-3">
 
-                    @if(TaiKhoan != null)
+                    @if (TaiKhoan != null)
                     {
                         var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
 
@@ -129,7 +129,7 @@
 
                         </ul>
                     }
-                
+
                 </li>
 
             </ul>
@@ -203,14 +203,13 @@
                     </li>
 
                     <!-- End Icons Nav -->
-                    
                     <!-- End Icons Nav -->
                 }
                 // quản lý lô
-                List<string> valuesToCheckLo = new List<string> { "1","2","3","6" };
-                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 )
+                List<string> valuesToCheckLo = new List<string> { "1", "2", "3", "6" };
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3)
                 {
-                   
+
                 }
                 <li class="nav-item">
                     @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || valuesToCheckLo.Any(value => ListQuyen.Contains(value)))
@@ -219,7 +218,7 @@
                             <i class="bi bi-newspaper"></i><span>Thông tin vật tư</span><i class="bi bi-chevron-down ms-auto"></i>
                         </a>
                     }
-                    
+
                     <ul id="icons-vattu" class="nav-content collapse " data-bs-parent="#sidebar-nav">
                         @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3)
                         {
@@ -261,13 +260,38 @@
                     </li>
 
                     <!-- End F.A.Q Page Nav -->
-                    <li class="nav-item">
+                    @*  <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("Index","BM_11")">
                             <i class="bi bi-envelope-arrow-down"></i>
                             <span>Viêc tôi bắt đầu</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index","BM01_GangLong")">
+                            <i class="bi bi-envelope-arrow-down"></i>
+                            <span>Đang chờ xử lý </span>
+                        </a>
+                    </li> *@
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-hospital"></i><span>Viêc tôi bắt đầu </span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-bieumau" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index","BM_11")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>BM.11</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index","BM01_GangLong")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> BM.01</span>
+                                </a>
+                            </li>
 
+                        </ul>
+                    </li>
                     <!-- End Contact Page Nav -->
 
                     <li class="nav-item">
@@ -276,12 +300,14 @@
                             <span>Việc đến tôi</span>
                         </a>
                     </li>
+
+
                 }
                 List<string> QuyenKH = new List<string> { "1", "3" };
                 <li class="nav-heading" style="margin-top: 25px;">Kiểm soát phiếu</li>
                 if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 3 || QuyenKH.Any(value => ListQuyen.Contains(value)))
                 {
-                    
+
                     <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("PhieuBoSung","XuLyPhieu")">
                             <i class="bi bi-envelope-open"></i>
@@ -306,9 +332,8 @@
                     </li>
 
                     <!-- End F.A.Q Page Nav -->
-                   
                 }
-                List<string> QuyenQLBBGN = new List<string> { "1","2", "3","4","7","8" };
+                List<string> QuyenQLBBGN = new List<string> { "1", "2", "3", "4", "7", "8" };
                 if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || TaiKhoan.ID_Quyen == 4 || TaiKhoan.ID_Quyen == 8 || QuyenQLBBGN.Any(value => ListQuyen.Contains(value)))
                 {
                     <li class="nav-item">
@@ -327,7 +352,7 @@
     <main id="main" class="main" style="height:80%; padding: 0% 1% 0% 1%;">
         @RenderBody()
     </main><!-- End #main -->
-@*    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>*@
+    @*    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>*@
     @*<script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>*@
     @*<script src="~/js/site.js" asp-append-version="true"></script>*@
@@ -341,12 +366,12 @@
     <script src="~/vendor/simple-datatables/simple-datatables.js"></script>
     <script src="~/vendor/tinymce/tinymce.min.js"></script>
     <script src="~/vendor/php-email-form/validate.js"></script>
-
+    @RenderSection("scripts", required: false)
     <!-- Template Main JS File -->
     <script src="~/js/main.js"></script>
     @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
     @*<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>*@
     @*<script src="~/js/site.js" asp-append-version="true"></script>*@
-@*    @await RenderSectionAsync("Scripts", required: false)*@
+    @*  @await RenderSectionAsync("Scripts", required: true) *@
 </body>
 </html>

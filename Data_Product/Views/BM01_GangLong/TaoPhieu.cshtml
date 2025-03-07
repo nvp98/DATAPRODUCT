@@ -88,7 +88,7 @@
                                             DateTime NgayLamViec = DateTime.Now;
                                         }
                                         <span style="color:black; font-size:14px;">
-                                            @Html.TextBox("ID_Day", null, new { @id = "ID_Day",@name ="ID_Day", @type = "date", @class = "form-control"   })
+                                            @Html.TextBox("ID_Day", null, new { @id = "ID_Day", @name = "ID_Day", @type = "date", @class = "form-control" })
                                             @*@NgayLamViec.ToString("dd/MM/yyyy")*@
                                         </span>
 
@@ -117,7 +117,7 @@
 
                                 </div>
 
-                               @* <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                @* <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
                                     <div style="padding-left: 3%;padding-top:3%;">
                                         <span style="color:black; font-size:14px;">
                                            Ca làm việc:
@@ -161,13 +161,13 @@
                                                 <option value='null'>-- Ca làm việc --</option>
                                                 <option value='1'>1</option>
                                                 <option value='2'>2</option>
-                                               @* @foreach (var item in ViewBag.IDKip)
+                                                @* @foreach (var item in ViewBag.IDKip)
                                                 {
                                                     <option value='@item.Value'>@item.Text</option>
                                                 }*@
                                             </select>
                                         </span>
-                                       @* <script type="text/javascript">
+                                        @* <script type="text/javascript">
                                             $("#IDCa").change(function () {
                                                 $("#CaKip").empty();
                                                 $.get("/BM_11/Kip", { IDKip: $("#IDCa").val() }, function (data) {
@@ -211,7 +211,7 @@
                                 <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
                                     <div style="padding-left: 3%;padding-top:3%;">
                                         <span style="color:black; font-size:14px;">
-                                           Kíp làm việc:
+                                            Kíp làm việc:
                                         </span>
                                     </div>
                                     <div style="padding-left: 3%;">
@@ -371,7 +371,7 @@
                                 </div>
                             </div>
                         </div>
-@*
+                        @*
                         <div class="row" style="width:100%">
                             <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 90px;padding: 0.5% 1% 0% 1%;border-radius: 10px;margin-left: 8px;">
                                 <div style="padding-bottom: 0.5%;">
@@ -385,7 +385,7 @@
                                     </span>
 
                                 </div>
-                         
+
                             </div><!-- End Recent Sales -->
                         </div>*@
 
@@ -430,53 +430,56 @@
                                             let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }); // Chuyển thành JSON
 
                                             let tableBody = document.querySelector("#dataTable tbody");
-                                            //tableBody.innerHTML = ""; // Xóa dữ liệu cũ (nếu cần)
                                             document.querySelectorAll("#dataTable tbody tr").forEach(row => {
                                                 row.style.display = "none"; // Ẩn dòng
-                                                row.querySelectorAll("input, select").forEach(el => {el.removeAttribute("required"); el.value = "";}); // Xóa required tránh lỗi khi submit
+                                                row.querySelectorAll("input, select").forEach(el => {
+                                                    el.removeAttribute("required");
+                                                    el.value = "";
+                                                }); // Xóa required tránh lỗi khi submit
                                             });
-                                          
 
                                             const locao = [
                                                 { id: "1", text: "Lò cao 1" },
                                                 { id: "2", text: "Lò cao 2" },
                                                 { id: "3", text: "Lò cao 3" },
                                                 { id: "4", text: "Lò cao 4" }
-                                            ]
+                                            ];
 
                                             jsonData.forEach((row, index) => {
                                                 if (index === 0) return; // Bỏ qua tiêu đề (nếu có)
 
                                                 let LocaoID = row[1];
-                                                //console.log(index)
-                                                let timeValue = row[4]; // Lấy giá trị từ ô A1
-                                                // Chuyển đổi định dạng HH:mm (nếu cần)
-                                                //let formattedTime = formatTime(timeValue);
+                                                let timeValue = row[4];
                                                 let formattedTime = excelTimeToHHMM(timeValue);
-                                                //let newRow = document.createElement("tr");
+
+                                                // Lọc dữ liệu từ file Excel cho SoThung để chỉ giữ số
+                                                let soThungValue = (row[3] || "").toString().replace(/[^0-9]/g, '');
+
                                                 let newRow = `
-                                                       <tr class="data-row">
-                                                       <td>
-                                                         <select name="chitietBBGNGangLong[${index}].ID_LoCao" class="form-control marginTB5 LoCao">
-                                                                                                ${locao.map(option =>
-                                                             `<option value="${option.id}" ${option.id == LocaoID ? "selected" : ""}>${option.text}</option>`
-                                                            ).join("")}
-                                                         </select>
-                                                       </td>
-                                                       <td><input type="text" class="form-control" name="chitietBBGNGangLong[${index}].SoMeGang" value="${row[2] || ""}" /></td>
-                                                       <td><input type="text" class="form-control" name="chitietBBGNGangLong[${index}].SoThung" value="${row[3] || ""}" /></td>
-                                                      <td><input type="time" class="form-control" name="chitietBBGNGangLong[${index}].ThoiGian" value="${formattedTime || ""}" /></td>
-                                                      <td><input type="text" class="form-control" name="chitietBBGNGangLong[${index}].SoID" value="${row[5] || ""}" /></td>
-                                                      <td><input type="number" class="form-control" name="chitietBBGNGangLong[${index}].KL_ThungGang" value="${row[6] || 0}" /></td>
-                                                      <td><input type="number" class="form-control" name="chitietBBGNGangLong[${index}].KL_Thung" value="${row[7] || 0}" /></td>
-                                                      <td><input type="number" class="form-control" name="chitietBBGNGangLong[${index}].KL_Gang" value="${row[8] || 0}" /></td>
-                                                      <td><input type="text" class="form-control" name="chitietBBGNGangLong[${index}].GhiChu" value="${row[9] || ""}" /></td>
-                                                      <td> <button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button></td>
+                                                    <tr class="data-row">
+                                                        <td>
+                                                            <select name="chitietBBGNGangLong[${index}].ID_LoCao" class="form-control marginTB5 LoCao">
+                                                                ${locao.map(option =>
+                                                                    `<option value="${option.id}" ${option.id == LocaoID ? "selected" : ""}>${option.text}</option>`
+                                                                ).join("")}
+                                                            </select>
+                                                        </td>
+                                                        <td><input type="number" class="form-control" name="SoMeGang" value="${row[2] || ""}" onkeypress="return event.charCode >= 48 && event.charCode <= 57" /></td>
+                                                        <td><input type="text" class="form-control number-only" name="SoThung" value="${soThungValue}" /></td>
+                                                        <td><input type="time" class="form-control" name="chitietBBGNGangLong[${index}].ThoiGian" value="${formattedTime || ""}" /></td>
+                                                        <td><input type="number" class="form-control" name="chitietBBGNGangLong[${index}].SoID" value="${row[5] || ""}" /></td>
+                                                        <td><input type="number" class="form-control" name="chitietBBGNGangLong[${index}].KL_ThungGang" value="${row[6] || 0}" /></td>
+                                                        <td><input type="number" class="form-control" name="chitietBBGNGangLong[${index}].KL_Thung" value="${row[7] || 0}" /></td>
+                                                        <td><input type="number" class="form-control" name="chitietBBGNGangLong[${index}].KL_Gang" value="${row[8] || 0}" /></td>
+                                                        <td><input type="text" class="form-control" name="chitietBBGNGangLong[${index}].GhiChu" value="${row[9] || ""}" /></td>
+                                                        <td><button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button></td>
                                                     </tr>
                                                 `;
 
-                                                //tableBody.appendChild(newRow);
                                                 $("#dataTable tbody").append(newRow);
+
+                                                // Kiểm tra dữ liệu từ file Excel cho SoThung
+
                                             });
 
                                             // Xử lý sự kiện xóa dòng
@@ -485,35 +488,50 @@
                                                     this.parentElement.parentElement.remove();
                                                 });
                                             });
-                                        };
+                                        }
 
-                                        reader.readAsArrayBuffer(file);
+
+                                      reader.readAsArrayBuffer(file);
+                                    });
+                                        document.querySelectorAll('input[name="SoMeGang"]').forEach(function(input) {
+                                        input.addEventListener('input', function() {
+                                            const value = this.value;
+                                            if (!/^\d*$/.test(value)) {
+                                                alert('Chỉ được nhập số nguyên cho ô Số Mẻ Gang!');
+                                                this.value = value.replace(/\D/g, ''); // Xóa các ký tự không phải số
+                                            }
+                                        });
                                     });
                                     // Chuyển đổi định dạng thời gian về HH:mm
+                                    function excelTimeToHHMM(excelTime) {
+                                        let totalMinutes = Math.round(excelTime * 24 * 60);
+                                        let hours = Math.floor(totalMinutes / 60);
+                                        let minutes = totalMinutes % 60;
+                                        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                                    }
+
+                                    // Hàm formatTime không cần thiết nếu không dùng
                                     function formatTime(timeStr) {
                                         let date = new Date(timeStr);
                                         let hours = date.getHours().toString().padStart(2, '0');
                                         let minutes = date.getMinutes().toString().padStart(2, '0');
                                         return `${hours}:${minutes}`;
                                     }
-                                    function excelTimeToHHMM(excelTime) {
-                                        let totalMinutes = Math.round(excelTime * 24 * 60); // Chuyển đổi ra phút
-                                        let hours = Math.floor(totalMinutes / 60); // Lấy giờ
-                                        let minutes = totalMinutes % 60; // Lấy phút
-                                        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                                    }
+
                                 </script>
+
                             </div>
 
                             <div class="table-responsive" style="height: 400px;">
                                 <table class="table table-bordered table-hover" id="dataTable" cellpadding="0">
+                                    <div id="warning-message" style="display: none; color: white; background-color: red; padding: 10px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; border-radius: 5px;"></div>
                                     <thead>
                                         <tr style="font-size:14px;">
-                                            <th class="text-center"  width="400px" style="vertical-align:middle;background-color: #f9f9f9">Lò cao</th>
-                                            <th class="text-center"  width="200px" style="vertical-align:middle;background-color: #f9f9f9">Mẻ</th>
-                                            <th class="text-center"  width="300px" style="vertical-align:middle;background-color: #f9f9f9">Số Thùng</th>
-                                            <th class="text-center"  width="200px" style="vertical-align:middle;background-color: #f9f9f9">Thời gian</th>
-                                            <th class="text-center"  width="200px" style="vertical-align:middle;background-color: #f9f9f9">Số ID</th>
+                                            <th class="text-center" width="400px" style="vertical-align:middle;background-color: #f9f9f9">Lò cao</th>
+                                            <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Mẻ</th>
+                                            <th class="text-center" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Số Thùng</th>
+                                            <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Thời gian</th>
+                                            <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Số ID</th>
                                             <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL thùng & Gang lỏng (kg)</th>
                                             <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL thùng</th>
                                             <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL gang lỏng</th>
@@ -521,7 +539,6 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        
                                     </tbody>
                                 </table>
                                 <button type="button" id="addRow" class="btn btn-success">+</button>
@@ -535,21 +552,21 @@
                                                     <option value='null'>--Chọn Lò Cao--</option>
                                 @foreach (var item in ViewBag.LoCao)
                                 {
-                                                            <option value='@item.Value'>@item.Text</option>
+                                                                <option value='@item.Value'>@item.Text</option>
 
                                 }
                                                 </select>
                                             </td>
-                                            <td><input type="text" name="chitietBBGNGangLong[{index}].SoMeGang" class="form-control" required></td>
-                                            <td><input type="text" name="chitietBBGNGangLong[{index}].SoThung" class="form-control" required></td>
+                                            <td><input type="number" name="chitietBBGNGangLong[{index}].SoMeGang" class="form-control" required></td>
+                                            <td><input type="number" name="chitietBBGNGangLong[{index}].SoThung" class="form-control" required></td>
                                             <td><input type="time" name="chitietBBGNGangLong[{index}].ThoiGian" class="form-control" required></td>
                                             <td>
                                                 <select class="form-control marginTB5 soID" name="chitietBBGNGangLong[{index}].SoID"  style="width: 100%">
                                                 </select>
                                             </td>
-                                            <td><input type="text" name="chitietBBGNGangLong[{index}].KL_ThungGang" class="form-control" required></td>
-                                            <td><input type="text" name="chitietBBGNGangLong[{index}].KL_Thung" class="form-control" required></td>
-                                            <td><input type="text" name="chitietBBGNGangLong[{index}].KL_Gang" class="form-control" readonly="true" required></td>
+                                            <td><input type="number" name="chitietBBGNGangLong[{index}].KL_ThungGang" class="form-control" required></td>
+                                            <td><input type="number" name="chitietBBGNGangLong[{index}].KL_Thung" class="form-control" required></td>
+                                            <td><input type="number" name="chitietBBGNGangLong[{index}].KL_Gang" class="form-control" readonly="true" required></td>
                                             <td><input type="text" name="chitietBBGNGangLong[{index}].GhiChu" class="form-control" required></td>
                                             <td >
                                                 <button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
@@ -568,7 +585,7 @@
                                             allowClear: true
                                         });
                                     }
-                                    
+
                                     // Thêm dòng mới
                                     $("#addRow").click(function () {
                                         console.log(rowIndex);
@@ -622,7 +639,7 @@
                                     });
                                 });
                             </script>
-                           @* <script type="text/javascript">
+                            @* <script type="text/javascript">
                                 $(".data-row:first").find("select[name='chitietBBGNGangLong[0].SoID']").select2({
                                     tags: true, // Cho phép nhập thủ công
                                     placeholder: "Nhập hoặc chọn...",
@@ -642,7 +659,7 @@
 <script>
     $(document).ready(function () {
         $('#TaoPhieu').on('submit', function (e) {
-           @* e.preventDefault(); // Ngăn gửi form mặc định*@
+    @* e.preventDefault(); // Ngăn gửi form mặc định*@
             let isValid = true;
             let selectedValueCaKip = $('#CaKip').val();
             let BenNhan = $('#IDTaiKhoan').val();
@@ -652,35 +669,32 @@
                 alert('Vui lòng chọn Ca Kíp!');
                 return false; // Ngăn form submit
             }
-           
+
             if (!BenNhan) {
                 isValid = false;
                 alert('Vui lòng chọn Nhân viên bên nhận!');
                 return false; // Ngăn form submit
             }
+
             const table = document.getElementById('table');
-          @*  const rowCount = table.getElementsByTagName('tr').length - 4; // Trừ đi dòng tiêu đề (thead)
-            console.log(rowCount);
-            if (rowCount < 1) {
-                isValid = false;
-                alert('Bảng phải có ít nhất một dòng dữ liệu!');
-                return false; // Ngăn form submit
-            }*@
+
             // Nếu tất cả đều hợp lệ, thực hiện hành động
             if (isValid) {
-                @*alert('Dữ liệu hợp lệ. Tiến hành gửi form!');*@
+    @*alert('Dữ liệu hợp lệ. Tiến hành gửi form!');*@
                 // Thực hiện gửi form nếu cần
                 return true;
             }
         });
     });
+
 </script>
 
+
 <script type="text/javascript">
-@*    $("#IDTaiKhoan").select2();*@
-    $("#IDTaiKhoan").chosen({
-        width: "100%"
-    });
+    @*    $("#IDTaiKhoan").select2();*@
+        $("#IDTaiKhoan").chosen({
+            width: "100%"
+        });
     @* $("#IDTaiKhoan").chosen({
         width: "100%"
     });
@@ -689,7 +703,9 @@
             width: '100%'
         });
     });*@
+
 </script>
+
 
 <script type="text/javascript">
     const dateInput = document.getElementById("ID_Day");
@@ -719,70 +735,55 @@
                                                                          <td class='text-center delItem' >
                                                                             <a class="btn btn-danger btn-sm" title="Xóa">
                                                                                 <i class="bi bi-trash"></i>
-                                                                            </a>                                                                  
+                                                                            </a>
                                                                          </td>
-                                                                        <td>
-                                                                            <select class="form-control marginTB5 SelectVT" name="VatTu_${i}" id="VatTu_${i}" style="width: 100%">
-                                                                              <option value ='null'>------ Chọn nguyên/nhiên/vật tư ------</option>
-                                                                              @foreach (var item in ViewBag.VTList)
-                                                                                {
-                                                                                  <option value='@item.Value'>@item.Text</option>
-                                                                                  
-                                                                                }
-                                                                            </select>
-                        
+                                                                        <td >
+                                                                                 <input  class='form-control' cols='20' id='locao_${i}' name='locao_${i}' type="number" placeholder='Lò cao' rows='1'></input>
+                                                                                  <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
+                                                                        </td>
+                                                                        <td >
+                                                                                 <input  class='form-control' cols='20' id='me_${i}' name='me_${i}' type="number"  placeholder='Mẻ' rows='1'></input>
+                                                                            <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                         </td>
                                                                          <td >
-                                                                                <select class="form-control marginTB5 SelectDV" name="NoiDung_${i}" id="NoiDung_${i}" disabled="disabled">
-                                                                                   <option value ='null'>--Đơn vị tính--</option>
-                                                                                @foreach (var item in ViewBag.VTList)
-                                                                                {
-                                                                                    <option value='@item.Value'>@item.Text</option>
-                                                                                }
-                                                                                </select>
-                                                                        </td>
-                                                                         <td >
-                                                                                      <select class="form-control marginTB5 malo" id='lo_${i}' name='lo_${i}' style="width: 100%" placeholder='Lô'>
-                                                                                         <option value =''>--Mã lô--</option>
-                                                                                        
-                                                                                </select>
-                                            
+                                                                                 <input  class='form-control' cols='20' id='sothung_${i}' name='sothung_${i}' type="number"  placeholder='Số Thùng' rows='1'></input>
+                                                                            <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                         </td>
                                                                              <td >
-                                                                                 <input  class='form-control' cols='20' id='doam_${i}' name='doam_${i}' type="number" step="0.001" placeholder='W (%)' rows='1'></input>
+                                                                                 <input  class='form-control' cols='20' id='thoigian_${i}' name='thoigian_${i}' type="time" placeholder='thời gian' rows='1'></input>
                                                                             <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                         </td>
                                                                          <td >
-                                                                                       <input class='form-control' cols='20' id='khoiluongbg_${i}' name='khoiluongbg_${i}' type="number" step="0.001" placeholder='Khối lượng' rows='1'></input>
+                                                                             <input class='form-control' cols='20' id='soid_${i}' name='đoi_${i}' type="number"  placeholder='Số ID' rows='1'></input>
                                                                             <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                         </td>
                                                                          <td >
-                                                                                        <input class='form-control' cols='20' id='quykhobg_${i}' name='quykhobg_${i}' placeholder='KL quy khô' rows='1' disabled="disabled"></input>
+                                                                                        <input class='form-control' cols='20' id='KLTGL_${i}' name='KLTGL_${i}' placeholder='KL thùng gang lỏng' rows='1' disabled="disabled"></input>
                                                                             <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                         </td>
                                                                         <td >
-                                                                                    <input class='form-control' cols='20' id='khoiluongbn_${i}' name='khoiluongbn_${i}' placeholder='Khối lượng' rows='1' disabled="disabled"></input>
+                                                                                    <input class='form-control' cols='20' id='khoiluongthung_${i}' name='khoiluongthung_${i}' placeholder='Khối lượng thùng' rows='1' disabled="disabled"></input>
                                                                             <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                         </td>
                                                                         <td >
-                                                                                    <input class='form-control' cols='20' id='quykhobn_${i}' name='quykhobn_${i}' placeholder='KL quy khô' rows='1' disabled="disabled"></input>
+                                                                                    <input class='form-control' cols='20' id='khoiluonggang_${i}' name='khoiluonggang_${i}' placeholder='KL Gang' rows='1' disabled="disabled"></input>
                                                                             <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                         </td>
                                                                         <td >
                                                                                <input class='form-control' cols='20' id='ghichu_${i}' name='ghichu_${i}' placeholder='Ghi chú' rows='1'></input>
                                                                             <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
                                                                         </td>
-                                                         
+
                                                                     </tr>`);
                 i++;
                 $("#vt").before(renderList);
-               @* $(".SelectVT").chosen({
+    @* $(".SelectVT").chosen({
                     width: "100%"
                 });*@
                 $(".SelectQT").chosen({
                     width: "100%"
                 });
-               @* $(".malo").chosen({
+    @* $(".malo").chosen({
                     width: "100%"
                 });*@
                 $('.SelectVT').select2();
@@ -802,7 +803,7 @@
                     $("#NoiDung_" + id).empty();
                     $.each(data1, function (index, row) {
                         $("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")
-                    });            
+                    });
                 }
                 else {
                     $("#NoiDung_" + id).empty();
@@ -821,10 +822,10 @@
                     $("#lo_" + id).empty();
                 }
             });
-           @* setTimeout(() => {
+    @* setTimeout(() => {
                 $("#lo_" + id).trigger("chosen:updated");
             }, 100);*@
-           
+
             $("#NoiDung_" + id).trigger("chosen:updated");
         }
         else {
