@@ -1,0 +1,553 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+}
+@using (Html.BeginForm("TaoPhieu", "BieuMau16", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
+{
+    <div class="app-main__outer">
+        <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+            <div class="tab-content">
+                <div class="row">
+                    <div class="card">
+
+                        <div class="row" style="width:100%">
+                            <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;">
+                                <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+                                    <span class="text-muted small pt-2 ps-1">
+                                        <b style="color:#06428b">
+                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư )
+                                        </b>
+                                    </span>
+                                </div><!-- End Recent Sales -->
+                                <div class="col-4 " style="padding: 2%  2%  2% 0%; ">
+                                    <button type="button" class="btn btn-danger" onclick="window.location.href='@Url.Action("Index", "Menu")';">
+                                        <i class="bi bi-x-lg"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Hủy bỏ
+                                        </span>
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
+                                        <i class="bi bi-send"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Gửi phiếu
+                                        </span>
+                                    </button>
+                                </div><!-- End Recent Sales -->
+
+                            </div>
+                        </div>
+                        <div class="row" style="width:100%;padding-top:7.5%;">
+
+                            <div class="col-lg-12" style="display:flex;padding-top:1%;">
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Ngày làm việc:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        @{
+                                            DateTime NgayLamViec = DateTime.Now;
+                                        }
+                                        <span style="color:black; font-size:14px;">
+                                            @Html.TextBox("ID_Day", null, new { @id = "ID_Day", @name = "ID_Day", @type = "date", @class = "form-control" })
+                                            
+                                        </span>
+
+                                    </div>
+                                    <script type="text/javascript">
+                                        $("#ID_Day").change(function () {
+                                            $("#CaKip").empty();
+                                            $('#IDCa').prop('selectedIndex', 0);
+                                            
+                                        });
+                                    </script>
+
+                                </div>
+
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:2%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Ca làm việc:
+                                        </span>
+                                    </div>
+                                    <div style="padding:0% 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            <select class="form-control marginTB5 SelectCA" name="IDCa" id="IDCa">
+                                                <option value='null'>-- Ca làm việc --</option>
+                                                <option value='1'>1</option>
+                                                <option value='2'>2</option>
+                                                
+                                            </select>
+                                        </span>
+                                        
+                                        <script type="text/javascript">
+                                            $("#IDCa").change(function () {
+                                                $("#CaKip").empty();
+                                                $.get("/BM_11/KipN", { Ngay: $("#ID_Day").val(), Ca: $("#IDCa").val() }, function (data) {
+                                                    console.log(data)
+                                                    if (data[0] != null) {
+                                                        $("#CaKip").empty();
+                                                        //$("#ID_TaiKhoan").append("<option value ='" + null + "'>" + "--Chọn hợp đồng--" + "</option>")
+                                                        $.each(data, function (index, row) {
+                                                            $("#CaKip").append("<option value ='" + row.iD_Kip + "' selected>" + row.tenKip + "</option>");
+                                                        });
+                                                    }
+                                                    else {
+                                                        $("#CaKip").empty();
+                                                        $("#CaKip").append("<option value ='" + 0 + "'>" + "--Không có kíp làm việc--" + "</option>")
+                                                    }
+                                                });
+                                            });
+                                        </script>
+                                    </div>
+                                </div>
+
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Kíp làm việc:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            <select class="form-control marginTB5" name="CaKip" id="CaKip" disabled="disabled">
+                                            </select>
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                            </div><!-- End Recent Sales -->
+                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1%;">
+                                @{
+                                    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                                    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+                                    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+                                    var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
+                                    var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
+                                }
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Đại diện bên giao:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
+                                        </span>
+                                    </div>
+
+                                </div>
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Chức vụ:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ViTri.TenViTri
+                                        </span>
+
+                                    </div>
+                                </div>
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            BP/NM:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @PhongBan.TenPhongBan - @PhanXuong.TenXuong
+                                        </span>
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="row" style="width:100%">
+                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%; ">
+                                    <div style="padding:1% 0% 1% 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Đại diện bên nhận <span style="color:red; font-size:14px;"> (*)</span>:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;margin-right: 3%;">
+                                        @Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan", name = "IDTaiKhoan", @class = "marginTB5", })
+                                    </div>
+                                    <script type="text/javascript">
+                                        $("#IDTaiKhoan").change(function () {
+                                            $.get("/BM_11/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+
+                                                if (data[0] != null) {
+                                                    $("#IDChucVu").empty();
+                                                    //$("#ID_TaiKhoan").append("<option value ='" + null + "'>" + "--Chọn hợp đồng--" + "</option>")
+                                                    $.each(data, function (index, row) {
+                                                        $("#IDChucVu").append("<option value ='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+                                                    });
+                                                }
+                                                else {
+                                                    $("#IDChucVu").empty();
+                                                    $("#IDChucVu").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                                }
+                                            });
+                                        });
+                                    </script>
+
+                                    <script type="text/javascript">
+                                        $("#IDTaiKhoan").change(function () {
+                                            $.get("/BM_11/NguyenLieu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                                if (data[0] != null) {
+
+                                                    $("#IDVatTu").empty();
+                                                    //$("#IDVatTu").append("<option value ='" + null + "'>" + "--Chọn nguyên/nhiên/vật tư--" + "</option>")
+                                                    $.each(data, function (index, row) {
+                                                        $("#IDVatTu").append("<option value ='" + row.iD_VatTu + "' selected>" + row.tenVatTu + "</option>");
+                                                    });
+                                                }
+                                                else {
+                                                    $("#IDVatTu").empty();
+                                                    $("#IDVatTu").append("<option value ='" + 0 + "'>" + "--Không có nguyên/nhiên/vật tư--" + "</option>")
+                                                }
+                                            });
+                                        });
+                                    </script>
+
+
+                                </div>
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
+                                    <div style="padding:1% 0% 1% 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Chức vụ <span style="color:red; font-size:14px;"> (*)</span>:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;margin-right: 3%;">
+                                        <select class="form-control marginTB5" name="IDChucVu" id="IDChucVu" disabled="disabled">
+                                        </select>
+                                    </div>
+
+                                </div>
+
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
+                                    <div style="padding:1% 0% 1% 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            BP/NM <span style="color:red; font-size:14px;"> (*)</span>:
+                                        </span>
+                                    </div>
+                                    <script type="text/javascript">
+                                        $("#IDTaiKhoan").change(function () {
+                                            $.get("/BM_11/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                                if (data[0] != null) {
+                                                    $("#IDPhongBan").empty();
+                                                    //$("#ID_TaiKhoan").append("<option value ='" + null + "'>" + "--Chọn hợp đồng--" + "</option>")
+                                                    $.each(data, function (index, row) {
+                                                        console.log(row.tenChucVu)
+                                                        console.log(row.iD_TaiKhoan)
+                                                        $("#IDPhongBan").append("<option value ='" + row.iD_PhongBan + "' selected>" + row.tenPhongBan + "</option>");
+                                                    });
+                                                }
+                                                else {
+                                                    $("#IDPhongBan").empty();
+                                                    $("#IDPhongBan").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                                }
+                                            });
+                                        });
+                                    </script>
+                                    <div style="padding-left: 3%;">
+                                        <select class="form-control marginTB5" name="IDPhongBan" id="IDPhongBan" disabled="disabled">
+                                        </select>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="width:100%; padding-bottom:1%;">
+                            <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 110px;padding: 0.5% 1% 0% 1%;border-radius: 10px;margin-left: 8px;">
+                                <span style="color:black; font-size:14px;">
+                                    Nội dung trích yếu:
+                                </span>
+                                <input class='form-control' id='NoiDungTrichYeu' name='NoiDungTrichYeu' style="height:50px;margin-top: 0.5%;" cols='20' rows='1' value=""></input>
+                            </div><!-- End Recent Sales -->
+                        </div>
+                        
+
+                        <div class="card-body" style="padding-top: 1%;">
+                            <div class="table-responsive" style="height: 400px;">
+                                <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                    <thead>
+                                        <tr style="font-size:14px;">
+                                            <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
+                                            <th class="text-center" rowspan="3" width="400px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
+                                            <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
+                                            <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
+                                            <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                        </tr>
+                                        <tr style="font-size:14px;">
+                                            <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">W (%)</th>
+                                            <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên giao</th>
+                                            <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên nhận</th>
+
+                                        </tr>
+                                        <tr style="font-size:14px;">
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr id="vt">
+                                            <th colspan="18" class="font-weight-bold font-size-lg">
+                                                <button id="add-vt" type="button" class="btn btn-light border border-white">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+                                            </th>
+                                        </tr>
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+        $('#TaoPhieu').on('submit', function (e) {
+    @* e.preventDefault(); // Ngăn gửi form mặc định*@
+            let isValid = true;
+            let selectedValueCaKip = $('#CaKip').val();
+            let BenNhan = $('#IDTaiKhoan').val();
+            // Kiểm tra nếu chưa chọn giá trị hợp lệ
+            if (selectedValueCaKip == null) {
+                isValid = false;
+                alert('Vui lòng chọn Ca Kíp!');
+                return false; // Ngăn form submit
+            }
+
+            if (!BenNhan) {
+                isValid = false;
+                alert('Vui lòng chọn Nhân viên bên nhận!');
+                return false; // Ngăn form submit
+            }
+            const table = document.getElementById('table');
+            const rowCount = table.getElementsByTagName('tr').length - 4; // Trừ đi dòng tiêu đề (thead)
+            console.log(rowCount);
+            if (rowCount < 1) {
+                isValid = false;
+                alert('Bảng phải có ít nhất một dòng dữ liệu!');
+                return false; // Ngăn form submit
+            }
+            // Nếu tất cả đều hợp lệ, thực hiện hành động
+            if (isValid) {
+    @*alert('Dữ liệu hợp lệ. Tiến hành gửi form!');*@
+                // Thực hiện gửi form nếu cần
+                return true;
+            }
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    const dateInput = document.getElementById("ID_Day");
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    // Định dạng ngày thành yyyy-mm-dd để dùng với input date
+    function formatDate(date) {
+        return date.toISOString().split("T")[0];
+    }
+
+    dateInput.min = formatDate(yesterday);
+    dateInput.max = formatDate(today);
+    // Đặt giá trị mặc định là ngày hiện tại
+    dateInput.value = formatDate(new Date());
+
+    // Ngăn người dùng nhập từ bàn phím
+    dateInput.addEventListener("keydown", function (event) {
+        event.preventDefault();
+    });
+
+    $(document).ready(function () {
+            var i = 2;
+            $("#add-vt").click(function () {
+                var renderList = $(`<tr>
+                                                                         <td class='text-center delItem' >
+                                                                            <a class="btn btn-danger btn-sm" title="Xóa">
+                                                                                <i class="bi bi-trash"></i>
+                                                                            </a>
+                                                                         </td>
+                                                                        <td>
+                                                                            <select class="form-control marginTB5 SelectVT" name="VatTu_${i}" id="VatTu_${i}" style="width: 100%">
+                                                                              <option value ='null'>------ Chọn nguyên/nhiên/vật tư ------</option>
+    @foreach (var item in ViewBag.VTList)
+    {
+                                                                                      <option value='@item.Value'>@item.Text</option>
+
+    }
+                                                                            </select>
+
+                                                                        </td>
+                                                                         <td >
+                                                                                <select class="form-control marginTB5 SelectDV" name="NoiDung_${i}" id="NoiDung_${i}" disabled="disabled">
+                                                                                   <option value ='null'>--Đơn vị tính--</option>
+    @foreach (var item in ViewBag.VTList)
+    {
+                                                                                        <option value='@item.Value'>@item.Text</option>
+    }
+                                                                                </select>
+                                                                        </td>
+                                                                         <td >
+                                                                                      <select class="form-control marginTB5 malo" id='lo_${i}' name='lo_${i}' style="width: 100%" placeholder='Lô'>
+                                                                                         <option value =''>--Mã lô--</option>
+
+                                                                                </select>
+
+                                                                        </td>
+                                                                             <td >
+                                                                                 <input  class='form-control' cols='20' id='doam_${i}' name='doam_${i}' type="number" step="0.001" placeholder='W (%)' rows='1'></input>
+                                                                            <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
+                                                                        </td>
+                                                                         <td >
+                                                                                       <input class='form-control' cols='20' id='khoiluongbg_${i}' name='khoiluongbg_${i}' type="number" step="0.001" placeholder='Khối lượng' rows='1'></input>
+                                                                            <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
+                                                                        </td>
+                                                                         <td >
+                                                                                        <input class='form-control' cols='20' id='quykhobg_${i}' name='quykhobg_${i}' placeholder='KL quy khô' rows='1' disabled="disabled"></input>
+                                                                            <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
+                                                                        </td>
+                                                                        <td >
+                                                                                    <input class='form-control' cols='20' id='khoiluongbn_${i}' name='khoiluongbn_${i}' placeholder='Khối lượng' rows='1' disabled="disabled"></input>
+                                                                            <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
+                                                                        </td>
+                                                                        <td >
+                                                                                    <input class='form-control' cols='20' id='quykhobn_${i}' name='quykhobn_${i}' placeholder='KL quy khô' rows='1' disabled="disabled"></input>
+                                                                            <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
+                                                                        </td>
+                                                                        <td >
+                                                                               <input class='form-control' cols='20' id='ghichu_${i}' name='ghichu_${i}' placeholder='Ghi chú' rows='1'></input>
+                                                                            <span id="Errorfullname_${i}" style="color: red; text-transform: none; font-weight: normal "></span>
+                                                                        </td>
+
+                                                                    </tr>`);
+                i++;
+                $("#vt").before(renderList);
+    @* $(".SelectVT").chosen({
+                    width: "100%"
+                });*@
+                $(".SelectQT").chosen({
+                    width: "100%"
+                });
+    @* $(".malo").chosen({
+                    width: "100%"
+                });*@
+                $('.SelectVT').select2();
+                $('.malo').select2();
+            });
+     });
+    $("#table").on("click", ".delItem", function () {
+        $(this).closest("tr").remove();
+    });
+
+    $("#table").on("change", ".SelectVT", function () {
+        var id = $(this).attr('id').split('_')[1];
+        if (id != "null") {
+            $.get("/BM_11/DonViTinh", { IDVatTu: $(this).val() }, function (data1) {
+                console.log(data1)
+                if (data1[0] != null) {
+                    $("#NoiDung_" + id).empty();
+                    $.each(data1, function (index, row) {
+                        $("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")
+                    });
+                }
+                else {
+                    $("#NoiDung_" + id).empty();
+                }
+            });
+            $.get("/BM_11/MaLo", { IDVatTu: $(this).val() }, function (data1) {
+                $("#lo_" + id).empty();
+                if (data1[0] != null ) {
+                    $("#lo_" + id).empty();
+                    $("#lo_" + id).append("<option value=''>--Không lô--</option>")
+                    $.each(data1, function (index, row) {
+                        $("#lo_" + id).append("<option value ='" + row.tenMaLo + "' >" + row.tenMaLo + "</option>")
+                    });
+                }
+                else {
+                    $("#lo_" + id).empty();
+                }
+            });
+    @* setTimeout(() => {
+                $("#lo_" + id).trigger("chosen:updated");
+            }, 100);*@
+
+            $("#NoiDung_" + id).trigger("chosen:updated");
+        }
+        else {
+            $("#NoiDung_" + id).empty();
+            $("#lo_" + id).empty();
+        }
+
+    });
+
+</script>
+<script type="text/javascript">
+    $("#IDTaiKhoan").chosen({
+        width: "100%"
+    });
+    $("#IDTaiKhoan").chosen({
+        width: "100%"
+    });
+    $("#IDKip").chosen({
+        width: "100%"
+    });
+    $(document).ready(function () {
+        $('#multiSelect').chosen({
+            width: '100%'
+        });
+    });
+</script>
