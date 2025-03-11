@@ -620,7 +620,7 @@
                                     $(document).on("change", ".LoCao", function () {
                                         let nameAttr = $(this).attr("name"); // Lấy giá trị name
                                         let indexx = nameAttr.match(/\[(\d+)\]/); // Tìm số bên trong dấu []
-                                        $.get("/BM01_GangLong/GetSoMeGangBKMis", { ngay: $("#ID_Day").val(), ID_LoCao: $(this).val() }, function (data) {
+                                        $.get("/BM01_GangLong/GetSoMeGangBKMis", { ngay: $("#ID_Day").val(), ID_LoCao: $(this).val(), IDKip: $("#IDCa").val() }, function (data) {
                                             let dataList = [];
                                             if (data[0] != null) {
                                                 $("select[name='chitietBBGNGangLong[" + indexx[1] + "].SoID']").empty();

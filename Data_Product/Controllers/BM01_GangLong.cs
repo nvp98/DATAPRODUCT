@@ -664,8 +664,15 @@ namespace Data_Product.Controllers
 
             return RedirectToAction("SuaPhieu", "BM01_GangLong", new { id = BBGN_ID });
         }
-        public async Task<IActionResult> GetSoMeGangBKMis(string ngay, int? ID_LoCao)
+        public async Task<IActionResult> GetSoMeGangBKMis(string ngay, int? ID_LoCao, string IDKip)
         {
+            string cakip = "";
+            if(IDKip != null)
+            {
+                var dt = DateTime.Parse(ngay);
+                var ca = _context.Tbl_Kip.FirstOrDefault(x => x.TenCa == IDKip && x.NgayLamViec  == dt);
+                cakip = ca?.TenCa + ca?.TenKip;
+            }
             var dvt = new List<Bkmis_view>();
             // Chuỗi kết nối MySQL
             // string connectionString = "Server=10.192.215.11,3307;Database=bkmis_kcshpsdq;User Id=viewkcs;Password=viewkcs@2024;";
@@ -682,28 +689,28 @@ namespace Data_Product.Controllers
                     string query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc1 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ProductionDate = '" +
-                         ngay + "'";
+                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" +cakip+"'";
 
                     if (ID_LoCao == 2)
                     {
                         query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc2 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc2.ProductionDate = '" +
-                         ngay + "'";
+                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" + cakip + "'";
                     }
                     else if (ID_LoCao == 3)
                     {
                         query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc3 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc3.ProductionDate = '" +
-                         ngay + "'";
+                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" + cakip + "'";
                     }
                     else if (ID_LoCao == 4)
                     {
                         query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
                        "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc4 " +
                        "where bkmis_kcshpsdq.view_dq1_lg_daura_lc4.ProductionDate = '" +
-                        ngay + "'";
+                        ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" + cakip + "'";
                     }
 
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
