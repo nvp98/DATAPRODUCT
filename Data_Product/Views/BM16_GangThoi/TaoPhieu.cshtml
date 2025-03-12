@@ -30,7 +30,7 @@
         pageNo = pager.CurrentPage;
     }
 }
-@using (Html.BeginForm("TaoPhieu", "BieuMau16", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
+@using (Html.BeginForm("TaoPhieu", "BM16_GangThoi", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
 {
     <div class="app-main__outer">
         <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
@@ -46,7 +46,7 @@
                                         </b>
                                     </span>
                                 </div>
-                                <div style="flex: 1; padding: 2% 2% 2% 0%; text-align: right;">
+                                <div class="col-4 " style="padding: 2%  2%  2% 0%; ">
                                     <button type="button" class="btn btn-danger" onclick="window.location.href='@Url.Action("Index", "Menu")';">
                                         <i class="bi bi-x-lg"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
@@ -65,15 +65,33 @@
                         </div>
                         <div class="row" style="width:100%; padding-top:7.5%;">
                             <div class="col-lg-12">
-                                <div class="row g-3">
-                                    <div class="col-xxl-4 col-md-6">
+                                <div class="row g-4">
+                                    <div class="col-xxl-3 col-md-6">
                                         <div class="p-3 bg-light rounded">
                                             <span class="text-dark">Ngày làm việc:</span>
-                                            <input type="date" id="ID_Day" name="ID_Day" class="form-control mt-2" />
+                                            <input type="date" id="ID_Day" name="ID_Day"
+                                                   class="form-control mt-2"
+                                                   min="@ViewBag.MinDate"
+                                                   max="@ViewBag.MaxDate"
+                                                   value="@ViewBag.DefaultDate"
+                                                   onkeydown="return false;" />
                                         </div>
                                     </div>
 
-                                    <div class="col-xxl-4 col-md-6">
+                                    <div class="col-xxl-3 col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <span class="text-dark">ID Lò cao:</span>
+                                            <select class="form-control mt-2" name="LoCao" id="IDLoCao">
+                                                <option value='null'>-- ID Lò cao --</option>
+                                                <option value='1'>Lò cao 1</option>
+                                                <option value='2'>Lò cao 2</option>
+                                                <option value='3'>Lò cao 3</option>
+                                                <option value='4'>Lò cao 4</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xxl-3 col-md-6">
                                         <div class="p-3 bg-light rounded">
                                             <span class="text-dark">Ca làm việc:</span>
                                             <select class="form-control mt-2 SelectCA" name="IDCa" id="IDCa">
@@ -84,15 +102,17 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-xxl-4 col-md-6">
+                                    <div class="col-xxl-3 col-md-6">
                                         <div class="p-3 bg-light rounded">
                                             <span class="text-dark">Kíp làm việc:</span>
                                             <select class="form-control mt-2" name="CaKip" id="CaKip" disabled>
                                             </select>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
+
 
                             <div class="col-lg-12">
                                 @{
@@ -189,21 +209,20 @@
                                     </thead>
                                     <tbody>
                                         <tr id="addRowBtnContainer">
+                                            <th colspan="18" class="font-weight-bold font-size-lg">
+                                                <button id="addRowBtn" type="button" class="btn btn-light border border-white">
+                                                    <i class="bi bi-plus-lg"></i>
+                                                </button>
+                                            </th>
                                             
                                         </tr>
                                     </tbody>
-
 
                                 </table>
 
                             </div>
 
                         </div>
-
-
-
-
-
 
                     </div>
                 </div>
@@ -214,16 +233,18 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
-        function loadTableData() {
+
+        function loadTableData(selectedDate, selectedLoCao, selectedKip) {
             $.ajax({
                 url: "/BM16_GangThoi/GetSoMeGangBKMis",
                 type: "GET",
                 data: {
-                    ngay: "2025-03-10",
-                    ID_LoCao: 1,
-                    IDKip: "2"
+                    ngay: selectedDate,
+                    ID_LoCao: selectedLoCao,
+                    IDKip: selectedKip
                 },
                 success: function (data) {
+                    console.log('data: ' + data);
                     let tableBody = $("#dataTable tbody");
                     tableBody.find("tr:not(#addRowBtnContainer)").remove();
 
@@ -233,7 +254,11 @@
 
                         let row = `
                             <tr>
-                                <td>${index + 1}</td>
+                                <td class='text-center delItem' >
+                                    <a class="btn btn-danger btn-sm" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </td>
                                 <td><input type="text" class="form-control" value="${soMe}" style="width: 170px;"></td>
                                 <td><input type="text" class="form-control" value="${thungSo}" readonly></td>
                                 <td></td>
@@ -259,32 +284,90 @@
             });
         }
 
+        $("#IDCa").change(function () {
+            let selectedCa = $(this).val();
+            let selectedDate = $("#ID_Day").val();
+            let kipDropdown = $("#CaKip");
+
+            // Reset dropdown
+            kipDropdown.empty().append("<option value='null'>-- Kíp làm việc --</option>").prop("disabled", true);
+
+            if (!selectedCa || selectedCa === "null" || !selectedDate) return;
+
+            $.ajax({
+                url: "/BM16_GangThoi/GetKipFromCa",
+                type: "GET",
+                data: { Ngay: selectedDate, Ca: selectedCa },
+                success: function (res) {
+                    kipDropdown.empty().prop("disabled", true);
+
+                    if (res.length > 0) {
+                        $.each(res, function (index, item) {
+                            kipDropdown.append(`<option value='${item.id_Kip}'>${item.tenKip}</option>`);
+                        });
+                    } else {
+                        kipDropdown.append("<option value='null' disabled selected>-- Kíp làm việc --</option>");
+                    }
+                },
+                error: function (err) {
+                    console.error("Lỗi khi tải dữ liệu kíp: ", err);
+                    kipDropdown.empty().append("<option value='null' disabled selected>-- Kíp làm việc --</option>").prop("disabled", true);
+                }
+            });
+        });
+
         // call API
-        loadTableData();
+        $("#ID_Day, #IDLoCao, #IDCa").change(function () {
+
+            let selectedDate = $("#ID_Day").val();
+            let selectedLoCao = $("#IDLoCao").val();
+            let selectedCa = $("#IDCa").val();
+            console.log(selectedLoCao, selectedCa);
+            if (selectedLoCao && selectedCa && selectedLoCao !== "null" && selectedCa !== "null" ) {
+                $("#dataTable tbody").find("tr:not(#addRowBtnContainer)").remove();
+                loadTableData(selectedDate, selectedLoCao, selectedCa);
+            }
+        });
 
         // click add row
-        $("#addRowBtn").click(function () {
-            event.preventDefault();
+        $("#addRowBtn").click(function (e) {
+            e.preventDefault();
             console.log('test');
             let row = `
                 <tr>
-                    <td></td>
+                    <td class='text-center delItem' >
+                        <a class="btn btn-danger btn-sm" title="Xóa">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
                     <td><input type="text" class="form-control" value=""></td>
                     <td><input type="text" class="form-control" value=""></td>
                     <td><input type="text" class="form-control" value=""></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td><input type="text" class="form-control" value=""></td>
+                    <td><input type="text" class="form-control" value=""></td>
+                    <td><input type="text" class="form-control" value=""></td>
+                    <td><input type="checkbox" class="form-check-input"></td>
+                    <td><input type="checkbox" class="form-check-input"></td>
+                    <td><input type="text" class="form-control" value=""></td>
+                    <td><input type="text" class="form-control" value=""></td>
+                    <td><input type="text" class="form-control" value=""></td>
+                    <td><input type="text" class="form-control" value=""></td>
+                    <td><input type="text" class="form-control" value=""></td>
                 </tr>
+                
             `;
             $(row).insertBefore("#addRowBtnContainer");
         });
+
+        $(document).on("click", ".delItem a", function (e) {
+            e.preventDefault();
+            $(this).closest("tr").remove();
+        });
+
+        $(document).on("change", ".form-check-input", function () {
+            let row = $(this).closest("tr");
+            row.find(".form-check-input").not(this).prop("checked", false);
+        });
+
     });
 </script>
