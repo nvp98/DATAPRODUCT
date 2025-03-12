@@ -32,5 +32,6 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_BBGNGangLong> Tbl_BBGNGangLong { get; set; }
         public DbSet<Tbl_ChiTiet_BBGNGangLong> Tbl_ChiTiet_BBGNGangLong { get; set; }
         public DbSet<Tbl_LoCao> Tbl_LoCao { get; set; }
+        public DbSet<Tbl_KL_THUNGXE> Tbl_KL_THUNGXE { get; set; }
     }
 }

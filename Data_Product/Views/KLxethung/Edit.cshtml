@@ -1,0 +1,43 @@
+﻿@model Data_Product.Models.Tbl_KL_THUNGXE
+<script src="~/Chonse/chosen.jquery.js"></script>
+<link href="~/Chonse/chosen.css" rel="stylesheet">
+@using (Html.BeginForm("Edit", "KLxethung", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.ID)
+    <div class="modal-dialog" style="padding-top:1.5%;">
+        <div class="modal-content" style="max-width: none; width: 800px;margin-left:-110px">
+            <div class="modal-header" style="background-color: #F9F9F9;">
+                <h5 id="ModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label" style="margin-right:680px">ID thùng xe</label>
+                    @Html.TextBoxFor(model => model.ID, new { @class = "form-control", @readonly = "readonly" })
+                </div>
+
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="ID_LOCAO" class="form-label" style="margin-right:676px">Chọn Lò Cao</label>
+                    @Html.DropDownListFor(model => model.ID_LOCAO, (SelectList)ViewBag.LoCaoList, "-- Chọn lò cao --", new { @class = "form-control chosen-select", @id = "ID_LOCAO" })
+                    @Html.ValidationMessageFor(model => model.ID_LOCAO, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="col-md-12" style="padding-bottom:1.5%;">
+                    <label for="inputEmail5" class="form-label" style="margin-right:640px">Chỉnh KL xe thùng</label>
+                    @Html.TextBoxFor(model => model.KL_THUNGXE, new { @class = "form-control", type = "number", step = "0.01", placeholder = "", @id = "KL_THUNGXE" })
+                    @Html.ValidationMessageFor(model => model.KL_THUNGXE, "", new { @class = "text-danger" })
+                </div>
+                @*   <div class="form-group">
+                    <label asp-for="KL_THUNGXE" class="control-label"></label>
+                    <input asp-for="KL_THUNGXE" class="form-control" type="number" step="any" />
+                    <span asp-validation-for="KL_THUNGXE" class="text-danger"></span>
+                </div> *@
+
+                <div class="form-group" style="text-align: end;padding: 0% 3% 3% 3%;">
+                    <input type="submit" style="border-radius: 10px;" value="Xác nhận" id="btnSubmit" class="btn btn-primary pull-right" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
