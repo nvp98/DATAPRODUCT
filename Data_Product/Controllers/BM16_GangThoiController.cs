@@ -3,17 +3,19 @@ using Data_Product.Repositorys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.EntityFrameworkCore;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using System.Security.Claims;
 
 namespace Data_Product.Controllers
 {
-    public class BieuMau16Controller : Controller
+    public class BM16_GangThoiController : Controller
     {
         private readonly DataContext _context;
         private readonly ICompositeViewEngine _viewEngine;
 
-        public BieuMau16Controller(DataContext _context, ICompositeViewEngine viewEngine)
+        public BM16_GangThoiController(DataContext _context, ICompositeViewEngine viewEngine)
         {
             this._context = _context;
             _viewEngine = viewEngine;
@@ -84,6 +86,13 @@ namespace Data_Product.Controllers
 
             //DateTime date = new DateTime(2025, 3, 10);
             //var json = GetSoMeGangBKMis(date.ToString("yyyy-MM-dd"), 1, "2");
+            DateTime today = DateTime.Today;
+            DateTime yesterday = today.AddDays(-1);
+
+            ViewBag.MaxDate = today.ToString("yyyy-MM-dd"); // Hôm nay
+            ViewBag.MinDate = yesterday.ToString("yyyy-MM-dd"); // Hôm qua
+            ViewBag.DefaultDate = today.ToString("yyyy-MM-dd"); // Giá trị mặc định
+
 
 
             return PartialView();
@@ -96,7 +105,7 @@ namespace Data_Product.Controllers
             {
                 var dt = DateTime.Parse(ngay);
                 var ca = _context.Tbl_Kip.FirstOrDefault(x => x.TenCa == IDKip && x.NgayLamViec == dt);
-                cakip = ca?.TenCa + ca?.TenKip;
+                cakip = ca?.TenCa + ca?.TenKip; //1A,2A,1B...
             }
             var dvt = new List<Bkmis_view>();
             // Chuỗi kết nối MySQL
@@ -166,6 +175,89 @@ namespace Data_Product.Controllers
             }
 
             return Json(dvt);
+        }
+        
+        public async Task<IActionResult> GetKipFromCa(DateTime? Ngay, string Ca)
+        {
+            DateTime day_datetime = (DateTime) Ngay;
+            string Day = day_datetime.ToString("dd-MM-yyyy");
+            DateTime Day_Convert = DateTime.ParseExact(Day, "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
+            var CaKip = await (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == Day_Convert && x.TenCa == Ca)
+                               select new Tbl_Kip
+                               {
+                                   ID_Kip = a.ID_Kip,
+                                   TenKip = a.TenKip
+                               }).ToListAsync();
+            return Json(CaKip);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult TaoPhieu(Tbl_ChiTiet_BienBanGiaoNhan _DO, IFormCollection formCollection)
+        {
+            List<Tbl_ChiTiet_BienBanGiaoNhan> Tbl_ChiTiet_BienBanGiaoNhan = new List<Tbl_ChiTiet_BienBanGiaoNhan>();
+            try
+            {
+                return RedirectToAction("Detail", "BM16_GangThoi", new { id = 1 });
+                
+            }
+            catch (Exception e)
+            {
+                TempData["msgError"] = "<script>alert('Thêm mới thất bại');</script>";
+                return RedirectToAction("TaoPhieu", "BM_11");
+            }
+
+            //return RedirectToAction("SuaPhieu", "BM_11", new { id = BBGN_ID });
+        }
+
+        public async Task<IActionResult> Detail(int id)
+        {
+
+            var jsonData = HttpContext.Session.GetString("ListData");
+            List<Tbl_ChiTiet_BBGangLong_GangThoi> listData = string.IsNullOrEmpty(jsonData) ? new List<Tbl_ChiTiet_BBGangLong_GangThoi>() :
+                JsonConvert.DeserializeObject<List<Tbl_ChiTiet_BBGangLong_GangThoi>>(jsonData);
+
+            ViewBag.Data = id;
+            return View(listData);
+        }
+
+        [HttpPost]
+        public IActionResult SubmitData([FromBody] List<Tbl_ChiTiet_BBGangLong_GangThoi> listData)
+        {
+            // Lưu Session
+            HttpContext.Session.SetString("ListData", JsonConvert.SerializeObject(listData));
+
+            foreach (var item in listData)
+            {
+                var data = new Tbl_ChiTiet_BBGangLong_GangThoi();
+                data.SoMe = item.SoMe;
+                data.ThungSo = item.ThungSo;
+                data.KhoiLuongXeGoong = item.KhoiLuongXeGoong;
+                data.KhoiLuongThung = item.KhoiLuongThung;
+                data.KLThungGangLong = item.KLThungGangLong;
+                data.KLGangLongCanRay = item.KLGangLongCanRay;
+                data.GhiChu = item.GhiChu;
+                data.Id_BBGL = item.Id_BBGL;
+
+                _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(data);
+            }
+
+            _context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult SubmitData_BBGangLong_GangThoi([FromBody] Tbl_BBGangLong_GangThoi res)
+        {
+            var data = new Tbl_BBGangLong_GangThoi();
+            data.ID_NhanVien_BG = res.ID_NhanVien_BG;
+            data.ID_PhongBan_BG = res.ID_PhongBan_BG;
+
+            _context.Tbl_BBGangLong_GangThoi.Add(data);
+            _context.SaveChanges();
+
+            return Json(new { success = true, Id_BBGL = data.ID_BBGL });
         }
     }
 }

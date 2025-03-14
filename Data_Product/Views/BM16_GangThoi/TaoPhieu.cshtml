@@ -59,6 +59,12 @@
                                             Gửi phiếu
                                         </span>
                                     </button>
+                                    <button type="submit" class="btn btn-success" name="btnSave" id="btnSave" value="1">
+                                        <i class="bi bi-send"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Lưu phiếu
+                                        </span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -114,7 +120,7 @@
                             </div>
 
 
-                            <div class="col-lg-12">
+                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1%;">
                                 @{
                                     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
                                     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
@@ -122,57 +128,216 @@
                                     var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
                                     var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
                                 }
-                                <div class="row g-3 mt-3">
-                                    <div class="col-xxl-4 col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <span class="text-dark">Đại diện bên giao:</span>
-                                            <div class="mt-2">@TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen</div>
-                                        </div>
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Đại diện bên giao:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span id="ID_NhanVien_BG" style="color:black; font-size:14px;"
+                                              data-info="@TaiKhoan.ID_TaiKhoan">
+                                            @TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen - @TaiKhoan.ID_TaiKhoan
+                                        </span>
                                     </div>
 
-                                    <div class="col-xxl-4 col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <span class="text-dark">Chức vụ:</span>
-                                            <div class="mt-2">@ViTri.TenViTri</div>
-                                        </div>
+                                </div>
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Chức vụ:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span id="ID_ViTri_BG" style="color:black; font-size:14px;"
+                                              data-info="@ViTri.TenViTri">
+                                            @ViTri.TenViTri
+                                        </span>
+
+                                    </div>
+                                </div>
+                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                    <div style="padding-left: 3%;padding-top:3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            BP/NM:
+                                        </span>
+                                        
+                                    </div>
+                                    <div style="padding-left: 3%;">
+                                        <span id="ID_PhongBan_BG" style="color:black; font-size:14px;"
+                                              data-info="@TaiKhoan.ID_PhongBan">
+                                            @PhongBan.TenPhongBan - @PhanXuong.TenXuong
+                                        </span>
+
                                     </div>
 
-                                    <div class="col-xxl-4 col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <span class="text-dark">BP/NM:</span>
-                                            <div class="mt-2">@PhongBan.TenPhongBan - @PhanXuong.TenXuong</div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row" style="width:100%;">
-                            <div class="col-lg-12">
-                                <div class="row g-3">
-                                    <div class="col-xxl-4 col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <span class="text-dark">Đại diện bên nhận <span class="text-danger"> (*)</span>:</span>
-                                            @Html.DropDownList("IDTaiKhoan", ViewBag.DaiDienBenNhan as SelectList, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan", name = "IDTaiKhoan", @class = "form-control mt-2" })
-                                        </div>
-                                    </div>
-                                    <div class="col-xxl-4 col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <span class="text-dark">Chức vụ <span class="text-danger"> (*)</span>:</span>
-                                            <select class="form-control mt-2" name="IDChucVu" id="IDChucVu" disabled>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="col-xxl-4 col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <span class="text-dark">BP/NM <span class="text-danger"> (*)</span>:</span>
-                                            <select class="form-control mt-2" name="IDPhongBan" id="IDPhongBan" disabled>
-                                            </select>
-                                        </div>
-                                    </div>
+                        <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%; ">
+                                <div style="padding:1% 0% 1% 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        Đại diện bên nhận <span style="color:red; font-size:14px;"> (*)</span>:
+                                    </span>
+                                </div>
+                                <div style="padding-left: 3%;margin-right: 3%;">
+                                    @Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan", name = "IDTaiKhoan", @class = "marginTB5", })
+                                </div>
+                                <script type="text/javascript">
+
+                                    $("#IDTaiKhoan").change(function () {
+                                        $.get("/BM_11/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+
+                                            if (data[0] != null) {
+                                                $("#IDChucVu").empty();
+                                                $.each(data, function (index, row) {
+                                                    $("#IDChucVu").append("<option value ='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#IDChucVu").empty();
+                                                $("#IDChucVu").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <script type="text/javascript">
+
+                                    $("#IDTaiKhoan").change(function () {
+                                        $.get("/BM_11/NguyenLieu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                            if (data[0] != null) {
+
+                                                $("#IDVatTu").empty();
+                                                $.each(data, function (index, row) {
+                                                    $("#IDVatTu").append("<option value ='" + row.iD_VatTu + "' selected>" + row.tenVatTu + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#IDVatTu").empty();
+                                                $("#IDVatTu").append("<option value ='" + 0 + "'>" + "--Không có nguyên/nhiên/vật tư--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+
+
+                            </div>
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
+                                <div style="padding:1% 0% 1% 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        Chức vụ <span style="color:red; font-size:14px;"> (*)</span>:
+                                    </span>
+                                </div>
+                                <div style="padding-left: 3%;margin-right: 3%;">
+                                    <select class="form-control marginTB5" name="IDChucVu" id="IDChucVu" disabled="disabled">
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
+                                <div style="padding:1% 0% 1% 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        BP/NM <span style="color:red; font-size:14px;"> (*)</span>:
+                                    </span>
+                                </div>
+                                <script type="text/javascript">
+
+                                    $("#IDTaiKhoan").change(function () {
+                                        $.get("/BM_11/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#IDPhongBan").empty();
+                                                $.each(data, function (index, row) {
+                                                    console.log(row.tenChucVu)
+                                                    console.log(row.iD_TaiKhoan)
+                                                    $("#IDPhongBan").append("<option value ='" + row.iD_PhongBan + "' selected>" + row.tenPhongBan + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#IDPhongBan").empty();
+                                                $("#IDPhongBan").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <div style="padding-left: 3%;">
+                                    <select class="form-control marginTB5" name="IDPhongBan" id="IDPhongBan" disabled="disabled">
+                                    </select>
+
                                 </div>
                             </div>
+
                         </div>
+
+
+
+
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </div>
 
                         <div class="row" style="width:100%; padding-bottom:1%;">
                             <div class="col-lg-12">
@@ -197,10 +362,8 @@
                                             <th rowspan="2">KL gang lỏng cân ray (tấn)</th>
                                             <th colspan="2">Vận chuyển đến</th>
                                             <th rowspan="2">Phân loại</th>
-                                            <th rowspan="2">Ghi chú <br> (Thùng tồn trong kíp tại NM.LT)</th>
-                                            <th rowspan="2">KL thùng & xe goong (tấn)</th>
-                                            <th rowspan="2">KL thùng, xe goong & gang lỏng (tấn)</th>
-                                            <th rowspan="2">Mẻ gang</th>
+                                            <th rowspan="2">Giờ</th>
+                                            <th rowspan="2">Ghi chú</th>
                                         </tr>
                                         <tr>
                                             <th>NM.HRC1</th>
@@ -228,12 +391,10 @@
                 </div>
             </div>
         </div>
-    </div>
 }
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
-
+        let maxIndex = 0;
         function loadTableData(selectedDate, selectedLoCao, selectedKip) {
             $.ajax({
                 url: "/BM16_GangThoi/GetSoMeGangBKMis",
@@ -244,34 +405,36 @@
                     IDKip: selectedKip
                 },
                 success: function (data) {
-                    console.log('data: ' + data);
+                    console.log('data: ' + data.length);
+                    maxIndex = data.length;
                     let tableBody = $("#dataTable tbody");
                     tableBody.find("tr:not(#addRowBtnContainer)").remove();
 
                     $.each(data, function (index, item) {
                         let soMe = item.testPatternCode ? item.testPatternCode : "";
                         let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
+                        let phanLoai = item.classifyName ? item.classifyName : "";
+                        let time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
 
                         let row = `
                             <tr>
                                 <td class='text-center delItem' >
+                                
                                     <a class="btn btn-danger btn-sm" title="Xóa">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </td>
-                                <td><input type="text" class="form-control" value="${soMe}" style="width: 170px;"></td>
-                                <td><input type="text" class="form-control" value="${thungSo}" readonly></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td><input type="text" name="SoMe" class="form-control" value="${soMe}" readonly style="width: 170px;"></td>
+                                <td><input type="text" name="ThungSo" class="form-control" value="${thungSo}" readonly></td>
+                                <td><input type="number" name="KhoiLuongXeGoong" class="form-control" ></td>
+                                <td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="" ></td>
+                                <td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="" ></td>
+                                <td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="" readonly></td>
+                                <td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input"></td>
+                                <td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input"></td>
+                                <td><input type="text" name="PhanLoai" class="form-control" value="${phanLoai}" readonly></td>
+                                <td><input type="text" name="Gio" class="form-control" value="${time}" readonly></td>
+                                <td><input type="text" name="GhiChu" class="form-control" value="" ></td>
                             </tr>
                         `;
 
@@ -322,7 +485,6 @@
             let selectedDate = $("#ID_Day").val();
             let selectedLoCao = $("#IDLoCao").val();
             let selectedCa = $("#IDCa").val();
-            console.log(selectedLoCao, selectedCa);
             if (selectedLoCao && selectedCa && selectedLoCao !== "null" && selectedCa !== "null" ) {
                 $("#dataTable tbody").find("tr:not(#addRowBtnContainer)").remove();
                 loadTableData(selectedDate, selectedLoCao, selectedCa);
@@ -332,7 +494,6 @@
         // click add row
         $("#addRowBtn").click(function (e) {
             e.preventDefault();
-            console.log('test');
             let row = `
                 <tr>
                     <td class='text-center delItem' >
@@ -340,23 +501,25 @@
                             <i class="bi bi-trash"></i>
                         </a>
                     </td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="checkbox" class="form-check-input"></td>
-                    <td><input type="checkbox" class="form-check-input"></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
-                    <td><input type="text" class="form-control" value=""></td>
+                    <td><input type="text" name="SoMe" class="form-control" ></td>
+                    <td><input type="text" name="ThungSo" class="form-control" ></td>
+                    <td><input type="number" name="KhoiLuongXeGoong" value="0" class="form-control" ></td>
+
+                    <td><input id="KLThung_${maxIndex}" name="KhoiLuongThung" type="number" value="0" step="0.01" min="0.01" class="form-control" ></td>
+                    <td><input id="KLThungGL_${maxIndex}" name="KLThungGangLong" type="number" value="0" step="0.01" min="0.01" class="form-control"  ></td>
+                    <td><input id="KLGLCR_${maxIndex}" name="KLGangLongCanRay" type="text" value="0" class="form-control"  readonly></td>
+
+                    <td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input"></td>
+                    <td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input"></td>
+                    <td><input type="text" name="PhanLoai" class="form-control" ></td>
+                    <td><input type="text" name="Gio" class="form-control" ></td>
+                    <td><input type="text" name="GhiChu" class="form-control" ></td>
+                    
                 </tr>
                 
             `;
             $(row).insertBefore("#addRowBtnContainer");
+            maxIndex++;
         });
 
         $(document).on("click", ".delItem a", function (e) {
@@ -369,5 +532,88 @@
             row.find(".form-check-input").not(this).prop("checked", false);
         });
 
+        $(document).on("input", "input[id^='KLThung_'], input[id^='KLThungGL_']", function () {
+            let index = $(this).attr("id").split("_")[1];
+            let klThung = parseFloat($("#KLThung_" + index).val()) || 0;
+            let klThungGL = parseFloat($("#KLThungGL_" + index).val()) || 0;
+
+            let klGLCR = (klThungGL - klThung) ? parseFloat((klThungGL - klThung).toFixed(2)) : 0;
+
+            $("#KLGLCR_" + index).val(klGLCR);
+        });
+
+        $("#xacnhan").click(function (e) {
+             e.preventDefault();
+
+             var data = {
+                ID_NhanVien_BG: $("#ID_NhanVien_BG").data("info"),
+                ID_PhongBan_BG: $("#ID_PhongBan_BG").data("info"),
+                //ID_ViTri_BG: $("#ID_ViTri_BG").data("info")
+            };
+            console.log(data)
+
+            $.ajax({
+                url: "/BM16_GangThoi/SubmitData_BBGangLong_GangThoi",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(data),
+                processData: false,
+                success: function (response) {
+                    if (response.success) {
+                        let ID_BBGL = response.id_BBGL;
+                        // call API
+                        submitChiTietBBGangLong(ID_BBGL);
+                    }
+                }
+            });
+        });
+
+    function submitChiTietBBGangLong(idBBGL) {
+        var tableData = [];
+
+        $("#dataTable tbody tr").slice(0, -1).each(function () {
+            var row = {
+                SoMe: $(this).find("input[name='SoMe']").val(),
+                ThungSo: $(this).find("input[name='ThungSo']").val(),
+                KhoiLuongXeGoong: parseFloat($(this).find("input[name='KhoiLuongXeGoong']").val()) || 0,
+                KhoiLuongThung: parseFloat($(this).find("input[name='KhoiLuongThung']").val()) || 0,
+                KLThungGangLong: parseFloat($(this).find("input[name='KLThungGangLong']").val()) || 0,
+                KLGangLongCanRay: parseFloat($(this).find("input[name='KLGangLongCanRay']").val()) || 0,
+                VanChuyenHRC1: $(this).find("input[name='VanChuyenHRC1']").prop("checked"),
+                VanChuyenHRC2: $(this).find("input[name='VanChuyenHRC2']").prop("checked"),
+                PhanLoai: $(this).find("input[name='PhanLoai']").val(),
+                Gio: $(this).find("input[name='Gio']").val(),
+                GhiChu: $(this).find("input[name='GhiChu']").val(),
+                Id_BBGL: idBBGL
+            };
+            tableData.push(row);
+        });
+
+        $.ajax({
+            url: "/BM16_GangThoi/SubmitData",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(tableData),
+            success: function (response) {
+                window.location.href = "/BM16_GangThoi/Detail";
+            }
+        });
+    }
+
+    });
+
+</script>
+<script type="text/javascript">
+    $("#IDTaiKhoan, #IDTaiKhoan2, #IDTaiKhoan3").chosen({
+        width: "100%"
+    });
+    
+    $("#IDKip").chosen({
+        width: "100%"
+    });
+    $(document).ready(function () {
+        $('#multiSelect').chosen({
+            width: '100%'
+        });
     });
 </script>
