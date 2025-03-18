@@ -42,7 +42,7 @@
                                 <div style="flex: 2; text-align: left; padding: 2% 2% 2% 0%;">
                                     <span class="text-muted small pt-2 ps-1">
                                         <b style="color:#06428b">
-                                            BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư )
+                                            BM.16/QT.05.09
                                         </b>
                                     </span>
                                 </div>
@@ -115,10 +115,8 @@
                                             </select>
                                         </div>
                                     </div>
-
                                 </div>
                             </div>
-
 
                             <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1%;">
                                 @{
@@ -150,7 +148,7 @@
                                     </div>
                                     <div style="padding-left: 3%;">
                                         <span id="ID_ViTri_BG" style="color:black; font-size:14px;"
-                                              data-info="@ViTri.TenViTri">
+                                              data-info="@ViTri.ID_ViTri">
                                             @ViTri.TenViTri
                                         </span>
 
@@ -165,7 +163,7 @@
                                     </div>
                                     <div style="padding-left: 3%;">
                                         <span id="ID_PhongBan_BG" style="color:black; font-size:14px;"
-                                              data-info="@TaiKhoan.ID_PhongBan">
+                                              data-info="@TaiKhoan.ID_PhongBan-@PhanXuong.ID_Xuong">
                                             @PhongBan.TenPhongBan - @PhanXuong.TenXuong
                                         </span>
 
@@ -179,7 +177,7 @@
                             <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%; ">
                                 <div style="padding:1% 0% 1% 3%;">
                                     <span style="color:black; font-size:14px;">
-                                        Đại diện bên nhận <span style="color:red; font-size:14px;"> (*)</span>:
+                                        Đại diện bên nhận HRC <span style="color:red; font-size:14px;"> (*)</span>:
                                     </span>
                                 </div>
                                 <div style="padding-left: 3%;margin-right: 3%;">
@@ -193,7 +191,7 @@
                                             if (data[0] != null) {
                                                 $("#IDChucVu").empty();
                                                 $.each(data, function (index, row) {
-                                                    $("#IDChucVu").append("<option value ='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+                                                    $("#IDChucVu").append("<option value ='" + row.iD_ChucVu + "' data-info='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
                                                 });
                                             }
                                             else {
@@ -222,7 +220,6 @@
                                     });
                                 </script>
 
-
                             </div>
                             <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
                                 <div style="padding:1% 0% 1% 3%;">
@@ -246,13 +243,14 @@
                                 <script type="text/javascript">
 
                                     $("#IDTaiKhoan").change(function () {
-                                        $.get("/BM_11/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                        $.get("/BM16_GangThoi/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
                                             if (data[0] != null) {
                                                 $("#IDPhongBan").empty();
                                                 $.each(data, function (index, row) {
+                                                    console.log(row)
                                                     console.log(row.tenChucVu)
                                                     console.log(row.iD_TaiKhoan)
-                                                    $("#IDPhongBan").append("<option value ='" + row.iD_PhongBan + "' selected>" + row.tenPhongBan + "</option>");
+                                                    $("#IDPhongBan").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
                                                 });
                                             }
                                             else {
@@ -268,74 +266,103 @@
 
                                 </div>
                             </div>
-
                         </div>
 
-
-
-
-                        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                        <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%; ">
+                                <div style="padding:1% 0% 1% 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        Đại diện bên nhận QLCL <span style="color:red; font-size:14px;"> (*)</span>:
+                                    </span>
+                                </div>
+                                <div style="padding-left: 3%;margin-right: 3%;">
+                                    @Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan_QLCL", name = "IDTaiKhoan_QLCL", @class = "marginTB5", })
+                                </div>
+                                <script type="text/javascript">
+
+                                    $("#IDTaiKhoan_QLCL").change(function () {
+                                        $.get("/BM_11/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan_QLCL").val() }, function (data) {
+
+                                            if (data[0] != null) {
+                                                $("#IDChucVu_QLCL").empty();
+                                                $.each(data, function (index, row) {
+                                                    $("#IDChucVu_QLCL").append("<option value ='" + row.iD_ChucVu + "' data-info='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#IDChucVu_QLCL").empty();
+                                                $("#IDChucVu_QLCL").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <script type="text/javascript">
+
+                                    $("#IDTaiKhoan").change(function () {
+                                        $.get("/BM_11/NguyenLieu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                            if (data[0] != null) {
+
+                                                $("#IDVatTu").empty();
+                                                $.each(data, function (index, row) {
+                                                    $("#IDVatTu").append("<option value ='" + row.iD_VatTu + "' selected>" + row.tenVatTu + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#IDVatTu").empty();
+                                                $("#IDVatTu").append("<option value ='" + 0 + "'>" + "--Không có nguyên/nhiên/vật tư--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+
+                            </div>
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
+                                <div style="padding:1% 0% 1% 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        Chức vụ <span style="color:red; font-size:14px;"> (*)</span>:
+                                    </span>
+                                </div>
+                                <div style="padding-left: 3%;margin-right: 3%;">
+                                    <select class="form-control marginTB5" name="IDChucVu_QLCL" id="IDChucVu_QLCL" disabled="disabled">
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
+                                <div style="padding:1% 0% 1% 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        BP/NM <span style="color:red; font-size:14px;"> (*)</span>:
+                                    </span>
+                                </div>
+                                <script type="text/javascript">
+
+                                    $("#IDTaiKhoan_QLCL").change(function () {
+                                        $.get("/BM16_GangThoi/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan_QLCL").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#IDPhongBan_QLCL").empty();
+                                                $.each(data, function (index, row) {
+                                                    console.log(row)
+                                                    console.log(row.tenChucVu)
+                                                    console.log(row.iD_TaiKhoan)
+                                                    $("#IDPhongBan_QLCL").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
+                                                });
+                                            }
+                                            else {
+                                                $("#IDPhongBan_QLCL").empty();
+                                                $("#IDPhongBan_QLCL").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <div style="padding-left: 3%;">
+                                    <select class="form-control marginTB5" name="IDPhongBan_QLCL" id="IDPhongBan_QLCL" disabled="disabled">
+                                    </select>
+
+                                </div>
+                            </div>
+
+                        </div>
 
                     </div>
 
@@ -384,7 +411,6 @@
                                 </table>
 
                             </div>
-
                         </div>
 
                     </div>
@@ -395,6 +421,7 @@
 <script>
     $(document).ready(function () {
         let maxIndex = 0;
+
         function loadTableData(selectedDate, selectedLoCao, selectedKip) {
             $.ajax({
                 url: "/BM16_GangThoi/GetSoMeGangBKMis",
@@ -405,7 +432,6 @@
                     IDKip: selectedKip
                 },
                 success: function (data) {
-                    console.log('data: ' + data.length);
                     maxIndex = data.length;
                     let tableBody = $("#dataTable tbody");
                     tableBody.find("tr:not(#addRowBtnContainer)").remove();
@@ -463,10 +489,9 @@
                 data: { Ngay: selectedDate, Ca: selectedCa },
                 success: function (res) {
                     kipDropdown.empty().prop("disabled", true);
-
                     if (res.length > 0) {
                         $.each(res, function (index, item) {
-                            kipDropdown.append(`<option value='${item.id_Kip}'>${item.tenKip}</option>`);
+                            kipDropdown.append(`<option value='${item.iD_Kip}' data-info='${item.tenKip}'>${item.tenKip}</option>`);
                         });
                     } else {
                         kipDropdown.append("<option value='null' disabled selected>-- Kíp làm việc --</option>");
@@ -485,10 +510,13 @@
             let selectedDate = $("#ID_Day").val();
             let selectedLoCao = $("#IDLoCao").val();
             let selectedCa = $("#IDCa").val();
+
             if (selectedLoCao && selectedCa && selectedLoCao !== "null" && selectedCa !== "null" ) {
                 $("#dataTable tbody").find("tr:not(#addRowBtnContainer)").remove();
                 loadTableData(selectedDate, selectedLoCao, selectedCa);
             }
+
+            $.post("/BM16_GangThoi/SetLoCaoSession", { ID_LoCao: selectedLoCao });
         });
 
         // click add row
@@ -543,12 +571,65 @@
         });
 
         $("#xacnhan").click(function (e) {
-             e.preventDefault();
+            e.preventDefault();
 
-             var data = {
+            let selectedCa = $("#IDCa").val();
+            let selectedTaiKhoan = $("#IDTaiKhoan").val();
+            let selectedTaiKhoan_QLCL = $("#IDTaiKhoan_QLCL").val();
+            let selectedLoCao = $("#IDLoCao").val();
+
+            if (!selectedLoCao || selectedLoCao == "null") {
+                alert('Vui lòng chọn Lò cao!');
+                return false;
+            }
+
+            if (!selectedCa || selectedCa == "null") {
+                alert('Vui lòng chọn Ca Kíp!');
+                return false;
+            }
+
+            if (!selectedTaiKhoan || selectedTaiKhoan == "null") {
+                alert('Vui lòng chọn Đại diện bên nhận HRC!');
+                return false;
+            }
+
+            if (!selectedTaiKhoan_QLCL || selectedTaiKhoan_QLCL == "null") {
+                alert('Vui lòng chọn Đại diện bên nhận QLCL!');
+                return false;
+            }
+
+            var PBPXValue = $("#ID_PhongBan_BG").data("info");
+            var partsBG = PBPXValue.split("-");
+
+            var PBPX_HRCValue = $("#IDPhongBan option:selected").data("info");
+            var partPBPXHRC = PBPX_HRCValue.split("-");
+
+            var PBPX_QLCLValue = $("#IDPhongBan_QLCL option:selected").data("info");
+            var partPBPX_QLCL = PBPX_QLCLValue.split("-");
+
+            var data = {
                 ID_NhanVien_BG: $("#ID_NhanVien_BG").data("info"),
-                ID_PhongBan_BG: $("#ID_PhongBan_BG").data("info"),
-                //ID_ViTri_BG: $("#ID_ViTri_BG").data("info")
+                ID_PhongBan_BG: partsBG[0],
+                ID_Xuong_BG: partsBG[1],
+                ID_ViTri_BG: $("#ID_ViTri_BG").data("info"),
+
+                ID_NhanVien_HRC: $("#IDTaiKhoan").val(),
+                ID_PhongBan_HRC: partPBPXHRC[0],
+                ID_Xuong_HRC: partPBPXHRC[1] === "null" ? null : partPBPXHRC[1],
+                ID_ViTri_HRC: $("#IDChucVu option:selected").data("info"),
+
+                ID_NhanVien_QLCL: $("#IDTaiKhoan_QLCL").val(),
+                ID_PhongBan_QLCL: partPBPX_QLCL[0],
+                ID_Xuong_QLCL: partPBPX_QLCL[1] === "null" ? null : partPBPX_QLCL[1],
+                ID_ViTri_QLCL: $("#IDChucVu_QLCL option:selected").data("info"),
+
+                NgayXuly_BG: $("#ID_Day").val(),
+
+                ID_Kip: $("#CaKip").val(),
+                Kip: $("#CaKip option:selected").data("info"),
+                Ca: $("#IDCa").val(),
+
+                NoiDungTrichYeu: $("#NoiDungTrichYeu").val()
             };
             console.log(data)
 
@@ -595,16 +676,15 @@
             contentType: "application/json",
             data: JSON.stringify(tableData),
             success: function (response) {
-                window.location.href = "/BM16_GangThoi/Detail";
+                window.location.href = "/BM16_GangThoi/Detail/" + idBBGL;
             }
         });
     }
-
-    });
+});
 
 </script>
 <script type="text/javascript">
-    $("#IDTaiKhoan, #IDTaiKhoan2, #IDTaiKhoan3").chosen({
+    $("#IDTaiKhoan, #IDTaiKhoan_QLCL, #IDTaiKhoan3").chosen({
         width: "100%"
     });
     

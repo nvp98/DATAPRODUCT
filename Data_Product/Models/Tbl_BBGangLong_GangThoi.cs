@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data_Product.Models
 {
@@ -32,26 +33,27 @@ namespace Data_Product.Models
         public DateTime? NgayXuly_QLCL { get; set; }
 
         [StringLength(50)]
-        public string SoPhieu { get; set; }
+        public string? SoPhieu { get; set; }
 
         public int? ID_Kip { get; set; }
 
         [StringLength(1)]
-        public string Kip { get; set; }
+        public string? Kip { get; set; }
 
         [StringLength(1)]
-        public string Ca { get; set; }
+        public string? Ca { get; set; }
 
         public int? IDBBGL_Cu { get; set; }
 
         [StringLength(250)]
-        public string FileBBGL { get; set; }
+        public string? FileBBGL { get; set; }
 
         public DateTime? NgayTao { get; set; }
 
         [StringLength(250)]
-        public string NoiDungTrichYeu { get; set; }
+        public string? NoiDungTrichYeu { get; set; }
 
         public int? ID_QuyTrinh { get; set; }
+
     }
 }

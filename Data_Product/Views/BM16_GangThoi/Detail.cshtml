@@ -29,17 +29,27 @@
     }
 }
 @{
-    // int ID = Convert.ToInt32(ViewBag.Data);
-    // var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID).FirstOrDefault();
-    // var ID_TK = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID).FirstOrDefault();
+    int ID = Convert.ToInt32(ViewBag.Data);
+    var ID_BBGN = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID).FirstOrDefault();
+    var ID_TK = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID).FirstOrDefault();
 
-    //Thông tin bên nhận
-    // var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BN).FirstOrDefault();
-    //var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BN.ID_PhongBan).FirstOrDefault();
-    //var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BN.ID_PhanXuong).FirstOrDefault();
-    // var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BN).FirstOrDefault();
-    // var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BN).FirstOrDefault();
-    // var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+    //Thông tin bên giao
+    var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BG).FirstOrDefault();
+    var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
+    var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BG).FirstOrDefault();
+    var ViTri_BG = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BG.ID_ChucVu).FirstOrDefault();
+
+    //Thông tin bên nhận HRC
+    var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC).FirstOrDefault();
+    var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC).FirstOrDefault();
+    var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC).FirstOrDefault();
+    var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+
+    // Thông tin bên nhận QLCL
+    var ThongTin_BN_QLCL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_QLCL).FirstOrDefault();
+    var PhongBan_BN_QLCL = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_QLCL).FirstOrDefault();
+    var PhanXuong_BN_QLCL = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_QLCL).FirstOrDefault();
+    var ViTri_BN_QLCL = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN_QLCL.ID_ChucVu).FirstOrDefault();
 
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
@@ -55,26 +65,26 @@
                             <div class="col-4" style="text-align: left;padding: 2%  2%  2% 0%; ">
                                 <span class="text-muted small pt-2 ps-1">
                                     <b style="color:#06428b">
-                                        BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
+                                        BM.16/QT.05.09
                                     </b>
                                 </span>
                             </div><!-- End Recent Sales -->
-                            
+
 
                             <script type="text/javascript">
-                                
+
                             </script>
                         </div>
                     </div>
                     <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("HuyPhieu_PheDuyet", "XuLyPhieu", new { id = 1 })'></div>
                     <script type="text/javascript">
                         $('#btn-delete').click(function () {
-                            var url = $('#myModal').data('url');
-                            $.get(url, function (data) {
-                                $("#myModal").html(data);
-                                $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
-                                $("#myModal").modal('show');
-                            });
+                        var url = $('#myModal').data('url');
+                        $.get(url, function (data) {
+                        $("#myModal").html(data);
+                        $("#ModalTitle").html("THÔNG TIN PHÊ DUYỆT HỦY PHIẾU");
+                        $("#myModal").modal('show');
+                        });
                         });
                     </script>
                     <div class="row" style="width:100%;padding-top:7.5%;">
@@ -88,9 +98,9 @@
                                     </b>
 
                                 </div>
-                                
+
                                 <div style="text-align: center; width: 45%; font-size: 14px; padding-top:0.5%;">
-                                    
+
 
                                 </div>
 
@@ -106,19 +116,23 @@
                                     </b>
                                 </h4>
                                 <span class="text-muted small pt-2 ps-1">
-                                    
+
+                                    @{
+                                        var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
+                                        var Date = (DateTime)ID_BBGN.NgayXuly_BG;
+                                    }
                                     <i style="color:black;">
-                                        Kíp TEST
+                                        Lò cao @ViewBag.ID_LoCao, Kíp @ID_Kip.TenCa@ID_Kip.TenKip Ngày @Date.ToString("dd") Tháng @Date.ToString("MM") Năm @Date.ToString("yyyy")
                                     </i>
 
                                 </span>
                             </div>
                             <div class="col-xxl-4 col-md-6" style="text-align: right;">
                                 <div style="text-align:right;font-size:14px;">
-                                    <b>BM.11/QT.05</b>
+                                    <b>BM.16/QT.05</b>
                                 </div>
                                 <div style="text-align:right;font-size:14px;">
-                                    <b> <i>Ngày hiệu lực:</i> 01/09/2024</b>
+                                    <b> <i>Ngày hiệu lực:</i> 01/10/2024</b>
                                 </div>
                                 <div style="text-align:right;font-size:14px;">
                                     <b> <i>Lần sửa đổi:</i> 01</b>
@@ -128,8 +142,6 @@
                         </div><!-- End Recent Sales -->
                         <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1.5%;">
                             @{
-                                // var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-                                // var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
                                 var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
                                 var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
                                 var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
@@ -185,12 +197,12 @@
                             <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
                                 <div style="padding-left: 3%;padding-top:3%;">
                                     <span style="color:black; font-size:14px;">
-                                        Đại diện bên nhận:
+                                        Đại diện bên nhận HRC:
                                     </span>
                                 </div>
                                 <div style="padding-left: 3%;">
                                     <span style="color:black; font-size:14px;">
-                                        ThongTin_BN.TenTaiKhoan - ThongTin_BN.HoVaTen
+                                        @ThongTin_BN.TenTaiKhoan - @ThongTin_BN.HoVaTen
                                     </span>
                                 </div>
 
@@ -203,7 +215,7 @@
                                 </div>
                                 <div style="padding-left: 3%;">
                                     <span style="color:black; font-size:14px;">
-                                        ViTri_BN.TenViTri
+                                        @ViTri_BN.TenViTri
                                     </span>
 
                                 </div>
@@ -218,7 +230,7 @@
                                 </div>
                                 <div style="padding-left: 3%;">
                                     <span style="color:black; font-size:14px;">
-                                        PhongBan_BN.TenPhongBan - PhanXuong_BN.TenXuong
+                                        @PhongBan_BN.TenPhongBan - @PhanXuong_BN.TenXuong
                                     </span>
 
                                 </div>
@@ -226,7 +238,62 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <div class="row" style="width:100%">
+                        <div class="col-lg-12" style="display:flex;padding-bottom:1%;">
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                <div style="padding-left: 3%;padding-top:3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        Đại diện bên nhận QLCL:
+                                    </span>
+                                </div>
+                                <div style="padding-left: 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        @ThongTin_BN_QLCL.TenTaiKhoan - @ThongTin_BN_QLCL.HoVaTen
+                                    </span>
+                                </div>
+
+                            </div>
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                <div style="padding-left: 3%;padding-top:3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        Chức vụ:
+                                    </span>
+                                </div>
+                                <div style="padding-left: 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        @ViTri_BN_QLCL.TenViTri
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                <div style="padding-left: 3%;padding-top:3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        BP/NM:
+                                    </span>
+                                </div>
+                                <div style="padding-left: 3%;">
+                                    <span style="color:black; font-size:14px;">
+                                        @PhongBan_BN_QLCL.TenPhongBan - @PhanXuong_BN_QLCL.TenXuong
+                                    </span>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="width:100%; padding-bottom:1%;">
+                        <div class="col-lg-12">
+                            <div class="p-3 bg-light rounded">
+                                <span class="text-dark">Nội dung trích yếu:</span>
+                                <textarea class="form-control mt-2" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" disabled>@Html.Raw(ViewBag.NoiDungTrichYeu)</textarea>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="card-body" style="padding-top: 1%;">
                         <div class="table-responsive" style="height: 400px;">
@@ -251,9 +318,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @{
+                                        var index = 1;
+                                    }
                                     @foreach (var item in Model) {
                                         <tr>
-                                            <td>1</td>
+                                            <td>@index</td>
                                             <td>@item.SoMe</td>
                                             <td>@item.ThungSo</td>
 
@@ -268,51 +338,57 @@
                                             <td>@item.Gio</td>
                                             <td>@item.GhiChu</td>
                                         </tr>
+                                        index++;
                                     }
                                     
                                 </tbody>
-
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="6" class="text-center font-weight-bold"><b>Tổng khối lượng</b></td>
+                                        <td class="font-weight-bold">@Model.Sum(x => x.KLGangLongCanRay)</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
                             </table>
 
                         </div>
 
                     </div>
-                    <div class="col-lg-12" style="text-align: left;height: 150px;display: flex;">
-                        <div class="col-xxl-6 col-md-6">
-
-                            <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
-                                <b>
-                                    Bên nhận
-                                </b>
+                    <div class="col-lg-12" style="text-align: left; height: 150px; display: flex;">
+                        <div class="col-xxl-4 col-md-4">
+                            <div style="text-align: center; font-size: 14px; padding-top: 0.5%;">
+                                <b>Bên nhận HRC</b>
                             </div>
-                            <div style="text-align: center; font-size: 14px; padding:2%;">
-                                
-                            </div>
+                            <div style="text-align: center; font-size: 14px; padding: 2%;"></div>
                             <div style="text-align: center; font-size: 14px;">
-                                <b>
-                                    ThongTin_BN.HoVaTen
-                                </b>
-                            </div>
-                        </div>
-                        <div class="col-xxl-6 col-md-6">
-
-                            <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
-                                <b>
-                                    Bên giao
-                                </b>
-                            </div>
-                            <div style="text-align: center; font-size: 14px; padding:2%;">
-                                
-                            </div>
-                            <div style="text-align: center; font-size: 14px;">
-                                <b>
-                                    @TaiKhoan.HoVaTen
-                                </b>
+                                <b>@ThongTin_BN.HoVaTen</b>
                             </div>
                         </div>
 
+                        <div class="col-xxl-4 col-md-4">
+                            <div style="text-align: center; font-size: 14px; padding-top: 0.5%;">
+                                <b>Bên nhận QLCL</b>
+                            </div>
+                            <div style="text-align: center; font-size: 14px; padding: 2%;"></div>
+                            <div style="text-align: center; font-size: 14px;">
+                                <b>@ThongTin_BN_QLCL.HoVaTen</b>
+                            </div>
+                        </div>
+
+                        <div class="col-xxl-4 col-md-4">
+                            <div style="text-align: center; font-size: 14px; padding-top: 0.5%;">
+                                <b>Bên giao</b>
+                            </div>
+                            <div style="text-align: center; font-size: 14px; padding: 2%;"></div>
+                            <div style="text-align: center; font-size: 14px;">
+                                <b>@TaiKhoan.HoVaTen</b>
+                            </div>
+                        </div>
                     </div>
-
                 </div>
             </div>
         </div>
