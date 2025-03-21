@@ -187,6 +187,7 @@
 
                                     $("#IDTaiKhoan").change(function () {
                                         $.get("/BM_11/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                            $.post("/BM16_GangThoi/SetIDTaiKhoanHRCSession", { IDTaiKhoanHRC: $("#IDTaiKhoan").val() });
 
                                             if (data[0] != null) {
                                                 $("#IDChucVu").empty();
@@ -201,25 +202,6 @@
                                         });
                                     });
                                 </script>
-                                <script type="text/javascript">
-
-                                    $("#IDTaiKhoan").change(function () {
-                                        $.get("/BM_11/NguyenLieu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
-                                            if (data[0] != null) {
-
-                                                $("#IDVatTu").empty();
-                                                $.each(data, function (index, row) {
-                                                    $("#IDVatTu").append("<option value ='" + row.iD_VatTu + "' selected>" + row.tenVatTu + "</option>");
-                                                });
-                                            }
-                                            else {
-                                                $("#IDVatTu").empty();
-                                                $("#IDVatTu").append("<option value ='" + 0 + "'>" + "--Không có nguyên/nhiên/vật tư--" + "</option>")
-                                            }
-                                        });
-                                    });
-                                </script>
-
                             </div>
                             <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
                                 <div style="padding:1% 0% 1% 3%;">
@@ -247,9 +229,6 @@
                                             if (data[0] != null) {
                                                 $("#IDPhongBan").empty();
                                                 $.each(data, function (index, row) {
-                                                    console.log(row)
-                                                    console.log(row.tenChucVu)
-                                                    console.log(row.iD_TaiKhoan)
                                                     $("#IDPhongBan").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
                                                 });
                                             }
@@ -282,7 +261,7 @@
 
                                     $("#IDTaiKhoan_QLCL").change(function () {
                                         $.get("/BM_11/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan_QLCL").val() }, function (data) {
-
+                                            $.post("/BM16_GangThoi/SetIDTaiKhoanQLCLSession", { IDTaiKhoanQLCL: $("#IDTaiKhoan_QLCL").val() });
                                             if (data[0] != null) {
                                                 $("#IDChucVu_QLCL").empty();
                                                 $.each(data, function (index, row) {
@@ -342,9 +321,6 @@
                                             if (data[0] != null) {
                                                 $("#IDPhongBan_QLCL").empty();
                                                 $.each(data, function (index, row) {
-                                                    console.log(row)
-                                                    console.log(row.tenChucVu)
-                                                    console.log(row.iD_TaiKhoan)
                                                     $("#IDPhongBan_QLCL").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
                                                 });
                                             }
@@ -570,86 +546,88 @@
             $("#KLGLCR_" + index).val(klGLCR);
         });
 
-        $("#xacnhan").click(function (e) {
-            e.preventDefault();
+    $("#xacnhan, #btnSave").click(function (e) {
+        e.preventDefault();
 
-            let selectedCa = $("#IDCa").val();
-            let selectedTaiKhoan = $("#IDTaiKhoan").val();
-            let selectedTaiKhoan_QLCL = $("#IDTaiKhoan_QLCL").val();
-            let selectedLoCao = $("#IDLoCao").val();
+        let selectedButton = $(this).attr("id");
 
-            if (!selectedLoCao || selectedLoCao == "null") {
-                alert('Vui lòng chọn Lò cao!');
-                return false;
-            }
+        let selectedCa = $("#IDCa").val();
+        let selectedTaiKhoan = $("#IDTaiKhoan").val();
+        let selectedTaiKhoan_QLCL = $("#IDTaiKhoan_QLCL").val();
+        let selectedLoCao = $("#IDLoCao").val();
 
-            if (!selectedCa || selectedCa == "null") {
-                alert('Vui lòng chọn Ca Kíp!');
-                return false;
-            }
+        if (!selectedLoCao || selectedLoCao == "null") {
+            alert('Vui lòng chọn Lò cao!');
+            return false;
+        }
 
-            if (!selectedTaiKhoan || selectedTaiKhoan == "null") {
-                alert('Vui lòng chọn Đại diện bên nhận HRC!');
-                return false;
-            }
+        if (!selectedCa || selectedCa == "null") {
+            alert('Vui lòng chọn Ca Kíp!');
+            return false;
+        }
 
-            if (!selectedTaiKhoan_QLCL || selectedTaiKhoan_QLCL == "null") {
-                alert('Vui lòng chọn Đại diện bên nhận QLCL!');
-                return false;
-            }
+        if (!selectedTaiKhoan || selectedTaiKhoan == "null") {
+            alert('Vui lòng chọn Đại diện bên nhận HRC!');
+            return false;
+        }
 
-            var PBPXValue = $("#ID_PhongBan_BG").data("info");
-            var partsBG = PBPXValue.split("-");
+        if (!selectedTaiKhoan_QLCL || selectedTaiKhoan_QLCL == "null") {
+            alert('Vui lòng chọn Đại diện bên nhận QLCL!');
+            return false;
+        }
 
-            var PBPX_HRCValue = $("#IDPhongBan option:selected").data("info");
-            var partPBPXHRC = PBPX_HRCValue.split("-");
+        var PBPXValue = $("#ID_PhongBan_BG").data("info");
+        var partsBG = PBPXValue.split("-");
 
-            var PBPX_QLCLValue = $("#IDPhongBan_QLCL option:selected").data("info");
-            var partPBPX_QLCL = PBPX_QLCLValue.split("-");
+        var PBPX_HRCValue = $("#IDPhongBan option:selected").data("info");
+        var partPBPXHRC = PBPX_HRCValue.split("-");
 
-            var data = {
-                ID_NhanVien_BG: $("#ID_NhanVien_BG").data("info"),
-                ID_PhongBan_BG: partsBG[0],
-                ID_Xuong_BG: partsBG[1],
-                ID_ViTri_BG: $("#ID_ViTri_BG").data("info"),
+        var PBPX_QLCLValue = $("#IDPhongBan_QLCL option:selected").data("info");
+        var partPBPX_QLCL = PBPX_QLCLValue.split("-");
 
-                ID_NhanVien_HRC: $("#IDTaiKhoan").val(),
-                ID_PhongBan_HRC: partPBPXHRC[0],
-                ID_Xuong_HRC: partPBPXHRC[1] === "null" ? null : partPBPXHRC[1],
-                ID_ViTri_HRC: $("#IDChucVu option:selected").data("info"),
+        var data = {
+            ID_NhanVien_BG: $("#ID_NhanVien_BG").data("info"),
+            ID_PhongBan_BG: partsBG[0],
+            ID_Xuong_BG: partsBG[1],
+            ID_ViTri_BG: $("#ID_ViTri_BG").data("info"),
 
-                ID_NhanVien_QLCL: $("#IDTaiKhoan_QLCL").val(),
-                ID_PhongBan_QLCL: partPBPX_QLCL[0],
-                ID_Xuong_QLCL: partPBPX_QLCL[1] === "null" ? null : partPBPX_QLCL[1],
-                ID_ViTri_QLCL: $("#IDChucVu_QLCL option:selected").data("info"),
+            ID_NhanVien_HRC: $("#IDTaiKhoan").val(),
+            ID_PhongBan_HRC: partPBPXHRC[0],
+            ID_Xuong_HRC: partPBPXHRC[1] === "null" ? null : partPBPXHRC[1],
+            ID_ViTri_HRC: $("#IDChucVu option:selected").data("info"),
 
-                NgayXuly_BG: $("#ID_Day").val(),
+            ID_NhanVien_QLCL: $("#IDTaiKhoan_QLCL").val(),
+            ID_PhongBan_QLCL: partPBPX_QLCL[0],
+            ID_Xuong_QLCL: partPBPX_QLCL[1] === "null" ? null : partPBPX_QLCL[1],
+            ID_ViTri_QLCL: $("#IDChucVu_QLCL option:selected").data("info"),
 
-                ID_Kip: $("#CaKip").val(),
-                Kip: $("#CaKip option:selected").data("info"),
-                Ca: $("#IDCa").val(),
+            NgayXuly_BG: $("#ID_Day").val(),
 
-                NoiDungTrichYeu: $("#NoiDungTrichYeu").val()
-            };
-            console.log(data)
+            ID_Kip: $("#CaKip").val(),
+            Kip: $("#CaKip option:selected").data("info"),
+            Ca: $("#IDCa").val(),
 
-            $.ajax({
-                url: "/BM16_GangThoi/SubmitData_BBGangLong_GangThoi",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(data),
-                processData: false,
-                success: function (response) {
-                    if (response.success) {
-                        let ID_BBGL = response.id_BBGL;
-                        // call API
-                        submitChiTietBBGangLong(ID_BBGL);
-                    }
+            NoiDungTrichYeu: $("#NoiDungTrichYeu").val()
+        };
+        console.log(data)
+
+        $.ajax({
+            url: "/BM16_GangThoi/SubmitData_BBGangLong_GangThoi",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            processData: false,
+            success: function (response) {
+                if (response.success) {
+                    let ID_BBGL = response.id_BBGL;
+                    // call API
+                    submitChiTietBBGangLong(ID_BBGL, selectedButton);
                 }
-            });
+            }
         });
+    });
 
-    function submitChiTietBBGangLong(idBBGL) {
+    function submitChiTietBBGangLong(idBBGL, selectedButton) {
         var tableData = [];
 
         $("#dataTable tbody tr").slice(0, -1).each(function () {
@@ -676,7 +654,11 @@
             contentType: "application/json",
             data: JSON.stringify(tableData),
             success: function (response) {
-                window.location.href = "/BM16_GangThoi/Detail/" + idBBGL;
+                if (selectedButton === "xacnhan") {
+                    window.location.href = "/BM16_GangThoi/Detail/" + idBBGL;
+                } else {
+                    window.location.href = "/BM16_GangThoi/Edit/" + idBBGL;
+                }
             }
         });
     }
@@ -684,7 +666,7 @@
 
 </script>
 <script type="text/javascript">
-    $("#IDTaiKhoan, #IDTaiKhoan_QLCL, #IDTaiKhoan3").chosen({
+    $("#IDTaiKhoan, #IDTaiKhoan_QLCL").chosen({
         width: "100%"
     });
     

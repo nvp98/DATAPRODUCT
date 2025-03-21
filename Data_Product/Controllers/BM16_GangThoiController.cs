@@ -192,11 +192,20 @@ namespace Data_Product.Controllers
         {
 
             var jsonData = HttpContext.Session.GetString("ListData");
+            if (string.IsNullOrEmpty(jsonData))
+            {
+                jsonData = HttpContext.Session.GetString("ListData_Edit");
+            }
+
             List<Tbl_ChiTiet_BBGangLong_GangThoi> listData = string.IsNullOrEmpty(jsonData) ? new List<Tbl_ChiTiet_BBGangLong_GangThoi>() :
-                JsonConvert.DeserializeObject<List<Tbl_ChiTiet_BBGangLong_GangThoi>>(jsonData);
+            JsonConvert.DeserializeObject<List<Tbl_ChiTiet_BBGangLong_GangThoi>>(jsonData);
 
             var idLoCao = HttpContext.Session.GetString("ID_LoCao") ?? " ";
-            var NoiDungTrichYeu = HttpContext.Session.GetString("NoiDungTrichYeu") ?? " ";
+            var NoiDungTrichYeu = HttpContext.Session.GetString("NoiDungTrichYeu");
+            if (string.IsNullOrEmpty(NoiDungTrichYeu))
+            {
+                NoiDungTrichYeu = HttpContext.Session.GetString("NoiDungTrichYeu_Edit");
+            }
 
             ViewBag.ID_LoCao = idLoCao;
             ViewBag.Data = id;
@@ -208,26 +217,50 @@ namespace Data_Product.Controllers
         [HttpPost]
         public IActionResult SubmitData([FromBody] List<Tbl_ChiTiet_BBGangLong_GangThoi> listData)
         {
-            // Lưu Session
+            if (listData == null || listData.Count == 0)
+            {
+                return Json(new { success = false, message = "Error!" });
+            }
+
             HttpContext.Session.SetString("ListData", JsonConvert.SerializeObject(listData));
 
             foreach (var item in listData)
             {
-                var data = new Tbl_ChiTiet_BBGangLong_GangThoi();
-                data.SoMe = item.SoMe;
-                data.ThungSo = item.ThungSo;
-                data.KhoiLuongXeGoong = item.KhoiLuongXeGoong;
-                data.KhoiLuongThung = item.KhoiLuongThung;
-                data.KLThungGangLong = item.KLThungGangLong;
-                data.KLGangLongCanRay = item.KLGangLongCanRay;
-                data.PhanLoai = item.PhanLoai;
-                data.GhiChu = item.GhiChu;
-                data.Id_BBGL = item.Id_BBGL;
+                var existingData = _context.Tbl_ChiTiet_BBGangLong_GangThoi
+                    .Where(x => x.Id_BBGL == item.Id_BBGL && x.SoMe == item.SoMe).SingleOrDefault();
 
-                _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(data);
+                if (existingData != null)
+                {
+                    existingData.SoMe = item.SoMe;
+                    existingData.ThungSo = item.ThungSo;
+                    existingData.KhoiLuongXeGoong = item.KhoiLuongXeGoong;
+                    existingData.KhoiLuongThung = item.KhoiLuongThung;
+                    existingData.KLThungGangLong = item.KLThungGangLong;
+                    existingData.KLGangLongCanRay = item.KLGangLongCanRay;
+                    existingData.PhanLoai = item.PhanLoai;
+                    existingData.GhiChu = item.GhiChu;
+                }
+                else
+                {
+                    var newData = new Tbl_ChiTiet_BBGangLong_GangThoi
+                    {
+                        SoMe = item.SoMe,
+                        ThungSo = item.ThungSo,
+                        KhoiLuongXeGoong = item.KhoiLuongXeGoong,
+                        KhoiLuongThung = item.KhoiLuongThung,
+                        KLThungGangLong = item.KLThungGangLong,
+                        KLGangLongCanRay = item.KLGangLongCanRay,
+                        PhanLoai = item.PhanLoai,
+                        GhiChu = item.GhiChu,
+                        Id_BBGL = item.Id_BBGL
+                    };
+                    _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(newData);
+                }
             }
 
             _context.SaveChanges();
+
+            HttpContext.Session.Remove("ID_BBGL");
 
             return Json(new { success = true });
         }
@@ -235,6 +268,17 @@ namespace Data_Product.Controllers
         [HttpPost]
         public IActionResult SubmitData_BBGangLong_GangThoi([FromBody] Tbl_BBGangLong_GangThoi res)
         {
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new { success = false, errors });
+            }
+            
             var data = new Tbl_BBGangLong_GangThoi();
             data.ID_NhanVien_BG = res.ID_NhanVien_BG;
             data.ID_PhongBan_BG = res.ID_PhongBan_BG;
@@ -258,13 +302,154 @@ namespace Data_Product.Controllers
 
             data.NoiDungTrichYeu = res.NoiDungTrichYeu;
 
-            _context.Tbl_BBGangLong_GangThoi.Add(data);
+            var ID_BBGL = HttpContext.Session.GetInt32("ID_BBGL");
+            var dataInDb = _context.Tbl_BBGangLong_GangThoi.Find(ID_BBGL);
+            
+            if (dataInDb == null)
+            {
+                _context.Tbl_BBGangLong_GangThoi.Add(data);
+            } 
+            else
+            {
+                dataInDb.ID_NhanVien_BG = res.ID_NhanVien_BG;
+                dataInDb.ID_PhongBan_BG = res.ID_PhongBan_BG;
+                dataInDb.ID_ViTri_BG = res.ID_ViTri_BG;
+                dataInDb.ID_Xuong_BG = res.ID_Xuong_BG;
+
+                dataInDb.ID_NhanVien_HRC = res.ID_NhanVien_HRC;
+                dataInDb.ID_PhongBan_HRC = res.ID_PhongBan_HRC;
+                dataInDb.ID_ViTri_HRC = res.ID_ViTri_HRC;
+                dataInDb.ID_Xuong_HRC = res.ID_Xuong_HRC;
+
+                dataInDb.ID_NhanVien_QLCL = res.ID_NhanVien_QLCL;
+                dataInDb.ID_PhongBan_QLCL = res.ID_PhongBan_QLCL;
+                dataInDb.ID_Xuong_QLCL = res.ID_Xuong_QLCL;
+                dataInDb.ID_ViTri_QLCL = res.ID_ViTri_QLCL;
+
+                dataInDb.NgayXuly_BG = res.NgayXuly_BG;
+                dataInDb.ID_Kip = res.ID_Kip;
+                dataInDb.Kip = res.Kip;
+                dataInDb.Ca = res.Ca;
+
+                dataInDb.NoiDungTrichYeu = res.NoiDungTrichYeu;
+            }
+
             _context.SaveChanges();
 
+            HttpContext.Session.SetString("NgayXuly_BG", res.NgayXuly_BG?.ToString("yyyy-MM-dd") ?? "");
             HttpContext.Session.SetString("NoiDungTrichYeu", res.NoiDungTrichYeu);
+            HttpContext.Session.SetString("IDCa", res.Ca.ToString() ?? "");
+            HttpContext.Session.SetString("Kip", res.Kip.ToString() ?? "");
+            HttpContext.Session.SetString("IDKip", res.ID_Kip.ToString() ?? "");
+            HttpContext.Session.SetInt32("ID_BBGL", data.ID_BBGL);
+            HttpContext.Session.SetInt32("ID_BBGL_Edit", data.ID_BBGL);
 
+            if (data.ID_BBGL == 0)
+            {
+                data.ID_BBGL = dataInDb.ID_BBGL;
+            }
             return Json(new { success = true, Id_BBGL = data.ID_BBGL });
         }
+
+        [HttpPost]
+        public IActionResult SubmitData_BBGangLong_GangThoi_Edit([FromBody] Tbl_BBGangLong_GangThoi res)
+        {
+            var ID_BBGL = HttpContext.Session.GetInt32("ID_BBGL_Edit");
+            var dataInDb = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID_BBGL).FirstOrDefault();
+           
+            dataInDb.ID_NhanVien_BG = res.ID_NhanVien_BG;
+            dataInDb.ID_PhongBan_BG = res.ID_PhongBan_BG;
+            dataInDb.ID_ViTri_BG = res.ID_ViTri_BG;
+            dataInDb.ID_Xuong_BG = res.ID_Xuong_BG;
+
+            dataInDb.ID_NhanVien_HRC = res.ID_NhanVien_HRC;
+            dataInDb.ID_PhongBan_HRC = res.ID_PhongBan_HRC;
+            dataInDb.ID_ViTri_HRC = res.ID_ViTri_HRC;
+            dataInDb.ID_Xuong_HRC = res.ID_Xuong_HRC;
+
+            dataInDb.ID_NhanVien_QLCL = res.ID_NhanVien_QLCL;
+            dataInDb.ID_PhongBan_QLCL = res.ID_PhongBan_QLCL;
+            dataInDb.ID_Xuong_QLCL = res.ID_Xuong_QLCL;
+            dataInDb.ID_ViTri_QLCL = res.ID_ViTri_QLCL;
+
+            dataInDb.NgayXuly_BG = res.NgayXuly_BG;
+            dataInDb.ID_Kip = res.ID_Kip;
+            dataInDb.Kip = res.Kip;
+            dataInDb.Ca = res.Ca;
+
+            dataInDb.NoiDungTrichYeu = res.NoiDungTrichYeu;
+
+            _context.SaveChanges();
+
+            HttpContext.Session.SetString("NoiDungTrichYeu_Edit", res.NoiDungTrichYeu);
+
+            return Json(new { success = true, Id_BBGL = dataInDb.ID_BBGL });
+        }
+
+        [HttpPost]
+        public IActionResult SubmitData_Edit([FromBody] List<Tbl_ChiTiet_BBGangLong_GangThoi> listData)
+        {
+            if (listData == null || listData.Count == 0)
+            {
+                return Json(new { success = false, message = "Error!" });
+            }
+
+            HttpContext.Session.SetString("ListData_Edit", JsonConvert.SerializeObject(listData));
+
+            var idBBGLs = listData.Select(x => x.Id_BBGL).Distinct().ToList();
+
+            var dbRecords = _context.Tbl_ChiTiet_BBGangLong_GangThoi
+                .Where(x => idBBGLs.Contains(x.Id_BBGL))
+                .ToList();
+
+            var itemsToDelete = dbRecords
+                .Where(dbItem => !listData.Any(item => item.Id_BBGL == dbItem.Id_BBGL && item.SoMe == dbItem.SoMe))
+                .ToList();
+
+            _context.Tbl_ChiTiet_BBGangLong_GangThoi.RemoveRange(itemsToDelete);
+
+            foreach (var item in listData)
+            {
+                var existingData = _context.Tbl_ChiTiet_BBGangLong_GangThoi
+                    .Where(x => x.Id_BBGL == item.Id_BBGL && x.SoMe == item.SoMe).SingleOrDefault();
+
+                if (existingData != null)
+                {
+                    existingData.SoMe = item.SoMe;
+                    existingData.ThungSo = item.ThungSo;
+                    existingData.KhoiLuongXeGoong = item.KhoiLuongXeGoong;
+                    existingData.KhoiLuongThung = item.KhoiLuongThung;
+                    existingData.KLThungGangLong = item.KLThungGangLong;
+                    existingData.KLGangLongCanRay = item.KLGangLongCanRay;
+                    existingData.PhanLoai = item.PhanLoai;
+                    existingData.GhiChu = item.GhiChu;
+                }
+                else
+                {
+                    var newData = new Tbl_ChiTiet_BBGangLong_GangThoi
+                    {
+                        SoMe = item.SoMe,
+                        ThungSo = item.ThungSo,
+                        KhoiLuongXeGoong = item.KhoiLuongXeGoong,
+                        KhoiLuongThung = item.KhoiLuongThung,
+                        KLThungGangLong = item.KLThungGangLong,
+                        KLGangLongCanRay = item.KLGangLongCanRay,
+                        PhanLoai = item.PhanLoai,
+                        GhiChu = item.GhiChu,
+                        Id_BBGL = item.Id_BBGL
+                    };
+                    _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(newData);
+                }
+            }
+
+            _context.SaveChanges();
+
+            HttpContext.Session.Remove("ListData");
+            HttpContext.Session.Remove("NoiDungTrichYeu");
+
+            return Json(new { success = true });
+        }
+
         public async Task<IActionResult> PhongBan(int IDTaiKhoan)
         {
             if (IDTaiKhoan == null) IDTaiKhoan = 0;
@@ -290,5 +475,118 @@ namespace Data_Product.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public IActionResult SetIDTaiKhoanHRCSession(int? IDTaiKhoanHRC)
+        {
+            HttpContext.Session.SetString("IDTaiKhoanHRC", IDTaiKhoanHRC.ToString() ?? "");
+
+            return Ok();
+        }
+
+        [HttpPost]
+        public IActionResult SetIDTaiKhoanQLCLSession(int? IDTaiKhoanQLCL)
+        {
+            HttpContext.Session.SetString("IDTaiKhoanQLCL", IDTaiKhoanQLCL.ToString() ?? "");
+
+            return Ok();
+        }
+
+        public async Task<IActionResult> Edit(int id)
+        {
+
+            DateTime DayNow = DateTime.Now;
+            String Day = DayNow.ToString("dd/MM/yyyy");
+            DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+            string TenBP = PhongBan.TenNgan.ToString();
+
+            List<Tbl_NhomVatTu> vt = _context.Tbl_NhomVatTu.ToList();
+            ViewBag.VTList = new SelectList(vt, "ID_NhomVatTu", "TenNhomVatTu");
+
+
+            List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
+            ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
+
+            var NhanVien = (from a in _context.Tbl_TaiKhoan
+                            select new Tbl_TaiKhoan
+                            {
+                                ID_TaiKhoan = a.ID_TaiKhoan,
+                                HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                            }).ToList();
+
+            var IDTK_HRC = HttpContext.Session.GetString("IDTaiKhoanHRC") ?? " ";
+            var IDTK_QLCL = HttpContext.Session.GetString("IDTaiKhoanQLCL") ?? " ";
+
+            ViewBag.IDTaiKhoan_HRC = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", Convert.ToInt32(IDTK_HRC));
+            ViewBag.IDTaiKhoan_QLCL = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", Convert.ToInt32(IDTK_QLCL));
+
+            var VatTu = (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(TenBP) && x.ID_TrangThai == 1)
+                         select new Tbl_VatTu
+                         {
+                             ID_VatTu = a.ID_VatTu,
+                             TenVatTu = a.TenVatTu
+                         }).ToList();
+
+            ViewBag.VTList = new SelectList(VatTu, "ID_VatTu", "TenVatTu");
+
+            var MaLo = (from a in _context.Tbl_MaLo
+                        select new Tbl_MaLo
+                        {
+                            ID_MaLo = a.ID_MaLo,
+                            TenMaLo = a.TenMaLo
+                        }).ToList();
+
+            ViewBag.MLList = new SelectList(MaLo, "ID_MaLo", "TenMaLo");
+
+            var CaKip = (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == NgayLamViec)
+                         select new Tbl_Kip
+                         {
+                             ID_Kip = a.ID_Kip,
+                             TenCa = a.TenCa
+                         }).ToList();
+            ViewBag.IDKip = new SelectList(CaKip, "ID_Kip", "TenCa");
+
+
+
+            var NV = (from a in _context.Tbl_TaiKhoan
+                      select new Tbl_TaiKhoan
+                      {
+                          ID_TaiKhoan = a.ID_TaiKhoan,
+                          HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                      }).ToList();
+
+            ViewBag.IDNhanVien = new SelectList(NV, "ID_TaiKhoan", "HoVaTen");
+
+            DateTime today = DateTime.Today;
+            DateTime yesterday = today.AddDays(-1);
+
+            ViewBag.MaxDate = today.ToString("yyyy-MM-dd"); // Hôm nay
+            ViewBag.MinDate = yesterday.ToString("yyyy-MM-dd"); // Hôm qua
+            ViewBag.DefaultDate = today.ToString("yyyy-MM-dd"); // Giá trị mặc định
+
+            var jsonData = HttpContext.Session.GetString("ListData");
+            List<Tbl_ChiTiet_BBGangLong_GangThoi> listData = string.IsNullOrEmpty(jsonData) ? new List<Tbl_ChiTiet_BBGangLong_GangThoi>() :
+                JsonConvert.DeserializeObject<List<Tbl_ChiTiet_BBGangLong_GangThoi>>(jsonData);
+
+            var ngayXuly_BG = HttpContext.Session.GetString("NgayXuly_BG") ?? " ";
+            var idLoCao = HttpContext.Session.GetString("ID_LoCao") ?? " ";
+            var idCa = HttpContext.Session.GetString("IDCa") ?? " ";
+            var kip = HttpContext.Session.GetString("Kip") ?? " ";
+            var IDKip = HttpContext.Session.GetString("IDKip") ?? " ";
+            var NoiDungTrichYeu = HttpContext.Session.GetString("NoiDungTrichYeu") ?? " ";
+
+            ViewBag.NgayXuly_BG = ngayXuly_BG;
+            ViewBag.ID_LoCao = idLoCao;
+            ViewBag.ID_Ca = idCa;
+            ViewBag.KipLamViec = kip;
+            ViewBag.IDKip = IDKip;
+            ViewBag.Data = id;
+            ViewBag.NoiDungTrichYeu = NoiDungTrichYeu;
+
+            return View(listData);
+        }
     }
 }

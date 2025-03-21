@@ -14,7 +14,7 @@ namespace Data_Product.Models
         [Column("SoMeGang")]
         public string SoMe { get; set; }
 
-        public int ThungSo { get; set; }
+        public string ThungSo { get; set; }
 
         [Column("KL_XeGoong")]
         public double? KhoiLuongXeGoong { get; set; }
