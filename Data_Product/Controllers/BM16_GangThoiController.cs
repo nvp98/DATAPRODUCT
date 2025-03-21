@@ -210,6 +210,7 @@ namespace Data_Product.Controllers
             ViewBag.ID_LoCao = idLoCao;
             ViewBag.Data = id;
             ViewBag.NoiDungTrichYeu = NoiDungTrichYeu;
+            HttpContext.Session.Remove("NoiDungTrichYeu_Edit");
 
             return View(listData);
         }
