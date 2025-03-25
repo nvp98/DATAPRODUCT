@@ -568,9 +568,8 @@ namespace Data_Product.Controllers
             ViewBag.MinDate = yesterday.ToString("yyyy-MM-dd"); // Hôm qua
             ViewBag.DefaultDate = today.ToString("yyyy-MM-dd"); // Giá trị mặc định
 
-            var jsonData = HttpContext.Session.GetString("ListData");
-            List<Tbl_ChiTiet_BBGangLong_GangThoi> listData = string.IsNullOrEmpty(jsonData) ? new List<Tbl_ChiTiet_BBGangLong_GangThoi>() :
-                JsonConvert.DeserializeObject<List<Tbl_ChiTiet_BBGangLong_GangThoi>>(jsonData);
+            var jsonData = _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == id).ToList();
+            List<Tbl_ChiTiet_BBGangLong_GangThoi> listData = jsonData;
 
             var ngayXuly_BG = HttpContext.Session.GetString("NgayXuly_BG") ?? " ";
             var idLoCao = HttpContext.Session.GetString("ID_LoCao") ?? " ";
