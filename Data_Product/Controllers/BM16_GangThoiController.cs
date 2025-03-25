@@ -570,13 +570,15 @@ namespace Data_Product.Controllers
 
             var jsonData = _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == id).ToList();
             List<Tbl_ChiTiet_BBGangLong_GangThoi> listData = jsonData;
-
-            var ngayXuly_BG = HttpContext.Session.GetString("NgayXuly_BG") ?? " ";
+            
+            var jsonData1 = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
+           // var jsonData1 = _context.tbl_.Where(x => x.ID_BBGL == id).FirstOrDefault();
+            var ngayXuly_BG = jsonData1.NgayXuly_BG;
             var idLoCao = HttpContext.Session.GetString("ID_LoCao") ?? " ";
-            var idCa = HttpContext.Session.GetString("IDCa") ?? " ";
-            var kip = HttpContext.Session.GetString("Kip") ?? " ";
-            var IDKip = HttpContext.Session.GetString("IDKip") ?? " ";
-            var NoiDungTrichYeu = HttpContext.Session.GetString("NoiDungTrichYeu") ?? " ";
+            var idCa = jsonData1.Ca;
+            var kip = jsonData1.Kip;
+            var IDKip = jsonData1.ID_Kip;
+            var NoiDungTrichYeu = jsonData1.NoiDungTrichYeu;
 
             ViewBag.NgayXuly_BG = ngayXuly_BG;
             ViewBag.ID_LoCao = idLoCao;
