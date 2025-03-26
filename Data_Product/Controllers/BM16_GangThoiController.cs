@@ -1,5 +1,6 @@
 ﻿using Data_Product.Models;
 using Data_Product.Repositorys;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -356,6 +357,8 @@ namespace Data_Product.Controllers
         public IActionResult SubmitData_BBGangLong_GangThoi_Edit([FromBody] Tbl_BBGangLong_GangThoi res)
         {
             var ID_BBGL = HttpContext.Session.GetInt32("ID_BBGL_Edit");
+            
+            
             var dataInDb = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID_BBGL).FirstOrDefault();
            
             dataInDb.ID_NhanVien_BG = res.ID_NhanVien_BG;
@@ -390,6 +393,7 @@ namespace Data_Product.Controllers
         [HttpPost]
         public IActionResult SubmitData_Edit([FromBody] List<Tbl_ChiTiet_BBGangLong_GangThoi> listData)
         {
+            //var test = HttpContext.Session.GetString("ComplexObject");
             if (listData == null || listData.Count == 0)
             {
                 return Json(new { success = false, message = "Error!" });
@@ -570,16 +574,22 @@ namespace Data_Product.Controllers
 
             var jsonData = _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == id).ToList();
             List<Tbl_ChiTiet_BBGangLong_GangThoi> listData = jsonData;
-            
-            var jsonData1 = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
-           // var jsonData1 = _context.tbl_.Where(x => x.ID_BBGL == id).FirstOrDefault();
-            var ngayXuly_BG = jsonData1.NgayXuly_BG;
-            var idLoCao = HttpContext.Session.GetString("ID_LoCao") ?? " ";
-            var idCa = jsonData1.Ca;
-            var kip = jsonData1.Kip;
-            var IDKip = jsonData1.ID_Kip;
-            var NoiDungTrichYeu = jsonData1.NoiDungTrichYeu;
 
+            Tbl_BBGangLong_GangThoi dataInDb = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
+
+
+            //var ngayXuly_BG = dataInDb.NgayXuly_BG;
+            //var idLoCao = HttpContext.Session.GetString("ID_LoCao") ?? " ";
+            //var idCa = dataInDb.Ca;
+            //var kip = dataInDb.Kip;
+            //var IDKip = dataInDb.ID_Kip;
+            //var NoiDungTrichYeu = dataInDb.NoiDungTrichYeu;
+            var ngayXuly_BG = HttpContext.Session.GetString("NgayXuly_BG") ?? " ";
+            var idLoCao = HttpContext.Session.GetString("ID_LoCao") ?? " ";
+            var idCa = HttpContext.Session.GetString("IDCa") ?? " ";
+            var kip = HttpContext.Session.GetString("Kip") ?? " ";
+            var IDKip = HttpContext.Session.GetString("IDKip") ?? " ";
+            var NoiDungTrichYeu = HttpContext.Session.GetString("NoiDungTrichYeu") ?? " ";
             ViewBag.NgayXuly_BG = ngayXuly_BG;
             ViewBag.ID_LoCao = idLoCao;
             ViewBag.ID_Ca = idCa;
@@ -587,6 +597,13 @@ namespace Data_Product.Controllers
             ViewBag.IDKip = IDKip;
             ViewBag.Data = id;
             ViewBag.NoiDungTrichYeu = NoiDungTrichYeu;
+
+            //HttpContext.Session.SetString("ComplexObject", dataInDb.ToString());
+            HttpContext.Session.SetString("ComplexObject", JsonConvert.SerializeObject(dataInDb));
+
+
+
+
 
             return View(listData);
         }
