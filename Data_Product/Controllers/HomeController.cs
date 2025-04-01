@@ -20,7 +20,7 @@ namespace Data_Product.Controllers
         {
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-            int ID_NhanVien = TaiKhoan.ID_TaiKhoan;
+                int ID_NhanVien = TaiKhoan.ID_TaiKhoan;
             var listViecDenToi = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_NhanVien_BN == ID_NhanVien && x.NgayTao.Date == DateTime.Now.Date && x.ID_TrangThai_BG == 1).ToList();
             var listViecToiBatDau = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_NhanVien_BG == ID_NhanVien && x.NgayTao.Date == DateTime.Now.Date).ToList();
             ViewBag.ViecDenToi = listViecDenToi.Count();

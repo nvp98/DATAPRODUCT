@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data_Product.Models
@@ -54,6 +55,11 @@ namespace Data_Product.Models
         public string? NoiDungTrichYeu { get; set; }
 
         public int? ID_QuyTrinh { get; set; }
+        [NotMapped]
+        public int? ID_LOCAO { get; set; }
+
 
     }
+    
+
 }
