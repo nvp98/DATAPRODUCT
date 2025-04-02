@@ -848,7 +848,18 @@
             };
             tableData.push(row);
         });
-        console.log(tableData);
+             for (const row of tableData) {
+                  if (row.SoMe.trim() === '') {
+                    alert('Số mẻ rỗng, vui lòng nhập');
+                    throw new Error('Some rỗng');
+
+                  }
+             }
+
+                // Nếu không có lỗi, tiếp tục xử lý
+                const someValues = tableData.map(row => row.SoMe);
+                console.log(someValues);
+                 console.log(tableData);
         $.ajax({
             url: "/BM/SubmitData_Edit",
             type: "POST",

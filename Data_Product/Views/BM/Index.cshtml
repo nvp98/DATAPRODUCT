@@ -654,15 +654,17 @@
                 tableData.push(row);
                 
             });
-                            // const someValues = tableData.map(row => row.SoMe);
-                            // console.log(someValues);
-                                const someValues = tableData.map(row => {
-                                      if (row.SoMe.trim() === '') {
-                                        alert('some rong vui long nhap ');
-                                            // e.preventDefault();
-                                  }
-                                  return;
-                                });
+                for (const row of tableData) {
+                  if (row.SoMe.trim() === '') {
+                    alert('Số mẻ rỗng, vui lòng nhập');
+                    throw new Error('Some rỗng'); 
+                    
+                  }
+                }
+
+                // Nếu không có lỗi, tiếp tục xử lý
+                const someValues = tableData.map(row => row.SoMe);
+                console.log(someValues);
             $.ajax({
                 url: "/BM/SubmitData",
                 type: "POST",
