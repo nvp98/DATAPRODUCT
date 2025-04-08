@@ -255,7 +255,7 @@ namespace Data_Product.Controllers
             data.Ca = res.Ca;
             data.ID_LOCAO = res.ID_LOCAO;
             data.NoiDungTrichYeu = res.NoiDungTrichYeu;
-            
+
             HttpContext.Session.SetString("ID_LoCao", data.ID_LOCAO.ToString());
 
             var ID_BBGL = idsert;
@@ -306,8 +306,10 @@ namespace Data_Product.Controllers
             };
             idsert = responseData.Id_BBGL;
             iddate = responseData.NgayXuly_BG;
-            return Json(new { success = true, Id_BBGL = idsert, NgayXuly_BG=iddate });
+            return Json(new { success = true, Id_BBGL = idsert, NgayXuly_BG = iddate });
         }
+
+
 
         [HttpPost]
         public IActionResult SubmitData([FromBody] List<Tbl_ChiTiet_BBGangLong_GangThoi> listData)
@@ -321,8 +323,9 @@ namespace Data_Product.Controllers
 
             foreach (var item in listData)
             {
+                 
                 var existingData = _context.Tbl_ChiTiet_BBGangLong_GangThoi
-                    .Where(x => x.Id_BBGL == item.Id_BBGL && x.SoMe == item.SoMe).SingleOrDefault();
+                    .Where(x => x.Id_BBGL == item.Id_BBGL && x.ID == item.ID).SingleOrDefault();
 
                 if (existingData != null)
                 {
@@ -479,7 +482,7 @@ namespace Data_Product.Controllers
             }
 
             // Cập nhật các trường dữ liệu
-            dataInDb.ID_NhanVien_BG = res.ID_NhanVien_BG;
+            dataInDb.ID_NhanVien_BG = res.ID_NhanVien_BG;   
             dataInDb.ID_PhongBan_BG = res.ID_PhongBan_BG;
             dataInDb.ID_ViTri_BG = res.ID_ViTri_BG;
             dataInDb.ID_Xuong_BG = res.ID_Xuong_BG;
@@ -511,78 +514,73 @@ namespace Data_Product.Controllers
                 NoiDungTrichYeu = res.NoiDungTrichYeu
             });
         }
+       
         [HttpPost]
         public IActionResult SubmitData_Edit([FromBody] List<Tbl_ChiTiet_BBGangLong_GangThoi> listData)
         {
-            if (listData == null || !listData.Any())
+            //var test = HttpContext.Session.GetString("ComplexObject");
+            if (listData == null || listData.Count == 0)
             {
                 return Json(new { success = false, message = "Error!" });
             }
 
-            // Get distinct Id_BBGL values using LINQ
+            HttpContext.Session.SetString("ListData_Edit", JsonConvert.SerializeObject(listData));
+
             var idBBGLs = listData.Select(x => x.Id_BBGL).Distinct().ToList();
 
-            // Fetch existing records from database
             var dbRecords = _context.Tbl_ChiTiet_BBGangLong_GangThoi
                 .Where(x => idBBGLs.Contains(x.Id_BBGL))
                 .ToList();
 
-            // Identify records to delete using LINQ
             var itemsToDelete = dbRecords
-                .Where(dbItem => !listData.Any(item =>
-                    item.Id_BBGL == dbItem.Id_BBGL &&
-                    item.SoMe == dbItem.SoMe))
+                .Where(dbItem => !listData.Any(item => item.Id_BBGL == dbItem.Id_BBGL && item.SoMe == dbItem.SoMe))
                 .ToList();
 
-            // Remove deleted items
-            if (itemsToDelete.Any())
-            {
-                _context.Tbl_ChiTiet_BBGangLong_GangThoi.RemoveRange(itemsToDelete);
-            }
+            _context.Tbl_ChiTiet_BBGangLong_GangThoi.RemoveRange(itemsToDelete);
 
-            // Process updates and inserts using LINQ
-            var itemsToProcess = listData
-                .GroupJoin(dbRecords,
-                    incoming => new { incoming.Id_BBGL, incoming.SoMe },
-                    existing => new { existing.Id_BBGL, existing.SoMe },
-                    (incoming, existingGroup) => new { incoming, existing = existingGroup.FirstOrDefault() })
-                .ToList();
 
-            foreach (var item in itemsToProcess)
+            foreach (var item in listData)
             {
-                if (item.existing != null)
+                if (item.ID != 0)
                 {
-                    // Update existing record
-                    item.existing.SoMe = item.incoming.SoMe;
-                    item.existing.ThungSo = item.incoming.ThungSo;
-                    item.existing.KhoiLuongXeGoong = item.incoming.KhoiLuongXeGoong;
-                    item.existing.KhoiLuongThung = item.incoming.KhoiLuongThung;
-                    item.existing.KLThungGangLong = item.incoming.KLThungGangLong;
-                    item.existing.KLGangLongCanRay = item.incoming.KLGangLongCanRay;
-                    item.existing.PhanLoai = item.incoming.PhanLoai;
-                    item.existing.GhiChu = item.incoming.GhiChu;
+                    var existingData = _context.Tbl_ChiTiet_BBGangLong_GangThoi
+                        .Where(x => x.Id_BBGL == item.Id_BBGL && x.ID == item.ID).SingleOrDefault();
+
+                    if (existingData != null)
+                    {
+                        existingData.SoMe = item.SoMe;
+                        existingData.ThungSo = item.ThungSo;
+                        existingData.KhoiLuongXeGoong = item.KhoiLuongXeGoong;
+                        existingData.KhoiLuongThung = item.KhoiLuongThung;
+                        existingData.KLThungGangLong = item.KLThungGangLong;
+                        existingData.KLGangLongCanRay = item.KLGangLongCanRay;
+                        existingData.PhanLoai = item.PhanLoai;
+                        existingData.GhiChu = item.GhiChu;
+                    }
                 }
                 else
                 {
-                    // Add new record
                     var newData = new Tbl_ChiTiet_BBGangLong_GangThoi
                     {
-                        SoMe = item.incoming.SoMe,
-                        ThungSo = item.incoming.ThungSo,
-                        KhoiLuongXeGoong = item.incoming.KhoiLuongXeGoong,
-                        KhoiLuongThung = item.incoming.KhoiLuongThung,
-                        KLThungGangLong = item.incoming.KLThungGangLong,
-                        KLGangLongCanRay = item.incoming.KLGangLongCanRay,
-                        PhanLoai = item.incoming.PhanLoai,
-                        GhiChu = item.incoming.GhiChu,
-                        Id_BBGL = item.incoming.Id_BBGL
+                        SoMe = item.SoMe,
+                        ThungSo = item.ThungSo,
+                        KhoiLuongXeGoong = item.KhoiLuongXeGoong,
+                        KhoiLuongThung = item.KhoiLuongThung,
+                        KLThungGangLong = item.KLThungGangLong,
+                        KLGangLongCanRay = item.KLGangLongCanRay,
+                        PhanLoai = item.PhanLoai,
+                        GhiChu = item.GhiChu,
+                        Id_BBGL = item.Id_BBGL
                     };
                     _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(newData);
                 }
+
             }
 
-            // Save all changes
             _context.SaveChanges();
+
+            HttpContext.Session.Remove("ListData");
+            HttpContext.Session.Remove("NoiDungTrichYeu");
 
             return Json(new { success = true });
         }

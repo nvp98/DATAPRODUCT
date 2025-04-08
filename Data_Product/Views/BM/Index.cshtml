@@ -29,6 +29,7 @@
         pageNo = pager.CurrentPage;
     }
 }
+
 @using (Html.BeginForm("Index", "BM", FormMethod.Post, new { enctype = "multipart/form-data", id = "Index" }))
 {
     <div class="app-main__outer">
@@ -52,12 +53,12 @@
                                             Hủy bỏ
                                         </span>
                                     </button>
-                                   @*  <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
+                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
                                         <i class="bi bi-send"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Gửi phiếu
                                         </span>
-                                    </button> *@
+                                    </button>
                                     <button type="submit" class="btn btn-success" name="btnSave" id="btnSave" value="1">
                                         <i class="bi bi-send"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
@@ -433,6 +434,7 @@
 
                         $.each(data, function (index, item) {
                             let soMe = item.testPatternCode ? item.testPatternCode : "";
+                            
                             let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
                             let phanLoai = item.classifyName ? item.classifyName : "";
                             let time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
@@ -521,7 +523,7 @@
                                 <i class="bi bi-trash"></i>
                             </a>
                         </td>
-                                <td><input type="text" name="SoMe" class="form-control" required  ></td>
+                             <td><input type="text" name="SoMe" class="form-control" required ></td>
                             <td><input type="number" name="ThungSo" class="form-control " required ></td>
                         <td><input type="number" name="KhoiLuongXeGoong" value="0" class="form-control" ></td>
 
@@ -548,7 +550,7 @@
         });
 
 
-    $("#xacnhan, #btnSave").click(function (e) {
+    $("#xacnhan").click(function (e) {
         e.preventDefault();
 
         let selectedButton = $(this).attr("id");
@@ -623,21 +625,116 @@
             processData: false,
             success: function (response) {
                 if (response.success) {
+                          alert("Gửi dữ liệu thành công!");
                     let ID_BBGL = response.id_BBGL;
                     // call API
                         
                     submitChiTietBBGangLong(ID_BBGL, selectedButton);
                   
                 }
+                else{
+                         alert("Gửi dữ liệu thất bại: " + (response.message || "Vui lòng thử lại!"));
+                }
               
             }
         });
     });
+         $("#btnSave").click(function (e) {
+            e.preventDefault();
+
+            let selectedButton = $(this).attr("id");
+
+            let selectedCa = $("#IDCa").val();
+            let selectedTaiKhoan = $("#IDTaiKhoan").val();
+            let selectedTaiKhoan_QLCL = $("#IDTaiKhoan_QLCL").val();
+            let selectedLoCao = $("#IDLoCao").val();
+
+            if (!selectedLoCao || selectedLoCao == "null") {
+                alert('Vui lòng chọn Lò cao!');
+                return false;
+            }
+
+            if (!selectedCa || selectedCa == "null") {
+                alert('Vui lòng chọn Ca Kíp!');
+                return false;
+            }
+
+            if (!selectedTaiKhoan || selectedTaiKhoan == "null") {
+                alert('Vui lòng chọn Đại diện bên nhận HRC!');
+                return false;
+            }
+
+            if (!selectedTaiKhoan_QLCL || selectedTaiKhoan_QLCL == "null") {
+                alert('Vui lòng chọn Đại diện bên nhận QLCL!');
+                return false;
+            }
+
+            var PBPXValue = $("#ID_PhongBan_BG").data("info");
+            var partsBG = PBPXValue.split("-");
+
+            var PBPX_HRCValue = $("#IDPhongBan option:selected").data("info");
+            var partPBPXHRC = PBPX_HRCValue.split("-");
+
+            var PBPX_QLCLValue = $("#IDPhongBan_QLCL option:selected").data("info");
+            var partPBPX_QLCL = PBPX_QLCLValue.split("-");
+
+            var data = {
+                ID_NhanVien_BG: $("#ID_NhanVien_BG").data("info"),
+                ID_PhongBan_BG: partsBG[0],
+                ID_Xuong_BG: partsBG[1],
+                ID_ViTri_BG: $("#ID_ViTri_BG").data("info"),
+
+                ID_NhanVien_HRC: $("#IDTaiKhoan").val(),
+                ID_PhongBan_HRC: partPBPXHRC[0],
+                ID_Xuong_HRC: partPBPXHRC[1] === "null" ? null : partPBPXHRC[1],
+                ID_ViTri_HRC: $("#IDChucVu option:selected").data("info"),
+
+                ID_NhanVien_QLCL: $("#IDTaiKhoan_QLCL").val(),
+                ID_PhongBan_QLCL: partPBPX_QLCL[0],
+                ID_Xuong_QLCL: partPBPX_QLCL[1] === "null" ? null : partPBPX_QLCL[1],
+                ID_ViTri_QLCL: $("#IDChucVu_QLCL option:selected").data("info"),
+
+                NgayXuly_BG: $("#ID_Day").val(),
+
+                ID_Kip: $("#CaKip").val(),
+                Kip: $("#CaKip option:selected").data("info"),
+                Ca: $("#IDCa").val(),
+
+                NoiDungTrichYeu: $("#NoiDungTrichYeu").val(),
+
+                 ID_LOCAO:$("#IDLoCao").val()
+            };
+            console.log(data)
+
+            $.ajax({
+                url: "/BM/SubmitData_BBGangLong_GangThoi",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(data),
+                processData: false,
+                success: function (response) {
+                    if (response.success) {
+                            alert("Lưu dữ liệu thành công!");
+                        let ID_BBGL = response.id_BBGL;
+                        // call API
+
+                        submitChiTietBBGangLong(ID_BBGL, selectedButton);
+
+                    }
+                    else {
+                            alert("Lưu dữ liệu thất bại: " + (response.message || "Vui lòng thử lại!"));
+
+                    }
+
+                }
+            });
+        });
         function submitChiTietBBGangLong(idBBGL, selectedButton) {
             var tableData = [];
 
             $("#dataTable tbody tr").slice(0, -1).each(function () {
                 var row = {
+                    
                     SoMe: $(this).find("input[name='SoMe']").val(),
                     ThungSo: $(this).find("input[name='ThungSo']").val(),
                     KhoiLuongXeGoong: parseFloat($(this).find("input[name='KhoiLuongXeGoong']").val()) || 0,
