@@ -299,9 +299,9 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="nav-link collapsed" href="@Url.Action("Index","BM01_GangLong")">
+                                <a class="nav-link collapsed" href="@Url.Action("Index_Started","BM")">
                                     <i class="bi bi-circle"></i>
-                                    <span> BM.01</span>
+                                    <span>BM.16</span>
                                 </a>
                             </li>
 
@@ -309,12 +309,32 @@
                     </li>
                     <!-- End Contact Page Nav -->
 
-                    <li class="nav-item">
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-hospital"></i><span>Việc đến tôi </span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-bieumau" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "XuLyPhieu")">
+                                    <i class="bi bi-envelope-arrow-up"></i>
+                                    <span>Việc đến tôi (BM.11)</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index","XulyphieuBM")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Việc đến tôi (BM.16)</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+                   @*  <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("Index", "XuLyPhieu")">
                             <i class="bi bi-envelope-arrow-up"></i>
                             <span>Việc đến tôi</span>
                         </a>
-                    </li>
+                    </li> *@
 
                    
 

@@ -285,7 +285,64 @@
                             </div>
                         </div>
                     </div>
+                    @if (ID_BBGN.ID_QuyTrinh == 2 || ID_BBGN.ID_QuyTrinh == 3)
+                    {
+                        var ThongTin_NVTT = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan).FirstOrDefault();
+                        var ThongTin_NVTT_View = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan_View).FirstOrDefault();
+                        var PKHPheDuyet = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGL).FirstOrDefault();
 
+                        <div class="row" style="width:100%; padding-bottom:1%;">
+                            <div class="col-lg-12" style="text-align: left;height: 80px;border-radius: 10px;display: flex;">
+
+                                <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:2%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Nhân viên thống kê phê duyệt:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;margin-right: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ThongTin_NVTT?.TenTaiKhoan - @ThongTin_NVTT?.HoVaTen
+                                        </span>
+                                        @if (PKHPheDuyet.ID_TrangThai == 1)
+                                        {
+                                            <span class="text-danger">(Đã phê duyệt phiếu)</span>
+                                        }
+                                        else if (PKHPheDuyet.ID_TrangThai == 2)
+                                        {
+                                            <span class="text-danger">(Không duyệt phiếu)</span>
+                                        }
+                                        else if (PKHPheDuyet.ID_TrangThai == 3)
+                                        {
+                                            <span class="text-danger">(BN Hủy phiếu)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">(Chưa xử lý)</span>
+                                        }
+                                    </div>
+
+                                </div>
+
+                                <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                    <div style="padding-left: 3%;padding-top:2%;">
+                                        <span style="color:black; font-size:14px;">
+                                            Nhân viên thống kê nhận BBGN:
+                                        </span>
+                                    </div>
+                                    <div style="padding-left: 3%;margin-right: 3%;">
+                                        <span style="color:black; font-size:14px;">
+                                            @ThongTin_NVTT_View?.TenTaiKhoan - @ThongTin_NVTT_View?.HoVaTen
+                                        </span>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- End Recent Sales -->
+                    }
                     <div class="row" style="width:100%; padding-bottom:1%;">
                         <div class="col-lg-12">
                             <div class="p-3 bg-light rounded">
@@ -333,8 +390,8 @@
                                                 <td>@item.KLThungGangLong</td>
 
                                                 <td>@item.KLGangLongCanRay</td>
-                                                <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 ? "checked" : "") disabled/></td>
-                                                <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 ? "checked" : "") disabled/></td>
+                                                <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1==1 ? "checked" : "") disabled/></td>
+                                                <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2==1 ? "checked" : "") disabled/></td>
                                                 <td>@item.PhanLoai</td>
                                                 <td>@item.Gio</td>
                                                 <td>@item.GhiChu</td>

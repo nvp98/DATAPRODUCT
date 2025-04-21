@@ -57,6 +57,12 @@ namespace Data_Product.Models
         public int? ID_QuyTrinh { get; set; }
         [NotMapped]
         public int? ID_LOCAO { get; set; }
+        [NotMapped]
+        public int ID_TaiKhoan { get; set; }
+        [NotMapped]
+        public int ID_TaiKhoan_View { get; set; }
+        [NotMapped]
+        public DateTime Ngaytrinhky { get; set; }
 
 
     }

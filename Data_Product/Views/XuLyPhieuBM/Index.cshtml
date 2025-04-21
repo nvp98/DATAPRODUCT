@@ -1,0 +1,286 @@
+﻿@model IEnumerable<Data_Product.Models.Tbl_BBGangLong_GangThoi>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@using Data_Product.Repositorys;
+@inject Data_Product.Repositorys.DataContext _context
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
+}
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="row" style=" height: 120px;">
+                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available;">
+                            <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        PHIẾU YÊU CẦU ĐẾN TÔI
+                                    </b>
+                                </span>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
+                        <div class="row">
+                            <div class="col-md-1" style="padding-top:0.5%;text-align: left;">
+                                <span class="text-center" style="margin-top: 8px">
+                                    <b style="font-size: 15px;
+                                       color: black;">TỪ NGÀY :</b>
+                                </span>
+                            </div>
+                            <div class="col-md-2">
+                                @Html.TextBox("begind", null, new { @id = "begind", @type = "date", @class = "form-control" })
+                            </div>
+                            <div class="col-md-1" style="padding-top:0.5%;text-align: center;">
+                                <span class="text-center" style="margin-top: 8px">
+                                    <b style="font-size: 15px; color: black;">ĐẾN NGÀY :</b>
+                                </span>
+                            </div>
+
+                            <div class="col-md-2">
+                                @Html.TextBox("endd", null, new { @id = "endd", @type = "date", @class = "form-control" })
+                            </div>
+                            <div class="col-md-1" style="padding-top:0.5%;text-align: right;">
+                                <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">TRẠNG THÁI :</b></span>
+                            </div>
+                            <div class="col-md-2">
+                                @Html.DropDownList("TTList", null, "----  Trạng thái phiếu  ----", new { id = "ID_TrangThai", @class = "form-control" })
+                            </div>
+                            <div class="col-md-2" style="text-align:left;">
+                                <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
+                                    <i class="bi bi-search"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Tìm kiếm
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                <thead style="height: 60px; font-size: 14px;">
+                                    <tr>
+                                        <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Nội dung trích yếu</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Quy trình</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Số phiếu</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
+
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người xử lý</th>
+                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Ngày tạo</th>
+                                        <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Ngày xử lý</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int pageno = (int)pager.CurrentPage;
+                                        int itemperpage = (int)pager.PageSize;
+                                        int RowNo = ((pageno - 1) * itemperpage) + 1;
+                                    }
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="text-center">
+                                                @RowNo@{
+                                                    RowNo++;
+                                                }
+                                            </td>
+                                            @if (item.TinhTrang_BBGN == 0)
+                                            {
+                                                if (item.ID_QuyTrinh == 3)
+                                                {
+                                                    <td style="font-size:14px;color: #335FB3">
+                                                        <a class="nav-link collapsed" href="@Url.Action("Phieudentoi_CauHieuChinh", "XuLyPhieuBM", new {id = item.ID_BBGL})">
+                                                            BM.16/QT.05
+                                                        </a>
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td style="font-size:14px;color: #335FB3">
+                                                           <a class="nav-link collapsed" href="@Url.Action("PhieudentoiBM", "XuLyPhieuBM", new {id = item.ID_BBGL})">
+                                                            BM.16/QT.05
+                                                        </a>
+                                                    </td>
+                                                }
+
+                                            }
+                                            else
+                                            {
+                                                <td style="font-size:14px;color: #335FB3">
+                                                    <a class="nav-link collapsed" href="@Url.Action("Index_detail", "BM", new{id = item.ID_BBGL})">
+                                                        BM.16/QT.05
+                                                    </a>
+                                                </td>
+                                            }
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @item.NoiDungTrichYeu
+                                            </td>
+                                            @if (item.ID_QuyTrinh == 1)
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Tạo phiếu
+                                                </td>
+                                            }
+                                            else if (item.ID_QuyTrinh == 2)
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Bổ sung phiếu
+                                                </td>
+                                            }
+                                            else if (item.ID_QuyTrinh == 3)
+                                            {
+                                                <td style="font-size:14px;vertical-align:middle;">
+                                                    Đề nghị hiệu chỉnh
+                                                </td>
+                                            }
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @item.SoPhieu
+                                            </td>
+                                            @{
+                                                var BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BG).FirstOrDefault();
+                                                var BNHRC = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_HRC).FirstOrDefault();
+                                                var BNQLCL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_QLCL).FirstOrDefault();
+                                            }
+                                            <td class="text-left" style="font-size:14px;vertical-align:middle;">
+                                                @BG.TenTaiKhoan
+                                                <br>
+                                                @BG.HoVaTen
+                                            </td>
+                                            <td class="text-left" style="font-size:14px;vertical-align:middle;">
+                                                @BNHRC.TenTaiKhoan - @BNHRC.HoVaTen
+                                                <br>
+                                                @BNQLCL.TenTaiKhoan - @BNQLCL.HoVaTen
+                                            </td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayXuly_BG</td>
+                                            @if (@item.NgayXuly_BG == DateTime.Parse("0001/01/01"))
+                                            {
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                </td>
+
+                                            }
+                                            else
+                                            {
+                                                DateTime ThoiGianXuly = (DateTime)@item.NgayXuly_BG;
+                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                    @ThoiGianXuly.ToString("dd/MM/yyyy")
+                                                </td>
+                                            }
+                                            @if (item.TinhTrang_BBGN == 5) //xóa phiếu
+                                            {
+                                                var xulyxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == item.ID_BBGL).FirstOrDefault();
+                                                if (xulyxoa.TinhTrang_BN == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-warning" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Chưa xử lý Xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (xulyxoa.TinhTrang_KH == 0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-warning" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Chờ PKH xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Đã xóa phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                @if (item.TinhTrang_HRC == 0||item.TinhTrang_QLCL==0)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-warning" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Chưa xử lý
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (item.TinhTrang_HRC == 1 && item.TinhTrang_QLCL==1)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-success" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Đã xử lý
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else if (item.TinhTrang_BBGN == 2)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button type="button" class="btn btn-danger" style="width: 120px;">
+                                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                                Hủy phiếu
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                }
+                                            }
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $("#btn-search").on('click', function () {
+        var ID_TrangThai = $('#ID_TrangThai').val();
+        window.location.href = '@Url.Action("Index", "XuLyPhieuBM")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
+    });
+
+    $("#ID_TrangThai").chosen({
+        width: "100%"
+    });
+</script>

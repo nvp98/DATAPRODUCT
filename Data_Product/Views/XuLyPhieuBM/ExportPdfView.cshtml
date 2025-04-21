@@ -1,0 +1,268 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+
+@model dynamic
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/PrintView.cshtml";
+
+    //Pager pager = new Pager();
+    //int pageNo = 0;
+    //if (ViewBag.Pager != null)
+    //{
+    //    pager = ViewBag.Pager;
+    //    pageNo = pager.CurrentPage;
+    //}
+}
+@{
+    int ID = Convert.ToInt32(@Model.id);
+    var ID_BBGN = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID).FirstOrDefault();
+    var ID_TK = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID).FirstOrDefault();
+
+    //Thông tin bên giao
+    var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BG).FirstOrDefault();
+    var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
+    var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BG).FirstOrDefault();
+    var ViTri_BG = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BG.ID_ChucVu).FirstOrDefault();
+
+    //Thông tin bên nhận HRC
+    var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC).FirstOrDefault();
+    var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC).FirstOrDefault();
+    var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC).FirstOrDefault();
+    var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+
+    // Thông tin bên nhận QLCL
+    var ThongTin_BN_QLCL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_QLCL).FirstOrDefault();
+    var PhongBan_BN_QLCL = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_QLCL).FirstOrDefault();
+    var PhanXuong_BN_QLCL = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_QLCL).FirstOrDefault();
+    var ViTri_BN_QLCL = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN_QLCL.ID_ChucVu).FirstOrDefault();
+
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+    var Models = await (from a in _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == ID)
+
+                     select new Tbl_ChiTiet_BBGangLong_GangThoi
+                             {
+                                 Id_BBGL = a.Id_BBGL,
+                                 SoMe = a.SoMe,
+                                 ThungSo = a.ThungSo,
+                                 KhoiLuongXeGoong = a.KhoiLuongXeGoong,
+                                 KhoiLuongThung = a.KhoiLuongThung,
+                                 KLThungGangLong = a.KLThungGangLong,
+                                 KLGangLongCanRay = a.KLGangLongCanRay,
+                                 VanChuyenHRC1 = a.VanChuyenHRC1,
+                                 VanChuyenHRC2 = a.VanChuyenHRC2,
+                                 PhanLoai = a.PhanLoai,
+                                 Gio = a.Gio,
+                                 GhiChu = a.GhiChu
+                             }).ToListAsync();
+}
+<div style="width:95%">
+    <div>
+        <div class="" style="text-align: left;display: flex">
+            <div style="flex: 0 0 50%;width:80%;  float: left; font-weight: bold; font-size: 1.2rem; text-transform: uppercase;">
+                <img alt="Hòa Phát Dung Quất" src="https://report.hoaphatdungquat.vn/img/logoHP.png" />
+                <div class="" style="margin-top: 0.5rem; font-weight:bold">CÔNG TY CỔ PHẦN THÉP</div>
+                <div class="" style="font-weight:bold ">HÒA PHÁT DUNG QUẤT</div>
+                <div style="width:50%;text-align:center">
+                    <div style=" font-size: 10px; padding-top:0.5%;">
+                        Số: @ID_BBGN.SoPhieu
+                    </div>
+                    @if (ID_BBGN.IDBBGL_Cu != null)
+                    {
+                        var ID_BBGN_Cu = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID_BBGN.IDBBGL_Cu).FirstOrDefault();
+
+                        <div style=" font-size: 10px;">
+                            Thay thế: @ID_BBGN_Cu.SoPhieu
+
+
+                        </div>
+                    }
+                </div>
+               
+            </div>
+            <div style="flex: 0 0 50%;width:20%; float:right;text-align:right; font-weight: bold;">
+                <span style="font-weight:bold">BM.16/QT.05</span>
+                <p><span style="font-style:italic;">Ngày hiệu lực:</span> 01/05/2025</p>
+            </div>
+        </div>
+            <div style="flex: 0 0 100%; width: 100%; margin-top:0">
+                <div style="text-align:center;margin-top:0; font-size: 1.5rem;font-weight:bold; text-transform:uppercase">
+                    <h4 style="font-weight:bold">
+                        BIÊN BẢN <br />  GIAO NHẬN GANG LONG - GANG THỎI
+                    </h4>
+                </div>
+                <div class="text-muted small pt-0 ps-1" style="text-align:center; margin-top:0">
+                    @{
+                        var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
+                        var Date = (DateTime)ID_BBGN.NgayXuly_BG;
+                    }
+                    <i style="color:black;">
+                        Kíp @ID_Kip.TenCa@ID_Kip.TenKip Ngày @Date.ToString("dd") Tháng @Date.ToString("MM") Năm @Date.ToString("yyyy")
+                    </i>
+
+                </div>
+            </div>
+            <div class="col-md-12 float-left">
+                Chúng tôi gồm:
+            </div>
+            <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+                <div style="width:36%"> 1. Đại diện bên giao: Ông/bà: @ThongTin_BG.HoVaTen</div>
+                <div style="width:33%">Chức vụ:  @ViTri_BG.TenViTri </div>
+                <div style="width:30%">BP: @PhongBan_BG.TenPhongBan</div>
+            </div>
+            <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+                <div style="width:36%"> 2. Đại diện bên nhận: Ông/bà: @ThongTin_BN.HoVaTen</div>
+                <div style="width:33%">Chức vụ:  @ViTri_BN.TenViTri </div>
+                <div style="width:30%">BP: @PhongBan_BN.TenPhongBan</div>
+            </div>
+            <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+                <div style="width:36%"> 2. Đại diện bên nhận: Ông/bà: @ThongTin_BN_QLCL.HoVaTen</div>
+                <div style="width:33%">Chức vụ:  @ViTri_BN_QLCL.TenViTri </div>
+                <div style="width:30%">BP: @PhongBan_BN_QLCL.TenPhongBan</div>
+            </div>
+            <div class="col-md-12 float-left" style="margin-bottom:8px;">
+                Cùng nhau thống nhất lập "Biên bản giao nhận GANG LỎNG - GANG THỎI " như sau:
+            </div>
+       
+        <div class="card-body" style="padding-top:1%;">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover" cellpadding="0" style="border-collapse: collapse; width: 100%;">
+                    <thead>
+                        <tr style="font-size:14px;">
+                            <th rowspan="2" class="text-center" width="50px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">STT</th>
+                            <th rowspan="2" class="text-center" width="100px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">Số mẻ</th>
+                            <th rowspan="2" class="text-center" width="80px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">Thùng số</th>
+                            <th rowspan="2" class="text-center" width="100px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">Khối lượng xe goong</th>
+                            <th rowspan="2" class="text-center" width="100px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">Khối lượng thùng</th>
+                            <th rowspan="2" class="text-center" width="150px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">KL thùng & gang lỏng (tấn)</th>
+                            <th rowspan="2" class="text-center" width="150px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">KL gang lỏng cân ray (tấn)</th>
+                            <th colspan="2" class="text-center" style="vertical-align:middle; border: 1px solid black; padding: 5px;">Vận chuyển đến</th>
+                            <th rowspan="2" class="text-center" width="100px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">Phân loại</th>
+                            <th rowspan="2" class="text-center" width="80px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">Giờ</th>
+                            <th rowspan="2" class="text-center" width="150px" style="vertical-align:middle; border: 1px solid black; padding: 5px;">Ghi chú</th>
+                        </tr>
+                        <tr style="font-size:14px;">
+                            <th class="text-center" style="vertical-align:middle; border: 1px solid black; padding: 5px;">NM.HRC1</th>
+                            <th class="text-center" style="vertical-align:middle; border: 1px solid black; padding: 5px;">NM.HRC2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            @{
+                                var index = 1;
+                            }
+                            @foreach (var item in Models)
+                            {
+                            <tr>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@index</td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.SoMe</td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.ThungSo</td>
+
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.KhoiLuongXeGoong</td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.KhoiLuongThung</td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.KLThungGangLong</td>
+
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.KLGangLongCanRay</td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;"><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") disabled /></td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;"><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 == 1 ? "checked" : "") disabled /></td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.PhanLoai</td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.Gio</td>
+                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;">@item.GhiChu</td>
+                            </tr>
+                                index++;
+                            }
+
+                    </tbody>
+                    
+                </table>
+            </div>
+        </div>
+    </div>
+    @if (ID_BBGN.TinhTrang_BBGN == 1)
+    {
+        <div class="col-lg-12" style="text-align: left;height: 150px;display: flex;">
+            <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
+
+                <div style="text-align: center;  padding-top:8px;">
+                    Bên nhận HRC
+                </div>
+                <div style="text-align: center;  padding:2%;">
+                    @if (ThongTin_BN.ChuKy != null)
+                    {
+                        var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BN.ChuKy;
+                        <img src="@lin" alt="" height="50">
+                    }
+                    else
+                    {
+                        <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">
+                    }
+                    
+                </div>
+                <div style="text-align: center; margin-top:8px ">
+                    @ThongTin_BN.HoVaTen
+                </div>
+            </div>
+            <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
+
+                <div style="text-align: center;  padding-top:8px;">
+                    Bên nhận QLCL
+                </div>
+                <div style="text-align: center;  padding:2%;">
+                    @if (ThongTin_BN_QLCL.ChuKy != null)
+                    {
+                        var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BN_QLCL.ChuKy;
+                        <img src="@lin" alt="" height="50">
+                    }
+                    else
+                    {
+                        <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">
+                    }
+                  
+                </div>
+                <div style="text-align: center; margin-top:8px ">
+                    @ThongTin_BN_QLCL.HoVaTen
+                </div>
+            </div>
+            <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
+
+                <div style="text-align: center; padding-top:8px;">
+                    Bên giao
+                </div>
+                <div style="text-align: center;  padding:2%;">
+                    @if (ThongTin_BG.ChuKy != null)
+                    {
+                        var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BG.ChuKy;
+                        <img src="@lin" alt="" height="50">
+                    }
+                    else
+                    {
+                        <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">
+                    }
+                    
+                </div>
+                <div style="text-align: center; margin-top:8px">
+                    @ThongTin_BG.HoVaTen
+                </div>
+            </div>
+
+        </div>
+
+        <!-- End Recent Sales -->
+    }
+</div>

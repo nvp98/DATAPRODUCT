@@ -22,7 +22,7 @@ namespace Data_Product.Controllers
             this._context = _context;
             _viewEngine = viewEngine;
         }
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
             DateTime today = DateTime.Today;
             DateTime yesterday = today.AddDays(-1);
@@ -70,6 +70,17 @@ namespace Data_Product.Controllers
                             }).ToList();
 
             ViewBag.IDTaiKhoan = new SelectList(TaiKhoan_QLCL, "ID_TaiKhoan", "HoVaTen");
+
+            var NhanVien_TT = await(from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
+                                    join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
+                                    select new Tbl_TaiKhoan
+                                    {
+                                        ID_TaiKhoan = a.ID_TaiKhoan,
+                                        HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
+                                    }).ToListAsync();
+
+            ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
+            ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
 
             return PartialView(); 
         }
@@ -173,6 +184,7 @@ namespace Data_Product.Controllers
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc2 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc2.ProductionDate = '" +
                          ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" + cakip + "'";
+
                     }
                     else if (ID_LoCao == 3)
                     {
@@ -232,7 +244,19 @@ namespace Data_Product.Controllers
 
                 return BadRequest(new { success = false, errors });
             }
-
+            var MBVN_BG = User.FindFirstValue(ClaimTypes.Name);
+            var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == MBVN_BG).FirstOrDefault();
+            var ThongTin_BP_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
+            int Kip = Convert.ToInt32(res.Ca); // 1 ngày 2 đêm
+                                               //var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == Kip).FirstOrDefault();
+            var ID_Kip = _context.Tbl_Kip.Where(x => x.TenCa == res.Ca && x.NgayLamViec==res.NgayXuly_BG).FirstOrDefault();
+            string SoPhieu = ThongTin_BP_BG.TenNgan + "-" + ID_Kip.TenCa + ID_Kip.TenKip + "-" +
+                                         res.NgayXuly_BG?.Date.ToString("yyyy-MM-dd") ?? "";
+            var bs = new Tbl_TrinhKyBoSung();
+            bs.ID_BBGN = res.ID_BBGL;
+            bs.ID_TaiKhoan = res.ID_TaiKhoan;
+            bs.ID_TaiKhoan_View = res.ID_TaiKhoan_View;
+            bs.NgayTrinhKy = DateTime.Now;       
             var data = new Tbl_BBGangLong_GangThoi();
             data.ID_NhanVien_BG = res.ID_NhanVien_BG;
             data.ID_PhongBan_BG = res.ID_PhongBan_BG;
@@ -248,14 +272,17 @@ namespace Data_Product.Controllers
             data.ID_PhongBan_QLCL = res.ID_PhongBan_QLCL;
             data.ID_Xuong_QLCL = res.ID_Xuong_QLCL;
             data.ID_ViTri_QLCL = res.ID_ViTri_QLCL;
-
+            data.SoPhieu = SoPhieu;
             data.NgayXuly_BG = res.NgayXuly_BG;
             data.ID_Kip = res.ID_Kip;
             data.Kip = res.Kip;
             data.Ca = res.Ca;
             data.ID_LOCAO = res.ID_LOCAO;
             data.NoiDungTrichYeu = res.NoiDungTrichYeu;
-
+            data.ID_QuyTrinh = 1;
+            data.TinhTrang_BBGN = 0;
+            data.TinhTrang_HRC = 0;
+            data.TinhTrang_QLCL = 0;
             HttpContext.Session.SetString("ID_LoCao", data.ID_LOCAO.ToString());
 
             var ID_BBGL = idsert;
@@ -286,7 +313,11 @@ namespace Data_Product.Controllers
                 dataInDb.ID_Kip = res.ID_Kip;
                 dataInDb.Kip = res.Kip;
                 dataInDb.Ca = res.Ca;
-
+                data.ID_QuyTrinh = 1;
+                data.TinhTrang_BBGN = 0;
+                data.TinhTrang_HRC = 0;
+                data.TinhTrang_QLCL = 0;
+                data.SoPhieu = SoPhieu;
                 dataInDb.NoiDungTrichYeu = res.NoiDungTrichYeu;
             }
 
@@ -297,7 +328,7 @@ namespace Data_Product.Controllers
             {
                 success = true,
                 Id_BBGL = data.ID_BBGL,
-                NgayXuly_BG = data.NgayXuly_BG?.ToString("yyyy-MM-dd") ?? "",
+                NgayXuly_BG = data.NgayXuly_BG?.Date.ToString("yyyy-MM-dd") ?? "",
                 NoiDungTrichYeu = data.NoiDungTrichYeu,
                 IDCa = data.Ca.ToString() ?? "",
                 Kip = data.Kip.ToString() ?? "",
@@ -308,8 +339,6 @@ namespace Data_Product.Controllers
             iddate = responseData.NgayXuly_BG;
             return Json(new { success = true, Id_BBGL = idsert, NgayXuly_BG = iddate });
         }
-
-
 
         [HttpPost]
         public IActionResult SubmitData([FromBody] List<Tbl_ChiTiet_BBGangLong_GangThoi> listData)
@@ -335,6 +364,8 @@ namespace Data_Product.Controllers
                     existingData.KhoiLuongThung = item.KhoiLuongThung;
                     existingData.KLThungGangLong = item.KLThungGangLong;
                     existingData.KLGangLongCanRay = item.KLGangLongCanRay;
+                    existingData.VanChuyenHRC1 = item.VanChuyenHRC1;
+                    existingData.VanChuyenHRC2 = item.VanChuyenHRC2;
                     existingData.PhanLoai = item.PhanLoai;
                     existingData.GhiChu = item.GhiChu;
                 }
@@ -349,6 +380,8 @@ namespace Data_Product.Controllers
                         KLThungGangLong = item.KLThungGangLong,
                         KLGangLongCanRay = item.KLGangLongCanRay,
                         PhanLoai = item.PhanLoai,
+                        VanChuyenHRC1 =item.VanChuyenHRC1,
+                        VanChuyenHRC2 = item.VanChuyenHRC2,
                         GhiChu = item.GhiChu,
                         Id_BBGL = item.Id_BBGL
                     };
@@ -606,6 +639,121 @@ namespace Data_Product.Controllers
             return View(listData);
         }
 
+        public async Task<IActionResult> Index_detail(int id)
+        {
+            var res = await (from a in _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == id)
+                             
+                             select new Tbl_ChiTiet_BBGangLong_GangThoi
+                             {
+                                 Id_BBGL = a.Id_BBGL,
+                                 SoMe=a.SoMe,
+                                 ThungSo=a.ThungSo,
+                                 KhoiLuongXeGoong=a.KhoiLuongXeGoong,
+                                 KhoiLuongThung=a.KhoiLuongThung,
+                                 KLThungGangLong=a.KLThungGangLong,
+                                 KLGangLongCanRay=a.KLGangLongCanRay,
+                                 VanChuyenHRC1=a.VanChuyenHRC1,
+                                 VanChuyenHRC2=a.VanChuyenHRC2,
+                                 
+                                 PhanLoai=a.PhanLoai,
+                                 Gio=a.Gio,
+                                 GhiChu=a.GhiChu
+                             }).ToListAsync();
+            ViewBag.Data = id;
+            return View(res);
+        }
+        public async Task<IActionResult> Index_Started(DateTime? begind, DateTime? endd, int? ID_TrangThai, int page = 1)
+        {
+            DateTime Now = DateTime.Now;
+            DateTime startDay = new DateTime(Now.Year, Now.Month, 1);
+            DateTime endDay = Now;
+            //DateTime startDay = Now.AddDays(-1);
+            //DateTime endDay = Now;
+            if (begind != null) startDay = (DateTime)begind;
+            if (endd != null) endDay = (DateTime)endd;
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            int ID_NhanVien_BN = TaiKhoan.ID_TaiKhoan;
+
+            ViewBag.TTList = new SelectList(_context.Tbl_TrangThai_PheDuyet.ToList(), "ID_TrangThai_PheDuyet", "TenTrangThai", ID_TrangThai);
+            var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_NhanVien_BG == ID_NhanVien_BN)
+                             select new Tbl_BBGangLong_GangThoi
+                             {
+                                 ID_BBGL = a.ID_BBGL,
+                                 NoiDungTrichYeu = a.NoiDungTrichYeu,
+                                 ID_NhanVien_BG = a.ID_NhanVien_BG,
+                                 ID_PhongBan_BG = a.ID_PhongBan_BG,
+                                 ID_Xuong_BG = a.ID_Xuong_BG,
+                                 ID_ViTri_BG = a.ID_ViTri_BG,
+
+                                 ID_NhanVien_HRC = a.ID_NhanVien_HRC,
+                                 ID_PhongBan_HRC = a.ID_PhongBan_HRC,
+                                 ID_Xuong_HRC = a.ID_Xuong_HRC,
+                                 ID_ViTri_HRC = a.ID_ViTri_HRC,
+
+                                 ID_NhanVien_QLCL = a.ID_NhanVien_QLCL,
+                                 ID_PhongBan_QLCL = a.ID_PhongBan_QLCL,
+                                 ID_Xuong_QLCL = a.ID_Xuong_QLCL,
+                                 ID_ViTri_QLCL = a.ID_ViTri_QLCL,
+
+                                 TinhTrang_BG = a.TinhTrang_BG,
+                                 TinhTrang_HRC = a.TinhTrang_HRC,
+                                 TinhTrang_QLCL = a.TinhTrang_QLCL,
+                                 TinhTrang_BBGN = a.TinhTrang_BBGN,
+
+                                 NgayXuly_BG = a.NgayXuly_BG,
+                                 NgayXuly_HRC = a.NgayXuly_HRC,
+                                 NgayXuly_QLCL = a.NgayXuly_QLCL,
+                                 SoPhieu = a.SoPhieu,
+
+                                 ID_Kip = a.ID_Kip,
+                                 Kip = a.Kip,
+                                 Ca = a.Ca,
+                                 IDBBGL_Cu = a.IDBBGL_Cu,
+                                 //NoiDungTrichYeu =a.NoiDungTrichYeu,
+
+                                 ID_QuyTrinh = a.ID_QuyTrinh,
+                             }).OrderBy(x => x.ID_BBGL).ToListAsync();
+
+
+            if (ID_TrangThai != null) res = res.Where(x => x.TinhTrang_BBGN == ID_TrangThai).ToList();
+            if (begind != null && endd != null) res = res.Where(x => x.NgayXuly_BG >= startDay && x.NgayXuly_BG <= endDay).ToList();
+
+            const int pageSize = 1000;
+            if (page < 1)
+            {
+                page = 1;
+            }
+            int resCount = res.Count;
+            var pager = new Pager(resCount, page, pageSize);
+            int recSkip = (page - 1) * pageSize;
+            var data = res.Skip(recSkip).Take(pager.PageSize).ToList();
+            this.ViewBag.Pager = pager;
+            return View(data);
+        }
+        public async Task<IActionResult> confirm_details(int id)
+        {
+            var res = await (from a in _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == id)
+
+                             select new Tbl_ChiTiet_BBGangLong_GangThoi
+                             {
+                                 Id_BBGL = a.Id_BBGL,
+                                 SoMe = a.SoMe,
+                                 ThungSo = a.ThungSo,
+                                 KhoiLuongXeGoong = a.KhoiLuongXeGoong,
+                                 KhoiLuongThung = a.KhoiLuongThung,
+                                 KLThungGangLong = a.KLThungGangLong,
+                                 KLGangLongCanRay = a.KLGangLongCanRay,
+                                 VanChuyenHRC1 = a.VanChuyenHRC1,
+                                 VanChuyenHRC2 = a.VanChuyenHRC2,
+                                 PhanLoai = a.PhanLoai,
+                                 Gio = a.Gio,
+                                 GhiChu = a.GhiChu
+                             }).ToListAsync();
+            ViewBag.Data = id;
+            return View(res);
+        }
 
     }
 }

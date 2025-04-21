@@ -429,8 +429,8 @@
                                             <td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KLThungGangLong"></td>
 
                                             <td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="@item.KLGangLongCanRay"></td>
-                                            <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 ? "checked" : "") /></td>
-                                            <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 ? "checked" : "") /></td>
+                                            <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1==1 ? "checked" : "") /></td>
+                                            <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2==1 ? "checked" : "") /></td>
                                             <td><input type="text" name="PhanLoai" class="form-control" value="@item.PhanLoai" readonly></td>
                                             <td><input type="text" name="Gio" class="form-control" value="@item.Gio" readonly></td>
                                             <td><input type="text" name="GhiChu" class="form-control" value="@item.GhiChu"></td>
