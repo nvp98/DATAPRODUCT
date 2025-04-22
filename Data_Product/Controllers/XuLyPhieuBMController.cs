@@ -53,7 +53,7 @@ namespace Data_Product.Controllers
             int idtk = TaiKhoan.ID_TaiKhoan;
             ViewBag.IDTest_ = idtk;
             ViewBag.TTList = new SelectList(_context.Tbl_TrangThai_PheDuyet.ToList(), "ID_TrangThai_PheDuyet", "TenTrangThai", ID_TrangThai);
-            var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_NhanVien_HRC == TaiKhoan.ID_TaiKhoan || x.ID_NhanVien_QLCL== TaiKhoan.ID_TaiKhoan)
+            var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_NhanVien_HRC == TaiKhoan.ID_TaiKhoan || x.ID_NhanVien_QLCL == TaiKhoan.ID_TaiKhoan)
                              select new Tbl_BBGangLong_GangThoi
                              {
                                  ID_BBGL = a.ID_BBGL,
@@ -119,51 +119,51 @@ namespace Data_Product.Controllers
             DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
 
             var res = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
-           
+
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
             var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
             string TenBP = PhongBan.TenNgan.ToString();
             if (res.TinhTrang_HRC == 1 && res.TinhTrang_QLCL == 1) ;
-            
-                List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
-                ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
 
-                string query = "SELECT ID_Kip, TenCa FROM Tbl_Kip WHERE NgayLamViec = @NgayLamViec";
-                var CaKip = _context.Tbl_Kip
-                    .FromSqlRaw(query, new SqlParameter("@NgayLamViec", NgayLamViec))
-                    .Select(a => new Tbl_Kip
-                    {
-                        ID_Kip = a.ID_Kip,
-                        TenCa = a.TenCa
-                    })
-                    .ToList();
+            List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
+            ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
 
-                // Gán vào ViewBag
-                ViewBag.IDKip = new SelectList(CaKip, "ID_Kip", "TenCa");
+            string query = "SELECT ID_Kip, TenCa FROM Tbl_Kip WHERE NgayLamViec = @NgayLamViec";
+            var CaKip = _context.Tbl_Kip
+                .FromSqlRaw(query, new SqlParameter("@NgayLamViec", NgayLamViec))
+                .Select(a => new Tbl_Kip
+                {
+                    ID_Kip = a.ID_Kip,
+                    TenCa = a.TenCa
+                })
+                .ToList();
 
-                var NhanVien = (from a in _context.Tbl_TaiKhoan
-                                select new Tbl_TaiKhoan
-                                {
-                                    ID_TaiKhoan = a.ID_TaiKhoan,
-                                    HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
-                                }).ToList();
+            // Gán vào ViewBag
+            ViewBag.IDKip = new SelectList(CaKip, "ID_Kip", "TenCa");
 
-                ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
+            var NhanVien = (from a in _context.Tbl_TaiKhoan
+                            select new Tbl_TaiKhoan
+                            {
+                                ID_TaiKhoan = a.ID_TaiKhoan,
+                                HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                            }).ToList();
+
+            ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
             ViewBag.TingtrangHRC = res.TinhTrang_HRC;
-                var TaiKhoan_QLCL = (from a in _context.Tbl_TaiKhoan
-                                     select new Tbl_TaiKhoan
-                                     {
-                                         ID_TaiKhoan = a.ID_TaiKhoan,
-                                         HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
-                                     }).ToList();
+            var TaiKhoan_QLCL = (from a in _context.Tbl_TaiKhoan
+                                 select new Tbl_TaiKhoan
+                                 {
+                                     ID_TaiKhoan = a.ID_TaiKhoan,
+                                     HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                                 }).ToList();
 
-                ViewBag.IDTaiKhoan = new SelectList(TaiKhoan_QLCL, "ID_TaiKhoan", "HoVaTen");
+            ViewBag.IDTaiKhoan = new SelectList(TaiKhoan_QLCL, "ID_TaiKhoan", "HoVaTen");
 
             ViewBag.TingtrangQLCL = res.TinhTrang_QLCL;
 
-                ViewBag.Data = id;
-            
+            ViewBag.Data = id;
+
             return PartialView();
         }
 
@@ -176,7 +176,7 @@ namespace Data_Product.Controllers
             {
                 return BadRequest(new { success = false, error = "ID không hợp lệ" });
             }
-            
+
             try
             {
                 string xacnhan = formCollection["xacnhan"];
@@ -193,7 +193,7 @@ namespace Data_Product.Controllers
                     var MBVN_BG = User.FindFirstValue(ClaimTypes.Name);
                     var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == MBVN_BG).FirstOrDefault();
                     var idtaiKhoan = ThongTin_BG.ID_TaiKhoan;
-                    
+
                     var ThongTin_BP_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
                     string sqlUpdate = "";
                     // Câu lệnh SQL Update đã sửa
@@ -236,9 +236,10 @@ namespace Data_Product.Controllers
                         DateTime.Now,
                         DateTime.Now,
                         1,
-                        
+
                         id.Value);
-                    } else
+                    }
+                    else
                     {
                         sqlUpdate = @"
                         UPDATE Tbl_BBGangLong_GangThoi 
@@ -276,7 +277,7 @@ namespace Data_Product.Controllers
                         1, // TinhTrang_BBGN
                         DateTime.Now,
                         DateTime.Now,
-                      
+
                         1,
                         id.Value);
                     }
@@ -285,7 +286,7 @@ namespace Data_Product.Controllers
 
 
 
-                        TempData["msgSuccess"] = "<script>alert('xác nhận thành công');</script>";
+                    TempData["msgSuccess"] = "<script>alert('xác nhận thành công');</script>";
                     return RedirectToAction("Index", "XuLyPhieuBM");
                 }
                 else if (xacnhan == "0")
@@ -616,40 +617,12 @@ namespace Data_Product.Controllers
             {
                 // Kiểm tra user đăng nhập
                 var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-                if (string.IsNullOrEmpty(TenTaiKhoan))
-                {
-                    return Json(new { success = false, message = "User chưa đăng nhập" });
-                }
-
                 // Lấy thông tin tài khoản
                 var TaiKhoan = await _context.Tbl_TaiKhoan
                     .FirstOrDefaultAsync(x => x.TenTaiKhoan == TenTaiKhoan);
-
-                if (TaiKhoan == null)
-                {
-                    return Json(new { success = false, message = "Không tìm thấy thông tin tài khoản" });
-                }
-
                 // Lấy thông tin BBGN
                 var BBGN = await _context.Tbl_BBGangLong_GangThoi
                     .FirstOrDefaultAsync(x => x.ID_BBGL == id);
-
-                if (BBGN == null)
-                {
-                    return Json(new { success = false, message = $"Không tìm thấy bản ghi BBGN với ID {id}" });
-                }
-
-                // Chuẩn bị dữ liệu cho ViewBag
-                var nhanVienHRC = await _context.Tbl_TaiKhoan
-                    .Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_HRC)
-                    .Select(x => new { x.HoVaTen })
-                    .FirstOrDefaultAsync();
-
-                var nhanVienQLCL = await _context.Tbl_TaiKhoan
-                    .Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_QLCL)
-                    .Select(x => new { x.HoVaTen })
-                    .FirstOrDefaultAsync();
-
 
                 var NhanVien_TT = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
                                          join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
@@ -661,7 +634,7 @@ namespace Data_Product.Controllers
 
                 ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
 
-                var NhanVien_TTView = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == BBGN.ID_NhanVien_HRC)
+                var NhanVien_TTView = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == BBGN.ID_Xuong_HRC)
                                              join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
                                              select new Tbl_TaiKhoan
                                              {
@@ -670,9 +643,8 @@ namespace Data_Product.Controllers
                                              }).ToListAsync();
 
                 ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TTView, "ID_TaiKhoan", "HoVaTen");
-                ViewBag.TaiKhoanBN_HRC = nhanVienHRC?.HoVaTen ?? "Không xác định";
-                ViewBag.TaiKhoanBN_QLCL = nhanVienQLCL?.HoVaTen ?? "Không xác định";
-
+                ViewBag.NhanVienBN_HRC = new SelectList(_context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_HRC), "ID_TaiKhoan", "HoVaTen");
+                ViewBag.NhanVienBN_QLCL = new SelectList(_context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_QLCL), "ID_TaiKhoan", "HoVaTen");
                 return PartialView();
             }
             catch (Exception ex)
@@ -682,6 +654,108 @@ namespace Data_Product.Controllers
                 return Json(new { success = false, message = $"Đã xảy ra lỗi: {ex.Message}" });
             }
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> HuyPhieu_PheDuyet(Tbl_XuLyXoaPhieu _DO, int id)
+        {
+            DateTime NgayTao = DateTime.Now;
+            try
+            {
+                var bbgn = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
+                if (bbgn.TinhTrang_BBGN != 1)
+                {
+                    TempData["msgError"] = "<script>alert('Phiếu đang được hiệu chỉnh, không thể xóa phiếu này');</script>";
+                    return RedirectToAction("Index_Detail", "BM", new { id = id });
+                }
+                if (_DO.ID_TaiKhoanKH != 0 && _DO.ID_TaiKhoanKH_View != null)
+                {
+                    var check = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == id).FirstOrDefault();
+                    if (check != null)
+                    {
+                        check.ID_TaiKhoanBN = _DO.ID_TaiKhoanBN;
+                        check.ID_TaiKhoanKH = _DO.ID_TaiKhoanKH;
+                        check.TinhTrang_BN = 0;
+                        check.TinhTrang_KH = 0;
+                        check.ID_BBGN = id;
+                        check.ID_TrangThai = 0;
+                        check.ID_TaiKhoanKH_View = _DO.ID_TaiKhoanKH_View;
+                    }
+                    else
+                    {
+                        Tbl_XuLyXoaPhieu phieu = new Tbl_XuLyXoaPhieu()
+                        {
+                            ID_BBGN = id,
+                            ID_TaiKhoanBN = _DO.ID_TaiKhoanBN,
+                            ID_TaiKhoanKH = _DO.ID_TaiKhoanKH,
+                            TinhTrang_BN = 0,
+                            TinhTrang_KH = 0,
+                            ID_TrangThai = 0,
+                            ID_TaiKhoanKH_View = _DO.ID_TaiKhoanKH_View
+                        };
+                        _context.Tbl_XuLyXoaPhieu.Add(phieu);
+                    }
+                    _context.SaveChanges();
+                    var result_BBGN = @"Update Tbl_BBGangLong_GangThoi 
+                                         Set
+                                                
+                                                TinhTrang_BBGN={0}
+                                         WHERE ID_BBGL = '" + id + "'";
+                    await _context.Database.ExecuteSqlRawAsync(result_BBGN,
+                            5);
 
+                }
+                else
+                {
+                    TempData["msgError"] = "<script>alert('Vui lòng chọn Thống kê phê duyệt và nhận thông tin');</script>";
+                    return RedirectToAction("confirm_details", "BM", new { id = id });
+                }
+
+                TempData["msgSuccess"] = "<script>alert('Trình ký thành công');</script>";
+            }
+            catch (Exception e)
+            {
+                TempData["msgError"] = "<script>alert('Trình ký thất bại');</script>";
+            }
+
+            return RedirectToAction("Index_Started", "BM");
+
+
+        }
+        public async Task<IActionResult> BN_XoaPhieu(int id, int tinhtrang)
+        {
+            try
+            {
+                if (tinhtrang == 0) //không xóa
+                {
+                    var result_BBGN = @"Update Tbl_BBGangLong_GangThoi 
+                                         Set
+                                                
+                                                TinhTrang_BBGN={0}
+                                         WHERE ID_BBGL = '" + id + "'";
+                    await _context.Database.ExecuteSqlRawAsync(result_BBGN,
+                            5);
+                    Tbl_XuLyXoaPhieu xoaphieu = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == id).FirstOrDefault();
+                    _context.Tbl_XuLyXoaPhieu.Remove(xoaphieu);
+                    //xoaphieu.TinhTrang_BN = 0;
+                    //xoaphieu.NgayXuLy_BN = DateTime.Now;
+                    _context.SaveChanges();
+                }
+                else
+                {
+                    //var result_BBGN = _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_XacNhanBBGN {0},{1}", id, 1);
+                    Tbl_XuLyXoaPhieu xoaphieu = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == id).FirstOrDefault();
+                    xoaphieu.TinhTrang_BN = 1;
+                    xoaphieu.NgayXuLy_BN = DateTime.Now;
+                    _context.SaveChanges();
+                }
+
+                TempData["msgSuccess"] = "<script>alert('Xác nhận thành công');</script>";
+            }
+            catch (Exception e)
+            {
+                TempData["msgError"] = "<script>alert('Hủy phiếu thất bại');</script>";
+            }
+            return RedirectToAction("Index", "XuLyPhieu");
+        }
     }
 }
