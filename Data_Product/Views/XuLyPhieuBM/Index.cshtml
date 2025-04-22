@@ -115,7 +115,7 @@
                                                     RowNo++;
                                                 }
                                             </td>
-                                            @if (item.TinhTrang_BBGN == 0)
+                                            @if (item.TinhTrang_BBGN == 0 || ((int)ViewBag.IDTest_ == item.ID_NhanVien_HRC && item.TinhTrang_HRC == 0) || ((int)ViewBag.IDTest_ == item.ID_NhanVien_QLCL && item.TinhTrang_QLCL == 0))
                                             {
                                                 if (item.ID_QuyTrinh == 3)
                                                 {

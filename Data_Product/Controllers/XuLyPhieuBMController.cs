@@ -50,7 +50,8 @@ namespace Data_Product.Controllers
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
             int ID_NhanVien_BN = TaiKhoan.ID_TaiKhoan;
-
+            int idtk = TaiKhoan.ID_TaiKhoan;
+            ViewBag.IDTest_ = idtk;
             ViewBag.TTList = new SelectList(_context.Tbl_TrangThai_PheDuyet.ToList(), "ID_TrangThai_PheDuyet", "TenTrangThai", ID_TrangThai);
             var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_NhanVien_HRC == TaiKhoan.ID_TaiKhoan || x.ID_NhanVien_QLCL== TaiKhoan.ID_TaiKhoan)
                              select new Tbl_BBGangLong_GangThoi
@@ -215,8 +216,8 @@ namespace Data_Product.Controllers
                             TinhTrang_BBGN = {11},
                             NgayXuLy_HRC={12},
                             NgayXuLy_QLCL={13},
-                            TinhTrang_HRC={14},
-                            TinhTrang_QLCL={15}
+                            TinhTrang_HRC={14}
+                            
                         WHERE ID_BBGL = '" + id + " '";
 
                         await _context.Database.ExecuteSqlRawAsync(sqlUpdate,
@@ -235,7 +236,7 @@ namespace Data_Product.Controllers
                         DateTime.Now,
                         DateTime.Now,
                         1,
-                        0,
+                        
                         id.Value);
                     } else
                     {
@@ -256,8 +257,8 @@ namespace Data_Product.Controllers
                             TinhTrang_BBGN = {11},
                             NgayXuLy_HRC={12},
                             NgayXuLy_QLCL={13},
-                            TinhTrang_HRC={14},
-                            TinhTrang_QLCL={15}
+                            
+                            TinhTrang_QLCL={14}
                         WHERE ID_BBGL = '" + id + " '";
 
                         await _context.Database.ExecuteSqlRawAsync(sqlUpdate,
@@ -275,7 +276,7 @@ namespace Data_Product.Controllers
                         1, // TinhTrang_BBGN
                         DateTime.Now,
                         DateTime.Now,
-                        0,
+                      
                         1,
                         id.Value);
                     }
@@ -609,5 +610,78 @@ namespace Data_Product.Controllers
                 canvas.AddXObject(qrCodeObject);
             }
         }
+        public async Task<IActionResult> HuyPhieu_PheDuyet(int id)
+        {
+            try
+            {
+                // Kiểm tra user đăng nhập
+                var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                if (string.IsNullOrEmpty(TenTaiKhoan))
+                {
+                    return Json(new { success = false, message = "User chưa đăng nhập" });
+                }
+
+                // Lấy thông tin tài khoản
+                var TaiKhoan = await _context.Tbl_TaiKhoan
+                    .FirstOrDefaultAsync(x => x.TenTaiKhoan == TenTaiKhoan);
+
+                if (TaiKhoan == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin tài khoản" });
+                }
+
+                // Lấy thông tin BBGN
+                var BBGN = await _context.Tbl_BBGangLong_GangThoi
+                    .FirstOrDefaultAsync(x => x.ID_BBGL == id);
+
+                if (BBGN == null)
+                {
+                    return Json(new { success = false, message = $"Không tìm thấy bản ghi BBGN với ID {id}" });
+                }
+
+                // Chuẩn bị dữ liệu cho ViewBag
+                var nhanVienHRC = await _context.Tbl_TaiKhoan
+                    .Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_HRC)
+                    .Select(x => new { x.HoVaTen })
+                    .FirstOrDefaultAsync();
+
+                var nhanVienQLCL = await _context.Tbl_TaiKhoan
+                    .Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_QLCL)
+                    .Select(x => new { x.HoVaTen })
+                    .FirstOrDefaultAsync();
+
+
+                var NhanVien_TT = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
+                                         join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
+                                         select new Tbl_TaiKhoan
+                                         {
+                                             ID_TaiKhoan = a.ID_TaiKhoan,
+                                             HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
+                                         }).ToListAsync();
+
+                ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
+
+                var NhanVien_TTView = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == BBGN.ID_NhanVien_HRC)
+                                             join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
+                                             select new Tbl_TaiKhoan
+                                             {
+                                                 ID_TaiKhoan = a.ID_TaiKhoan,
+                                                 HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
+                                             }).ToListAsync();
+
+                ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TTView, "ID_TaiKhoan", "HoVaTen");
+                ViewBag.TaiKhoanBN_HRC = nhanVienHRC?.HoVaTen ?? "Không xác định";
+                ViewBag.TaiKhoanBN_QLCL = nhanVienQLCL?.HoVaTen ?? "Không xác định";
+
+                return PartialView();
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi ở đây
+                // _logger.LogError(ex, "Lỗi trong HuyPhieu_PheDuyet");
+                return Json(new { success = false, message = $"Đã xảy ra lỗi: {ex.Message}" });
+            }
+        }
+
     }
 }

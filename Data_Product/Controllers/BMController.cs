@@ -252,11 +252,7 @@ namespace Data_Product.Controllers
             var ID_Kip = _context.Tbl_Kip.Where(x => x.TenCa == res.Ca && x.NgayLamViec==res.NgayXuly_BG).FirstOrDefault();
             string SoPhieu = ThongTin_BP_BG.TenNgan + "-" + ID_Kip.TenCa + ID_Kip.TenKip + "-" +
                                          res.NgayXuly_BG?.Date.ToString("yyyy-MM-dd") ?? "";
-            var bs = new Tbl_TrinhKyBoSung();
-            bs.ID_BBGN = res.ID_BBGL;
-            bs.ID_TaiKhoan = res.ID_TaiKhoan;
-            bs.ID_TaiKhoan_View = res.ID_TaiKhoan_View;
-            bs.NgayTrinhKy = DateTime.Now;       
+     
             var data = new Tbl_BBGangLong_GangThoi();
             data.ID_NhanVien_BG = res.ID_NhanVien_BG;
             data.ID_PhongBan_BG = res.ID_PhongBan_BG;
@@ -279,7 +275,7 @@ namespace Data_Product.Controllers
             data.Ca = res.Ca;
             data.ID_LOCAO = res.ID_LOCAO;
             data.NoiDungTrichYeu = res.NoiDungTrichYeu;
-            data.ID_QuyTrinh = 1;
+            data.ID_QuyTrinh = 2;
             data.TinhTrang_BBGN = 0;
             data.TinhTrang_HRC = 0;
             data.TinhTrang_QLCL = 0;
@@ -313,7 +309,7 @@ namespace Data_Product.Controllers
                 dataInDb.ID_Kip = res.ID_Kip;
                 dataInDb.Kip = res.Kip;
                 dataInDb.Ca = res.Ca;
-                data.ID_QuyTrinh = 1;
+                data.ID_QuyTrinh = 2;
                 data.TinhTrang_BBGN = 0;
                 data.TinhTrang_HRC = 0;
                 data.TinhTrang_QLCL = 0;
@@ -322,6 +318,8 @@ namespace Data_Product.Controllers
             }
 
             _context.SaveChanges();
+            
+         
 
             // Tạo đối tượng trả về chứa tất cả dữ liệu cần thiết
             var responseData = new
@@ -334,9 +332,19 @@ namespace Data_Product.Controllers
                 Kip = data.Kip.ToString() ?? "",
                 IDKip = data.ID_Kip.ToString() ?? "",
                 ID_BBGL_Edit = data.ID_BBGL
+
             };
             idsert = responseData.Id_BBGL;
             iddate = responseData.NgayXuly_BG;
+            var bs = new Tbl_TrinhKyBoSung();
+            bs.ID_BBGN = idsert;
+            bs.ID_TaiKhoan = res.ID_TaiKhoan;
+            bs.ID_TaiKhoan_View = res.ID_TaiKhoan_View;
+            bs.NgayTrinhKy = DateTime.Now;
+            bs.ID_TrangThai = 4;
+            _context.Tbl_TrinhKyBoSung.Add(bs);
+            _context.SaveChanges();
+
             return Json(new { success = true, Id_BBGL = idsert, NgayXuly_BG = iddate });
         }
 
@@ -677,7 +685,7 @@ namespace Data_Product.Controllers
             int ID_NhanVien_BN = TaiKhoan.ID_TaiKhoan;
 
             ViewBag.TTList = new SelectList(_context.Tbl_TrangThai_PheDuyet.ToList(), "ID_TrangThai_PheDuyet", "TenTrangThai", ID_TrangThai);
-            var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_NhanVien_BG == ID_NhanVien_BN)
+            var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_NhanVien_BG == TaiKhoan.ID_TaiKhoan )
                              select new Tbl_BBGangLong_GangThoi
                              {
                                  ID_BBGL = a.ID_BBGL,
@@ -734,7 +742,13 @@ namespace Data_Product.Controllers
         }
         public async Task<IActionResult> confirm_details(int id)
         {
-            var res = await (from a in _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == id)
+            var currentUser = User.FindFirstValue(ClaimTypes.Name);
+            var userInfo = await _context.Tbl_TaiKhoan
+                .Where(x => x.TenTaiKhoan == currentUser)
+                .FirstOrDefaultAsync();
+            var res = await (from a in _context.Tbl_ChiTiet_BBGangLong_GangThoi
+                             join b in _context.Tbl_BBGangLong_GangThoi on a.Id_BBGL equals b.ID_BBGL
+                             where  b.ID_NhanVien_BG == userInfo.ID_TaiKhoan // Thêm điều kiện lọc
 
                              select new Tbl_ChiTiet_BBGangLong_GangThoi
                              {
