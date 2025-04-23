@@ -20,6 +20,7 @@ using iText.Kernel.Pdf.Canvas;
 using iText.Kernel.Pdf;
 using iText.Barcodes;
 using iText.Kernel.Pdf.Xobject;
+using DocumentFormat.OpenXml.Bibliography;
 namespace Data_Product.Controllers
 {
     public class XuLyPhieuBMController : Controller
@@ -119,7 +120,8 @@ namespace Data_Product.Controllers
             DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
 
             var res = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
-
+            var BBGN = await _context.Tbl_BBGangLong_GangThoi
+                    .FirstOrDefaultAsync(x => x.ID_BBGL == id);
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
             var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
@@ -162,6 +164,25 @@ namespace Data_Product.Controllers
 
             ViewBag.TingtrangQLCL = res.TinhTrang_QLCL;
 
+            var NhanVien_TT = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
+                                     join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
+                                     select new Tbl_TaiKhoan
+                                     {
+                                         ID_TaiKhoan = a.ID_TaiKhoan,
+                                         HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
+                                     }).ToListAsync();
+
+            ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
+
+            var NhanVien_TTView = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == BBGN.ID_Xuong_HRC)
+                                         join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
+                                         select new Tbl_TaiKhoan
+                                         {
+                                             ID_TaiKhoan = a.ID_TaiKhoan,
+                                             HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
+                                         }).ToListAsync();
+
+            ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TTView, "ID_TaiKhoan", "HoVaTen");
             ViewBag.Data = id;
 
             return PartialView();
@@ -733,7 +754,7 @@ namespace Data_Product.Controllers
                                                 TinhTrang_BBGN={0}
                                          WHERE ID_BBGL = '" + id + "'";
                     await _context.Database.ExecuteSqlRawAsync(result_BBGN,
-                            5);
+                            1);
                     Tbl_XuLyXoaPhieu xoaphieu = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == id).FirstOrDefault();
                     _context.Tbl_XuLyXoaPhieu.Remove(xoaphieu);
                     //xoaphieu.TinhTrang_BN = 0;
@@ -755,7 +776,77 @@ namespace Data_Product.Controllers
             {
                 TempData["msgError"] = "<script>alert('Hủy phiếu thất bại');</script>";
             }
-            return RedirectToAction("Index", "XuLyPhieu");
+            return RedirectToAction("Index_Started", "BM");
+        }
+        public async Task<IActionResult> YCauHieuChinhBM(int? id)
+        {
+            DateTime today = DateTime.Today;
+            DateTime yesterday = today.AddDays(-1);
+
+            ViewBag.DefaultDate = today.ToString("yyyy-MM-dd");
+            DateTime DayNow = DateTime.Now;
+            String Day = DayNow.ToString("dd/MM/yyyy");
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+            var TrinhKy = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == id).FirstOrDefault();
+            string TenBP = PhongBan.TenNgan.ToString();
+            DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
+
+            var NhanVien = (from a in _context.Tbl_TaiKhoan
+                            select new Tbl_TaiKhoan
+                            {
+                                ID_TaiKhoan = a.ID_TaiKhoan,
+                                HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                            }).ToList();
+
+            ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
+            var TaiKhoan_QLCL = (from a in _context.Tbl_TaiKhoan
+                                 select new Tbl_TaiKhoan
+                                 {
+                                     ID_TaiKhoan = a.ID_TaiKhoan,
+                                     HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                                 }).ToList();
+
+            ViewBag.IDTaiKhoan = new SelectList(TaiKhoan_QLCL, "ID_TaiKhoan", "HoVaTen");
+
+            var NhanVien_TT = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
+                                     join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
+                                     select new Tbl_TaiKhoan
+                                     {
+                                         ID_TaiKhoan = a.ID_TaiKhoan,
+                                         HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
+                                     }).ToListAsync();
+
+            ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
+            ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
+            ViewBag.Data = id;
+            var currentUser = User.FindFirstValue(ClaimTypes.Name);
+            var userInfo = await _context.Tbl_TaiKhoan
+                .Where(x => x.TenTaiKhoan == currentUser)
+                .FirstOrDefaultAsync();
+            var res = await (from a in _context.Tbl_ChiTiet_BBGangLong_GangThoi
+                             join b in _context.Tbl_BBGangLong_GangThoi on a.Id_BBGL equals b.ID_BBGL
+                             where b.ID_BBGL == id && b.ID_NhanVien_BG == userInfo.ID_TaiKhoan // Thêm điều kiện lọc
+
+                             select new Tbl_ChiTiet_BBGangLong_GangThoi
+                             {
+                                 Id_BBGL = a.Id_BBGL,
+                                 SoMe = a.SoMe,
+                                 ThungSo = a.ThungSo,
+                                 KhoiLuongXeGoong = a.KhoiLuongXeGoong,
+                                 KhoiLuongThung = a.KhoiLuongThung,
+                                 KLThungGangLong = a.KLThungGangLong,
+                                 KLGangLongCanRay = a.KLGangLongCanRay,
+                                 VanChuyenHRC1 = a.VanChuyenHRC1,
+                                 VanChuyenHRC2 = a.VanChuyenHRC2,
+                                 PhanLoai = a.PhanLoai,
+                                 Gio = a.Gio,
+                                 GhiChu = a.GhiChu
+                             }).ToListAsync();
+            ViewBag.Data = id;
+            return View(res);
+            
         }
     }
 }
