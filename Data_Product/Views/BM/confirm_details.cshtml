@@ -103,7 +103,7 @@
                                     @if (ThongTin_BG.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan)
                                     {
                                         <button type="submit" class="btn btn-warning">
-                                            <a href="@Url.Action("YCauHieuChinh", "XuLyPhieuBM", new { id = ID_BBGN.ID_BBGL })">
+                                            <a href="@Url.Action("YCauHieuChinhBM", "XuLyPhieuBM", new { id = ID_BBGN.ID_BBGL })">
                                                 <i class="bi bi-send-x-fill" style="color: white;"></i>
                                                 <span class="small pt-2 ps-1" style="color: white;">
                                                     Đề nghị hiệu chỉnh
@@ -111,7 +111,7 @@
                                             </a>
                                         </button>
                                         <button type="submit" class="btn btn-primary">
-                                            <a href="@Url.Action("SaoChepPhieu", "BM", new { id = ID_BBGN.ID_BBGL })">
+                                            <a href="@Url.Action("SaoChepPhieuBM", "BM", new { id = ID_BBGN.ID_BBGL })">
                                                 <i class="bi bi-clipboard-check" style="color: white;"></i>
                                                 <span class="small pt-2 ps-1" style="color: white;">
                                                     Copy tạo phiếu
@@ -129,6 +129,32 @@
 
                                 </div>
 
+                            }
+                            else if (ID_BBGN.TinhTrang_BBGN == 5) //xóa phiếu
+                            {
+                                var checkxoa = _context.Tbl_XuLyXoaPhieu.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGL && x.ID_TaiKhoanBN == TaiKhoan.ID_TaiKhoan && x.TinhTrang_BN == 0).FirstOrDefault();
+                                if (checkxoa != null)
+                                {
+                                    <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                        <button type="submit" class="btn btn-danger" name="xacnhan" id="xacnhan" value="1">
+                                            <a href="@Url.Action("BN_XoaPhieu", "XuLyPhieuBM", new { id = ID_BBGN.ID_BBGL,tinhtrang =0 })">
+                                                <i class="bi bi-send-x" style="color: white;"></i>
+                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                    Không xóa phiếu
+                                                </span>
+                                            </a>
+                                        </button>
+
+                                        <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
+                                            <a href="@Url.Action("BN_XoaPhieu", "XuLyPhieuBM", new { id = ID_BBGN.ID_BBGL,tinhtrang =1 })">
+                                                <i class="bi bi-floppy" style="color: white;"></i>
+                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                    Xác nhận xóa phiếu
+                                                </span>
+                                            </a>
+                                        </button>
+                                    </div>
+                                }
                             }
 
                         </div>
@@ -224,6 +250,7 @@
                                 </span>
                             </div>
 
+                        </div>
                         </div>
 
                         <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
