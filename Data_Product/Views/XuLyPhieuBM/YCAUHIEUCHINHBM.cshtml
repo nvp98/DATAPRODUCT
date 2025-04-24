@@ -320,21 +320,27 @@
                                         }
                                         @foreach (var item in Model)
                                         {
+
                                             <tr>
-                                                <td>@index</td>
-                                                <td>@item.SoMe</td>
-                                                <td>@item.ThungSo</td>
+                                                <td class='text-center delItem'>
+                                                    <a class="btn btn-danger btn-sm" title="Xóa">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                </td>
 
-                                                <td>@item.KhoiLuongXeGoong</td>
-                                                <td>@item.KhoiLuongThung</td>
-                                                <td>@item.KLThungGangLong</td>
+                                                <td><input type="text" name="SoMe" class="form-control" value="@item.SoMe" style="width: 170px;" ></td>
+                                                <td><input type="text" name="ThungSo" class="form-control" value="@item.ThungSo" ></td>
 
-                                                <td>@item.KLGangLongCanRay</td>
-                                                <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") disabled /></td>
-                                                <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 == 1 ? "checked" : "") disabled /></td>
-                                                <td>@item.PhanLoai</td>
-                                                <td>@item.Gio</td>
-                                                <td>@item.GhiChu</td>
+                                                <td><input type="number" name="KhoiLuongXeGoong" value="@item.KhoiLuongXeGoong" class="form-control"></td>
+                                                <td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KhoiLuongThung"></td>
+                                                <td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KLThungGangLong"></td>
+
+                                                <td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="@item.KLGangLongCanRay"></td>
+                                                <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") /></td>
+                                                <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 == 1 ? "checked" : "") /></td>
+                                                <td><input type="text" name="PhanLoai" class="form-control" value="@item.PhanLoai" ></td>
+                                                <td><input type="text" name="Gio" class="form-control" value="@item.Gio" ></td>
+                                                <td><input type="text" name="GhiChu" class="form-control" value="@item.GhiChu"></td>
                                             </tr>
                                             index++;
                                         }
@@ -362,7 +368,61 @@
             </div>
         </div>
     </div>
+}
 
+    @* <script type="text/javascript">
+    $(document).ready(function () {
+               let maxIndex = 0;
+        $("#xacnhan").click(function (e) {
+            e.preventDefault();
+
+            let selectedButton = $(this).attr("id");
+
+            
+            let ID_TaiKhoan=$("#IDNhanVienTT").val();
+            let  ID_TaiKhoan_View=$("#IDNhanVienView").val();
+            if (!ID_TaiKhoan || ID_TaiKhoan == "null") {
+                alert('Vui lòng chọn nhân viên thống kê!');
+                return false;
+            }
+
+            if (!ID_TaiKhoan_View || ID_TaiKhoan_View == "null") {
+                alert('Vui lòng chọn nhân viên nhận BBGN!');
+                return false;
+            }
+            var data = {
+               
+                    ID_TaiKhoan:$("#IDNhanVienTT").val(),
+                    ID_TaiKhoan_View:$("#IDNhanVienView").val(),
+              
+            };
+            console.log(data)
+
+                $.ajax({
+                        url: "/XuLuPhieuBM/YCauHieuChinhBM",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    processData: false,
+                    success: function (response) {
+                        if (response.success) {
+                                  alert("Gửi dữ liệu thành công!");
+                            let ID_BBGL = response.id_BBGL;
+                            // call API
+
+                            submitChiTietBBGangLong(ID_BBGL, selectedButton);
+
+                        }
+                        else{
+                                 alert("Gửi dữ liệu thất bại: " + (response.message || "Vui lòng thử lại!"));
+                        }
+
+                    }
+                });
+        });
+    });
+        
+    </script> *@
     <script type="text/javascript">
         $(".SelectVT").chosen({
             width: "100%"
@@ -387,4 +447,3 @@
         });
     </script>
     
-}

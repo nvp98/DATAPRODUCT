@@ -352,12 +352,53 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-hospital"></i><span>Phiếu xác nhận phê duyệt </span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-bieumau" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("PhieuBoSung","XuLyPhieu")">
+                                    <i class="bi bi-envelope-arrow-up"></i>
+                                    <span> (BM.11)</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("PhieuBoSungBM","XulyphieuBM")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>(BM.16)</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-hospital"></i><span>PKH Xử lý xóa phiếu </span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-bieumau" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("PKHXoaPhieu","XuLyPhieu")">
+                                    <i class="bi bi-envelope-arrow-up"></i>
+                                    <span> (BM.11)</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("PKHXoaPhieuBM","XuLyPhieuBM")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>(BM.16)</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+                    @* <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("PKHXoaPhieu","XuLyPhieu")">
                             <i class="bi bi-envelope-open"></i>
                             <span>PKH Xử lý xóa phiếu</span>
                         </a>
-                    </li>
+                    </li> *@
 
                     <!-- End F.A.Q Page Nav -->
 
