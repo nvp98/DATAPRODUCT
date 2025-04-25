@@ -919,11 +919,30 @@ namespace Data_Product.Controllers
                     DateTime ThoiGianXuLyBG = DateTime.ParseExact(Day_Convert, "dd-MM-yyyy", CultureInfo.InvariantCulture);
 
                     int so = ID_BBGNHC.Count() + 1;
-                   
+                    var tpm = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
+                    int IDBBGL = Convert.ToInt32(id) + 1;
+                    var data = new Tbl_ChiTiet_BBGangLong_GangThoi();
+                    {
+                        data.Id_BBGL = IDBBGL;
+                        data.SoMe = _DO.SoMe;
+                        data.ThungSo = _DO.ThungSo;
+                        data.KhoiLuongXeGoong = _DO.KhoiLuongXeGoong;
+                        data.KhoiLuongThung = _DO.KhoiLuongThung;
+                        data.KLThungGangLong = _DO.KLGangLongCanRay;
+                        data.KLGangLongCanRay = _DO.KLGangLongCanRay;
+                        data.VanChuyenHRC1 = _DO.VanChuyenHRC1;
+                        data.VanChuyenHRC2 = _DO.VanChuyenHRC2;
+                        data.PhanLoai = _DO.PhanLoai;
+                        data.GhiChu = _DO.GhiChu;
+                        
+                    }
+                    _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(data);
+                    _context.SaveChanges();
                     
+
                     TempData["msgSuccess"] = "<script>alert('Trình ký thành công');</script>";
 
-                    return RedirectToAction("Index_Detail", "BM", new { id = BBGN_IDNew });
+                    return RedirectToAction("Detail", "BM", new { id = id });
                 }
 
             }
@@ -934,7 +953,7 @@ namespace Data_Product.Controllers
 
             }
             return RedirectToAction("YCauHieuChinhBM", "XuLyPhieuBM", new { id = id });
-        }
+            }
         public async Task<IActionResult> PhieuBoSungBM(DateTime? begind, DateTime? endd, int? ID_TrangThai, int page = 1)
         {
             DateTime Now = DateTime.Now;
