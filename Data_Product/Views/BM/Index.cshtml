@@ -594,7 +594,9 @@
         let selectedTaiKhoan = $("#IDTaiKhoan").val();
         let selectedTaiKhoan_QLCL = $("#IDTaiKhoan_QLCL").val();
         let selectedLoCao = $("#IDLoCao").val();
-
+        let selectedID_TaiKhoan=$("#IDNhanVienTT").val();
+        let selectID_TaiKhoan_View=$("#IDNhanVienView").val();
+            
         if (!selectedLoCao || selectedLoCao == "null") {
             alert('Vui lòng chọn Lò cao!');
             return false;
@@ -614,6 +616,15 @@
             alert('Vui lòng chọn Đại diện bên nhận QLCL!');
             return false;
         }
+        if(!selectedID_TaiKhoan||selectedID_TaiKhoan=="null"){
+            alert('Vui lòng chọn Nhân viên thống kê phê duyệt:!');
+            return false;
+        }
+        if(!selectID_TaiKhoan_View||selectID_TaiKhoan_View=="null"){
+            alert('Vui lòng chọn Nhân viên thống kê nhận BBGN:!');
+            return false;
+        }
+            
 
         var PBPXValue = $("#ID_PhongBan_BG").data("info");
         var partsBG = PBPXValue.split("-");
@@ -677,7 +688,7 @@
         });
     });
          $("#btnSave").click(function (e) {
-            e.preventDefault();
+              e.preventDefault();
 
             let selectedButton = $(this).attr("id");
 
@@ -685,6 +696,8 @@
             let selectedTaiKhoan = $("#IDTaiKhoan").val();
             let selectedTaiKhoan_QLCL = $("#IDTaiKhoan_QLCL").val();
             let selectedLoCao = $("#IDLoCao").val();
+            let selectedID_TaiKhoan=$("#IDNhanVienTT").val();
+            let selectID_TaiKhoan_View=$("#IDNhanVienView").val();
 
             if (!selectedLoCao || selectedLoCao == "null") {
                 alert('Vui lòng chọn Lò cao!');
@@ -705,8 +718,16 @@
                 alert('Vui lòng chọn Đại diện bên nhận QLCL!');
                 return false;
             }
+            if(!selectedID_TaiKhoan||selectedID_TaiKhoan=="null"){
+                alert('Vui lòng chọn Nhân viên thống kê phê duyệt:!');
+                return false;
+            }
+            if(!selectID_TaiKhoan_View||selectID_TaiKhoan_View=="null"){
+                alert('Vui lòng chọn Nhân viên thống kê nhận BBGN:!');
+                return false;
+            }
 
-            var PBPXValue = $("#ID_PhongBan_BG").data("info");
+                var PBPXValue = $("#ID_PhongBan_BG").data("info");
             var partsBG = PBPXValue.split("-");
 
             var PBPX_HRCValue = $("#IDPhongBan option:selected").data("info");
@@ -738,7 +759,8 @@
                 Ca: $("#IDCa").val(),
 
                 NoiDungTrichYeu: $("#NoiDungTrichYeu").val(),
-
+                    ID_TaiKhoan:$("#IDNhanVienTT").val(),
+                    ID_TaiKhoan_View:$("#IDNhanVienView").val(),
                  ID_LOCAO:$("#IDLoCao").val()
             };
             console.log(data)

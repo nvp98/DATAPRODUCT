@@ -29,17 +29,17 @@ namespace Data_Product.Models
         public double? KLGangLongCanRay { get; set; }
 
         [Column("VanChuyen_Thep")]
-        public int VanChuyenHRC1 { get; set; }
+        public int? VanChuyenHRC1 { get; set; }
 
         [Column("VanChuyen_Gang")]
-        public int VanChuyenHRC2 { get; set; }
+        public int? VanChuyenHRC2 { get; set; }
 
-        public string PhanLoai { get; set; }
+        public string? PhanLoai { get; set; }
 
         [NotMapped]
         public string Gio { get; set; }
 
-        public string GhiChu { get; set; }
+        public string? GhiChu { get; set; }
 
     }
  

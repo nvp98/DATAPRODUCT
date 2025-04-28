@@ -64,8 +64,9 @@ namespace Data_Product.Models
         [NotMapped]
         public DateTime Ngaytrinhky { get; set; }
         public Boolean IsDelete { get; set; }
-
+        public Boolean? IsLock { get; set; }
     }
-    
+
+
 
 }

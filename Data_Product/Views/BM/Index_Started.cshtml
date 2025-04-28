@@ -114,7 +114,7 @@
                                             @if (item.ID_QuyTrinh != 1 && ID_TrinhKy.ID_TaiKhoan == 0)
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("YCauHieuChinh", "XuLyPhieuBM", new{id = item.ID_BBGL})">
+                                                    <a class="nav-link collapsed" href="@Url.Action("Detail", "BM", new{id = item.ID_BBGL})">
                                                         BM.16/QT.05
                                                     </a>
                                                 </td>
@@ -184,36 +184,7 @@
                                                     </td>
                                                 } *@
                                             }
-                                            else
-                                            {
-                                                if (ID_TrinhKy != null)
-                                                {
-                                                    if (ID_TrinhKy.ID_TrangThai == 3)
-                                                    {
-                                                        DateTime ThoiGianXuly = (DateTime)ID_TrinhKy.NgayXuLy;
-                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                            @ThoiGianXuly.ToString("dd/MM/yyyy")
-                                                        </td>
-                                                    }
-                                                    else
-                                                    {
-                                                        if (@item.NgayXuly_HRC == DateTime.Parse("0001/01/01") || @item.NgayXuly_HRC == null)
-                                                        {
-                                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                            </td>
-
-                                                        }
-                                                        else
-                                                        {
-                                                            DateTime ThoiGianXuly = (DateTime)@item.NgayXuly_HRC;
-                                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                                @ThoiGianXuly.ToString("dd/MM/yyyy")
-                                                            </td>
-                                                        }
-                                                    }
-                                                }
-                                                
-                                            }
+                                           
 
                                             @if (item.TinhTrang_BBGN ==0 )
                                             {

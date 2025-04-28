@@ -8,6 +8,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using System.Linq;
 using System.Security.Claims;
 
 namespace Data_Product.Controllers
@@ -437,6 +438,16 @@ namespace Data_Product.Controllers
           
             ViewBag.IDTaiKhoan_HRC = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", IDTK_HRC);
             ViewBag.IDTaiKhoan_QLCL = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", IDTK_QLCL);
+            var NhanVien_TT = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
+                                     join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
+                                     select new Tbl_TaiKhoan
+                                     {
+                                         ID_TaiKhoan = a.ID_TaiKhoan,
+                                         HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
+                                     }).ToListAsync();
+
+            ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
+            ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
 
             var VatTu = (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(TenBP) && x.ID_TrangThai == 1)
                          select new Tbl_VatTu
@@ -975,6 +986,249 @@ namespace Data_Product.Controllers
             _context.SaveChanges();
 
             return Json(new { success = true, Id_BBGL = idsert, NgayXuly_BG = iddate });
+        }
+
+        public async Task<IActionResult> Index_All(string search, int? ID_QuyTrinh, DateTime? begind, DateTime? endd, int? ID_PhongBan, int? ID_Xuong, int? ID_PhongBanBG, int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN, string Kip, int page = 1)
+        {
+
+            DateTime Now = DateTime.Now;
+            DateTime startDay = Now.AddDays(-1);
+            DateTime endDay = Now;
+            if (begind != null) startDay = (DateTime)begind;
+            if (endd != null) endDay = (DateTime)endd;
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            int ID_NhanVien_BG = TaiKhoan.ID_TaiKhoan;
+
+            var pbls = _context.Tbl_PhongBan.ToList();
+            List<string> ListPB = new List<string>();
+            List<int> ListPBInt = new List<int>();
+            if (TaiKhoan.PhongBan_Them != null)
+            {
+                ListPB = TaiKhoan.PhongBan_Them.Split(',').Select(item => item.Trim()).ToList();
+                foreach (var item in ListPB)
+                {
+                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item).FirstOrDefault();
+                    if (pb != null) ListPBInt.Add(pb.ID_PhongBan);
+                }
+            }
+            //ViewBag.TTList = new SelectList(_context.Tbl_TrangThai.ToList(), "ID_TrangThai", "TenTrangThai", ID_TrangThai);
+            var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.NgayXuly_BG >= startDay && x.NgayXuly_BG <= endDay)
+                             select new Tbl_BBGangLong_GangThoi
+                             {
+                                 ID_BBGL = a.ID_BBGL,
+                                 NoiDungTrichYeu = a.NoiDungTrichYeu,
+                                 ID_NhanVien_BG = a.ID_NhanVien_BG,
+                                 ID_PhongBan_BG = a.ID_PhongBan_BG,
+                                 ID_Xuong_BG = a.ID_Xuong_BG,
+                                 ID_ViTri_BG = a.ID_ViTri_BG,
+
+                                 ID_NhanVien_HRC = a.ID_NhanVien_HRC,
+                                 ID_PhongBan_HRC = a.ID_PhongBan_HRC,
+                                 ID_Xuong_HRC = a.ID_Xuong_HRC,
+                                 ID_ViTri_HRC = a.ID_ViTri_HRC,
+
+                                 ID_NhanVien_QLCL = a.ID_NhanVien_QLCL,
+                                 ID_PhongBan_QLCL = a.ID_PhongBan_QLCL,
+                                 ID_Xuong_QLCL = a.ID_Xuong_QLCL,
+                                 ID_ViTri_QLCL = a.ID_ViTri_QLCL,
+
+                                 TinhTrang_BG = a.TinhTrang_BG,
+                                 TinhTrang_HRC = a.TinhTrang_HRC,
+                                 TinhTrang_QLCL = a.TinhTrang_QLCL,
+                                 TinhTrang_BBGN = a.TinhTrang_BBGN,
+
+                                 NgayXuly_BG = a.NgayXuly_BG,
+                                 NgayXuly_HRC = a.NgayXuly_HRC,
+                                 NgayXuly_QLCL = a.NgayXuly_QLCL,
+                                 SoPhieu = a.SoPhieu,
+
+                                 ID_Kip = a.ID_Kip,
+                                 Kip = a.Kip,
+                                 Ca = a.Ca,
+                                 IDBBGL_Cu = a.IDBBGL_Cu,
+                                 //NoiDungTrichYeu =a.NoiDungTrichYeu,
+
+                                 ID_QuyTrinh = a.ID_QuyTrinh,
+                             }).OrderBy(x => x.ID_BBGL).ToListAsync();
+            if (TaiKhoan.TenTaiKhoan != "HPDQ18461")
+            {
+                res = res.Where(x => !x.IsDelete).ToList();
+            }
+           
+            // Filter Quyền Bổ sung
+            if (TaiKhoan.ID_Quyen > 3)
+            {
+                if (TaiKhoan.ID_Quyen != 8)
+                {
+                    pbls = pbls.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan || ListPB.Contains(x.TenNgan)).ToList();
+                    res = res.Where(x => x.ID_PhongBan_BG == TaiKhoan.ID_PhongBan || x.ID_PhongBan_HRC == TaiKhoan.ID_PhongBan || ListPBInt.Contains(x.ID_PhongBan_BG) || x.ID_PhongBan_QLCL == TaiKhoan.ID_PhongBan).ToList();
+
+                }
+
+            }
+
+            var myList = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "1A", Value = "1A" },
+                new SelectListItem { Text = "1B", Value = "1B" },
+                new SelectListItem { Text = "1C", Value = "1C" },
+                new SelectListItem { Text = "2A", Value = "2A" },
+                new SelectListItem { Text = "2B", Value = "2B" },
+                new SelectListItem { Text = "2C", Value = "2C" }
+            };
+
+            ViewBag.Kip = new SelectList(myList, "Value", "Text");
+            ViewBag.PBList = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBan);
+            ViewBag.PBListBG = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBG);
+            ViewBag.PBListBN = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBN);
+            ViewBag.ID_Xuong = ID_Xuong ?? 0;
+            ViewBag.ID_XuongBG = ID_XuongBG ?? 0;
+            ViewBag.ID_XuongBN = ID_XuongBN ?? 0;
+            //res = res.Where(x => x.ThoiGianXuLyBG >= startDay && x.ThoiGianXuLyBG <= endDay).ToList();
+
+            if (ID_PhongBan != null) res = res.Where(x => x.ID_PhongBan_BG == ID_PhongBan || x.ID_PhongBan_HRC == ID_PhongBan).ToList();
+            if (ID_Xuong != null) res = res.Where(x => x.ID_Xuong_BG == ID_Xuong || x.ID_PhongBan_HRC == ID_Xuong).ToList();
+
+            if (ID_PhongBan != null) res = res.Where(x => x.ID_PhongBan_BG == ID_PhongBan || x.ID_PhongBan_QLCL == ID_PhongBan).ToList();
+            if (ID_Xuong != null) res = res.Where(x => x.ID_Xuong_BG == ID_Xuong || x.ID_PhongBan_QLCL == ID_Xuong).ToList();
+
+            if (ID_PhongBanBG != null) res = res.Where(x => x.ID_PhongBan_BG == ID_PhongBanBG).ToList();
+            if (ID_XuongBG != null) res = res.Where(x => x.ID_Xuong_BG == ID_XuongBG).ToList();
+
+            if (ID_PhongBanBN != null) res = res.Where(x => x.ID_PhongBan_HRC == ID_PhongBanBN).ToList();
+            if (ID_XuongBN != null) res = res.Where(x => x.ID_Xuong_HRC == ID_XuongBN).ToList();
+
+            if (ID_QuyTrinh != null) res = res.Where(x => x.ID_QuyTrinh == ID_QuyTrinh).ToList();
+            if (search != null) res = res.Where(x => x.SoPhieu.Contains(search) || !string.IsNullOrEmpty(x.NoiDungTrichYeu) && x.NoiDungTrichYeu.Contains(search)).ToList();
+            var selectedValues = new List<string>();
+            if (Kip != null)
+            {
+                List<string> ls = Kip.Split(",").ToList();
+                if (ls != null)
+                {
+                    var BBGNFilter = new List<Tbl_BBGangLong_GangThoi>();
+                    foreach (var item in ls)
+                    {
+                        var ad = res.Where(x => x.SoPhieu.Contains(item)).ToList();
+                        BBGNFilter.AddRange(ad);
+                        selectedValues.Add(item);
+                    }
+                    res = BBGNFilter;
+                }
+
+            }
+
+            ViewBag.KipSelec = selectedValues.ToArray();
+            var items = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "Tạo phiếu", Value = "1" },
+                new SelectListItem { Text = "Bổ sung phiếu", Value = "2" },
+                new SelectListItem { Text = "Đề nghị hiệu chỉnh", Value = "3" }
+            };
+            ViewBag.QuyTrinh = new SelectList(items, "Value", "Text", ID_QuyTrinh);
+            const int pageSize = 1000;
+            if (page < 1)
+            {
+                page = 1;
+            }
+            int resCount = res.Count;
+            var pager = new Pager(resCount, page, pageSize);
+            int recSkip = (page - 1) * pageSize;
+            var data = res.Skip(recSkip).Take(pager.PageSize).ToList();
+            this.ViewBag.Pager = pager;
+            return View(data);
+        }
+        public async Task<IActionResult> Lock(int id, int page)
+        {
+            try
+            {
+
+                //var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_TaiKhoan_lock {0},{1}", id, 1);
+
+                var phieu = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
+                phieu.IsLock = true;
+               
+                _context.SaveChanges();
+
+                TempData["msgSuccess"] = "<script>alert('khóa thành công');</script>";
+            }
+            catch (Exception e)
+            {
+                TempData["msgError"] = "<script>alert(' khóa dữ liệu thất bại');</script>";
+            }
+            var ID_PhongBanBG = Request.Query["ID_PhongBanBG"];
+            var ID_XuongBG = Request.Query["ID_XuongBG"];
+            var begind = Request.Query["begind"];
+            var endd = Request.Query["endd"];
+            var ID_PhongBan_HRC = Request.Query["ID_PhongBan_HRC"];
+            var ID_Xuong_HRC = Request.Query["ID_Xuong_HRC"];
+            var ID_PhongBan_QLCL = Request.Query["ID_PhongBan_QLCL"];
+            var ID_Xuong_QLCL = Request.Query["ID_Xuong_QLCL"];
+            var ID_QuyTrinh = Request.Query["ID_QuyTrinh"];
+            var Kip = Request.Query["Kip"];
+            var search = Request.Query["search"];
+            return RedirectToAction("Index_All", "BM", new
+            {
+                ID_PhongBanBG = ID_PhongBanBG,
+                ID_XuongBG = ID_XuongBG,
+                begind = begind,
+                endd = endd,
+                ID_PhongBan_HRC = ID_PhongBan_HRC,
+                ID_Xuong_HRC = ID_Xuong_HRC,
+                ID_PhongBan_QLCL = ID_PhongBan_QLCL,
+                ID_Xuong_QLCL = ID_Xuong_QLCL,
+                ID_QuyTrinh = ID_QuyTrinh,
+                Kip = Kip,
+                search = search
+            }); // Quay lại trang danh sách
+
+        }
+        public async Task<IActionResult> Unlock(int id, int page)
+        {
+            try
+            {
+
+                //var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_TaiKhoan_lock {0},{1}", id, 1);
+
+                var phieu = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
+                phieu.IsLock = false;
+               
+                _context.SaveChanges();
+
+                TempData["msgSuccess"] = "<script>alert('Mở khóa thành công');</script>";
+            }
+            catch (Exception e)
+            {
+                TempData["msgError"] = "<script>alert('Mở khóa dữ liệu thất bại');</script>";
+            }
+            var ID_PhongBanBG = Request.Query["ID_PhongBanBG"];
+            var ID_XuongBG = Request.Query["ID_XuongBG"];
+            var begind = Request.Query["begind"];
+            var endd = Request.Query["endd"];
+            var ID_PhongBan_HRC = Request.Query["ID_PhongBan_HRC"];
+            var ID_Xuong_HRC = Request.Query["ID_Xuong_HRC"];
+            var ID_PhongBan_QLCL = Request.Query["ID_PhongBan_QLCL"];
+            var ID_Xuong_QLCL = Request.Query["ID_Xuong_QLCL"];
+            var ID_QuyTrinh = Request.Query["ID_QuyTrinh"];
+            var Kip = Request.Query["Kip"];
+            var search = Request.Query["search"];
+            return RedirectToAction("Index_All", "BM", new
+            {
+                ID_PhongBanBG = ID_PhongBanBG,
+                ID_XuongBG = ID_XuongBG,
+                begind = begind,
+                endd = endd,
+                ID_PhongBan_HRC = ID_PhongBan_HRC,
+                ID_Xuong_HRC = ID_Xuong_HRC,
+                ID_PhongBan_QLCL = ID_PhongBan_QLCL,
+                ID_Xuong_QLCL= ID_Xuong_QLCL,
+                ID_QuyTrinh = ID_QuyTrinh,
+                Kip = Kip,
+                search = search
+            }); // Quay lại trang danh sách
+
+            //return RedirectToAction("Index_All", "BM_11", new { page = page });
         }
 
     }
