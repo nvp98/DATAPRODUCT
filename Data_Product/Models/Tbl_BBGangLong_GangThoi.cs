@@ -19,6 +19,16 @@ namespace Data_Product.Models
         public int? ID_Xuong_HRC { get; set; }
         public int? ID_ViTri_HRC { get; set; }
 
+        public int? ID_NhanVien_HRC2 { get; set; }
+        public int? ID_PhongBan_HRC2 { get; set; }
+        public int? ID_Xuong_HRC2 { get; set; }
+        public int? ID_ViTri_HRC2 { get; set; }
+        
+        public int? ID_Nhanvien_NL { get; set; }
+        public int? ID_PB_NL { get; set; }
+        public int? ID_Xuong_NL { get; set; }
+        public int? ID_Vitri_NL { get; set; }
+
         public int? ID_NhanVien_QLCL { get; set; }
         public int? ID_PhongBan_QLCL { get; set; }
         public int? ID_Xuong_QLCL { get; set; }

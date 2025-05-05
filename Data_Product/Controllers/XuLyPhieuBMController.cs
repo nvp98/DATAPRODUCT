@@ -859,11 +859,11 @@ namespace Data_Product.Controllers
             int IDNhanVien_TT_View = 0;
             int BBGN_IDNew = 0;
             List<Tbl_ChiTiet_BBGangLong_GangThoi> Tbl_ChiTiet_BBGangLong_GangThoi = new List<Tbl_ChiTiet_BBGangLong_GangThoi>();
-            try {
+            try
+            {
                 XacNhan = formCollection["xacnhan"];
-                if (XacNhan == "0" && XacNhan != "")  // Hủy
+                if (XacNhan == "0" && XacNhan != "") // Hủy
                 {
-
                     TempData["msgSuccess"] = "<script>alert('Hủy phiếu thành công');</script>";
                     return RedirectToAction("Index", "BM");
                 }
@@ -880,12 +880,14 @@ namespace Data_Product.Controllers
                         TempData["msgSuccess"] = "<script>alert('Vui lòng chọn nhân viên thống kê nhận BBGN');</script>";
                         return RedirectToAction("YCauHieuChinhBM", "XuLyPhieuBM", new { id = id });
                     }
+
                     var checkphieucu = _context.Tbl_BBGangLong_GangThoi.FirstOrDefault(x => x.IDBBGL_Cu == id || (x.TinhTrang_BBGN != 1 && x.ID_BBGL == id));
                     if (checkphieucu != null)
                     {
                         TempData["msgSuccess"] = "<script>alert('BBGN này đã được đề nghị hiệu chỉnh trước đó');</script>";
                         return RedirectToAction("YCauHieuChinhBM", "XuLyPhieuBM", new { id = id });
                     }
+
                     foreach (var key in formCollection.ToList())
                     {
                         if (key.Key != "__RequestVerificationToken")
@@ -895,11 +897,12 @@ namespace Data_Product.Controllers
                             IDNhanVien_TT_View = Convert.ToInt32(formCollection["NhanVien_TT_View"]);
                         }
                     }
+
                     var ID_BBGN = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
                     var ID_TK = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == id).FirstOrDefault();
                     var checkSPhieu = ID_BBGN.SoPhieu.Split("_")[0];
-                    //var ID_BBGNHC = checkSPhieu + "_HC";
                     var ID_BBGNHC = _context.Tbl_BBGangLong_GangThoi.Where(x => x.SoPhieu.Contains(checkSPhieu + "_HC")).ToList();
+
                     //Thông tin bên giao
                     var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BG).FirstOrDefault();
                     var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
@@ -912,11 +915,12 @@ namespace Data_Product.Controllers
                     var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC).FirstOrDefault();
                     var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
 
-                    // Thông tin bên nhận QLCL
+                    //Thông tin bên nhận QLCL
                     var ThongTin_BN_QLCL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_QLCL).FirstOrDefault();
                     var PhongBan_BN_QLCL = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_QLCL).FirstOrDefault();
                     var PhanXuong_BN_QLCL = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_QLCL).FirstOrDefault();
                     var ViTri_BN_QLCL = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN_QLCL.ID_ChucVu).FirstOrDefault();
+
                     DateTime Day = (DateTime)ID_BBGN.NgayXuly_BG;
                     string Day_Convert = Day.ToString("dd-MM-yyyy");
                     DateTime ThoiGianXuLyBG = DateTime.ParseExact(Day_Convert, "dd-MM-yyyy", CultureInfo.InvariantCulture);
@@ -924,11 +928,9 @@ namespace Data_Product.Controllers
                     int so = ID_BBGNHC.Count() + 1;
                     string SoPhieu = checkSPhieu.Trim() + "_HC." + so;
                     var tpm = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
-                    int IDBBGL = Convert.ToInt32(id)+1;
 
                     var sql = new Tbl_BBGangLong_GangThoi();
                     {
-                        //sql.ID_BBGL = tpm.ID_BBGL;
                         sql.ID_NhanVien_BG = tpm.ID_NhanVien_BG;
                         sql.ID_PhongBan_BG = tpm.ID_PhongBan_BG;
                         sql.ID_Xuong_BG = tpm.ID_Xuong_BG;
@@ -936,12 +938,10 @@ namespace Data_Product.Controllers
                         sql.ID_NhanVien_HRC = tpm.ID_NhanVien_HRC;
                         sql.ID_PhongBan_HRC = tpm.ID_PhongBan_HRC;
                         sql.ID_Xuong_HRC = tpm.ID_Xuong_HRC;
-                        //sql.ID_ViTri_HRC = tpm.ID_ViTri_HRC;
                         sql.ID_NhanVien_QLCL = tpm.ID_NhanVien_QLCL;
                         sql.ID_PhongBan_QLCL = tpm.ID_PhongBan_QLCL;
                         sql.ID_Xuong_QLCL = tpm.ID_Xuong_QLCL;
                         sql.ID_ViTri_QLCL = tpm.ID_ViTri_QLCL;
-                        //sql.TinhTrang_BG = tpm.TinhTrang_BG;
                         sql.TinhTrang_HRC = 0;
                         sql.TinhTrang_QLCL = 0;
                         sql.TinhTrang_BBGN = 3;
@@ -953,15 +953,24 @@ namespace Data_Product.Controllers
                         sql.Kip = tpm.Kip;
                         sql.Ca = tpm.Ca;
                         sql.IDBBGL_Cu = tpm.ID_BBGL;
-                       // sql.FileBBGL = tpm.FileBBGL;
                         sql.NgayTao = tpm.NgayTao;
                         sql.NoiDungTrichYeu = tpm.NoiDungTrichYeu;
-                        sql.ID_QuyTrinh =3;
+                        sql.ID_QuyTrinh = 3;
                         sql.ID_LOCAO = tpm.ID_LOCAO;
                     }
                     _context.Tbl_BBGangLong_GangThoi.Add(sql);
                     _context.SaveChanges();
-                    
+
+                    // --- Đây là phần thay đổi chính: đọc giá trị checkbox ---
+                    var vanChuyenHRC1 = formCollection["Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC1"] == "1";
+                    var vanChuyenHRC2 = formCollection["Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC2"] == "1";
+
+                    // Gán giá trị vào _DO nếu cần
+                    _DO.VanChuyenHRC1 = vanChuyenHRC1 ? 1 : 0;
+                    _DO.VanChuyenHRC2 = vanChuyenHRC2 ? 1 : 0;
+
+
+
                     var data = new Tbl_ChiTiet_BBGangLong_GangThoi();
                     {
                         data.Id_BBGL = sql.ID_BBGL;
@@ -969,16 +978,17 @@ namespace Data_Product.Controllers
                         data.ThungSo = _DO.ThungSo;
                         data.KhoiLuongXeGoong = _DO.KhoiLuongXeGoong;
                         data.KhoiLuongThung = _DO.KhoiLuongThung;
-                        data.KLThungGangLong = _DO.KLGangLongCanRay;
-                        data.KLGangLongCanRay = _DO.KLGangLongCanRay;
-                        data.VanChuyenHRC1 = _DO.VanChuyenHRC1;
-                        data.VanChuyenHRC2 = _DO.VanChuyenHRC2;
-                        data.PhanLoai = _DO.PhanLoai??"";
-                        data.GhiChu = _DO.GhiChu??"";
-                        
+                        data.KLThungGangLong = _DO.KLThungGangLong;
+                        data.KLGangLongCanRay = (_DO.KLThungGangLong - _DO.KhoiLuongThung) ?? 0;
+                        data.VanChuyenHRC1 = vanChuyenHRC1?1:0;
+                        data.VanChuyenHRC2 = vanChuyenHRC2?1:0;
+                        data.Gio = _DO.Gio;
+                        data.PhanLoai = _DO.PhanLoai ?? "";
+                        data.GhiChu = _DO.GhiChu ?? "";
                     }
                     _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(data);
                     _context.SaveChanges();
+
                     var QT = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == id).FirstOrDefault();
                     var bs = new Tbl_TrinhKyBoSung();
                     bs.ID_BBGN = sql.ID_BBGL;
@@ -993,16 +1003,16 @@ namespace Data_Product.Controllers
 
                     return RedirectToAction("Detail", "BM", new { id = sql.ID_BBGL });
                 }
-
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                TempData["msgError"] = "<script>alert('Chính sửa thất bại');</script>";
+                TempData["msgError"] = "<script>alert('Chỉnh sửa thất bại');</script>";
                 return RedirectToAction("YCauHieuChinhBM", "XuLyPhieuBM", new { id = id });
+            }
 
-            }
             return RedirectToAction("YCauHieuChinhBM", "XuLyPhieuBM", new { id = id });
-            }
+        }
+
         public async Task<IActionResult> PhieuBoSungBM(DateTime? begind, DateTime? endd, int? ID_TrangThai, int page = 1)
         {
             DateTime Now = DateTime.Now;

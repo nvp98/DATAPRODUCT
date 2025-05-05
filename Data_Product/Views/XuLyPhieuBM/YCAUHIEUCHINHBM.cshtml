@@ -98,143 +98,105 @@
                                     Kíp 2C - Ngày 01 tháng 10 năm 2024
                                 </span>
                             </div><!-- End Recent Sales -->
-                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1.5%;">
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Đại diện bên giao:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @ThongTin_BG.TenTaiKhoan - @ThongTin_BG.HoVaTen
-                                        </span>
-                                    </div>
 
+                        </div>
+                        <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1.5%;">
+                            @{
+                                var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+                                var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
+                                var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
+                            }
+                            <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; padding-top: 1.5%; gap: 1%;">
+                                <!-- Đại diện bên giao -->
+                                <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                                     style="min-width: 300px; max-width: 32%; height: 50px;">
+                                    <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 130px;">Đại diện bên giao:</label>
+                                    <span id="ID_NhanVien_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_TaiKhoan" style="font-size: 14px;">
+                                        @TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
+                                    </span>
                                 </div>
 
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Chức vụ:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @ViTri_BG.TenViTri
-                                        </span>
-
-                                    </div>
-
+                                <!-- Chức vụ -->
+                                <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                                     style="min-width: 300px; max-width: 32%; height: 50px;">
+                                    <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">Chức vụ:</label>
+                                    <span id="ID_ViTri_BG" class="flex-grow-1" data-info="@ViTri.ID_ViTri" style="font-size: 14px;">
+                                        @ViTri.TenViTri
+                                    </span>
                                 </div>
 
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            BP/NM:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @PhongBan_BG.TenPhongBan - @PhanXuong_BG.TenXuong
-                                        </span>
-
-                                    </div>
-
+                                <!-- BP/NM -->
+                                <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                                     style="min-width: 300px; max-width: 32%; height: 50px;">
+                                    <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">BP/NM:</label>
+                                    <span id="ID_PhongBan_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_PhongBan-@PhanXuong.ID_Xuong" style="font-size: 14px;">
+                                        @PhongBan.TenPhongBan - @PhanXuong.TenXuong
+                                    </span>
                                 </div>
                             </div>
 
                         </div>
-                        <div class="row" style="width:100%">
-                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Đại diện bên nhận:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @ThongTin_BN.TenTaiKhoan - @ThongTin_BN.HoVaTen
-                                        </span>
-                                    </div>
+                        <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
+                            <!-- Đại diện bên nhận HRC -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    Đại diện bên nhận HRC:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @ThongTin_BN.TenTaiKhoan - @ThongTin_BN.HoVaTen
+                                </span>
+                            </div>
 
-                                </div>
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Chức vụ:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @ViTri_BN.TenViTri
-                                        </span>
+                            <!-- Chức vụ -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    Chức vụ:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @ViTri_BN.TenViTri
+                                </span>
+                            </div>
 
-                                    </div>
-
-                                </div>
-
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            BP/NM:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @PhongBan_BN.TenPhongBan - @PhanXuong_BN.TenXuong
-                                        </span>
-
-                                    </div>
-
-                                </div>
+                            <!-- BP/NM -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    BP/NM:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @PhongBan_BN.TenPhongBan - @PhanXuong_BN.TenXuong
+                                </span>
                             </div>
                         </div>
-                        <div class="row" style="width:100%">
-                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Đại diện bên nhận:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @ThongTin_BN_QLCL.TenTaiKhoan - @ThongTin_BN_QLCL.HoVaTen
-                                        </span>
-                                    </div>
 
-                                </div>
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Chức vụ:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @ViTri_BN_QLCL.TenViTri
-                                        </span>
+                        <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -20px; gap: 1%;">
+                            <!-- Đại diện bên nhận QLCL -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    Đại diện bên nhận QLCL:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @ThongTin_BN_QLCL.TenTaiKhoan - @ThongTin_BN_QLCL.HoVaTen
+                                </span>
+                            </div>
 
-                                    </div>
+                            <!-- Chức vụ -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    Chức vụ:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @ViTri_BN_QLCL.TenViTri
+                                </span>
+                            </div>
 
-                                </div>
-
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
-                                    <div style="padding-left: 3%;padding-top:3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            BP/NM:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @PhongBan_BN_QLCL.TenPhongBan - @PhanXuong_BN_QLCL.TenXuong
-                                        </span>
-
-                                    </div>
-
-                                </div>
+                            <!-- BP/NM -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    BP/NM:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @PhongBan_BN_QLCL.TenPhongBan - @PhanXuong_BN_QLCL.TenXuong
+                                </span>
                             </div>
                         </div>
                         @if (ID_BBGN.ID_QuyTrinh == 2 || ID_BBGN.ID_QuyTrinh == 3)
@@ -243,58 +205,57 @@
                             var ThongTin_NVTT_View = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan_View).FirstOrDefault();
                             var PKHPheDuyet = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGL).FirstOrDefault();
 
-                            <div class="row" style="width:100%; padding-bottom:1%;">
-                                <div class="col-lg-12" style="text-align: left;height: 80px;border-radius: 10px;display: flex;">
+                            <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="width: 100%; margin-top: -24px; padding-bottom: 1%; gap: 1%;">
+                                <!-- Nhân viên thống kê phê duyệt -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-0 shadow-sm" style="min-height: 57px; width: 49%; gap: 1rem;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Nhân viên thống kê phê duyệt:
+                                    </span>
+                                    <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                        @ThongTin_NVTT?.TenTaiKhoan - @ThongTin_NVTT?.HoVaTen
+                                        @if (PKHPheDuyet.ID_TrangThai == 1)
+                                        {
+                                            <span class="text-danger">(Đã phê duyệt phiếu)</span>
+                                        }
+                                        else if (PKHPheDuyet.ID_TrangThai == 2)
+                                        {
+                                            <span class="text-danger">(Không duyệt phiếu)</span>
+                                        }
+                                        else if (PKHPheDuyet.ID_TrangThai == 3)
+                                        {
+                                            <span class="text-danger">(BN Hủy phiếu)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger">(Chưa xử lý)</span>
+                                        }
+                                    </span>
+                                </div>
 
-                                    <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
-                                        <div style="padding-left: 3%;padding-top:2%;">
-                                            <span style="color:black; font-size:14px;">
-                                                Nhân viên thống kê phê duyệt:
-                                            </span>
-                                        </div>
-                                        <div style="padding-left: 3%;margin-right: 3%;">
-                                            <span style="color:black; font-size:14px;">
-                                                @ThongTin_NVTT?.TenTaiKhoan - @ThongTin_NVTT?.HoVaTen
-                                            </span>
-                                            @if (PKHPheDuyet.ID_TrangThai == 1)
-                                            {
-                                                <span class="text-danger">(Đã phê duyệt phiếu)</span>
-                                            }
-                                            else if (PKHPheDuyet.ID_TrangThai == 2)
-                                            {
-                                                <span class="text-danger">(Không duyệt phiếu)</span>
-                                            }
-                                            else if (PKHPheDuyet.ID_TrangThai == 3)
-                                            {
-                                                <span class="text-danger">(BN Hủy phiếu)</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-danger">(Chưa xử lý)</span>
-                                            }
-                                        </div>
-
-                                    </div>
-
-                                    <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
-                                        <div style="padding-left: 3%;padding-top:2%;">
-                                            <span style="color:black; font-size:14px;">
-                                                Nhân viên thống kê nhận BBGN:
-                                            </span>
-                                        </div>
-                                        <div style="padding-left: 3%;margin-right: 3%;">
-                                            <span style="color:black; font-size:14px;">
-                                                @ThongTin_NVTT_View?.TenTaiKhoan - @ThongTin_NVTT_View?.HoVaTen
-                                            </span>
-                                        </div>
-
-                                    </div>
+                                <!-- Nhân viên thống kê nhận BBGN -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-0 shadow-sm" style="min-height: 57px; width: 49%; gap: 1rem;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Nhân viên thống kê nhận BBGN:
+                                    </span>
+                                    <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                        @ThongTin_NVTT_View?.TenTaiKhoan - @ThongTin_NVTT_View?.HoVaTen
+                                    </span>
                                 </div>
                             </div>
 
 
                             <!-- End Recent Sales -->
                         }
+                        <div class="row" style="width: 100%; padding-bottom: 1%;">
+                            <div class="col-lg-12">
+                                <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px; width: 102%;">
+                                    <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
+                                        Nội dung trích yếu:
+                                    </label>
+                                    <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@Html.Raw(ViewBag.NoiDungTrichYeu)</textarea>
+                                </div>
+                            </div>
+                        </div>
                         <div class="row" style="width:100%">
                             <div class="col-lg-12" style="text-align: left;height: 200px;display: flex;">
                                 <div class="col-xxl-12 col-md-6" style="text-align:center; padding-top:2%;">
@@ -362,9 +323,49 @@
                                                 <td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KLThungGangLong"></td>
 
                                                 <td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="@item.KLGangLongCanRay"></td>
-                                                <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") /></td>
-                                                <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 == 1 ? "checked" : "") /></td>
-                                                <td><input type="text" name="PhanLoai" class="form-control" value="@item.PhanLoai" ></td>
+                                                @* <td> *@
+                                                @*     <input type="hidden" name="VanChuyenHRC1" value="0" /> *@
+                                                @*     <input type="checkbox" name="VanChuyenHRC1" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") /> *@
+                                                @* </td> *@
+                                                @* <td> *@
+                                                @*     <input type="hidden" name="VanChuyenHRC2" value="0" /> *@
+                                                @*     <input type="checkbox" name="VanChuyenHRC2" value="1" @(item.VanChuyenHRC2 == 1 ? "checked" : "") /> *@
+                                                @* </td> *@
+
+
+                                                <td>
+                                                    <input type="hidden"
+                                                           name="Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC1_Hiden"
+                                                           value="0" />
+                                                    <input type="checkbox"
+                                                           name="Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC1"
+                                                           value="1"
+                                                    @(item.VanChuyenHRC1 == 1 ? "checked" : "") />
+                                                </td>
+
+                                                <td>
+                                                    <input type="hidden"
+                                                           name="Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC2_Hiden"
+                                                           value="0" />
+                                                    <input type="checkbox"
+                                                           name="Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC2"
+                                                           value="1"
+                                                    @(item.VanChuyenHRC2 == 1 ? "checked" : "") />
+                                                </td>
+
+                                                <script>
+                                                       document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                                                        checkbox.addEventListener('change', function() {
+                                                            const hiddenField = this.previousElementSibling;
+                                                            if (this.checked) {
+                                                                hiddenField.value = this.value;
+                                                            } else {
+                                                                hiddenField.value = '0';
+                                                            }
+                                                        });
+                                                    });
+                                                </script>
+                                                <td><input type="text" name="PhanLoai" class="form-control" value="@item.PhanLoai"></td>
                                                 <td><input type="text" name="Gio" class="form-control" value="@item.Gio" ></td>
                                                 <td><input type="text" name="GhiChu" class="form-control" value="@item.GhiChu"></td>
                                             </tr>
@@ -395,60 +396,6 @@
         </div>
     </div>
 }
-
-    @* <script type="text/javascript">
-    $(document).ready(function () {
-               let maxIndex = 0;
-        $("#xacnhan").click(function (e) {
-            e.preventDefault();
-
-            let selectedButton = $(this).attr("id");
-
-            
-            let ID_TaiKhoan=$("#IDNhanVienTT").val();
-            let  ID_TaiKhoan_View=$("#IDNhanVienView").val();
-            if (!ID_TaiKhoan || ID_TaiKhoan == "null") {
-                alert('Vui lòng chọn nhân viên thống kê!');
-                return false;
-            }
-
-            if (!ID_TaiKhoan_View || ID_TaiKhoan_View == "null") {
-                alert('Vui lòng chọn nhân viên nhận BBGN!');
-                return false;
-            }
-            var data = {
-               
-                    ID_TaiKhoan:$("#IDNhanVienTT").val(),
-                    ID_TaiKhoan_View:$("#IDNhanVienView").val(),
-              
-            };
-            console.log(data)
-
-                $.ajax({
-                        url: "/XuLuPhieuBM/YCauHieuChinhBM",
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify(data),
-                    processData: false,
-                    success: function (response) {
-                        if (response.success) {
-                                  alert("Gửi dữ liệu thành công!");
-                            let ID_BBGL = response.id_BBGL;
-                            // call API
-
-                            submitChiTietBBGangLong(ID_BBGL, selectedButton);
-
-                        }
-                        else{
-                                 alert("Gửi dữ liệu thất bại: " + (response.message || "Vui lòng thử lại!"));
-                        }
-
-                    }
-                });
-        });
-    });
-        
-    </script> *@
     <script type="text/javascript">
         $(".SelectVT").chosen({
             width: "100%"

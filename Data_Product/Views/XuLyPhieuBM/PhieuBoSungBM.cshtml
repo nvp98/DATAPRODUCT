@@ -310,7 +310,7 @@
 <script type="text/javascript">
     $("#btn-search").on('click', function () {
         var ID_TrangThai = $('#ID_TrangThai').val();
-        window.location.href = '@Url.Action("Index", "XuLyPhieuBM")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
+        window.location.href = '@Url.Action("PhieuBoSungBM", "XuLyPhieuBM")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
     });
 
     $("#ID_TrangThai").chosen({

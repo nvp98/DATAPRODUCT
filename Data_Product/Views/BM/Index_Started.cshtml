@@ -290,3 +290,13 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    $("#btn-search").on('click', function () {
+        var ID_TrangThai = $('#ID_TrangThai').val();
+        window.location.href = '@Url.Action("Index_Started", "BM")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
+    });
+
+    $("#ID_TrangThai").chosen({
+        width: "100%"
+    });
+</script>

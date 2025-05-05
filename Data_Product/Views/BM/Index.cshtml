@@ -38,7 +38,7 @@
                 <div class="row">
                     <div class="card">
                         <div class="row" style="width:100%">
-                            <div style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: fixed; background-color: #F9F9F9; width: 100%;">
+                            <div style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: fixed; background-color: #F9F9F9; ">
                                 <div style="flex: 2; text-align: left; padding: 2% 2% 2% 0%;">
                                     <span class="text-muted small pt-2 ps-1">
                                         <b style="color:#06428b">
@@ -68,179 +68,182 @@
                                 </div>
                             </div>
                             <div class ="row" style="width:100%; padding-top:7.5%;">
-                                <div class="col-lg-12">
-                                    <div class="row g-4">
-                                        <div class="col-xxl-3 col-md-6">
-                                            <div class="p-3 bg-light rounded">
-                                                <span class="text-dark">Ngày làm việc:</span>
-                                                <input type="date" id="ID_Day" name="ID_Day"
-                                                       class="form-control mt-2"
-                                                       value="@ViewBag.DefaultDate"
-                                                       onkeydown="return false;" />
-                                            </div>
-                                        </div>
-                                            <div class="col-xxl-3 col-md-6">
-                                                <div class="p-3 bg-light rounded">
-                                                    <span class="text-dark">ID Lò cao:</span>
-                                                    <select class="form-control mt-2" name="LoCao" id="IDLoCao">
-                                                        <option value='null'>-- ID Lò cao --</option>
-                                                        <option value='1'>Lò cao 1</option>
-                                                        <option value='2'>Lò cao 2</option>
-                                                        <option value='3'>Lò cao 3</option>
-                                                        <option value='4'>Lò cao 4</option>
-                                                    </select>
-                                                </div>
-                                            </div>
+                                <!-- Bọc div tổng để căn lề đẹp và có khoảng trắng -->
+                                <div class="container py-3">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap bg-light rounded p-4 shadow-sm gap-4" style="height: 67px;margin-top: 4px;width: 99.5%;margin-left: 4px;">
 
-                                        <div class="col-xxl-3 col-md-6">
-                                            <div class="p-3 bg-light rounded">
-                                                <span class="text-dark">Ca làm việc:</span>
-                                                <select class="form-control mt-2 SelectCA" name="IDCa" id="IDCa">
-                                                    <option value='null'>-- Ca làm việc --</option>
-                                                    <option value='1'>1</option>
-                                                    <option value='2'>2</option>
-                                                </select>
-                                            </div>
+                                        <!-- Ngày làm việc -->
+                                        <div class="d-flex align-items-center" style="min-width: 260px;">
+                                            <label for="ID_Day" class="me-2 mb-0 fw-semibold" style="width: 120px;">Ngày làm việc:</label>
+                                            <input type="date" id="ID_Day" name="ID_Day"
+                                                   class="form-control form-control-sm shadow-sm"
+                                                   value="@ViewBag.DefaultDate"
+                                                   onkeydown="return false;"
+                                                   style="flex: 1;" />
                                         </div>
 
-                                        <div class="col-xxl-3 col-md-6">
-                                            <div class="p-3 bg-light rounded">
-                                                <span class="text-dark">Kíp làm việc:</span>
-                                                <select class="form-control mt-2" name="CaKip" id="CaKip" disabled>
-                                                </select>
-                                            </div>
+                                        <!-- ID Lò cao -->
+                                        <div class="d-flex align-items-center" style="min-width: 240px;">
+                                            <label for="IDLoCao" class="me-2 mb-0 fw-semibold" style="width: 100px;">ID Lò cao:</label>
+                                            <select class="form-control form-control-sm shadow-sm" name="LoCao" id="IDLoCao" style="flex: 1;">
+                                                <option value='null'>-- ID Lò cao --</option>
+                                                <option value='1'>Lò cao 1</option>
+                                                <option value='2'>Lò cao 2</option>
+                                                <option value='3'>Lò cao 3</option>
+                                                <option value='4'>Lò cao 4</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Ca làm việc -->
+                                        <div class="d-flex align-items-center" style="min-width: 200px;">
+                                            <label for="IDCa" class="me-2 mb-0 fw-semibold" style="width: 100px;">Ca làm việc:</label>
+                                            <select class="form-control form-control-sm shadow-sm SelectCA" name="IDCa" id="IDCa" style="flex: 1;">
+                                                <option value='null'>-- Ca --</option>
+                                                <option value='1'>1</option>
+                                                <option value='2'>2</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Kíp làm việc -->
+                                        <div class="d-flex align-items-center" style="min-width: 200px;">
+                                            <label for="CaKip" class="me-2 mb-0 fw-semibold" style="width: 100px;">Kíp làm việc:</label>
+                                            <select class="form-control form-control-sm shadow-sm" name="CaKip" id="CaKip" style="flex: 1;" disabled>
+                                            </select>
                                         </div>
 
                                     </div>
-
                                 </div>
-                                <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1%;">
+                                <style>
+                                    /* Tạo hiệu ứng viền 3D */
+                                    .form-control, .form-control-sm {
+                                        transition: all 0.3s ease-in-out;
+                                        border: 1px solid #ccc;
+                                        border-radius: 4px;
+                                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                                    }
+
+                                        .form-control:focus, .form-control-sm:focus {
+                                            border-color: red; /* Màu viền khi focus */
+                                            box-shadow: 0 0 8px rgba(102, 175, 233, 0.6); /* Màu bóng đổ khi focus */
+                                            transform: translateY(-2px); /* Di chuyển nhẹ lên khi focus để tạo hiệu ứng 3D */
+                                        }
+
+                                        .form-control:hover, .form-control-sm:hover {
+                                            border-color: #007bff; /* Màu viền khi hover */
+                                            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Màu bóng đổ khi hover */
+                                            transform: translateY(-2px); /* Di chuyển nhẹ lên khi hover */
+                                        }
+
+                                        .form-control:disabled {
+                                            background-color: #f8f9fa;
+                                            border-color: #ddd;
+                                            box-shadow: none;
+                                        }
+                                </style>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap px-3 gap-3 py-2" style="margin-top:-10px">
 
                                     @{
                                         var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-                                        var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-                                        var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
-                                        var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
-                                        var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
+                                        var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+                                        var PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
+                                        var PhanXuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong);
+                                        var ViTri = _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == TaiKhoan.ID_ChucVu);
                                     }
-                                    <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
-                                        <div style="padding-left: 3%;padding-top:3%;">
-                                            <span style="color:black; font-size:14px;">
-                                                Đại diện bên giao:
-                                            </span>
-                                        </div>
-                                        <div style="padding-left: 3%;">
-                                            <span id="ID_NhanVien_BG" style="color:black; font-size:14px;"
-                                                  data-info="@TaiKhoan.ID_TaiKhoan">
-                                                @TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
-                                            </span>
-                                        </div>
 
+                                    <!-- Đại diện bên giao -->
+                                    <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                                         style="min-width: 300px; max-width: 32%; height: 50px;">
+                                        <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 130px;">Đại diện bên giao:</label>
+                                        <span id="ID_NhanVien_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_TaiKhoan" style="font-size: 14px;">
+                                            @TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
+                                        </span>
                                     </div>
-                                    <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
-                                        <div style="padding-left: 3%;padding-top:3%;">
-                                            <span style="color:black; font-size:14px;">
-                                                Chức vụ:
-                                            </span>
-                                        </div>
-                                        <div style="padding-left: 3%;">
-                                            <span id="ID_ViTri_BG" style="color:black; font-size:14px;"
-                                                  data-info="@ViTri.ID_ViTri">
-                                                @ViTri.TenViTri
-                                            </span>
 
-                                        </div>
+                                    <!-- Chức vụ -->
+                                    <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                                         style="min-width: 300px; max-width: 32%; height: 50px;">
+                                        <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 130px;">Chức vụ:</label>
+                                        <span id="ID_ViTri_BG" class="flex-grow-1" data-info="@ViTri.ID_ViTri" style="font-size: 14px;">
+                                            @ViTri.TenViTri
+                                        </span>
                                     </div>
-                                    <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
-                                        <div style="padding-left: 3%;padding-top:3%;">
-                                            <span style="color:black; font-size:14px;">
-                                                BP/NM:
-                                            </span>
 
-                                        </div>
-                                        <div style="padding-left: 3%;">
-                                            <span id="ID_PhongBan_BG" style="color:black; font-size:14px;"
-                                                  data-info="@TaiKhoan.ID_PhongBan-@PhanXuong.ID_Xuong">
-                                                @PhongBan.TenPhongBan - @PhanXuong.TenXuong
-                                            </span>
-
-                                        </div>
-
+                                    <!-- BP/NM -->
+                                    <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                                         style="min-width: 300px; max-width: 32%; height: 50px;">
+                                        <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 130px;">BP/NM:</label>
+                                        <span id="ID_PhongBan_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_PhongBan-@PhanXuong.ID_Xuong" style="font-size: 14px;">
+                                            @PhongBan.TenPhongBan - @PhanXuong.TenXuong
+                                        </span>
                                     </div>
 
                                 </div>
                             </div>
-                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%; ">
-                                    <div style="padding:1% 0% 1% 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Đại diện bên nhận HRC <span style="color:red; font-size:14px;"> (*)</span>:
-                                        </span>
-                                    </div>
-                                     <div style="padding-left: 3%;margin-right: 3%;">
-                                        @Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan", name = "IDTaiKhoan", @class = "marginTB5", })
-                                    </div>
+
+
+
+                            <div class="col-lg-12" style="display: flex; space-around: space-between; padding-bottom: 1%; margin-top: 5px;">
+                                <!-- Đại diện bên nhận HRC -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px;width: 31.8%; gap: 1rem; margin-right: 27px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Đại diện bên nhận HRC1 <span class="text-danger">(*)</span>:
+                                    </span>
+                                    @Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new
+                                        {
+                                            id = "IDTaiKhoan",
+                                            name = "IDTaiKhoan",
+                                            @class = "form-select flex-grow-1"
+                                        })
                                     <script type="text/javascript">
                                         $("#ID_Day").change(function () {
-                                            console.log("1")
                                             $.get("/BM/Ngay", { Ngay: $("#ID_Day").val() }, function (data) {
-                                                console.log(data)
                                                 if (data[0] != null) {
                                                     $("#IDCa").empty();
                                                     $("#IDCa").append("<option value ='" + null + "'>" + "--Chọn Ca--" + "</option>")
                                                     $.each(data, function (index, row) {
                                                         $("#IDCa").append("<option value ='" + row.iD_Kip + "' >" + row.tenCa + "</option>");
                                                     });
-                                                }
-                                                else {
+                                                } else {
                                                     $("#IDCa").empty();
                                                     $("#IDCa").append("<option value ='" + 0 + "'>" + "--Không có ca làm việc--" + "</option>")
                                                 }
-
                                             });
                                         });
                                     </script>
-
                                 </div>
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
-                                    <div style="padding:1% 0% 1% 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Chức vụ <span style="color:red; font-size:14px;"> (*)</span>:
-                                        </span>
-                                    </div>
-                                   
+
+                                <!-- Chức vụ -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; gap: 1rem;width: 31.8%;margin-right: 22px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Chức vụ <span class="text-danger">(*)</span>:
+                                    </span>
+                                    <select class="form-select flex-grow-1" name="IDChucVu" id="IDChucVu" disabled="disabled">
+                                    </select>
                                     <script type="text/javascript">
                                         $("#IDTaiKhoan").change(function () {
                                             $.get("/BM/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
-
                                                 if (data[0] != null) {
                                                     $("#IDChucVu").empty();
-                                                    //$("#ID_TaiKhoan").append("<option value ='" + null + "'>" + "--Chọn hợp đồng--" + "</option>")
                                                     $.each(data, function (index, row) {
-                                                        $("#IDChucVu").append("<option value ='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+                                                        $("#IDChucVu").append("<option value='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
                                                     });
-                                                }
-                                                else {
+                                                } else {
                                                     $("#IDChucVu").empty();
-                                                    $("#IDChucVu").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                                    $("#IDChucVu").append("<option value='0'>--Không có chức vụ--</option>");
                                                 }
                                             });
                                         });
                                     </script>
-                                    <div style="padding-left: 3%;margin-right: 3%;">
-                                        <select class="form-control marginTB5" name="IDChucVu" id="IDChucVu" disabled="disabled">
-                                        </select>
-                                    </div>
-
                                 </div>
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
-                                    <div style="padding:1% 0% 1% 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            BP/NM <span style="color:red; font-size:14px;"> (*)</span>:
-                                        </span>
-                                    </div>
-                                    <script type="text/javascript">
 
+                                <!-- BP/NM -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; gap: 1rem;width: 31.8%;margin-right: 22px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        BP/NM <span class="text-danger">(*)</span>:
+                                    </span>
+                                    <select class="form-select flex-grow-1" name="IDPhongBan" id="IDPhongBan" disabled="disabled">
+                                    </select>
+                                    <script type="text/javascript">
                                         $("#IDTaiKhoan").change(function () {
                                             $.get("/BM/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
                                                 if (data[0] != null) {
@@ -248,150 +251,249 @@
                                                     $.each(data, function (index, row) {
                                                         $("#IDPhongBan").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
                                                     });
-                                                }
-                                                else {
+                                                } else {
                                                     $("#IDPhongBan").empty();
-                                                    $("#IDPhongBan").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                                    $("#IDPhongBan").append("<option value='0'>--Không có chức vụ--</option>");
                                                 }
                                             });
                                         });
                                     </script>
-                                    <div style="padding-left: 3%;">
-                                        <select class="form-control marginTB5" name="IDPhongBan" id="IDPhongBan" disabled="disabled">
-                                        </select>
-
-                                    </div>
                                 </div>
                             </div>
-                           
-                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%; ">
-                                    <div style="padding:1% 0% 1% 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Đại diện bên nhận QLCL <span style="color:red; font-size:14px;"> (*)</span>:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;margin-right: 3%;">
-                                        @Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan_QLCL", name = "IDTaiKhoan_QLCL", @class = "marginTB5", })
-                                    </div>
-                                    <script type="text/javascript">
 
-                                        $("#IDTaiKhoan_QLCL").change(function () {
-                                            $.get("/BM/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan_QLCL").val() }, function (data) {
-                                              
+                            <!-- Đại diện bên nhận HRC2 -->
+                            <div class="col-lg-12" style="display: flex; space-around: space-between; padding-bottom: 1%; margin-top:-24px">
+                                <!-- Đại diện bên nhận HRC2 -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px;width: 31.8%; gap: 1rem; margin-right: 27px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Đại diện bên nhận HRC2 <span class="text-danger">(*)</span>:
+                                    </span>
+                                    @Html.DropDownList("IDTaiKhoanHRC2", null, "----- Chọn đại diện bên nhận -----", new
+                                        {
+                                            id = "IDTaiKhoanHRC2",
+                                            name = "IDTaiKhoanHRC2",
+                                            @class = "form-select flex-grow-1"
+                                        })
+                                    <script type="text/javascript">
+                                        $("#ID_Day").change(function () {
+                                            $.get("/BM/Ngay", { Ngay: $("#ID_Day").val() }, function (data) {
                                                 if (data[0] != null) {
-                                                    $("#IDChucVu_QLCL").empty();
+                                                    $("#IDCa").empty();
+                                                    $("#IDCa").append("<option value ='" + null + "'>" + "--Chọn Ca--" + "</option>")
                                                     $.each(data, function (index, row) {
-                                                        $("#IDChucVu_QLCL").append("<option value ='" + row.iD_ChucVu + "' data-info='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+                                                        $("#IDCa").append("<option value ='" + row.iD_Kip + "' >" + row.tenCa + "</option>");
                                                     });
-                                                }
-                                                else {
-                                                    $("#IDChucVu_QLCL").empty();
-                                                    $("#IDChucVu_QLCL").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                                } else {
+                                                    $("#IDCa").empty();
+                                                    $("#IDCa").append("<option value ='" + 0 + "'>" + "--Không có ca làm việc--" + "</option>")
                                                 }
                                             });
                                         });
                                     </script>
+                                </div>
+
+                                <!-- Chức vụ -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; gap: 1rem;width: 31.8%;margin-right: 22px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Chức vụ <span class="text-danger">(*)</span>:
+                                    </span>
+                                    <select class="form-select flex-grow-1" name="IDChucVu" id="IDChucVu_HRC2" disabled="disabled">
+                                    </select>
                                     <script type="text/javascript">
-
-                                        $("#IDTaiKhoan").change(function () {
-                                            $.get("/BM/NguyenLieu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+                                        $("#IDTaiKhoanHRC2").change(function () {
+                                            $.get("/BM/ChucVu", { IDTaiKhoan: $("#IDTaiKhoanHRC2").val() }, function (data) {
                                                 if (data[0] != null) {
-
-                                                    $("#IDVatTu").empty();
+                                                    $("#IDChucVu_HRC2").empty();
                                                     $.each(data, function (index, row) {
-                                                        $("#IDVatTu").append("<option value ='" + row.iD_VatTu + "' selected>" + row.tenVatTu + "</option>");
+                                                        $("#IDChucVu_HRC2").append("<option value='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
                                                     });
-                                                }
-                                                else {
-                                                    $("#IDVatTu").empty();
-                                                    $("#IDVatTu").append("<option value ='" + 0 + "'>" + "--Không có nguyên/nhiên/vật tư--" + "</option>")
+                                                } else {
+                                                    $("#IDChucVu_HRC2").empty();
+                                                    $("#IDChucVu_HRC2").append("<option value='0'>--Không có chức vụ--</option>");
                                                 }
                                             });
                                         });
                                     </script>
-
-                                </div>
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
-                                    <div style="padding:1% 0% 1% 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Chức vụ <span style="color:red; font-size:14px;"> (*)</span>:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;margin-right: 3%;">
-                                        <select class="form-control marginTB5" name="IDChucVu_QLCL" id="IDChucVu_QLCL" disabled="disabled">
-                                        </select>
-                                    </div>
-
                                 </div>
 
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 0.5%;border-radius: 10px;">
-                                    <div style="padding:1% 0% 1% 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            BP/NM <span style="color:red; font-size:14px;"> (*)</span>:
-                                        </span>
-                                    </div>
+                                <!-- BP/NM -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; gap: 1rem;width: 31.8%;margin-right: 22px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        BP/NM <span class="text-danger">(*)</span>:
+                                    </span>
+                                    <select class="form-select flex-grow-1" name="IDPhongBan" id="IDPhongBan_HRC2" disabled="disabled">
+                                    </select>
                                     <script type="text/javascript">
-
-                                        $("#IDTaiKhoan_QLCL").change(function () {
-                                            $.get("/BM/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan_QLCL").val() }, function (data) {
+                                        $("#IDTaiKhoanHRC2").change(function () {
+                                            $.get("/BM/PhongBan", { IDTaiKhoan: $("#IDTaiKhoanHRC2").val() }, function (data) {
                                                 if (data[0] != null) {
-                                                    $("#IDPhongBan_QLCL").empty();
+                                                    $("#IDPhongBan_HRC2").empty();
                                                     $.each(data, function (index, row) {
-                                                        $("#IDPhongBan_QLCL").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
+                                                        $("#IDPhongBan_HRC2").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
                                                     });
-                                                }
-                                                else {
-                                                    $("#IDPhongBan_QLCL").empty();
-                                                    $("#IDPhongBan_QLCL").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+                                                } else {
+                                                    $("#IDPhongBan_HRC2").empty();
+                                                    $("#IDPhongBan_HRC2").append("<option value='0'>--Không có chức vụ--</option>");
                                                 }
                                             });
                                         });
                                     </script>
-                                    <div style="padding-left: 3%;">
-                                        <select class="form-control marginTB5" name="IDPhongBan_QLCL" id="IDPhongBan_QLCL" disabled="disabled">
-                                        </select>
-
-                                    </div>
                                 </div>
-
                             </div>
-                            <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1%;">
+     
 
-                                <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
-                                    <div style="padding-left: 3%;padding-top:2%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Nhân viên thống kê phê duyệt:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;margin-right: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @Html.DropDownList("NhanVienTT", null, "----- Chọn nhân viên thông kê phê duyệt -----", new { id = "IDNhanVienTT", name = "IDNhanVienTT", @class = "marginTB5 form-control" })
-                                        </span>
-                                    </div>
+                            <div class="col-lg-12" style="display: flex; justify-content: space-between; padding-bottom: 1%; margin-top: -20px;">
+                                <!-- Đại diện bên nhận QLCL -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; width: 31.8%; gap: 1rem; margin-right: 27px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Đại diện bên nhận QLCL <span class="text-danger">(*)</span>:
+                                    </span>
+                                    @Html.DropDownList("TaiKhoan_QLCL", null, "----- Chọn đại diện bên nhận -----", new
+                                        {
+                                            id = "IDTaiKhoan_QLCL",
+                                            name = "IDTaiKhoan_QLCL",
+                                            @class = "form-select flex-grow-1"
+                                        })
+                                </div>
+                                <script type="text/javascript">
+                                    $("#IDTaiKhoan_QLCL").change(function () {
+                                        $.get("/BM/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan_QLCL").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#IDChucVu_QLCL").empty();
+                                                $.each(data, function (index, row) {
+                                                    $("#IDChucVu_QLCL").append("<option value='" + row.iD_ChucVu + "' data-info='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+                                                });
+                                            } else {
+                                                $("#IDChucVu_QLCL").empty().append("<option value='0'>--Không có chức vụ--</option>");
+                                            }
+                                        });
 
+                                        $.get("/BM/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan_QLCL").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#IDPhongBan_QLCL").empty();
+                                                $.each(data, function (index, row) {
+                                                    $("#IDPhongBan_QLCL").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
+                                                });
+                                            } else {
+                                                $("#IDPhongBan_QLCL").empty().append("<option value='0'>--Không có chức vụ--</option>");
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <!-- Chức vụ -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; width: 31.8%; gap: 1rem; margin-right: 22px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Chức vụ <span class="text-danger">(*)</span>:
+                                    </span>
+                                    <select class="form-select flex-grow-1" name="IDChucVu_QLCL" id="IDChucVu_QLCL" disabled="disabled">
+                                    </select>
                                 </div>
 
-                                <div class="col-xxl-6 col-md-6" style="height: 90px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
-                                    <div style="padding-left: 3%;padding-top:2%;">
-                                        <span style="color:black; font-size:14px;">
-                                            Nhân viên thống kê nhận BBGN:
-                                        </span>
-                                    </div>
-                                    <div style="padding-left: 3%;margin-right: 3%;">
-                                        <span style="color:black; font-size:14px;">
-                                            @Html.DropDownList("NhanVien_TT_View", null, "----- Chọn nhân viên thông kê nhận BBGN -----", new { id = "IDNhanVienView", name = "IDNhanVienView", @class = "marginTB5 form-control" })
-                                        </span>
-                                    </div>
+                                <!-- BP/NM -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; width: 31.8%; gap: 1rem; margin-right: 22px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        BP/NM <span class="text-danger">(*)</span>:
+                                    </span>
+                                    <select class="form-select flex-grow-1" name="IDPhongBan_QLCL" id="IDPhongBan_QLCL" disabled="disabled">
+                                    </select>
+                                </div>
+                            </div>
 
+
+
+
+                            <div class="col-lg-12" style="display: flex; justify-content: space-between; padding-bottom: 1%; margin-top:-25px">
+                                <!-- Đại diện bên nguyên vật liệu -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; width: 31.8%; gap: 1rem; margin-right: 27px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Nhân viên nguyên liệu <span class="text-danger">(*)</span>:
+                                    </span>
+                                    @Html.DropDownList("TaiKhoan_NVNL", null, "----- Chọn đại diện nhân viên nguyên liệu -----", new
+                                        {
+                                            id = "IDTaiKhoan_NVNL",
+                                            name = "IDTaiKhoan_NVNL",
+                                            @class = "form-select flex-grow-1"
+                                        })
+                                </div>
+                                <script type="text/javascript">
+                                    $("#IDTaiKhoan_NVNL").change(function () {
+                                        $.get("/BM/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan_NVNL").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#IDChucVu_NVNL").empty();
+                                                $.each(data, function (index, row) {
+                                                    $("#IDChucVu_NVNL").append("<option value='" + row.iD_ChucVu + "' data-info='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+                                                });
+                                            } else {
+                                                $("#IDChucVu_NVNL").empty().append("<option value='0'>--Không có chức vụ--</option>");
+                                            }
+                                        });
+
+                                        $.get("/BM/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan_NVNL").val() }, function (data) {
+                                            if (data[0] != null) {
+                                                $("#IDPhongBan_NVNL").empty();
+                                                $.each(data, function (index, row) {
+                                                    $("#IDPhongBan_NVNL").append("<option value='" + row.iD_PhongBan + "' data-info='" + row.iD_PhongBan + "-" + row.iD_PhanXuong + "' selected>" + row.tenPhongBan + "</option>");
+                                                });
+                                            } else {
+                                                $("#IDPhongBan_NVNL").empty().append("<option value='0'>--Không có chức vụ--</option>");
+                                            }
+                                        });
+                                    });
+                                </script>
+                                <!-- Chức vụ -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; width: 31.8%; gap: 1rem; margin-right: 22px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Chức vụ <span class="text-danger">(*)</span>:
+                                    </span>
+                                    <select class="form-select flex-grow-1" name="IDChucVu_NVNL" id="IDChucVu_NVNL" disabled="disabled">
+                                    </select>
+                                </div>
+
+                                <!-- BP/NM -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-3" style="min-height: 57px; width: 31.8%; gap: 1rem; margin-right: 22px;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        BP/NM <span class="text-danger">(*)</span>:
+                                    </span>
+                                    <select class="form-select flex-grow-1" name="IDPhongBan_NVNL" id="IDPhongBan_NVNL" disabled="disabled">
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-12" style="display: flex; justify-content: space-between; width: 98.7%; margin-top: -24px; padding-bottom: 1%;">
+                                <!-- Nhân viên thống kê phê duyệt -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-0" style="min-height: 57px; width: 49%; gap: 1rem;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Nhân viên thống kê phê duyệt:
+                                    </span>
+                                    @Html.DropDownList("NhanVienTT", null, "----- Chọn nhân viên thống kê phê duyệt -----", new
+                                        {
+                                            id = "IDNhanVienTT",
+                                            name = "IDNhanVienTT",
+                                            @class = "form-select flex-grow-1"
+                                        })
+                                </div>
+
+                                <!-- Nhân viên thống kê nhận BBGN -->
+                                <div class="d-flex align-items-center bg-light rounded p-2 mb-0" style="min-height: 57px; width: 49%; gap: 1rem;">
+                                    <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                        Nhân viên thống kê nhận BBGN:
+                                    </span>
+                                    @Html.DropDownList("NhanVien_TT_View", null, "----- Chọn nhân viên thống kê nhận BBGN -----", new
+                                        {
+                                            id = "IDNhanVienView",
+                                            name = "IDNhanVienView",
+                                            @class = "form-select flex-grow-1"
+                                        })
                                 </div>
                             </div>
                         </div>
-                        <div class="row" style="width:100%; padding-bottom:1%;">
+                        <div class="row" style="width: 100%; padding-bottom: 1%;">
                             <div class="col-lg-12">
-                                <div class="p-3 bg-light rounded">
-                                    <span class="text-dark">Nội dung trích yếu:</span>
-                                    <textarea class="form-control mt-2" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2"></textarea>
+                                <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px;width: 98.8%;">
+                                    <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
+                                        Nội dung trích yếu:
+                                    </label>
+                                    <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -407,14 +509,17 @@
                                             <th rowspan="2">Khối lượng thùng</th>
                                             <th rowspan="2">KL thùng & gang lỏng (tấn)</th>
                                             <th rowspan="2">KL gang lỏng cân ray (tấn)</th>
-                                            <th colspan="2">Vận chuyển đến</th>
+                                            <th colspan="4" style="text-align:center">Vận chuyển đến</th>
                                             <th rowspan="2">Phân loại</th>
                                             <th rowspan="2">Giờ</th>
                                             <th rowspan="2">Ghi chú</th>
+                                            <th rowspan="2">Giờ NM</th> 
                                         </tr>
                                         <tr>
                                             <th>NM.HRC1</th>
+                                            <th>Đúc 1</th>
                                             <th>NM.HRC2</th>
+                                            <th>Đúc 2</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -443,7 +548,7 @@
 }
 
 
-<script>
+    <script>
     $(document).ready(function () {
             let maxIndex = 0;
             
@@ -476,8 +581,8 @@
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </td>
-                                    <td><input type="text" name="SoMe" class="form-control" value="${soMe}" readonly style="width: 170px;"></td>
-                                           <td><input type="number" name="ThungSo" class="form-control" step="1" required="" value="${thungSo}" readonly></td>
+                                    <td><input type="text" name="SoMe" class="form-control" value="${soMe}" readonly style="width: 150px;"></td>
+                                    <td><input type="number" name="ThungSo" class="form-control" step="1" required="" value="${thungSo}" readonly></td>
                                     <td><input type="number" name="KhoiLuongXeGoong" class="form-control" ></td>
                                     <td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="" ></td>
                                     <td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="" ></td>
@@ -486,13 +591,22 @@
                                         <input type="hidden" name="VanChuyenHRC1" value="0" />
                                         <input type="checkbox" name="VanChuyenHRC1" value="1" class="form-check-input">
                                     </td>
+                                    <td>
+                                        <input type="hidden" name="Duc1" value="0" />
+                                        <input type="checkbox" name="Duc1" value="1" class="form-check-input">
+                                    </td>
                                      <td>
                                         <input type="hidden" name="VanChuyenHRC2" value="0" />
                                         <input type="checkbox" name="VanChuyenHRC2" value="1" class="form-check-input">
                                     </td>
+                                    <td>
+                                        <input type="hidden" name="Duc2" value="0" />
+                                        <input type="checkbox" name="Duc2" value="1" class="form-check-input">
+                                    </td>
                                     <td><input type="text" name="PhanLoai" class="form-control" value="${phanLoai}" readonly></td>
                                     <td><input type="text" name="Gio" class="form-control" value="${time}" readonly></td>
                                     <td><input type="text" name="GhiChu" class="form-control" value="" ></td>
+                                    <td><input type="text" name="GioNM" class="form-control" value="${time}" readonly></td>
                                 </tr>
                             `;
 
@@ -567,10 +681,13 @@
                         <td><input id="KLGLCR_${maxIndex}" name="KLGangLongCanRay" type="text" value="0" class="form-control"  readonly></td>
 
                         <td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input"></td>
+                        <td><input type="checkbox" name="Duc1" class="form-check-input"></td>
                         <td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input"></td>
+                        <td><input type="checkbox" name="Duc2" class="form-check-input"></td>
                         <td><input type="text" name="PhanLoai" class="form-control" ></td>
                         <td><input type="text" name="Gio" class="form-control" ></td>
                         <td><input type="text" name="GhiChu" class="form-control" ></td>
+                        <td><input type="text" name="GioNM" class="form-control" ></td>
 
                     </tr>
 
@@ -578,12 +695,28 @@
                 $(row).insertBefore("#addRowBtnContainer");
                 maxIndex++;
           });
+              $(document).on("click", ".delItem a", function (e) {
+                e.preventDefault();
+                $(this).closest("tr").remove();
+            });
 
-        $(document).on("click", ".delItem a", function (e) {
-            e.preventDefault();
-            $(this).closest("tr").remove();
-        });
+            // $(document).on("change", ".form-check-input", function () {
+            //     let row = $(this).closest("tr");
+            //     row.find(".form-check-input").not(this).prop("checked", false);
+            // });
+                $(document).on("change", ".form-check-input", function () {
+                     // Xử lý gì đó nếu cần sau khi chọn checkbox
+                     // Nhưng KHÔNG bỏ chọn checkbox khác nữa
+                 });
+            $(document).on("input", "input[id^='KLThung_'], input[id^='KLThungGL_']", function () {
+                let index = $(this).attr("id").split("_")[1];
+                let klThung = parseFloat($("#KLThung_" + index).val()) || 0;
+                let klThungGL = parseFloat($("#KLThungGL_" + index).val()) || 0;
 
+                let klGLCR = (klThungGL - klThung) ? parseFloat((klThungGL - klThung).toFixed(2)) : 0;
+
+                $("#KLGLCR_" + index).val(klGLCR);
+            });
 
     $("#xacnhan").click(function (e) {
         e.preventDefault();
@@ -632,9 +765,16 @@
         var PBPX_HRCValue = $("#IDPhongBan option:selected").data("info");
         var partPBPXHRC = PBPX_HRCValue.split("-");
 
+         var PBBN_HRC2=$("#IDPhongBan_HRC2 option:selected").data("info")
+         var partPBHRC2=PBBN_HRC2.split("-");
+
+         var PNNL=$("#IDPhongBan_NVNL option:selected").data("info");
+         var partNL=PNNL.split("-");
+
         var PBPX_QLCLValue = $("#IDPhongBan_QLCL option:selected").data("info");
         var partPBPX_QLCL = PBPX_QLCLValue.split("-");
 
+        
         var data = {
             ID_NhanVien_BG: $("#ID_NhanVien_BG").data("info"),
             ID_PhongBan_BG: partsBG[0],
@@ -646,6 +786,16 @@
             ID_Xuong_HRC: partPBPXHRC[1] === "null" ? null : partPBPXHRC[1],
             ID_ViTri_HRC: $("#IDChucVu option:selected").data("info")||null,
 
+            ID_NhanVien_HRC2 :$("#IDTaiKhoanHRC2").val(),
+            ID_PhongBan_HRC2 : partPBHRC2[0],
+            ID_ViTri_HRC2 : $("#IDChucVu_HRC2 option:selected").data("info")||null,
+            ID_Xuong_HRC2 : partPBHRC2[1] === "null" ? null: partPBHRC2[1],
+
+            ID_Nhanvien_NL :$("#IDTaiKhoan_NVNL").val(),
+            ID_PB_NL :partNL[0],
+            ID_Vitri_NL :$("#IDChucVu_NVNL option:selected").data("info")||null,
+            ID_Xuong_NL: partNL[1] ==="null" ? null :partNL[1],
+
             ID_NhanVien_QLCL: $("#IDTaiKhoan_QLCL").val(),
             ID_PhongBan_QLCL: partPBPX_QLCL[0],
             ID_Xuong_QLCL: partPBPX_QLCL[1] === "null" ? null : partPBPX_QLCL[1],
@@ -656,7 +806,8 @@
             ID_Kip: $("#CaKip").val(),
             Kip: $("#CaKip option:selected").data("info"),
             Ca: $("#IDCa").val(),
-
+            //Duc1:$("#Duc1").val(),
+            //Duc2:$("#Duc2").val(),
             NoiDungTrichYeu: $("#NoiDungTrichYeu").val(),
                 ID_TaiKhoan:$("#IDNhanVienTT").val(),
                 ID_TaiKhoan_View:$("#IDNhanVienView").val(),
@@ -727,7 +878,7 @@
                 return false;
             }
 
-                var PBPXValue = $("#ID_PhongBan_BG").data("info");
+            var PBPXValue = $("#ID_PhongBan_BG").data("info");
             var partsBG = PBPXValue.split("-");
 
             var PBPX_HRCValue = $("#IDPhongBan option:selected").data("info");
@@ -735,6 +886,11 @@
 
             var PBPX_QLCLValue = $("#IDPhongBan_QLCL option:selected").data("info");
             var partPBPX_QLCL = PBPX_QLCLValue.split("-");
+            var PBBN_HRC2=$("#IDPhongBan_HRC2 option:selected").data("info")
+            var partPBHRC2=PBBN_HRC2.split("_");
+
+            var PNNL=$("#IDPhongBan_NVNL option:selected").data("info");
+            var partNL=PNNL.split("_");
 
             var data = {
                 ID_NhanVien_BG: $("#ID_NhanVien_BG").data("info"),
@@ -747,6 +903,16 @@
                 ID_Xuong_HRC: partPBPXHRC[1] === "null" ? null : partPBPXHRC[1],
                 ID_ViTri_HRC: $("#IDChucVu option:selected").data("info"),
 
+                ID_NhanVien_HRC2 :$("#IDTaiKhoanHRC2").val(),
+                ID_PhongBan_HRC2 : partPBHRC2[0],
+                ID_ViTri_HRC2 : $("#IDChucVu_HRC2 option:selected").data("info")||null,
+                ID_Xuong_HRC2 : partPBHRC2[1],
+
+                ID_Nhanvien_NL :$("#IDTaiKhoan_NVNL").val(),
+                ID_PB_NL :partNL[0],
+                ID_Vitri_NL :$("#IDChucVu_NVNL option:selected").data("info")||null,
+                ID_Xuong_NL: partNL[1],
+
                 ID_NhanVien_QLCL: $("#IDTaiKhoan_QLCL").val(),
                 ID_PhongBan_QLCL: partPBPX_QLCL[0],
                 ID_Xuong_QLCL: partPBPX_QLCL[1] === "null" ? null : partPBPX_QLCL[1],
@@ -757,7 +923,8 @@
                 ID_Kip: $("#CaKip").val(),
                 Kip: $("#CaKip option:selected").data("info"),
                 Ca: $("#IDCa").val(),
-
+               // Duc1:$("#Duc1").val(),
+               // Duc2:$("#Duc2").val(),
                 NoiDungTrichYeu: $("#NoiDungTrichYeu").val(),
                     ID_TaiKhoan:$("#IDNhanVienTT").val(),
                     ID_TaiKhoan_View:$("#IDNhanVienView").val(),
@@ -793,7 +960,6 @@
 
             $("#dataTable tbody tr").slice(0, -1).each(function () {
                 var row = {
-                    
                     SoMe: $(this).find("input[name='SoMe']").val(),
                     ThungSo: $(this).find("input[name='ThungSo']").val(),
                     KhoiLuongXeGoong: parseFloat($(this).find("input[name='KhoiLuongXeGoong']").val()) || 0,
@@ -801,10 +967,13 @@
                     KLThungGangLong: parseFloat($(this).find("input[name='KLThungGangLong']").val()) || 0,
                     KLGangLongCanRay: parseFloat($(this).find("input[name='KLGangLongCanRay']").val()) || 0,
                     VanChuyenHRC1: $(this).find("input[name='VanChuyenHRC1']:checkbox").is(":checked") ? 1 : 0,
+                    Duc1: $(this).find("input[name='Duc1']:checkbox").is(":checked") ? 1 : 0,
                     VanChuyenHRC2: $(this).find("input[name='VanChuyenHRC2']:checkbox").is(":checked") ? 1 : 0,
+                    Duc2: $(this).find("input[name='Duc2']:checkbox").is(":checked") ? 1 : 0,
                     PhanLoai: $(this).find("input[name='PhanLoai']").val(),
                     Gio: $(this).find("input[name='Gio']").val(),
                     GhiChu: $(this).find("input[name='GhiChu']").val(),
+                    GioNM: $(this).find("input[name='GioNM']").val(),
                     Id_BBGL: idBBGL
                 };
                 tableData.push(row);
@@ -843,9 +1012,10 @@
 </script>
 
 
-<script type="text/javascript"> 
-     $("#IDTaiKhoan, #IDTaiKhoan_QLCL").chosen({ 
-        width: "100%" 
+<script type="text/javascript">
+
+    $("#IDTaiKhoan, #IDTaiKhoan_QLCL,#IDTaiKhoanHRC2,#IDTaiKhoan_NVNL").chosen({
+       width: "100%" 
      }); 
 
      $("#IDKip").chosen({ 

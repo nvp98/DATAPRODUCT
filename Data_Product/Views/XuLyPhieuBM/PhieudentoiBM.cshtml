@@ -386,39 +386,39 @@
                                         var Models = new List<Tbl_ChiTiet_BBGangLong_GangThoi>();
                                         var duDieuKien = false;
 
-                                        if (data != null && data.TinhTrang_QLCL == 1 && data.TinhTrang_HRC == 1)
-                                        {
+                                       
                                             Models = _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == ID).ToList();
                                             duDieuKien = true;
-                                        }
+                                        
                                     }
-                                    <tbody>
-                                        @if (duDieuKien)
-                                        {
-                                            foreach (var item in Models)
-                                            {
-                                                <tr>
-                                                    <td>@index</td>
-                                                    <td>@item.SoMe</td>
-                                                    <td>@item.ThungSo</td>
-                                                    <td>@item.KhoiLuongXeGoong</td>
-                                                    <td>@item.KhoiLuongThung</td>
-                                                    <td>@item.KLThungGangLong</td>
-                                                    <td>@item.KLGangLongCanRay</td>
-                                                    @* <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 ? "checked" : "") disabled /></td> *@
-                                                    @* <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 ? "checked" : "") disabled /></td> *@
-                                                    <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") disabled /></td>
-                                                    <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 == 1 ? "checked" : "") disabled /></td>
-                                                    <td>@item.PhanLoai</td>
-                                                    <td>@item.Gio</td>
-                                                    <td>@item.GhiChu</td>
-                                                </tr>
-                                                index++;
-                                            }
-                                        }
+                                    @foreach (var item in Models)
+                                    {
+                                        <tbody>
+                                       
+                                           
+                                                    <tr>
+                                                        <td>@index</td>
+                                                        <td>@item.SoMe</td>
+                                                        <td>@item.ThungSo</td>
+                                                        <td>@item.KhoiLuongXeGoong</td>
+                                                        <td>@item.KhoiLuongThung</td>
+                                                        <td>@item.KLThungGangLong</td>
+                                                        <td>@item.KLGangLongCanRay</td>
+                                                        @* <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 ? "checked" : "") disabled /></td> *@
+                                                        @* <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 ? "checked" : "") disabled /></td> *@
+                                                        <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") disabled /></td>
+                                                        <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 == 1 ? "checked" : "") disabled /></td>
+                                                        <td>@item.PhanLoai</td>
+                                                        <td>@item.Gio</td>
+                                                        <td>@item.GhiChu</td>
+                                                    </tr>
+                                                    index++;
+                                            
+                                        
                                        
                                        
-                                    </tbody>
+                                        </tbody>
+                                    }
                                 <tfoot>
                                     <tr>
                                         <td colspan="6" class="text-center font-weight-bold"><b>Tổng khối lượng</b></td>
