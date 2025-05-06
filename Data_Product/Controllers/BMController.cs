@@ -56,7 +56,7 @@ namespace Data_Product.Controllers
             ViewBag.IDKip = new SelectList(CaKip, "ID_Kip", "TenCa");
 
             var NhanVien = (from a in _context.Tbl_TaiKhoan
-                            where a.ID_PhongBan==63
+                            //where a.ID_PhongBan==63
                             select new Tbl_TaiKhoan
                             {
                                 ID_TaiKhoan = a.ID_TaiKhoan,
@@ -65,7 +65,7 @@ namespace Data_Product.Controllers
 
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
             var TaiKhoan_QLCL = (from a in _context.Tbl_TaiKhoan
-                                 where a.ID_PhongBan==1
+                                 //where a.ID_PhongBan==1
                                  select new Tbl_TaiKhoan
                                  {
                                      ID_TaiKhoan = a.ID_TaiKhoan,
@@ -82,7 +82,7 @@ namespace Data_Product.Controllers
                                         HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
                                     }).ToListAsync();
             var TaikhoanHRC2= (from a in _context.Tbl_TaiKhoan
-                               where a.ID_PhongBan == 60
+                               //where a.ID_PhongBan == 60
                                select new Tbl_TaiKhoan
                                {
                                    ID_TaiKhoan = a.ID_TaiKhoan,
@@ -92,7 +92,7 @@ namespace Data_Product.Controllers
             ViewBag.IDTaiKhoanHRC2 = new SelectList(TaikhoanHRC2, "ID_TaiKhoan", "HoVaTen");
 
             var TaiKhoan_NVNL = (from a in _context.Tbl_TaiKhoan
-                              where a.ID_PhongBan == 60
+                             // where a.ID_PhongBan == 60
                               select new Tbl_TaiKhoan
                               {
                                   ID_TaiKhoan = a.ID_TaiKhoan,

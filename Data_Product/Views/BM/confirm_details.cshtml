@@ -458,16 +458,23 @@
                         <!-- End Recent Sales -->
                     }
                 </div>
+                @{
+                    var modals = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID).ToList();
+
+                }
+                @foreach (var item in modals)
+                  {
                     <div class="row" style="width: 100%; padding-bottom: 1%;">
                         <div class="col-lg-12">
                             <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px; width: 102%;">
                                 <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
                                     Nội dung trích yếu:
                                 </label>
-                                <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@Html.Raw(ViewBag.NoiDungTrichYeu)</textarea>
+                                <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@item.NoiDungTrichYeu</textarea>
                             </div>
                         </div>
                     </div>
+                  }
 
 
                 <div style="max-height: 400px; overflow-y: auto;">

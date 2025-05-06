@@ -332,8 +332,8 @@
                                             <td>@item.KLThungGangLong</td>
 
                                             <td>@item.KLGangLongCanRay</td>
-                                            <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 ? "checked" : "") disabled/></td>
-                                            <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 ? "checked" : "") disabled/></td>
+                                            <td><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1==1 ? "checked" : "") disabled/></td>
+                                            <td><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2==1 ? "checked" : "") disabled/></td>
                                             <td>@item.PhanLoai</td>
                                             <td>@item.Gio</td>
                                             <td>@item.GhiChu</td>

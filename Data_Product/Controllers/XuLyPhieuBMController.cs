@@ -1075,10 +1075,13 @@ namespace Data_Product.Controllers
                                  KLThungGangLong = a.KLThungGangLong,
                                  KLGangLongCanRay = a.KLGangLongCanRay,
                                  VanChuyenHRC1 = a.VanChuyenHRC1,
+                                 Duc1=a.Duc1,
                                  VanChuyenHRC2 = a.VanChuyenHRC2,
+                                 Duc2=a.Duc2,
                                  PhanLoai = a.PhanLoai,
                                  Gio = a.Gio,
-                                 GhiChu = a.GhiChu
+                                 GhiChu = a.GhiChu,
+                                 GioNM=a.GioNM
                              }).ToListAsync();
             ViewBag.Data = id;
             return View(res);
