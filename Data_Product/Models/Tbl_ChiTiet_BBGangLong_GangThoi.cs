@@ -37,13 +37,13 @@ namespace Data_Product.Models
         public string? PhanLoai { get; set; }
 
         
-        public string Gio { get; set; }
+        public string? Gio { get; set; }
 
         public string? GhiChu { get; set; }
         public int? Duc1 { get; set; }
         public int? Duc2 { get; set; }
         [Column("Gio_NM")]
-        public string GioNM { get; set; }
+        public string? GioNM { get; set; }
 
     }
  

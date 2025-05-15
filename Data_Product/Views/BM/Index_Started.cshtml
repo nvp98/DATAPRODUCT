@@ -159,13 +159,15 @@
                                                 @BG.HoVaTen
                                             </td>
                                             @{
-                                                var BNHRC = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_HRC).FirstOrDefault();
+                                                var BNHRC = item.ID_NhanVien_HRC != null
+                                                ? _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == item.ID_NhanVien_HRC)
+                                                : null;
                                             }
-                                            <td class="text-left" style="font-size:14px;vertical-align:middle;">@BNHRC.TenTaiKhoan<br> @BNHRC.HoVaTen</td>
+                                            <td class="text-left" style="font-size:14px;vertical-align:middle;">@BNHRC?.TenTaiKhoan<br> @BNHRC?.HoVaTen</td>
                                             @{
                                                 var BNQLCL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_QLCL).FirstOrDefault();
                                             }
-                                            <td class="text-left" style="font-size:14px;vertical-align:middle;">@BNQLCL.TenTaiKhoan<br> @BNQLCL.HoVaTen</td>
+                                            <td class="text-left" style="font-size:14px;vertical-align:middle;">@BNQLCL?.TenTaiKhoan<br> @BNQLCL?.HoVaTen</td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayXuly_BG?.Date.ToString("yyyy-MM-dd") </td>
 
                                             @if (item.ID_QuyTrinh == 1)

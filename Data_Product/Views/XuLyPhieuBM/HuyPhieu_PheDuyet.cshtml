@@ -12,12 +12,18 @@
             </div>
             <div class="modal-body">
                 <div class="col-md-12" style="padding-bottom: 1.5%;">
-                    <label for="inputEmail5" class="form-label">  Bên nhận xử lý</label>
+                    <label for="inputEmail5" class="form-label">  Bên nhận xử lý HRC1</label>
                     @Html.DropDownListFor(model => model.ID_TaiKhoanBN, ViewBag.NhanVienBN_HRC as SelectList, new { @style = "text-align: center;", @id = "ID_TaiKhoanBN", @class = "form-control" })
                     @Html.ValidationMessageFor(model => model.ID_TaiKhoanBN, "", new { @class = "text-danger" })
                 </div>
+
                 <div class="col-md-12" style="padding-bottom: 1.5%;">
-                    <label for="inputEmail5" class="form-label">  Bên nhận xử lý</label>
+                    <label for="inputEmail5" class="form-label">  Bên nhận xử lý HRC2</label>
+                    @Html.DropDownListFor(model => model.ID_TaiKhoanBN, ViewBag.NhanVienBN_HRC2 as SelectList, new { @style = "text-align: center;", @id = "ID_TaiKhoanBN", @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.ID_TaiKhoanBN, "", new { @class = "text-danger" })
+                </div>
+                <div class="col-md-12" style="padding-bottom: 1.5%;">
+                    <label for="inputEmail5" class="form-label">  Bên nhận xử lý Phòng QLCL</label>
                     @Html.DropDownListFor(model => model.ID_TaiKhoanBN, ViewBag.NhanVienBN_QLCL as SelectList, new { @style = "text-align: center;", @id = "ID_TaiKhoanBN", @class = "form-control" })
                     @Html.ValidationMessageFor(model => model.ID_TaiKhoanBN, "", new { @class = "text-danger" })
                 </div>

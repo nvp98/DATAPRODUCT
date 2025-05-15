@@ -43,13 +43,17 @@
     var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC).FirstOrDefault();
     var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC).FirstOrDefault();
     var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC).FirstOrDefault();
-    var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+    var ViTri_BN = ThongTin_BN != null ? _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu) : null;
 
     //Thông tin bên nhận HRC2
     var ThongTin_BNHRC2 = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC2).FirstOrDefault();
     var PhongBan_BNHRC2 = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC2).FirstOrDefault();
     var PhanXuong_BNHRC2 = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC2).FirstOrDefault();
-    var ViTri_BNHRC2 = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BNHRC2.ID_ChucVu).FirstOrDefault();
+
+    // var ViTri_BNHRC2 = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BNHRC2.ID_ChucVu).FirstOrDefault();
+    var ViTri_BNHRC2 = ThongTin_BNHRC2 != null
+    ? _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == ThongTin_BNHRC2.ID_ChucVu)
+    : null;
 
     //Thông tin bên nguyen lieu
     var ThongTin_NVNL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_Nhanvien_NL).FirstOrDefault();
@@ -258,7 +262,7 @@
                                  style="min-width: 300px; max-width: 32%; height: 50px;">
                                 <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 130px;">Đại diện bên giao:</label>
                                 <span id="ID_NhanVien_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_TaiKhoan" style="font-size: 14px;">
-                                    @TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
+                                    @ThongTin_BG.TenTaiKhoan - @ThongTin_BG.HoVaTen
                                 </span>
                             </div>
 
@@ -267,7 +271,7 @@
                                  style="min-width: 300px; max-width: 32%; height: 50px;">
                                 <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">Chức vụ:</label>
                                 <span id="ID_ViTri_BG" class="flex-grow-1" data-info="@ViTri.ID_ViTri" style="font-size: 14px;">
-                                    @ViTri.TenViTri
+                                    @ViTri_BG.TenViTri
                                 </span>
                             </div>
 
@@ -276,7 +280,7 @@
                                  style="min-width: 300px; max-width: 32%; height: 50px;">
                                 <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">BP/NM:</label>
                                 <span id="ID_PhongBan_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_PhongBan-@PhanXuong.ID_Xuong" style="font-size: 14px;">
-                                    @PhongBan.TenPhongBan - @PhanXuong.TenXuong
+                                    @PhongBan_BG.TenPhongBan - @PhanXuong_BG.TenXuong
                                 </span>
                             </div>
                         </div>
@@ -286,10 +290,10 @@
                         <!-- Đại diện bên nhận HRC -->
                         <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
                             <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Đại diện bên nhận HRC:
+                                Đại diện bên nhận HRC1:
                             </span>
                             <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ThongTin_BN.TenTaiKhoan - @ThongTin_BN.HoVaTen
+                                @ThongTin_BN?.TenTaiKhoan - @ThongTin_BN?.HoVaTen
                             </span>
                         </div>
 
@@ -299,7 +303,7 @@
                                 Chức vụ:
                             </span>
                             <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ViTri_BN.TenViTri
+                                @ViTri_BN?.TenViTri
                             </span>
                         </div>
 
@@ -309,11 +313,10 @@
                                 BP/NM:
                             </span>
                             <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @PhongBan_BN.TenPhongBan - @PhanXuong_BN.TenXuong
+                                @PhongBan_BN?.TenPhongBan - @PhanXuong_BN?.TenXuong
                             </span>
                         </div>
                     </div>
-
 
                     <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
                         <!-- Đại diện bên nhận HRC2 -->
@@ -322,7 +325,7 @@
                                 Đại diện bên nhận HRC2:
                             </span>
                             <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ThongTin_BNHRC2.TenTaiKhoan - @ThongTin_BNHRC2.HoVaTen
+                                @ThongTin_BNHRC2?.TenTaiKhoan - @ThongTin_BNHRC2?.HoVaTen
                             </span>
                         </div>
 
@@ -332,7 +335,7 @@
                                 Chức vụ:
                             </span>
                             <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ViTri_BNHRC2.TenViTri
+                                @ViTri_BNHRC2?.TenViTri
                             </span>
                         </div>
 
@@ -342,7 +345,7 @@
                                 BP/NM:
                             </span>
                             <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @PhongBan_BNHRC2.TenPhongBan - @PhanXuong_BNHRC2.TenXuong
+                                @PhongBan_BNHRC2?.TenPhongBan - @PhanXuong_BNHRC2?.TenXuong
                             </span>
                         </div>
                     </div>
@@ -383,7 +386,7 @@
                         <!-- Đại diện bên nhận QLCL -->
                         <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
                             <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Đại diện bên nhận QLCL:
+                                Đại diện Phòng QLCL:
                             </span>
                             <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
                                 @ThongTin_BN_QLCL.TenTaiKhoan - @ThongTin_BN_QLCL.HoVaTen
@@ -457,26 +460,36 @@
 
                         <!-- End Recent Sales -->
                     }
-                </div>
-                @{
-                    var modals = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID).ToList();
 
-                }
-                @foreach (var item in modals)
-                  {
-                    <div class="row" style="width: 100%; padding-bottom: 1%;">
-                        <div class="col-lg-12">
-                            <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px; width: 102%;">
-                                <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
-                                    Nội dung trích yếu:
-                                </label>
-                                <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@item.NoiDungTrichYeu</textarea>
+                    @{
+                        var modals = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID).ToList();
+
+                    }
+                    @foreach (var item in modals)
+                    {
+                        <div class="row" style="width: 100%; padding-bottom: 1%;">
+                            <div class="col-lg-12">
+                                <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px; width: 102%;">
+                                    <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
+                                        Nội dung trích yếu:
+                                    </label>
+                                    <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@item.NoiDungTrichYeu</textarea>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                  }
+                    }
 
+                    <style>
+                        /* Ẩn scrollbar nhưng vẫn cuộn được */
+                        [style*="overflow-y: auto"]::-webkit-scrollbar {
+                            display: none; /* Chrome, Safari */
+                        }
 
+                        [style*="overflow-y: auto"] {
+                            -ms-overflow-style: none; /* IE và Edge */
+                            scrollbar-width: none; /* Firefox */
+                        }
+                    </style>
                 <div style="max-height: 400px; overflow-y: auto;">
                     <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
                         <thead style="display: block;">
@@ -508,27 +521,27 @@
                             @foreach (var item in Model)
                             {
                                 <tr style="display: table; width: 100%; table-layout: fixed;">
-                                    <td style="width :71px">@index</td>
-                                    <td style="width:133px">@item.SoMe</td>
-                                    <td style="width:90px">@item.ThungSo</td>
+                                    <td style="width :70px">@index</td>
+                                    <td style="width:130px">@item.SoMe</td>
+                                    <td style="width:89px">@item.ThungSo</td>
 
-                                    <td style="width:124px">@item.KhoiLuongXeGoong</td>
-                                    <td style="width:124px">@item.KhoiLuongThung</td>
-                                    <td style="width:160px">@item.KLThungGangLong</td>
-                                    <td style="width:159px">@item.KLGangLongCanRay</td>
+                                    <td style="width:122px">@item.KhoiLuongXeGoong</td>
+                                    <td style="width:122px">@item.KhoiLuongThung</td>
+                                    <td style="width:157px">@item.KLThungGangLong</td>
+                                    <td style="width:155px">@item.KLGangLongCanRay</td>
 
                                     <td style="width:91px"><input type="checkbox" name="DaXacNhanList" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") disabled /></td>
-                                    <td style="width:70px"><input type="checkbox" name="DaXacNhanList" value="1" @(item.Duc1 == 1 ? "checked" : "") disabled /></td>
+                                    <td style="width:69px"><input type="checkbox" name="DaXacNhanList" value="1" @(item.Duc1 == 1 ? "checked" : "") disabled /></td>
                                     <td style="width:91px"><input type="checkbox" name="DaXacNhanList" value="2" @(item.VanChuyenHRC2 == 1 ? "checked" : "") disabled /></td>
                                     <td style="width:70px"><input type="checkbox" name="DaXacNhanList" value="1" @(item.Duc2 == 1 ? "checked" : "") disabled /></td>
-                                    <td style="width:102px ">@item.PhanLoai</td>
-                                    <td style="width:84px">@item.Gio</td>
-                                    <td style="width:98px">@item.GhiChu</td>
+                                    <td style="width:99px ">@item.PhanLoai</td>
+                                    <td style="width:83px">@item.Gio</td>
+                                    <td style="width:97px">@item.GhiChu</td>
                                     <td>@item.GioNM</td>
                                 </tr>
                                 index++;
                             }
-
+                          
                         </tbody>
                         <tfoot style="display: table; width: 100%; table-layout: fixed;">
                             <tr>
@@ -549,7 +562,7 @@
                         </div>
                         <div style="text-align: center; font-size: 14px; padding: 2%;"></div>
                         <div style="text-align: center; font-size: 14px;">
-                            <b>@ThongTin_BN.HoVaTen</b>
+                            <b>@ThongTin_BN?.HoVaTen</b>
                         </div>
                     </div>
                     <div class="col-xxl-3 col-md-3">
@@ -558,7 +571,7 @@
                         </div>
                         <div style="text-align: center; font-size: 14px; padding: 2%;"></div>
                         <div style="text-align: center; font-size: 14px;">
-                            <b>@ThongTin_BNHRC2.HoVaTen</b>
+                            <b>@ThongTin_BNHRC2?.HoVaTen</b>
                         </div>
                     </div>
 

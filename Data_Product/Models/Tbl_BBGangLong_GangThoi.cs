@@ -9,10 +9,10 @@ namespace Data_Product.Models
         [Key]
         public int ID_BBGL { get; set; }
 
-        public int ID_NhanVien_BG { get; set; }
+        public int? ID_NhanVien_BG { get; set; }
         public int ID_PhongBan_BG { get; set; }
-        public int ID_Xuong_BG { get; set; }
-        public int ID_ViTri_BG { get; set; }
+        public int? ID_Xuong_BG { get; set; }
+        public int? ID_ViTri_BG { get; set; }
 
         public int? ID_NhanVien_HRC { get; set; }
         public int? ID_PhongBan_HRC { get; set; }
@@ -36,6 +36,7 @@ namespace Data_Product.Models
 
         public int? TinhTrang_BG { get; set; }
         public int? TinhTrang_HRC { get; set; }
+        public int? TinhTrang_HRC2 { get; set; }
         public int? TinhTrang_QLCL { get; set; }
         public int? TinhTrang_BBGN { get; set; }
 

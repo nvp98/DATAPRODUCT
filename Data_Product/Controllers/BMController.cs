@@ -311,9 +311,11 @@ namespace Data_Product.Controllers
             data.ID_QuyTrinh = 2;
             data.TinhTrang_BBGN = 0;
             data.TinhTrang_HRC = 0;
+            data.TinhTrang_HRC2 = 0;
+            
             data.TinhTrang_QLCL = 0;
             data.ID_LOCAO = res.ID_LOCAO;
-            // HttpContext.Session.SetString("ID_LoCao", data.ID_LOCAO.ToString());
+            
 
             var ID_BBGL = idsert;
             var dataInDb = _context.Tbl_BBGangLong_GangThoi.Find(ID_BBGL);
@@ -329,15 +331,15 @@ namespace Data_Product.Controllers
                 dataInDb.ID_ViTri_BG = res.ID_ViTri_BG;
                 dataInDb.ID_Xuong_BG = res.ID_Xuong_BG;
 
-                dataInDb.ID_NhanVien_HRC = res.ID_NhanVien_HRC;
-                dataInDb.ID_PhongBan_HRC = res.ID_PhongBan_HRC;
-                dataInDb.ID_ViTri_HRC = res.ID_ViTri_HRC;
-                dataInDb.ID_Xuong_HRC = res.ID_Xuong_HRC;
+                dataInDb.ID_NhanVien_HRC = res.ID_NhanVien_HRC != null ? res.ID_NhanVien_HRC : null;
+                dataInDb.ID_PhongBan_HRC = res.ID_PhongBan_HRC != null ? res.ID_PhongBan_HRC : null;
+                dataInDb.ID_ViTri_HRC = res.ID_ViTri_HRC != null ? res.ID_ViTri_HRC : null;
+                dataInDb.ID_Xuong_HRC = res.ID_Xuong_HRC != null ? res.ID_Xuong_HRC : null;
 
-                dataInDb.ID_NhanVien_HRC2 = res.ID_NhanVien_HRC2;
-                dataInDb.ID_PhongBan_HRC2 = res.ID_PhongBan_HRC2;
-                dataInDb.ID_ViTri_HRC2 = res.ID_ViTri_HRC2;
-                dataInDb.ID_Xuong_HRC2 = res.ID_Xuong_HRC2;
+                dataInDb.ID_NhanVien_HRC2 = res.ID_NhanVien_HRC2 != null ? res.ID_NhanVien_HRC2 : null;
+                dataInDb.ID_PhongBan_HRC2 = res.ID_PhongBan_HRC2 != null ? res.ID_PhongBan_HRC2 : null;
+                dataInDb.ID_ViTri_HRC2 = res.ID_ViTri_HRC2 != null ? res.ID_ViTri_HRC2 : null;
+                dataInDb.ID_Xuong_HRC2 = res.ID_Xuong_HRC2 != null ? res.ID_Xuong_HRC2 : null;
 
                 dataInDb.ID_Nhanvien_NL = res.ID_Nhanvien_NL;
                 dataInDb.ID_PB_NL = res.ID_PB_NL;
@@ -357,6 +359,7 @@ namespace Data_Product.Controllers
                 data.ID_QuyTrinh = 2;
                 data.TinhTrang_BBGN = 0;
                 data.TinhTrang_HRC = 0;
+                data.TinhTrang_HRC2 = 0;
                 data.TinhTrang_QLCL = 0;
                 data.SoPhieu = SoPhieu;
                 dataInDb.NoiDungTrichYeu = res.NoiDungTrichYeu;
@@ -470,9 +473,6 @@ namespace Data_Product.Controllers
             var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
             string TenBP = PhongBan.TenNgan.ToString();
 
-            List<Tbl_NhomVatTu> vt = _context.Tbl_NhomVatTu.ToList();
-            ViewBag.VTList = new SelectList(vt, "ID_NhomVatTu", "TenNhomVatTu");
-
 
             List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
             ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
@@ -485,9 +485,17 @@ namespace Data_Product.Controllers
                             }).ToList();
             var IDTK_HRC = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault().ID_NhanVien_HRC;
             var IDTK_QLCL = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault().ID_NhanVien_QLCL;
-          
-            ViewBag.IDTaiKhoan_HRC = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", IDTK_HRC);
+            var IDTK_HRC2 = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault().ID_NhanVien_HRC2;
+            var NVNL= _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault().ID_Nhanvien_NL;
+            var ID_TaiKhoan= _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault().ID_TaiKhoan;
+            var ID_TaiKhoanView = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault().ID_TaiKhoan_View;
+            ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", IDTK_HRC);
+            ViewBag.IDTaiKhoanHRC2 = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", IDTK_HRC2);
             ViewBag.IDTaiKhoan_QLCL = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", IDTK_QLCL);
+            ViewBag.IDTaiKhoan_NVNL = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", NVNL);
+            ViewBag.IDNhanVienTT = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", ID_TaiKhoan);
+            ViewBag.IDNhanVienView = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", ID_TaiKhoanView);
+
             var NhanVien_TT = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
                                      join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
                                      select new Tbl_TaiKhoan
@@ -499,23 +507,7 @@ namespace Data_Product.Controllers
             ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
             ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
 
-            var VatTu = (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(TenBP) && x.ID_TrangThai == 1)
-                         select new Tbl_VatTu
-                         {
-                             ID_VatTu = a.ID_VatTu,
-                             TenVatTu = a.TenVatTu
-                         }).ToList();
-
-            ViewBag.VTList = new SelectList(VatTu, "ID_VatTu", "TenVatTu");
-
-            var MaLo = (from a in _context.Tbl_MaLo
-                        select new Tbl_MaLo
-                        {
-                            ID_MaLo = a.ID_MaLo,
-                            TenMaLo = a.TenMaLo
-                        }).ToList();
-
-            ViewBag.MLList = new SelectList(MaLo, "ID_MaLo", "TenMaLo");
+           
 
             var CaKip = (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == NgayLamViec)
                          select new Tbl_Kip
@@ -556,7 +548,7 @@ namespace Data_Product.Controllers
 
             // Lấy các giá trị trực tiếp từ dataInDb thay vì từ Session
             var ngayXuly_BG = dataInDb.NgayXuly_BG?.ToString("yyyy-MM-dd") ?? string.Empty;
-            var idLoCao = HttpContext.Session.GetString("ID_LoCao") ?? " ";
+            var idLoCao = dataInDb.ID_LOCAO.ToString() ?? string.Empty;
             var idCa = dataInDb.Ca ?? string.Empty;
             var kip = dataInDb.Kip ?? string.Empty;
             var IDKip = dataInDb.ID_Kip?.ToString() ?? string.Empty;
@@ -597,6 +589,17 @@ namespace Data_Product.Controllers
             dataInDb.ID_PhongBan_HRC = res.ID_PhongBan_HRC;
             dataInDb.ID_ViTri_HRC = res.ID_ViTri_HRC;
             dataInDb.ID_Xuong_HRC = res.ID_Xuong_HRC;
+
+            dataInDb.ID_NhanVien_HRC2 = res.ID_NhanVien_HRC2;
+            dataInDb.ID_PhongBan_HRC2 = res.ID_PhongBan_HRC2;
+            dataInDb.ID_ViTri_HRC2 = res.ID_ViTri_HRC2;
+            dataInDb.ID_Xuong_HRC2 = res.ID_Xuong_HRC2;
+
+            dataInDb.ID_Nhanvien_NL = res.ID_Nhanvien_NL;
+            dataInDb.ID_PB_NL = res.ID_PB_NL;
+            dataInDb.ID_Vitri_NL = res.ID_Vitri_NL;
+            dataInDb.ID_Xuong_NL = res.ID_Xuong_NL;
+
 
             dataInDb.ID_NhanVien_QLCL = res.ID_NhanVien_QLCL;
             dataInDb.ID_PhongBan_QLCL = res.ID_PhongBan_QLCL;
@@ -660,8 +663,14 @@ namespace Data_Product.Controllers
                         existingData.KhoiLuongThung = item.KhoiLuongThung;
                         existingData.KLThungGangLong = item.KLThungGangLong;
                         existingData.KLGangLongCanRay = item.KLGangLongCanRay;
+                        existingData.VanChuyenHRC1 = item.VanChuyenHRC1;
+                        existingData.Duc1 = item.Duc1;
+                        existingData.VanChuyenHRC2 = item.VanChuyenHRC2;
+                        existingData.Duc2 = item.Duc2;
                         existingData.PhanLoai = item.PhanLoai;
+                        existingData.Gio = item.Gio;
                         existingData.GhiChu = item.GhiChu;
+                        existingData.GioNM = item.GioNM;
                     }
                 }
                 else
@@ -675,7 +684,13 @@ namespace Data_Product.Controllers
                         KLThungGangLong = item.KLThungGangLong,
                         KLGangLongCanRay = item.KLGangLongCanRay,
                         PhanLoai = item.PhanLoai,
+                        VanChuyenHRC1 = item.VanChuyenHRC1,
+                        Duc1 = item.Duc1,
+                        VanChuyenHRC2 = item.VanChuyenHRC2,
+                        Duc2 = item.Duc2,
                         GhiChu = item.GhiChu,
+                        Gio = item.Gio,
+                        GioNM = item.GioNM,
                         Id_BBGL = item.Id_BBGL
                     };
                     _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(newData);
@@ -727,10 +742,13 @@ namespace Data_Product.Controllers
                                  KLGangLongCanRay=a.KLGangLongCanRay,
                                  VanChuyenHRC1=a.VanChuyenHRC1,
                                  VanChuyenHRC2=a.VanChuyenHRC2,
-                                 
+                                 Duc1=a.Duc1,
+                                 Duc2=a.Duc2,
                                  PhanLoai=a.PhanLoai,
                                  Gio=a.Gio,
-                                 GhiChu=a.GhiChu
+                                 GhiChu=a.GhiChu,
+                                 GioNM=a.GioNM
+                                 
                              }).ToListAsync();
             ViewBag.Data = id;
             return View(res);
@@ -872,6 +890,7 @@ namespace Data_Product.Controllers
             ViewBag.IDKip = new SelectList(CaKip, "ID_Kip", "TenCa");
 
             var NhanVien = (from a in _context.Tbl_TaiKhoan
+                                //where a.ID_PhongBan==63
                             select new Tbl_TaiKhoan
                             {
                                 ID_TaiKhoan = a.ID_TaiKhoan,
@@ -880,13 +899,14 @@ namespace Data_Product.Controllers
 
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
             var TaiKhoan_QLCL = (from a in _context.Tbl_TaiKhoan
+                                     //where a.ID_PhongBan==1
                                  select new Tbl_TaiKhoan
                                  {
                                      ID_TaiKhoan = a.ID_TaiKhoan,
                                      HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
                                  }).ToList();
 
-            ViewBag.IDTaiKhoan = new SelectList(TaiKhoan_QLCL, "ID_TaiKhoan", "HoVaTen");
+            ViewBag.TaiKhoan_QLCL = new SelectList(TaiKhoan_QLCL, "ID_TaiKhoan", "HoVaTen");
 
             var NhanVien_TT = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
                                      join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
@@ -895,9 +915,29 @@ namespace Data_Product.Controllers
                                          ID_TaiKhoan = a.ID_TaiKhoan,
                                          HoVaTen = b.TenTaiKhoan + " - " + b.HoVaTen
                                      }).ToListAsync();
+            var TaikhoanHRC2 = (from a in _context.Tbl_TaiKhoan
+                                    //where a.ID_PhongBan == 60
+                                select new Tbl_TaiKhoan
+                                {
+                                    ID_TaiKhoan = a.ID_TaiKhoan,
+                                    HoVaTen
+                                    = a.TenTaiKhoan + " - " + a.HoVaTen
+                                }).ToList();
+            ViewBag.IDTaiKhoanHRC2 = new SelectList(TaikhoanHRC2, "ID_TaiKhoan", "HoVaTen");
+
+            var TaiKhoan_NVNL = (from a in _context.Tbl_TaiKhoan
+                                     // where a.ID_PhongBan == 60
+                                 select new Tbl_TaiKhoan
+                                 {
+                                     ID_TaiKhoan = a.ID_TaiKhoan,
+                                     HoVaTen
+                                     = a.TenTaiKhoan + " - " + a.HoVaTen
+                                 }).ToList();
+            ViewBag.TaiKhoan_NVNL = new SelectList(TaiKhoan_NVNL, "ID_TaiKhoan", "HoVaTen");
 
             ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
             ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
+
 
             var res = await (from a in _context.Tbl_ChiTiet_BBGangLong_GangThoi.Where(x => x.Id_BBGL == id)
 
@@ -912,10 +952,13 @@ namespace Data_Product.Controllers
                                  KLGangLongCanRay = a.KLGangLongCanRay,
                                  VanChuyenHRC1 = a.VanChuyenHRC1,
                                  VanChuyenHRC2 = a.VanChuyenHRC2,
-
+                                 Duc1=a.Duc1,
+                                 Duc2=a.Duc2,
                                  PhanLoai = a.PhanLoai,
                                  Gio = a.Gio,
-                                 GhiChu = a.GhiChu
+                                 GhiChu = a.GhiChu,
+                                 GioNM=a.GioNM
+                                 
                              }).ToListAsync();
             ViewBag.Data = id;
             return View(res);
@@ -954,10 +997,21 @@ namespace Data_Product.Controllers
             data.ID_ViTri_HRC = res.ID_ViTri_HRC;
             data.ID_Xuong_HRC = res.ID_Xuong_HRC;
 
+            data.ID_NhanVien_HRC2 = res.ID_NhanVien_HRC2;
+            data.ID_PhongBan_HRC2 = res.ID_PhongBan_HRC2;
+            data.ID_ViTri_HRC2 = res.ID_ViTri_HRC2;
+            data.ID_Xuong_HRC2 = res.ID_Xuong_HRC2;
+
+            data.ID_Nhanvien_NL = res.ID_Nhanvien_NL;
+            data.ID_PB_NL = res.ID_PB_NL;
+            data.ID_Vitri_NL = res.ID_Vitri_NL;
+            data.ID_Xuong_NL = res.ID_Xuong_NL;
+
             data.ID_NhanVien_QLCL = res.ID_NhanVien_QLCL;
             data.ID_PhongBan_QLCL = res.ID_PhongBan_QLCL;
             data.ID_Xuong_QLCL = res.ID_Xuong_QLCL;
             data.ID_ViTri_QLCL = res.ID_ViTri_QLCL;
+
             data.SoPhieu = SoPhieu;
             data.NgayXuly_BG = res.NgayXuly_BG;
             data.ID_Kip = res.ID_Kip;
@@ -990,6 +1044,16 @@ namespace Data_Product.Controllers
                 dataInDb.ID_PhongBan_HRC = res.ID_PhongBan_HRC;
                 dataInDb.ID_ViTri_HRC = res.ID_ViTri_HRC;
                 dataInDb.ID_Xuong_HRC = res.ID_Xuong_HRC;
+
+                dataInDb.ID_NhanVien_HRC2 = res.ID_NhanVien_HRC2;
+                dataInDb.ID_PhongBan_HRC2 = res.ID_PhongBan_HRC2;
+                dataInDb.ID_ViTri_HRC2 = res.ID_ViTri_HRC2;
+                dataInDb.ID_Xuong_HRC2 = res.ID_Xuong_HRC2;
+
+                dataInDb.ID_Nhanvien_NL = res.ID_Nhanvien_NL;
+                dataInDb.ID_PB_NL = res.ID_PB_NL;
+                dataInDb.ID_Vitri_NL = res.ID_Vitri_NL;
+                dataInDb.ID_Xuong_NL = res.ID_Xuong_NL;
 
                 dataInDb.ID_NhanVien_QLCL = res.ID_NhanVien_QLCL;
                 dataInDb.ID_PhongBan_QLCL = res.ID_PhongBan_QLCL;
@@ -1041,6 +1105,7 @@ namespace Data_Product.Controllers
 
             return Json(new { success = true, Id_BBGL = idsert, NgayXuly_BG = iddate });
         }
+
 
         public async Task<IActionResult> Index_All(string search, int? ID_QuyTrinh, DateTime? begind, DateTime? endd, int? ID_PhongBan, int? ID_Xuong, int? ID_PhongBanBG, int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN, string Kip, int page = 1)
         {

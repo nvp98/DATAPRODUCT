@@ -115,7 +115,8 @@
                                                     RowNo++;
                                                 }
                                             </td>
-                                            @if (item.TinhTrang_BBGN == 0 || ((int)ViewBag.IDTest_ == item.ID_NhanVien_HRC && item.TinhTrang_HRC == 0) || ((int)ViewBag.IDTest_ == item.ID_NhanVien_QLCL && item.TinhTrang_QLCL == 0))
+
+                                            @if (item.TinhTrang_BBGN == 0 || ((int)ViewBag.IDTest_ == item.ID_NhanVien_HRC && item.TinhTrang_HRC == 0) || ((int)ViewBag.IDTest_ == item.ID_NhanVien_QLCL && item.TinhTrang_QLCL == 0) || ((int)ViewBag.IDTest_ == item.ID_NhanVien_HRC2 && item.TinhTrang_HRC2 == 0))
                                             {
                                                 if (item.ID_QuyTrinh == 3)
                                                 {
@@ -128,7 +129,7 @@
                                                 else
                                                 {
                                                     <td style="font-size:14px;color: #335FB3">
-                                                           <a class="nav-link collapsed" href="@Url.Action("PhieudentoiBM", "XuLyPhieuBM", new {id = item.ID_BBGL})">
+                                                        <a class="nav-link collapsed" href="@Url.Action("PhieudentoiBM", "XuLyPhieuBM", new {id = item.ID_BBGL})">
                                                             BM.16/QT.05
                                                         </a>
                                                     </td>
@@ -170,7 +171,7 @@
                                             @{
                                                 var BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_BG).FirstOrDefault();
                                                 var BNHRC = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_HRC).FirstOrDefault();
-                                                var BNQLCL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == item.ID_NhanVien_QLCL).FirstOrDefault();
+                                                var BNQLCL = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == item.ID_NhanVien_QLCL);
                                             }
                                             <td class="text-left" style="font-size:14px;vertical-align:middle;">
                                                 @BG.TenTaiKhoan
@@ -178,7 +179,7 @@
                                                 @BG.HoVaTen
                                             </td>
                                             <td class="text-left" style="font-size:14px;vertical-align:middle;">
-                                                @BNHRC.TenTaiKhoan - @BNHRC.HoVaTen
+                                                @BNHRC?.TenTaiKhoan - @BNHRC?.HoVaTen
                                                 <br>
                                                 @BNQLCL.TenTaiKhoan - @BNQLCL.HoVaTen
                                             </td>
@@ -232,17 +233,17 @@
                                             }
                                             else
                                             {
-                                                @if (item.TinhTrang_HRC == 0||item.TinhTrang_QLCL==0)
-                                                {
-                                                    <td class="text-center" style="font-size:14px;">
-                                                        <button type="button" class="btn btn-warning" style="width: 120px;">
-                                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                                Chưa xử lý
-                                                            </span>
-                                                        </button>
-                                                    </td>
-                                                }
-                                                else if (item.TinhTrang_HRC == 1 && item.TinhTrang_QLCL==1)
+                                                 @if ((item.ID_NhanVien_HRC != null && item.TinhTrang_HRC == 0) || (item.ID_NhanVien_QLCL != null && item.TinhTrang_QLCL == 0) || (item.ID_NhanVien_HRC2 != null && item.TinhTrang_HRC2 == 0))                                                { 
+                                                     <td class="text-center" style="font-size:14px;"> 
+                                                         <button type="button" class="btn btn-warning" style="width: 120px;"> 
+                                                             <span class="small pt-2 ps-1" style="color: white;"> 
+                                                                Chưa xử lý 
+                                                             </span> 
+                                                         </button> 
+                                                     </td> 
+                                                 } 
+                                                
+                                                else if ((item.TinhTrang_HRC == 1 && item.TinhTrang_QLCL == 1 )|| (item.TinhTrang_HRC2 == 1 && item.TinhTrang_QLCL==1) || (item.TinhTrang_HRC == 1 && item.TinhTrang_HRC2 == 1 && item.TinhTrang_QLCL==1))
                                                 {
                                                     <td class="text-center" style="font-size:14px;">
                                                         <button type="button" class="btn btn-success" style="width: 120px;">

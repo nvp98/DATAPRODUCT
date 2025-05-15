@@ -55,7 +55,7 @@ namespace Data_Product.Controllers
             int idtk = TaiKhoan.ID_TaiKhoan;
             ViewBag.IDTest_ = idtk;
             ViewBag.TTList = new SelectList(_context.Tbl_TrangThai_PheDuyet.ToList(), "ID_TrangThai_PheDuyet", "TenTrangThai", ID_TrangThai);
-            var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_NhanVien_HRC == TaiKhoan.ID_TaiKhoan || x.ID_NhanVien_QLCL == TaiKhoan.ID_TaiKhoan)
+            var res = await (from a in _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_NhanVien_HRC == TaiKhoan.ID_TaiKhoan || x.ID_NhanVien_QLCL == TaiKhoan.ID_TaiKhoan ||x.ID_NhanVien_HRC2==TaiKhoan.ID_TaiKhoan)
                              select new Tbl_BBGangLong_GangThoi
                              {
                                  ID_BBGL = a.ID_BBGL,
@@ -70,14 +70,25 @@ namespace Data_Product.Controllers
                                  ID_Xuong_HRC = a.ID_Xuong_HRC,
                                  ID_ViTri_HRC = a.ID_ViTri_HRC,
 
+                                 ID_NhanVien_HRC2=a.ID_NhanVien_HRC2,
+                                 ID_PhongBan_HRC2=a.ID_PhongBan_HRC2,
+                                 ID_Xuong_HRC2=a.ID_Xuong_HRC2,
+                                 ID_ViTri_HRC2=a.ID_ViTri_HRC2,
+
                                  ID_NhanVien_QLCL = a.ID_NhanVien_QLCL,
                                  ID_PhongBan_QLCL = a.ID_PhongBan_QLCL,
                                  ID_Xuong_QLCL = a.ID_Xuong_QLCL,
                                  ID_ViTri_QLCL = a.ID_ViTri_QLCL,
+                                 
+                                 ID_Nhanvien_NL=a.ID_Nhanvien_NL,
+                                 ID_PB_NL=a.ID_PB_NL,
+                                 ID_Xuong_NL=a.ID_Xuong_NL,
+                                 ID_Vitri_NL=a.ID_Vitri_NL,
 
                                  TinhTrang_BG = a.TinhTrang_BG,
                                  TinhTrang_HRC = a.TinhTrang_HRC,
                                  TinhTrang_QLCL = a.TinhTrang_QLCL,
+                                 TinhTrang_HRC2=a.TinhTrang_HRC2,
                                  TinhTrang_BBGN = a.TinhTrang_BBGN,
 
                                  NgayXuly_BG = a.NgayXuly_BG,
@@ -239,6 +250,50 @@ namespace Data_Product.Controllers
                             NgayXuLy_HRC={12},
                             NgayXuLy_QLCL={13},
                             TinhTrang_HRC={14}
+                            
+                            
+                        WHERE ID_BBGL = '" + id + " '";
+
+                        await _context.Database.ExecuteSqlRawAsync(sqlUpdate,
+                        res.ID_NhanVien_BG,
+                        res.ID_NhanVien_HRC,
+                        res.ID_PhongBan_HRC,
+                        res.ID_ViTri_HRC,
+                        res.ID_Xuong_HRC,
+                        res.ID_NhanVien_QLCL,
+                        res.ID_PhongBan_QLCL,
+                        res.ID_Xuong_QLCL,
+                        res.ID_ViTri_QLCL,
+                        res.NgayXuly_BG,
+                        res.ID_QuyTrinh,
+                        0, // TinhTrang_BBGN
+                        DateTime.Now,
+                        DateTime.Now,
+                        1,
+
+                        id.Value);
+                    }
+                    else if(idtaiKhoan == res.ID_NhanVien_HRC2)
+                    {
+                        sqlUpdate = @"
+                        UPDATE Tbl_BBGangLong_GangThoi 
+                        SET 
+                            ID_NhanVien_BG = {0},
+                            ID_NhanVien_HRC = {1},
+                            ID_PhongBan_HRC = {2},
+                            ID_ViTri_HRC = {3},
+                            ID_Xuong_HRC = {4},
+                            ID_NhanVien_QLCL = {5},
+                            ID_PhongBan_QLCL = {6},
+                            ID_Xuong_QLCL = {7},
+                            ID_ViTri_QLCL = {8},
+                            NgayXuly_BG = {9},
+                            ID_QuyTrinh = {10},
+                            TinhTrang_BBGN = {11},
+                            NgayXuLy_HRC={12},
+                            NgayXuLy_QLCL={13},
+                            TinhTrang_HRC2={14}
+                            
                             
                         WHERE ID_BBGL = '" + id + " '";
 
@@ -433,7 +488,17 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
                         icol++;
+                        Worksheet.Cell(row, icol).Value = item.Duc1;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+                        icol++;
                         Worksheet.Cell(row, icol).Value = item.VanChuyenHRC2;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.Duc2;
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -452,8 +517,11 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.GioNM;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
                     }
                     Worksheet.Range("A7:T" + (row)).Style.Font.SetFontName("Times New Roman");
                     Worksheet.Range("A7:T" + (row)).Style.Font.SetFontSize(13);
@@ -656,7 +724,7 @@ namespace Data_Product.Controllers
 
                 ViewBag.NhanVienTT = new SelectList(NhanVien_TT, "ID_TaiKhoan", "HoVaTen");
 
-                var NhanVien_TTView = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == BBGN.ID_Xuong_HRC)
+                var NhanVien_TTView = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == BBGN.ID_Xuong_HRC|| x.ID_Xuong==BBGN.ID_Xuong_HRC2)
                                              join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
                                              select new Tbl_TaiKhoan
                                              {
@@ -666,6 +734,7 @@ namespace Data_Product.Controllers
 
                 ViewBag.NhanVien_TT_View = new SelectList(NhanVien_TTView, "ID_TaiKhoan", "HoVaTen");
                 ViewBag.NhanVienBN_HRC = new SelectList(_context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_HRC), "ID_TaiKhoan", "HoVaTen");
+                ViewBag.NhanVienBN_HRC2 = new SelectList(_context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_HRC2), "ID_TaiKhoan", "HoVaTen");
                 ViewBag.NhanVienBN_QLCL = new SelectList(_context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == BBGN.ID_NhanVien_QLCL), "ID_TaiKhoan", "HoVaTen");
                 ViewBag.Data = id;
                 return PartialView();
@@ -812,6 +881,7 @@ namespace Data_Product.Controllers
 
             ViewBag.IDTaiKhoan = new SelectList(TaiKhoan_QLCL, "ID_TaiKhoan", "HoVaTen");
 
+
             var NhanVien_TT = await (from a in _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong)
                                      join b in _context.Tbl_TaiKhoan on a.ID_TaiKhoan equals b.ID_TaiKhoan
                                      select new Tbl_TaiKhoan
@@ -842,9 +912,12 @@ namespace Data_Product.Controllers
                                  KLGangLongCanRay = a.KLGangLongCanRay,
                                  VanChuyenHRC1 = a.VanChuyenHRC1,
                                  VanChuyenHRC2 = a.VanChuyenHRC2,
+                                 Duc1=a.Duc1,
+                                 Duc2=a.Duc2,
                                  PhanLoai = a.PhanLoai,
                                  Gio = a.Gio,
-                                 GhiChu = a.GhiChu
+                                 GhiChu = a.GhiChu,
+                                 GioNM=a.GioNM
                              }).ToListAsync();
             ViewBag.Data = id;
             return View(res);
@@ -852,7 +925,7 @@ namespace Data_Product.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> YCauHieuChinhBM(Tbl_ChiTiet_BBGangLong_GangThoi _DO, IFormCollection formCollection, int? id)
+        public async Task<IActionResult> YCauHieuChinhBM(List<Tbl_ChiTiet_BBGangLong_GangThoi> ListChiTiet, IFormCollection formCollection, int? id)
         {
             string XacNhan = "";
             int IDNhanVienTT = 0;
@@ -903,24 +976,7 @@ namespace Data_Product.Controllers
                     var checkSPhieu = ID_BBGN.SoPhieu.Split("_")[0];
                     var ID_BBGNHC = _context.Tbl_BBGangLong_GangThoi.Where(x => x.SoPhieu.Contains(checkSPhieu + "_HC")).ToList();
 
-                    //Thông tin bên giao
-                    var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BG).FirstOrDefault();
-                    var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
-                    var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BG).FirstOrDefault();
-                    var ViTri_BG = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BG.ID_ChucVu).FirstOrDefault();
-
-                    //Thông tin bên nhận HRC
-                    var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC).FirstOrDefault();
-                    var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC).FirstOrDefault();
-                    var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC).FirstOrDefault();
-                    var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
-
-                    //Thông tin bên nhận QLCL
-                    var ThongTin_BN_QLCL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_QLCL).FirstOrDefault();
-                    var PhongBan_BN_QLCL = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_QLCL).FirstOrDefault();
-                    var PhanXuong_BN_QLCL = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_QLCL).FirstOrDefault();
-                    var ViTri_BN_QLCL = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN_QLCL.ID_ChucVu).FirstOrDefault();
-
+                    
                     DateTime Day = (DateTime)ID_BBGN.NgayXuly_BG;
                     string Day_Convert = Day.ToString("dd-MM-yyyy");
                     DateTime ThoiGianXuLyBG = DateTime.ParseExact(Day_Convert, "dd-MM-yyyy", CultureInfo.InvariantCulture);
@@ -928,20 +984,33 @@ namespace Data_Product.Controllers
                     int so = ID_BBGNHC.Count() + 1;
                     string SoPhieu = checkSPhieu.Trim() + "_HC." + so;
                     var tpm = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == id).FirstOrDefault();
-
+                   
                     var sql = new Tbl_BBGangLong_GangThoi();
                     {
                         sql.ID_NhanVien_BG = tpm.ID_NhanVien_BG;
                         sql.ID_PhongBan_BG = tpm.ID_PhongBan_BG;
                         sql.ID_Xuong_BG = tpm.ID_Xuong_BG;
                         sql.ID_ViTri_BG = tpm.ID_ViTri_BG;
+
                         sql.ID_NhanVien_HRC = tpm.ID_NhanVien_HRC;
                         sql.ID_PhongBan_HRC = tpm.ID_PhongBan_HRC;
                         sql.ID_Xuong_HRC = tpm.ID_Xuong_HRC;
+
+                        sql.ID_NhanVien_HRC2 = tpm.ID_NhanVien_HRC2;
+                        sql.ID_PhongBan_HRC2 = tpm.ID_PhongBan_HRC2;
+                      //  sql.ID_ViTri_HRC2 = tpm.ID_ViTri_HRC2;
+                        sql.ID_Xuong_HRC2 = tpm.ID_Xuong_HRC2;
+
+                        sql.ID_Nhanvien_NL = tpm.ID_Nhanvien_NL;
+                        sql.ID_PB_NL = tpm.ID_PB_NL;
+                        sql.ID_Vitri_NL = tpm.ID_Vitri_NL;
+                        sql.ID_Xuong_NL = tpm.ID_Xuong_NL;
+
                         sql.ID_NhanVien_QLCL = tpm.ID_NhanVien_QLCL;
                         sql.ID_PhongBan_QLCL = tpm.ID_PhongBan_QLCL;
                         sql.ID_Xuong_QLCL = tpm.ID_Xuong_QLCL;
-                        sql.ID_ViTri_QLCL = tpm.ID_ViTri_QLCL;
+                        //sql.ID_ViTri_QLCL = tpm.ID_ViTri_QLCL;
+
                         sql.TinhTrang_HRC = 0;
                         sql.TinhTrang_QLCL = 0;
                         sql.TinhTrang_BBGN = 3;
@@ -964,30 +1033,36 @@ namespace Data_Product.Controllers
                     // --- Đây là phần thay đổi chính: đọc giá trị checkbox ---
                     var vanChuyenHRC1 = formCollection["Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC1"] == "1";
                     var vanChuyenHRC2 = formCollection["Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC2"] == "1";
-
-                    // Gán giá trị vào _DO nếu cần
-                    _DO.VanChuyenHRC1 = vanChuyenHRC1 ? 1 : 0;
-                    _DO.VanChuyenHRC2 = vanChuyenHRC2 ? 1 : 0;
-
-
-
-                    var data = new Tbl_ChiTiet_BBGangLong_GangThoi();
+                    var Duc1 = formCollection["Tbl_ChiTiet_BBGangLong_GangThoi[0].Duc1"] == "1";
+                    var Duc2 = formCollection["Tbl_ChiTiet_BBGangLong_GangThoi[0].Duc2"] == "1";
+                   
+                    foreach (var item in ListChiTiet)
                     {
-                        data.Id_BBGL = sql.ID_BBGL;
-                        data.SoMe = _DO.SoMe;
-                        data.ThungSo = _DO.ThungSo;
-                        data.KhoiLuongXeGoong = _DO.KhoiLuongXeGoong;
-                        data.KhoiLuongThung = _DO.KhoiLuongThung;
-                        data.KLThungGangLong = _DO.KLThungGangLong;
-                        data.KLGangLongCanRay = (_DO.KLThungGangLong - _DO.KhoiLuongThung) ?? 0;
-                        data.VanChuyenHRC1 = vanChuyenHRC1?1:0;
-                        data.VanChuyenHRC2 = vanChuyenHRC2?1:0;
-                        data.Gio = _DO.Gio;
-                        data.PhanLoai = _DO.PhanLoai ?? "";
-                        data.GhiChu = _DO.GhiChu ?? "";
+                        var data = new Tbl_ChiTiet_BBGangLong_GangThoi
+                        {
+                            Id_BBGL = sql.ID_BBGL,
+                            SoMe = item.SoMe,
+                            ThungSo = item.ThungSo,
+                            KhoiLuongXeGoong = item.KhoiLuongXeGoong,
+                            KhoiLuongThung = item.KhoiLuongThung,
+                            KLThungGangLong = item.KLThungGangLong,
+                            KLGangLongCanRay = (item.KLThungGangLong - item.KhoiLuongThung) ?? 0,
+                            VanChuyenHRC1 = item.VanChuyenHRC1,
+                            Duc1 = item.Duc1,
+                            VanChuyenHRC2 = item.VanChuyenHRC2,
+                            Duc2 = item.Duc2,
+                            Gio = item.Gio,
+                            PhanLoai = item.PhanLoai,
+                            GhiChu = item.GhiChu,
+                            GioNM = item.GioNM
+                        };
+
+                        _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(data);
                     }
-                    _context.Tbl_ChiTiet_BBGangLong_GangThoi.Add(data);
-                    _context.SaveChanges();
+
+                    await _context.SaveChangesAsync();
+                    //}
+                    //_context.SaveChanges();
 
                     var QT = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == id).FirstOrDefault();
                     var bs = new Tbl_TrinhKyBoSung();
@@ -1000,8 +1075,7 @@ namespace Data_Product.Controllers
                     _context.SaveChanges();
 
                     TempData["msgSuccess"] = "<script>alert('Trình ký thành công');</script>";
-
-                    return RedirectToAction("Detail", "BM", new { id = sql.ID_BBGL });
+                    return RedirectToAction("Detail", "BM", new {id = sql.ID_BBGL });
                 }
             }
             catch (Exception e)
@@ -1028,7 +1102,7 @@ namespace Data_Product.Controllers
             ViewBag.TTList = new SelectList(_context.Tbl_TrangThai_PheDuyet.ToList(), "ID_TrangThai_PheDuyet", "TenTrangThai", ID_TrangThai);
 
             var res = await (from a in _context.Tbl_TrinhKyBoSung.Where(x => x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan)
-                             join bb in _context.Tbl_BBGangLong_GangThoi.Where(x => x.TinhTrang_HRC == 1 && x.TinhTrang_QLCL == 1 && x.ID_QuyTrinh != 1) on a.ID_BBGN equals bb.ID_BBGL
+                             join bb in _context.Tbl_BBGangLong_GangThoi.Where(x => x.TinhTrang_HRC == 1 || x.TinhTrang_HRC2==1 && x.TinhTrang_QLCL == 1 && x.ID_QuyTrinh != 1) on a.ID_BBGN equals bb.ID_BBGL
                              select new Tbl_TrinhKyBoSung
                              {
                                  ID_TrinhKy = a.ID_TrinhKy,

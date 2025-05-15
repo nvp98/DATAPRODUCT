@@ -1,9 +1,9 @@
-﻿@using Data_Product.Models
+﻿    @using Data_Product.Models
 @using System.Security.Claims;
 @using Data_Product.Repositorys;
 @using Microsoft.EntityFrameworkCore;
 @inject Data_Product.Repositorys.DataContext _context
-@model IEnumerable<Data_Product.Models.Tbl_ChiTiet_BBGangLong_GangThoi>
+@model List<Tbl_ChiTiet_BBGangLong_GangThoi>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
@@ -39,11 +39,27 @@
     var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BG).FirstOrDefault();
     var ViTri_BG = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BG.ID_ChucVu).FirstOrDefault();
 
-    //Thông tin bên nhận HRC
+    //Thông tin bên nhận HRC1
     var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC).FirstOrDefault();
     var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC).FirstOrDefault();
     var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC).FirstOrDefault();
-    var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+    var ViTri_BN = ThongTin_BN != null ? _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu) : null;
+
+    //Thông tin bên nhận HRC2
+    var ThongTin_BNHRC2 = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC2).FirstOrDefault();
+    var PhongBan_BNHRC2 = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC2).FirstOrDefault();
+    var PhanXuong_BNHRC2 = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC2).FirstOrDefault();
+
+    // var ViTri_BNHRC2 = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BNHRC2.ID_ChucVu).FirstOrDefault();
+    var ViTri_BNHRC2 = ThongTin_BNHRC2 != null
+    ? _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == ThongTin_BNHRC2.ID_ChucVu)
+    : null;
+
+    //Thông tin bên nguyen lieu
+    var ThongTin_NVNL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_Nhanvien_NL).FirstOrDefault();
+    var PhongBan_NVNL = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PB_NL).FirstOrDefault();
+    var PhanXuong_NVNL = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_NL).FirstOrDefault();
+    var ViTri_NVNL = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_NVNL.ID_ChucVu).FirstOrDefault();
 
     // Thông tin bên nhận QLCL
     var ThongTin_BN_QLCL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_QLCL).FirstOrDefault();
@@ -112,7 +128,7 @@
                                      style="min-width: 300px; max-width: 32%; height: 50px;">
                                     <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 130px;">Đại diện bên giao:</label>
                                     <span id="ID_NhanVien_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_TaiKhoan" style="font-size: 14px;">
-                                        @TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
+                                        @ThongTin_BG.TenTaiKhoan - @ThongTin_BG.HoVaTen
                                     </span>
                                 </div>
 
@@ -121,7 +137,7 @@
                                      style="min-width: 300px; max-width: 32%; height: 50px;">
                                     <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">Chức vụ:</label>
                                     <span id="ID_ViTri_BG" class="flex-grow-1" data-info="@ViTri.ID_ViTri" style="font-size: 14px;">
-                                        @ViTri.TenViTri
+                                        @ViTri_BG.TenViTri
                                     </span>
                                 </div>
 
@@ -130,7 +146,7 @@
                                      style="min-width: 300px; max-width: 32%; height: 50px;">
                                     <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">BP/NM:</label>
                                     <span id="ID_PhongBan_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_PhongBan-@PhanXuong.ID_Xuong" style="font-size: 14px;">
-                                        @PhongBan.TenPhongBan - @PhanXuong.TenXuong
+                                        @PhongBan_BG.TenPhongBan - @PhanXuong_BG.TenXuong
                                     </span>
                                 </div>
                             </div>
@@ -140,10 +156,10 @@
                             <!-- Đại diện bên nhận HRC -->
                             <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
                                 <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                    Đại diện bên nhận HRC:
+                                    Đại diện bên nhận HRC1:
                                 </span>
                                 <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                    @ThongTin_BN.TenTaiKhoan - @ThongTin_BN.HoVaTen
+                                    @ThongTin_BN?.TenTaiKhoan - @ThongTin_BN?.HoVaTen
                                 </span>
                             </div>
 
@@ -153,7 +169,7 @@
                                     Chức vụ:
                                 </span>
                                 <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                    @ViTri_BN.TenViTri
+                                    @ViTri_BN?.TenViTri
                                 </span>
                             </div>
 
@@ -163,7 +179,71 @@
                                     BP/NM:
                                 </span>
                                 <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                    @PhongBan_BN.TenPhongBan - @PhanXuong_BN.TenXuong
+                                    @PhongBan_BN?.TenPhongBan - @PhanXuong_BN?.TenXuong
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
+                            <!-- Đại diện bên nhận HRC2 -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    Đại diện bên nhận HRC2:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @ThongTin_BNHRC2?.TenTaiKhoan - @ThongTin_BNHRC2?.HoVaTen
+                                </span>
+                            </div>
+
+                            <!-- Chức vụ -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    Chức vụ:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @ViTri_BNHRC2?.TenViTri
+                                </span>
+                            </div>
+
+                            <!-- BP/NM -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    BP/NM:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @PhongBan_BNHRC2?.TenPhongBan - @PhanXuong_BNHRC2?.TenXuong
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
+                            <!-- Đại diện bên nhân viên Nguyên liệu -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    Đại diện nhân viên nguyên liệu:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @ThongTin_NVNL.TenTaiKhoan - @ThongTin_NVNL.HoVaTen
+                                </span>
+                            </div>
+
+                            <!-- Chức vụ -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    Chức vụ:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @ViTri_BN_QLCL.TenViTri
+                                </span>
+                            </div>
+
+                            <!-- BP/NM -->
+                            <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                    BP/NM:
+                                </span>
+                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                    @PhongBan_BN_QLCL.TenPhongBan - @PhanXuong_BN_QLCL.TenXuong
                                 </span>
                             </div>
                         </div>
@@ -172,7 +252,7 @@
                             <!-- Đại diện bên nhận QLCL -->
                             <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
                                 <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                    Đại diện bên nhận QLCL:
+                                    Đại diện Phòng QLCL:
                                 </span>
                                 <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
                                     @ThongTin_BN_QLCL.TenTaiKhoan - @ThongTin_BN_QLCL.HoVaTen
@@ -246,16 +326,26 @@
 
                             <!-- End Recent Sales -->
                         }
-                        <div class="row" style="width: 100%; padding-bottom: 1%;">
-                            <div class="col-lg-12">
-                                <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px; width: 102%;">
-                                    <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
-                                        Nội dung trích yếu:
-                                    </label>
-                                    <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@Html.Raw(ViewBag.NoiDungTrichYeu)</textarea>
+
+                        @{
+                            var modals = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID).ToList();
+
+                        }
+                        @foreach (var item in modals)
+                        {
+                            <div class="row" style="width: 100%; padding-bottom: 1%;">
+                                <div class="col-lg-12">
+                                    <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px; width: 102%;">
+                                        <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
+                                            Nội dung trích yếu:
+                                        </label>
+                                        <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@item.NoiDungTrichYeu</textarea>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
+
+
                         <div class="row" style="width:100%">
                             <div class="col-lg-12" style="text-align: left;height: 200px;display: flex;">
                                 <div class="col-xxl-12 col-md-6" style="text-align:center; padding-top:2%;">
@@ -279,114 +369,70 @@
 
                             </div><!-- End Recent Sales -->
                         </div>
-                        <div class="card-body" style="padding-top: 1%;">
-                            <div class="table-responsive" style="height: 400px;">
-                                <table class="table table-bordered table-hover" id="dataTable" cellpadding="0">
-                                    <thead>
-                                        <tr>
-                                            <th rowspan="2">STT</th>
-                                            <th rowspan="2">Số mẻ</th>
-                                            <th rowspan="2">Thùng số</th>
-                                            <th rowspan="2">Khối lượng xe goong</th>
-                                            <th rowspan="2">Khối lượng thùng</th>
-                                            <th rowspan="2">KL thùng & gang lỏng (tấn)</th>
-                                            <th rowspan="2">KL gang lỏng cân ray (tấn)</th>
-                                            <th colspan="2">Vận chuyển đến</th>
-                                            <th rowspan="2">Phân loại</th>
-                                            <th rowspan="2">Giờ</th>
-                                            <th rowspan="2">Ghi chú</th>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-bordered  table-hover" style="width: 100%; border-collapse: collapse;" id="dataTable" cellpadding="0">
+
+                                <thead style="display: block;">
+                                    <tr>
+                                        <th rowspan="2" style="width: 80px;">STT</th>
+                                        <th rowspan="2" style="width: 170px;">Số mẻ</th>
+                                        <th rowspan="2" style="width: 100px;">Thùng số</th>
+                                        <th rowspan="2" style="width: 150px;">Khối lượng xe goong</th>
+                                        <th rowspan="2" style="width: 150px;">Khối lượng thùng</th>
+                                        <th rowspan="2" style="width: 200px;">KL thùng & gang lỏng (tấn)</th>
+                                        <th rowspan="2" style="width: 200px;">KL gang lỏng cân ray (tấn)</th>
+                                        <th colspan="4" style="width: 160px; text-align:center">Vận chuyển đến</th>
+                                        <th rowspan="2" style="width: 120px;">Phân loại</th>
+                                        <th rowspan="2" style="width: 100px;">Giờ</th>
+                                        <th rowspan="2" style="width: 120px;">Ghi chú</th>
+                                        <th rowspan="2" style="width: 120px;">Giờ NM</th>
+                                    </tr>
+                                    <tr>
+                                        <th style="width: 80px;">NM.HRC1</th>
+                                        <th style="width: 80px;">Đúc 1</th>
+                                        <th style="width: 80px;">NM.HRC2</th>
+                                        <th style="width: 80px;">Đúc 2</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="display: block; max-height: 400px; overflow-y: auto; ">
+                                    @{
+                                        var index = 1;
+                                    }
+                                    @for (int i = 0; i < Model.Count; i++)
+                                    {
+                                        <tr style="display: table; width: 100%; table-layout: fixed;">
+                                            <td style="width :71px">@index</td>
+                                            <td style="width :133px"><input class="form-control" type="text" name="ListChiTiet[@i].SoMe" value="@Model[i].SoMe" /></td>
+                                            <td style="width:90px"><input class="form-control" type="text" name="ListChiTiet[@i].ThungSo" value="@Model[i].ThungSo" /></td>
+                                            <td style="width:124px"><input  class="form-control" type="number" name="ListChiTiet[@i].KhoiLuongXeGoong" value="@Model[i].KhoiLuongXeGoong" /></td>
+                                            <td style="width:124px"><input   class="form-control" type="number" name="ListChiTiet[@i].KhoiLuongThung" value="@Model[i].KhoiLuongThung" /></td>
+                                            <td style="width:160px"><input class="form-control" type="number" name="ListChiTiet[@i].KLThungGangLong" value="@Model[i].KLThungGangLong" /></td>
+                                            <td style="width:159px"><input class="form-control" type="text" name="ListChiTiet[@i].KLGangLongCanRay" value="@Model[i].KLGangLongCanRay" /></td>
+
+                                            <td style="width:91px"><input   type="checkbox" name="ListChiTiet[@i].VanChuyenHRC1" value="1" @(Model[i].VanChuyenHRC1 == 1 ? "checked" : "") /></td>
+                                            <td style="width:70px"><input   type="checkbox" name="ListChiTiet[@i].Duc1" value="1" @(Model[i].Duc1 == 1 ? "checked" : "") /></td>
+                                            <td style="width:91px"><input type="checkbox" name="ListChiTiet[@i].VanChuyenHRC2" value="1" @(Model[i].VanChuyenHRC2 == 1 ? "checked" : "") /></td>
+                                            <td style="width:70px"><input  type="checkbox" name="ListChiTiet[@i].Duc2" value="1" @(Model[i].Duc2 == 1 ? "checked" : "") /></td>
+
+                                            <td style="width:102px"><input  class="form-control" type="text" name="ListChiTiet[@i].PhanLoai" value="@Model[i].PhanLoai" /></td>
+                                            <td style="width:84px"><input  class="form-control" type="text" name="ListChiTiet[@i].Gio" value="@Model[i].Gio" /></td>
+                                            <td style="width:98px"><input class="form-control" type="text" name="ListChiTiet[@i].GhiChu" value="@Model[i].GhiChu" /></td>
+                                            <td><input class="form-control" type="text" name="ListChiTiet[@i].GioNM" value="@Model[i].GioNM" /></td>
                                         </tr>
-                                        <tr>
-                                            <th>NM.HRC1</th>
-                                            <th>NM.HRC2</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @{
-                                            var index = 1;
-                                        }
-                                        @foreach (var item in Model)
-                                        {
+                                        index++;
+                                    }
+                                    
+                                </tbody>
+                                <tfoot style="display: table; width: 100%; table-layout: fixed;">
+                                    <tr>
+                                        <td colspan="6" class="text-center font-weight-bold"><b>Tổng khối lượng</b></td>
+                                        <td class="font-weight-bold">@Model.Sum(x => x.KLGangLongCanRay)</td>
+                                        <td></td>
+                                        <td></td>
 
-                                            <tr>
-                                                <td class='text-center delItem'>
-                                                    <a class="btn btn-danger btn-sm" title="Xóa">
-                                                        <i class="bi bi-trash"></i>
-                                                    </a>
-                                                </td>
-
-                                                <td><input type="text" name="SoMe" class="form-control" value="@item.SoMe" style="width: 170px;" ></td>
-                                                <td><input type="text" name="ThungSo" class="form-control" value="@item.ThungSo" ></td>
-
-                                                <td><input type="number" name="KhoiLuongXeGoong" value="@item.KhoiLuongXeGoong" class="form-control"></td>
-                                                <td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KhoiLuongThung"></td>
-                                                <td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KLThungGangLong"></td>
-
-                                                <td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="@item.KLGangLongCanRay"></td>
-                                                @* <td> *@
-                                                @*     <input type="hidden" name="VanChuyenHRC1" value="0" /> *@
-                                                @*     <input type="checkbox" name="VanChuyenHRC1" value="1" @(item.VanChuyenHRC1 == 1 ? "checked" : "") /> *@
-                                                @* </td> *@
-                                                @* <td> *@
-                                                @*     <input type="hidden" name="VanChuyenHRC2" value="0" /> *@
-                                                @*     <input type="checkbox" name="VanChuyenHRC2" value="1" @(item.VanChuyenHRC2 == 1 ? "checked" : "") /> *@
-                                                @* </td> *@
-
-
-                                                <td>
-                                                    <input type="hidden"
-                                                           name="Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC1_Hiden"
-                                                           value="0" />
-                                                    <input type="checkbox"
-                                                           name="Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC1"
-                                                           value="1"
-                                                    @(item.VanChuyenHRC1 == 1 ? "checked" : "") />
-                                                </td>
-
-                                                <td>
-                                                    <input type="hidden"
-                                                           name="Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC2_Hiden"
-                                                           value="0" />
-                                                    <input type="checkbox"
-                                                           name="Tbl_ChiTiet_BBGangLong_GangThoi[0].VanChuyenHRC2"
-                                                           value="1"
-                                                    @(item.VanChuyenHRC2 == 1 ? "checked" : "") />
-                                                </td>
-
-                                                <script>
-                                                       document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                                                        checkbox.addEventListener('change', function() {
-                                                            const hiddenField = this.previousElementSibling;
-                                                            if (this.checked) {
-                                                                hiddenField.value = this.value;
-                                                            } else {
-                                                                hiddenField.value = '0';
-                                                            }
-                                                        });
-                                                    });
-                                                </script>
-                                                <td><input type="text" name="PhanLoai" class="form-control" value="@item.PhanLoai"></td>
-                                                <td><input type="text" name="Gio" class="form-control" value="@item.Gio" ></td>
-                                                <td><input type="text" name="GhiChu" class="form-control" value="@item.GhiChu"></td>
-                                            </tr>
-                                            index++;
-                                        }
-
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="6" class="text-center font-weight-bold"><b>Tổng khối lượng</b></td>
-                                            <td class="font-weight-bold">@Model.Sum(x => x.KLGangLongCanRay)</td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                            <td></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-
-                            </div>
+                                    </tr>
+                                </tfoot>
+                            </table>
 
                         </div>
 
@@ -396,6 +442,24 @@
         </div>
     </div>
 }
+    <script>
+    $(document).ready(function () {
+        $(document).on('input', 'input[name="KLThungGangLong"], input[name="KhoiLuongThung"]', function() {
+            // Lấy hàng (row) hiện tại chứa ô đang thay đổi
+            const row = $(this).closest('tr');
+
+            // Lấy giá trị từ các ô input và chuyển thành số (mặc định 0 nếu không hợp lệ)
+            const klThungGangLong = parseFloat(row.find('input[name="KLThungGangLong"]').val()) || 0;
+            const khoiLuongThung = parseFloat(row.find('input[name="KhoiLuongThung"]').val()) || 0;
+
+            // Tính toán KLGangLongCanRay và làm tròn 2 chữ số thập phân
+            const klGangLongCanRay = (klThungGangLong - khoiLuongThung).toFixed(2);
+
+            // Gán giá trị vào ô KLGangLongCanRay (luôn hiển thị 2 chữ số thập phân)
+            row.find('input[name="KLGangLongCanRay"]').val(klGangLongCanRay);
+        });
+    });
+</script>
     <script type="text/javascript">
         $(".SelectVT").chosen({
             width: "100%"

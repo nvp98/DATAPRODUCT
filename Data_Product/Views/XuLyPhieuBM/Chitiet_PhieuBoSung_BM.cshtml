@@ -43,13 +43,17 @@
     var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC).FirstOrDefault();
     var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC).FirstOrDefault();
     var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC).FirstOrDefault();
-    var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+    var ViTri_BN = ThongTin_BN != null ? _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu) : null;
 
     //Thông tin bên nhận HRC2
     var ThongTin_BNHRC2 = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_HRC2).FirstOrDefault();
     var PhongBan_BNHRC2 = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_HRC2).FirstOrDefault();
     var PhanXuong_BNHRC2 = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_HRC2).FirstOrDefault();
-    var ViTri_BNHRC2 = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BNHRC2.ID_ChucVu).FirstOrDefault();
+
+    // var ViTri_BNHRC2 = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BNHRC2.ID_ChucVu).FirstOrDefault();
+    var ViTri_BNHRC2 = ThongTin_BNHRC2 != null
+    ? _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == ThongTin_BNHRC2.ID_ChucVu)
+    : null;
 
     //Thông tin bên nguyen lieu
     var ThongTin_NVNL = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_Nhanvien_NL).FirstOrDefault();
@@ -62,6 +66,7 @@
     var PhongBan_BN_QLCL = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_QLCL).FirstOrDefault();
     var PhanXuong_BN_QLCL = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_QLCL).FirstOrDefault();
     var ViTri_BN_QLCL = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN_QLCL.ID_ChucVu).FirstOrDefault();
+
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
 }
@@ -199,237 +204,238 @@
                         </div>
 
                     </div><!-- End Recent Sales -->
-                    <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1.5%;">
-                        @{
-                            var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
-                            var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
-                            var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
-                        }
-                        <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; padding-top: 1.5%; gap: 1%;">
-                            <!-- Đại diện bên giao -->
-                            <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
-                                 style="min-width: 300px; max-width: 32%; height: 50px;">
-                                <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 130px;">Đại diện bên giao:</label>
-                                <span id="ID_NhanVien_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_TaiKhoan" style="font-size: 14px;">
-                                    @TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
-                                </span>
-                            </div>
-
-                            <!-- Chức vụ -->
-                            <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
-                                 style="min-width: 300px; max-width: 32%; height: 50px;">
-                                <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">Chức vụ:</label>
-                                <span id="ID_ViTri_BG" class="flex-grow-1" data-info="@ViTri.ID_ViTri" style="font-size: 14px;">
-                                    @ViTri.TenViTri
-                                </span>
-                            </div>
-
-                            <!-- BP/NM -->
-                            <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
-                                 style="min-width: 300px; max-width: 32%; height: 50px;">
-                                <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">BP/NM:</label>
-                                <span id="ID_PhongBan_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_PhongBan-@PhanXuong.ID_Xuong" style="font-size: 14px;">
-                                    @PhongBan.TenPhongBan - @PhanXuong.TenXuong
-                                </span>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
-                        <!-- Đại diện bên nhận HRC -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Đại diện bên nhận HRC1:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ThongTin_BN.TenTaiKhoan - @ThongTin_BN.HoVaTen
-                            </span>
-                        </div>
-
-                        <!-- Chức vụ -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Chức vụ:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ViTri_BN.TenViTri
-                            </span>
-                        </div>
-
-                        <!-- BP/NM -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                BP/NM:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @PhongBan_BN.TenPhongBan - @PhanXuong_BN.TenXuong
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
-                        <!-- Đại diện bên nhận HRC2 -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Đại diện bên nhận HRC2:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ThongTin_BNHRC2.TenTaiKhoan - @ThongTin_BNHRC2.HoVaTen
-                            </span>
-                        </div>
-
-                        <!-- Chức vụ -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Chức vụ:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ViTri_BNHRC2.TenViTri
-                            </span>
-                        </div>
-
-                        <!-- BP/NM -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                BP/NM:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @PhongBan_BNHRC2.TenPhongBan - @PhanXuong_BNHRC2.TenXuong
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
-                        <!-- Đại diện bên nhân viên Nguyên liệu -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Đại diện nhân viên nguyên liệu:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ThongTin_NVNL.TenTaiKhoan - @ThongTin_NVNL.HoVaTen
-                            </span>
-                        </div>
-
-                        <!-- Chức vụ -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Chức vụ:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ViTri_BN_QLCL.TenViTri
-                            </span>
-                        </div>
-
-                        <!-- BP/NM -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                BP/NM:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @PhongBan_BN_QLCL.TenPhongBan - @PhanXuong_BN_QLCL.TenXuong
-                            </span>
-                        </div>
-                    </div>
-
-
-                    <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -20px; gap: 1%;">
-                        <!-- Đại diện bên nhận QLCL -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Đại diện bên nhận QLCL:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ThongTin_BN_QLCL.TenTaiKhoan - @ThongTin_BN_QLCL.HoVaTen
-                            </span>
-                        </div>
-
-                        <!-- Chức vụ -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                Chức vụ:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @ViTri_BN_QLCL.TenViTri
-                            </span>
-                        </div>
-
-                        <!-- BP/NM -->
-                        <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
-                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                BP/NM:
-                            </span>
-                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                @PhongBan_BN_QLCL.TenPhongBan - @PhanXuong_BN_QLCL.TenXuong
-                            </span>
-                        </div>
-                    </div>
-                    @if (ID_BBGN.ID_QuyTrinh == 2 || ID_BBGN.ID_QuyTrinh == 3)
-                    {
-                        var ThongTin_NVTT = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan).FirstOrDefault();
-                        var ThongTin_NVTT_View = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan_View).FirstOrDefault();
-                        var PKHPheDuyet = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGL).FirstOrDefault();
-
-                        <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="width: 100%; margin-top: -24px; padding-bottom: 1%; gap: 1%;">
-                            <!-- Nhân viên thống kê phê duyệt -->
-                            <div class="d-flex align-items-center bg-light rounded p-2 mb-0 shadow-sm" style="min-height: 57px; width: 49%; gap: 1rem;">
-                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                    Nhân viên thống kê phê duyệt:
-                                </span>
-                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                    @ThongTin_NVTT?.TenTaiKhoan - @ThongTin_NVTT?.HoVaTen
-                                    @if (PKHPheDuyet.ID_TrangThai == 1)
-                                    {
-                                        <span class="text-danger">(Đã phê duyệt phiếu)</span>
-                                    }
-                                    else if (PKHPheDuyet.ID_TrangThai == 2)
-                                    {
-                                        <span class="text-danger">(Không duyệt phiếu)</span>
-                                    }
-                                    else if (PKHPheDuyet.ID_TrangThai == 3)
-                                    {
-                                        <span class="text-danger">(BN Hủy phiếu)</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-danger">(Chưa xử lý)</span>
-                                    }
-                                </span>
-                            </div>
-
-                            <!-- Nhân viên thống kê nhận BBGN -->
-                            <div class="d-flex align-items-center bg-light rounded p-2 mb-0 shadow-sm" style="min-height: 57px; width: 49%; gap: 1rem;">
-                                <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
-                                    Nhân viên thống kê nhận BBGN:
-                                </span>
-                                <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
-                                    @ThongTin_NVTT_View?.TenTaiKhoan - @ThongTin_NVTT_View?.HoVaTen
-                                </span>
-                            </div>
-                        </div>
-
-
-                        <!-- End Recent Sales -->
-                    }
+                <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1.5%;">
                     @{
-                        var modals = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID).ToList();
-
+                        var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+                        var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
+                        var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
                     }
-                    @foreach (var item in modals)
-                    {
-                        <div class="row" style="width: 100%; padding-bottom: 1%;">
-                            <div class="col-lg-12">
-                                <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px; width: 102%;">
-                                    <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
-                                        Nội dung trích yếu:
-                                    </label>
-                                    <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@item.NoiDungTrichYeu</textarea>
-                                </div>
+                    <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; padding-top: 1.5%; gap: 1%;">
+                        <!-- Đại diện bên giao -->
+                        <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                             style="min-width: 300px; max-width: 32%; height: 50px;">
+                            <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 130px;">Đại diện bên giao:</label>
+                            <span id="ID_NhanVien_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_TaiKhoan" style="font-size: 14px;">
+                                @ThongTin_BG.TenTaiKhoan - @ThongTin_BG.HoVaTen
+                            </span>
+                        </div>
+
+                        <!-- Chức vụ -->
+                        <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                             style="min-width: 300px; max-width: 32%; height: 50px;">
+                            <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">Chức vụ:</label>
+                            <span id="ID_ViTri_BG" class="flex-grow-1" data-info="@ViTri.ID_ViTri" style="font-size: 14px;">
+                                @ViTri_BG.TenViTri
+                            </span>
+                        </div>
+
+                        <!-- BP/NM -->
+                        <div class="d-flex align-items-center justify-content-start flex-grow-1 bg-light rounded shadow-sm px-3"
+                             style="min-width: 300px; max-width: 32%; height: 50px;">
+                            <label class="mb-0 me-2 fw-semibold text-nowrap" style="width: 66px;">BP/NM:</label>
+                            <span id="ID_PhongBan_BG" class="flex-grow-1" data-info="@TaiKhoan.ID_PhongBan-@PhanXuong.ID_Xuong" style="font-size: 14px;">
+                                @PhongBan_BG.TenPhongBan - @PhanXuong_BG.TenXuong
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
+                    <!-- Đại diện bên nhận HRC -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            Đại diện bên nhận HRC1:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @ThongTin_BN?.TenTaiKhoan - @ThongTin_BN?.HoVaTen
+                        </span>
+                    </div>
+
+                    <!-- Chức vụ -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            Chức vụ:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @ViTri_BN?.TenViTri
+                        </span>
+                    </div>
+
+                    <!-- BP/NM -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            BP/NM:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @PhongBan_BN?.TenPhongBan - @PhanXuong_BN?.TenXuong
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
+                    <!-- Đại diện bên nhận HRC2 -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            Đại diện bên nhận HRC2:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @ThongTin_BNHRC2?.TenTaiKhoan - @ThongTin_BNHRC2?.HoVaTen
+                        </span>
+                    </div>
+
+                    <!-- Chức vụ -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            Chức vụ:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @ViTri_BNHRC2?.TenViTri
+                        </span>
+                    </div>
+
+                    <!-- BP/NM -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            BP/NM:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @PhongBan_BNHRC2?.TenPhongBan - @PhanXuong_BNHRC2?.TenXuong
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -15px; gap: 1%;">
+                    <!-- Đại diện bên nhân viên Nguyên liệu -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            Đại diện nhân viên nguyên liệu:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @ThongTin_NVNL.TenTaiKhoan - @ThongTin_NVNL.HoVaTen
+                        </span>
+                    </div>
+
+                    <!-- Chức vụ -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            Chức vụ:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @ViTri_BN_QLCL.TenViTri
+                        </span>
+                    </div>
+
+                    <!-- BP/NM -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            BP/NM:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @PhongBan_BN_QLCL.TenPhongBan - @PhanXuong_BN_QLCL.TenXuong
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="padding-bottom: 1%; margin-top: -20px; gap: 1%;">
+                    <!-- Đại diện bên nhận QLCL -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            Đại diện Phòng QLCL:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @ThongTin_BN_QLCL.TenTaiKhoan - @ThongTin_BN_QLCL.HoVaTen
+                        </span>
+                    </div>
+
+                    <!-- Chức vụ -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            Chức vụ:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @ViTri_BN_QLCL.TenViTri
+                        </span>
+                    </div>
+
+                    <!-- BP/NM -->
+                    <div class="d-flex align-items-center bg-light rounded p-2 mb-3 shadow-sm" style="min-height: 57px; width: 31.8%; gap: 1rem;">
+                        <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                            BP/NM:
+                        </span>
+                        <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                            @PhongBan_BN_QLCL.TenPhongBan - @PhanXuong_BN_QLCL.TenXuong
+                        </span>
+                    </div>
+                </div>
+                @if (ID_BBGN.ID_QuyTrinh == 2 || ID_BBGN.ID_QuyTrinh == 3)
+                {
+                    var ThongTin_NVTT = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan).FirstOrDefault();
+                    var ThongTin_NVTT_View = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_TK.ID_TaiKhoan_View).FirstOrDefault();
+                    var PKHPheDuyet = _context.Tbl_TrinhKyBoSung.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGL).FirstOrDefault();
+
+                    <div class="col-lg-12 d-flex justify-content-between align-items-center flex-wrap" style="width: 100%; margin-top: -24px; padding-bottom: 1%; gap: 1%;">
+                        <!-- Nhân viên thống kê phê duyệt -->
+                        <div class="d-flex align-items-center bg-light rounded p-2 mb-0 shadow-sm" style="min-height: 57px; width: 49%; gap: 1rem;">
+                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                Nhân viên thống kê phê duyệt:
+                            </span>
+                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                @ThongTin_NVTT?.TenTaiKhoan - @ThongTin_NVTT?.HoVaTen
+                                @if (PKHPheDuyet.ID_TrangThai == 1)
+                                {
+                                    <span class="text-danger">(Đã phê duyệt phiếu)</span>
+                                }
+                                else if (PKHPheDuyet.ID_TrangThai == 2)
+                                {
+                                    <span class="text-danger">(Không duyệt phiếu)</span>
+                                }
+                                else if (PKHPheDuyet.ID_TrangThai == 3)
+                                {
+                                    <span class="text-danger">(BN Hủy phiếu)</span>
+                                }
+                                else
+                                {
+                                    <span class="text-danger">(Chưa xử lý)</span>
+                                }
+                            </span>
+                        </div>
+
+                        <!-- Nhân viên thống kê nhận BBGN -->
+                        <div class="d-flex align-items-center bg-light rounded p-2 mb-0 shadow-sm" style="min-height: 57px; width: 49%; gap: 1rem;">
+                            <span class="text-dark mb-0" style="font-size: 14px; white-space: nowrap;">
+                                Nhân viên thống kê nhận BBGN:
+                            </span>
+                            <span class="text-dark mb-0 flex-grow-1" style="font-size: 14px;">
+                                @ThongTin_NVTT_View?.TenTaiKhoan - @ThongTin_NVTT_View?.HoVaTen
+                            </span>
+                        </div>
+                    </div>
+
+
+                    <!-- End Recent Sales -->
+                }
+
+                @{
+                    var modals = _context.Tbl_BBGangLong_GangThoi.Where(x => x.ID_BBGL == ID).ToList();
+
+                }
+                @foreach (var item in modals)
+                {
+                    <div class="row" style="width: 100%; padding-bottom: 1%;">
+                        <div class="col-lg-12">
+                            <div class="d-flex align-items-start bg-light rounded p-2 gap-3" style="margin-top: -7px; width: 102%;">
+                                <label for="NoiDungTrichYeu" class="text-dark" style="font-size: 14px; white-space: nowrap; margin-top: 6px;">
+                                    Nội dung trích yếu:
+                                </label>
+                                <textarea class="form-control" id="NoiDungTrichYeu" name="NoiDungTrichYeu" rows="2" style="flex: 1;" disabled>@item.NoiDungTrichYeu</textarea>
                             </div>
                         </div>
-                    }
+                    </div>
+                }
 
 
-                    <div style="max-height: 400px; overflow-y: auto;">
+
+                <div style="max-height: 400px; overflow-y: auto;">
                         <table class="table table-bordered" style="width: 100%; border-collapse: collapse;">
                             <thead style="display: block;">
                                 <tr>
@@ -501,7 +507,7 @@
                             </div>
                             <div style="text-align: center; font-size: 14px; padding: 2%;"></div>
                             <div style="text-align: center; font-size: 14px;">
-                                <b>@ThongTin_BN.HoVaTen</b>
+                                <b>@ThongTin_BN?.HoVaTen</b>
                             </div>
                         </div>
                         <div class="col-xxl-3 col-md-3">
@@ -510,7 +516,7 @@
                             </div>
                             <div style="text-align: center; font-size: 14px; padding: 2%;"></div>
                             <div style="text-align: center; font-size: 14px;">
-                                <b>@ThongTin_BNHRC2.HoVaTen</b>
+                                <b>@ThongTin_BNHRC2?.HoVaTen</b>
                             </div>
                         </div>
 
