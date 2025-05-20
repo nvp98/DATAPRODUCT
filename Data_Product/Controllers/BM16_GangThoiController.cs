@@ -607,5 +607,10 @@ namespace Data_Product.Controllers
 
             return View(listData);
         }
+
+        public IActionResult Edit_Demo()
+        {
+            return View(); // Sẽ tìm view: Views/BM16_GangThoi/Edit_Demo.cshtml
+        }
     }
 }
