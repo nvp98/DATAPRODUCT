@@ -1,0 +1,205 @@
+﻿@model IEnumerable<Data_Product.Models.Tbl_NhatKy_SanXuat>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@using Data_Product.Repositorys;
+@inject Data_Product.Repositorys.DataContext _context
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
+}
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="row" style="width:100%; height: 120px;">
+                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available;">
+                            <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        PHIẾU YÊU CẦU ĐẾN TÔI
+                                    </b>
+                                </span>
+                            </div>
+                        </div>
+
+
+                    </div>
+                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
+                        <div class="row">
+                            <div class="col-md-1" style="padding-top:0.5%;text-align: left;">
+                                <span class="text-center" style="margin-top: 8px">
+                                    <b style="font-size: 15px;
+                                       color: black;">TỪ NGÀY :</b>
+                                </span>
+                            </div>
+                            <div class="col-md-2">
+                                @Html.TextBox("begind", null, new { @id = "begind", @type = "date", @class = "form-control" })
+                            </div>
+                            <div class="col-md-1" style="padding-top:0.5%;text-align: center;">
+                                <span class="text-center" style="margin-top: 8px">
+                                    <b style="font-size: 15px; color: black;">ĐẾN NGÀY :</b>
+                                </span>
+                            </div>
+
+                            <div class="col-md-2">
+                                @Html.TextBox("endd", null, new { @id = "endd", @type = "date", @class = "form-control" })
+                            </div>
+                            <div class="col-md-1" style="padding-top:0.5%;text-align: right;">
+                                <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">TRẠNG THÁI :</b></span>
+                            </div>
+                            <div class="col-md-2">
+                                @Html.DropDownList("TTList", null, "----  Trạng thái phiếu  ----", new { id = "ID_TrangThai", @class = "form-control"})
+                            </div>
+                            <div class="col-md-2" style="text-align:left;">
+                                <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
+                                    <i class="bi bi-search"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Tìm kiếm
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive" style="height: 550px;">
+                            <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                <thead style="height: 60px;font-size: 14px;">
+                                    <tr>
+                                        <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Số Phiếu</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Kíp làm việc</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Ngày dừng sản xuất</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
+                                        <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int pageno = (int)pager.CurrentPage;
+                                        int itemperpage = (int)pager.PageSize;
+                                        int RowNo = ((pageno - 1) * itemperpage) + 1;
+                                    }
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @RowNo@{
+                                                    RowNo++;
+                                                }
+                                            </td>
+                                            @if (item.TinhTrang == 0)
+                                            {
+                                                <td style="font-size:14px;color: #335FB3">
+                                                    <a class="nav-link collapsed" href="@Url.Action("Edit", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                        @item.SoPhieu
+                                                    </a>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td style="font-size:14px;color: #335FB3">
+                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                        @item.SoPhieu
+                                                    </a>
+                                                </td>
+                                            }
+                                            <td style="font-size:14px;">
+                                                @item.Ca@item.Kip
+                                            </td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayDungSX.ToString("dd/MM/yyyy")</td>
+                                            @if(item.TinhTrang == 0)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button type="button" class="btn btn-warning" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Đang lưu
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Hoàn tất
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            <td style="font-size:14px;">
+                                                @item.Tbl_TaiKhoan.TenTaiKhoan - @item.Tbl_TaiKhoan.HoVaTen
+                                            </td>
+
+                                        </tr>
+                                    }
+                                </tbody>
+
+                            </table>
+
+                        </div>
+                        <div class="container" style="margin:0px; padding:1% 0% 0% 0%;">
+                            @if (pager.TotalPages > 0)
+                            {
+                                <ul class="pagination justify-content-start ">
+                                    @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
+                                    {
+                                        <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
+                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@pge">@pge</a>
+
+                                        </li>
+                                    }
+                                    @if (pager.CurrentPage < pager.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@(pager.TotalPages)">Last</a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script type="text/javascript">
+    localStorage.setItem("IsShowBT", "0");
+    $("#btn-search").on('click', function () {
+        var ID_TrangThai = $('#ID_TrangThai').val();
+        window.location.href = '@Url.Action("Index", "BM_NhatKy_SanXuat")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
+    });
+
+    $("#ID_TrangThai").chosen({
+        width: "100%"
+    });
+</script>

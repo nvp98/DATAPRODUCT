@@ -1,0 +1,54 @@
+﻿<form method="get" class="row g-2 align-items-center mb-3">
+
+    <!-- NỘI DUNG DỪNG MÁY -->
+    <div class="col-md-auto">
+        <label for="noidungDung" class="col-form-label fw-bold">NỘI DUNG DỪNG MÁY:</label>
+    </div>
+    <div class="col-md-2">
+        <input type="text" id="noidungDung" name="noidungDung" class="form-control form-control-sm"
+               placeholder="Tìm kiếm" value="@ViewBag.noidungDung">
+    </div>
+
+    <!-- TỪ NGÀY -->
+    <div class="col-md-auto">
+        <label for="begind" class="col-form-label fw-bold">TỪ NGÀY:</label>
+    </div>
+    <div class="col-md-2">
+        @Html.TextBox("begind", null, new { @id = "begind", @type = "date", @class = "form-control form-control-sm" })
+    </div>
+
+    <!-- ĐẾN NGÀY -->
+    <div class="col-md-auto">
+        <label for="endd" class="col-form-label fw-bold">ĐẾN NGÀY:</label>
+    </div>
+    <div class="col-md-2">
+        @Html.TextBox("endd", null, new { @id = "endd", @type = "date", @class = "form-control form-control-sm" })
+    </div>
+
+    <!-- Ca làm việc -->
+    <div class="col-md-2">
+        @Html.DropDownList("IDCa", null, "---- Ca làm việc ----", new { @id = "IDCa", @class = "form-select form-select-sm" })
+    </div>
+
+    <!-- Lý do dừng -->
+    <div class="col-md-2">
+        @Html.DropDownList("LyDoDung", null, "---- Lý do dừng ----", new { @id = "LyDoDung", @class = "form-select form-select-sm" })
+    </div>
+
+    <!-- Phòng ban -->
+    <div class="col-md-2">
+        @Html.DropDownList("IDPhongBan", null, "---- Phòng ban ----", new { @id = "IDPhongBan", @class = "form-select form-select-sm" })
+    </div>
+
+    <!-- Trạng thái phiếu -->
+    <div class="col-md-2">
+        @Html.DropDownList("ID_TrangThai", null, "---- Trạng thái phiếu ----", new { @id = "ID_TrangThai", @class = "form-select form-select-sm" })
+    </div>
+
+    <!-- Nút Tìm kiếm -->
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-sm btn-primary">
+            <i class="fas fa-search"></i> Tìm kiếm
+        </button>
+    </div>
+</form>

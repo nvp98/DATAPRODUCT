@@ -1,0 +1,488 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@model Data_Product.Models.Tbl_NhatKy_SanXuat
+@inject IJsonHelper Json
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+}
+<style>
+    .radio-square {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border: 2px solid #555;
+        border-radius: 4px; /* 0 cho hình vuông hoàn toàn */
+        position: relative;
+        cursor: pointer;
+    }
+
+        .radio-square:checked::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 12px;
+            height: 12px;
+            background-color: #0d6efd; /* màu xanh Bootstrap */
+        }
+</style>
+
+@using (Html.BeginForm("Create", "BM_NhatKy_SanXuat", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
+{
+    <div class="app-main__outer">
+        <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+            <div class="tab-content">
+                <div class="row">
+                    <div class="card">
+
+                        <div class="row" style="width:100%">
+                            <div class="row pt-2" style="border-bottom: 0.8px solid #E8E8E8;background-color: #F9F9F9;">
+                                <div class="col-8 m-auto" style="text-align: left; ">
+                                    <div class="col-lg-12" style="display:flex;">
+                                        <div class="col-xxl-4 col-md-6 p-2" style=" background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                            <div class="row p-0">
+                                                <label for="colFormLabel" class="col-auto col-form-label"> Ngày làm việc:</label>
+                                                <div class="col-auto">
+                                                    @{
+                                                        DateTime NgayLamViec = DateTime.Now;
+                                                    }
+                                                    <span style="color:black; font-size:14px;">
+                                                        @Html.TextBox("ID_Day", null, new { @id = "ID_Day", @name = "ID_Day", @type = "date", @class = "form-control" })
+                                                    </span>
+                                                </div>
+                                                <script type="text/javascript">
+                                                    $("#ID_Day").change(function () {
+                                                        $("#CaKip").empty();
+                                                        //$("#IDCa").empty();
+                                                        $('#IDCa').prop('selectedIndex', 0);
+                                                    });
+                                                </script>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-xxl-3 col-md-6 p-2" style=" background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                            <div class="row ">
+                                                <label for="colFormLabel" class="col-auto col-form-label">   Ca :</label>
+                                                <div class="col-auto">
+                                                    <span style="color:black; font-size:14px;">
+                                                        <select class="form-control marginTB5 SelectCA" name="IDCa" id="IDCa">
+                                                            <option value='null'>-- Ca làm việc --</option>
+                                                            <option value='1'>1</option>
+                                                            <option value='2'>2</option>
+                                                        </select>
+                                                    </span>
+                                                    <script type="text/javascript">
+                                                        $("#IDCa").change(function () {
+                                                            $("#CaKip").empty();
+                                                            $.get("/BM_11/KipN", { Ngay: $("#ID_Day").val(), Ca: $("#IDCa").val() }, function (data) {
+                                                                console.log(data)
+                                                                if (data[0] != null) {
+                                                                    $("#CaKip").empty();
+                                                                    //$("#ID_TaiKhoan").append("<option value ='" + null + "'>" + "--Chọn hợp đồng--" + "</option>")
+                                                                    $.each(data, function (index, row) {
+                                                                        $("#CaKip").append("<option value ='" + row.iD_Kip + "' selected>" + row.tenKip + "</option>");
+                                                                    });
+                                                                }
+                                                                else {
+                                                                    $("#CaKip").empty();
+                                                                    $("#CaKip").append("<option value ='" + 0 + "'>" + "--Không có kíp làm việc--" + "</option>")
+                                                                }
+                                                            });
+                                                        });
+                                                    </script>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
+                                        <div class="col-xxl-3 col-md-6 p-2" style=" background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                            <div class="row ">
+                                                <label for="colFormLabel" class="col-auto col-form-label">Kíp:</label>
+                                                <div class="col-auto">
+                                                    <span style="color:black; font-size:14px;">
+                                                        <select class="form-control marginTB5" name="CaKip" id="CaKip" disabled="disabled">
+                                                        </select>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!-- End Recent Sales -->
+                                </div><!-- End Recent Sales -->
+                                <div class="col-4 m-auto" style=" ">
+                                    <button type="button" class="btn btn-danger" onclick="window.location.href='@Url.Action("Index", "Menu")';">
+                                        <i class="bi bi-x-lg"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Hủy bỏ
+                                        </span>
+                                    </button>
+                                    <button type="submit" class="btn btn-warning" name="luu" id="luu" value="2">
+                                        <i class="bi bi-floppy"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Lưu
+                                        </span>
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
+                                        <i class="bi bi-send"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Gửi phiếu
+                                        </span>
+                                    </button>
+                                </div><!-- End Recent Sales -->
+                            </div>
+                        </div>
+                
+
+                        <div class="card-body p-2" style="">
+
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="mb-1 font-weight-bold text-left">
+                                        Tải lên dữ liệu  <a href="/BM/template_NhatKy_SanXuat.xlsx" class="" download>
+                                            <small>Tải biểu mẫu nhập liệu</small>
+                                        </a>
+                                    </label>
+                                    <div class="row col-md-12">
+                                        <input type="file" id="fileInput" accept=".xlsx, .xls" />
+                                    </div>
+                                   
+                                    <div id="tableContainer" class="col-md-12">
+                                        <table id="excelTable" border="1"></table>
+                                    </div>
+                                </div>
+                                <script>
+                                    document.getElementById("fileInput").addEventListener("change", function (event) {
+                                        let file = event.target.files[0]; // Lấy file đã chọn
+                                        let reader = new FileReader();
+
+                                        reader.onload = function (e) {
+                                            let data = new Uint8Array(e.target.result);
+                                            let workbook = XLSX.read(data, { type: "array" });
+                                            let sheet = workbook.Sheets[workbook.SheetNames[0]]; // Lấy sheet đầu tiên
+                                            let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }); // Chuyển thành JSON
+
+                                            let tableBody = document.querySelector("#dataTable tbody");
+                                            document.querySelectorAll("#dataTable tbody tr").forEach(row => {
+                                                row.style.display = "none"; // Ẩn dòng
+                                                row.querySelectorAll("input, select").forEach(el => {
+                                                    el.removeAttribute("required");
+                                                    el.value = "";
+                                                }); // Xóa required tránh lỗi khi submit
+                                            });
+
+                                            const locao = [
+                                                { id: "1", text: "Lò cao 1" },
+                                                { id: "2", text: "Lò cao 2" },
+                                                { id: "3", text: "Lò cao 3" },
+                                                { id: "4", text: "Lò cao 4" }
+                                            ];
+                                            const Xuong = @Html.Raw(Json.Serialize(ViewBag.IDXuong));
+
+                                            jsonData.forEach((row, indexx) => {
+                                                console.log(row)
+                                                if (indexx <= 5) return; // Bỏ qua tiêu đề (nếu có)
+
+                                                let TenXuong = row[1];
+                                                
+                                                let timeValueDung = row[2];
+                                                let timeValueChay = row[3];
+                                                let formattedTimeDung = excelTimeToHHMM(timeValueDung);
+                                                let formattedTimeChay = excelTimeToHHMM(timeValueChay);
+
+                                                // Lọc dữ liệu từ file Excel cho SoThung để chỉ giữ số
+                                                let soThungValue = (row[3] || "").toString().replace(/[^0-9]/g, '');
+
+                                                //index 0->n
+                                                let index = indexx -1;
+
+                                                let newRow = `
+                                                                                        <tr class="data-row">
+                                                                                            <td>
+                                                                                               <select name="NhatKy_SanXuat_ChiTiet[${index}].ID_Xuong" class="form-control marginTB5 LoCao">
+                                                                                                <option value='null'>--Chọn Xưởng--</option>
+                                                                                                ${Xuong.map(option =>
+                                                                                                `<option value="${option.value}" ${option.text == TenXuong ? "selected" : ""}>${option.text}</option>`
+                                                                                                        ).join("")}
+                                                                                                </select>
+                                                                                            </td>
+                                                                                            <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemDung" value="${formattedTimeDung || ""}"  class="form-control" required></td>
+                                                                                            <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemChay"  value="${formattedTimeChay || ""}" class="form-control" required></td>
+                                                                                            <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[4] ? "checked" : ""} value="1" class="radio-square" required></td>
+                                                                                            <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[5] ? "checked" : ""} value="2" class="radio-square" ></td>
+                                                                                            <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[6] ? "checked" : ""} value="3" class="radio-square" ></td>
+                                                                                            <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[7] ? "checked" : ""} value="4" class="radio-square" ></td>
+                                                                                            <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].NoiDungDung" value="${row[8] || ""}" class="form-control" required></td>
+                                                                                            <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].GhiChu" value="${row[9] || ""}" class="form-control" ></td>
+                                                                                            <td><button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button></td>
+                                                                                        </tr>
+                                                                                    `;
+
+                                                $("#dataTable tbody").append(newRow);
+
+                                                // Kiểm tra dữ liệu từ file Excel cho SoThung
+
+                                            });
+
+                                            // Xử lý sự kiện xóa dòng
+                                            document.querySelectorAll(".removeRow").forEach((btn) => {
+                                                btn.addEventListener("click", function () {
+                                                    this.parentElement.parentElement.remove();
+                                                });
+                                            });
+                                        }
+
+
+                                        reader.readAsArrayBuffer(file);
+                                    });
+                                    document.querySelectorAll('input[name="SoMeGang"]').forEach(function (input) {
+                                        input.addEventListener('input', function () {
+                                            const value = this.value;
+                                            if (!/^\d*$/.test(value)) {
+                                                alert('Chỉ được nhập số nguyên cho ô Số Mẻ Gang!');
+                                                this.value = value.replace(/\D/g, ''); // Xóa các ký tự không phải số
+                                            }
+                                        });
+                                    });
+                                    // Chuyển đổi định dạng thời gian về HH:mm
+                                    function excelTimeToHHMM(excelTime) {
+                                        let totalMinutes = Math.round(excelTime * 24 * 60);
+                                        let hours = Math.floor(totalMinutes / 60);
+                                        let minutes = totalMinutes % 60;
+                                        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                                    }
+
+                                    // Hàm formatTime không cần thiết nếu không dùng
+                                    function formatTime(timeStr) {
+                                        let date = new Date(timeStr);
+                                        let hours = date.getHours().toString().padStart(2, '0');
+                                        let minutes = date.getMinutes().toString().padStart(2, '0');
+                                        return `${hours}:${minutes}`;
+                                    }
+
+                                </script>
+
+                            </div>
+
+                            <div class="table-responsive pb-2" style="">
+                                <table class="table table-bordered table-hover" id="dataTable" cellpadding="0">
+                                    <thead>
+                                        <tr style="font-size:14px;">
+                                            <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Xưởng</th>
+                                            <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Thời điểm dừng</th>
+                                            <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Thời điểm chạy lại máy</th>
+                                            <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do thiết bị</th>
+                                            <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do sự cố Công nghệ</th>
+                                            <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do Chờ công nghệ</th>
+                                            <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do khách quan</th>
+                                            <th width="300px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Nội dung dừng máy</th>
+                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                            <th width="50px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                                <button type="button" id="addRow" class="btn btn-success">+</button>
+                            </div>
+                            <!-- Template ẩn chứa HTML cho dòng mới -->
+                            <script type="text/template" id="rowTemplate">
+                                 <tr class="data-row">
+                                            <td>
+                                              <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[{index}].ID_Xuong" style="width: 100%" required>
+                                                    <option value='null'>--Chọn Xưởng--</option>
+                                @foreach (var item in ViewBag.IDXuong)
+                                {
+                                                                    <option value='@item.Value'>@item.Text</option>
+
+                                }
+                                                </select>
+                                            </td>
+                                            <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemDung"  class="form-control" required ></td>
+                                            <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemChay"  class="form-control" required ></td>
+                                          <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="1" class="radio-square" required></td>
+                                          <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="2" class="radio-square" required></td>
+                                          <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="3" class="radio-square" required></td>
+                                          <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="4" class="radio-square" required></td>
+                                            <td><input type="text" name="NhatKy_SanXuat_ChiTiet[{index}].NoiDungDung" class="form-control" required></td>
+                                           <td><input type="text" name="NhatKy_SanXuat_ChiTiet[{index}].GhiChu" class="form-control" ></td>
+                                            <td >
+                                                <button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
+                                            </td>
+                                 </tr>
+                            </script>
+                            <script>
+                                $(document).ready(function () {
+                                    let rowIndex = 0; // Biến đếm index
+
+                                    // Hàm khởi tạo Select2
+                                    function initSelect2(selector) {
+                                        $(selector).select2({
+                                            tags: true,
+                                            placeholder: "Nhập hoặc chọn...",
+                                            allowClear: true
+                                        });
+                                    }
+
+                                    // Thêm dòng mới
+                                    $("#addRow").click(function () {
+                                        let template = $("#rowTemplate").html(); // Lấy nội dung template
+                                        let newRow = template.replace(/\{index\}/g, rowIndex); // Thay thế {index} bằng giá trị thực
+
+                                        $("#dataTable tbody").append(newRow); // Thêm dòng mới vào bảng
+                                        //initSelect2("select[name='chitietBBGNGangLong[" + rowIndex + "].SoID']"); // Khởi tạo Select2 cho dòng mới
+
+                                        rowIndex++; // Tăng index
+                                    });
+
+                                    // Xóa dòng
+                                    $(document).on("click", ".removeRow", function () {
+                                        $(this).closest("tr").remove();
+                                        updateIndex(); // Cập nhật lại index sau khi xóa
+                                    });
+                                    // Hàm cập nhật index
+                                    function updateIndex() {
+                                        rowIndex = 0; // Reset index
+                                        $("#dataTable tbody tr").each(function () {
+                                            $(this).find("input, select").each(function () {
+                                                let nameAttr = $(this).attr("name");
+                                                if (nameAttr) {
+                                                    nameAttr = nameAttr.replace(/\[\d+\]/, "[" + rowIndex + "]"); // Cập nhật index
+                                                    $(this).attr("name", nameAttr);
+                                                }
+                                            });
+                                            rowIndex++; // Tăng index
+                                        });
+                                    }
+                                });
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+<script>
+    $(document).ready(function () {
+        $('#TaoPhieu').on('submit', function (e) {
+    @* e.preventDefault(); // Ngăn gửi form mặc định*@
+                let isValid = true;
+            let selectedValueCaKip = $('#CaKip').val();
+            @*let BenNhan = $('#IDTaiKhoan').val();*@
+            // Kiểm tra nếu chưa chọn giá trị hợp lệ
+            if (selectedValueCaKip == null) {
+                isValid = false;
+                alert('Vui lòng chọn Ca Kíp!');
+                return false; // Ngăn form submit
+            }
+
+            const table = document.getElementById('table');
+
+            // Nếu tất cả đều hợp lệ, thực hiện hành động
+            if (isValid) {
+    @*alert('Dữ liệu hợp lệ. Tiến hành gửi form!');*@
+                    // Thực hiện gửi form nếu cần
+                    return true;
+            }
+        });
+    });
+
+</script>
+
+<script type="text/javascript">
+        const dateInput = document.getElementById("ID_Day");
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    // Định dạng ngày thành yyyy-mm-dd để dùng với input date
+    function formatDate(date) {
+        return date.toISOString().split("T")[0];
+    }
+
+ @*   dateInput.min = formatDate(yesterday);
+    dateInput.max = formatDate(today);
+    // Đặt giá trị mặc định là ngày hiện tại
+    dateInput.value = formatDate(new Date());*@
+    dateInput.value = formatDate(new Date())
+
+    // Ngăn người dùng nhập từ bàn phím
+    dateInput.addEventListener("keydown", function (event) {
+        event.preventDefault();
+    });
+
+    $("#table").on("change", ".SelectVT", function () {
+        var id = $(this).attr('id').split('_')[1];
+        if (id != "null") {
+            $.get("/BM_11/DonViTinh", { IDVatTu: $(this).val() }, function (data1) {
+                console.log(data1)
+                if (data1[0] != null) {
+                    $("#NoiDung_" + id).empty();
+                    $.each(data1, function (index, row) {
+                        $("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")
+                    });
+                }
+                else {
+                    $("#NoiDung_" + id).empty();
+                }
+            });
+            $.get("/BM_11/MaLo", { IDVatTu: $(this).val() }, function (data1) {
+                $("#lo_" + id).empty();
+                if (data1[0] != null) {
+                    $("#lo_" + id).empty();
+                    $("#lo_" + id).append("<option value=''>--Không lô--</option>")
+                    $.each(data1, function (index, row) {
+                        $("#lo_" + id).append("<option value ='" + row.tenMaLo + "' >" + row.tenMaLo + "</option>")
+                    });
+                }
+                else {
+                    $("#lo_" + id).empty();
+                }
+            });
+    @* setTimeout(() => {
+                $("#lo_" + id).trigger("chosen:updated");
+                }, 100);*@
+
+                $("#NoiDung_" + id).trigger("chosen:updated");
+        }
+        else {
+            $("#NoiDung_" + id).empty();
+            $("#lo_" + id).empty();
+        }
+
+    });
+
+</script>

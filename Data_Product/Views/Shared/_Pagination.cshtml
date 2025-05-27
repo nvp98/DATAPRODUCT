@@ -1,0 +1,53 @@
+﻿@model Pager
+@{
+    var currentQuery = Context.Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString());
+    int totalPages = Model.TotalPages;
+    int currentPage = Model.CurrentPage;
+
+    int displayRange = 2; // Số trang hiển thị 2 bên trang hiện tại
+    int startPage = Math.Max(1, currentPage - displayRange);
+    int endPage = Math.Min(totalPages, currentPage + displayRange);
+}
+
+<ul class="pagination justify-content-center">
+
+    @* Đầu *@
+    @if (startPage > 1)
+    {
+        var q = new Dictionary<string, string>(currentQuery) { ["page"] = "1" };
+        <li class="page-item">
+            <a class="page-link" href="?@string.Join("&", q.Select(kv => $"{kv.Key}={kv.Value}"))">1</a>
+        </li>
+
+        if (startPage > 2)
+        {
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+        }
+    }
+
+    @* Các trang xung quanh *@
+    @for (int i = startPage; i <= endPage; i++)
+    {
+        var q = new Dictionary<string, string>(currentQuery) { ["page"] = i.ToString() };
+        string queryStr = string.Join("&", q.Select(kv => $"{kv.Key}={kv.Value}"));
+
+        <li class="page-item @(i == currentPage ? "active" : "")">
+            <a class="page-link" href="?@queryStr">@i</a>
+        </li>
+    }
+
+    @* Cuối *@
+    @if (endPage < totalPages)
+    {
+        if (endPage < totalPages - 1)
+        {
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+        }
+
+        var q = new Dictionary<string, string>(currentQuery) { ["page"] = totalPages.ToString() };
+        <li class="page-item">
+            <a class="page-link" href="?@string.Join("&", q.Select(kv => $"{kv.Key}={kv.Value}"))">@totalPages</a>
+        </li>
+    }
+
+</ul>
