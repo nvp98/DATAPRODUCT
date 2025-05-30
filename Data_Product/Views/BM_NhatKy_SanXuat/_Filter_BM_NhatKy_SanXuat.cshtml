@@ -2,7 +2,7 @@
 
     <!-- NỘI DUNG DỪNG MÁY -->
     <div class="col-md-auto">
-        <label for="noidungDung" class="col-form-label fw-bold">NỘI DUNG DỪNG MÁY:</label>
+        <small for="noidungDung" class=" fw-bold">NỘI DUNG DỪNG MÁY:</small>
     </div>
     <div class="col-md-2">
         <input type="text" id="noidungDung" name="noidungDung" class="form-control form-control-sm"
@@ -11,7 +11,7 @@
 
     <!-- TỪ NGÀY -->
     <div class="col-md-auto">
-        <label for="begind" class="col-form-label fw-bold">TỪ NGÀY:</label>
+        <small for="begind" class=" fw-bold">TỪ NGÀY:</small>
     </div>
     <div class="col-md-2">
         @Html.TextBox("begind", null, new { @id = "begind", @type = "date", @class = "form-control form-control-sm" })
@@ -19,7 +19,7 @@
 
     <!-- ĐẾN NGÀY -->
     <div class="col-md-auto">
-        <label for="endd" class="col-form-label fw-bold">ĐẾN NGÀY:</label>
+        <small for="endd" class=" fw-bold">ĐẾN NGÀY:</small>
     </div>
     <div class="col-md-2">
         @Html.TextBox("endd", null, new { @id = "endd", @type = "date", @class = "form-control form-control-sm" })
@@ -46,9 +46,16 @@
     </div>
 
     <!-- Nút Tìm kiếm -->
-    <div class="col-md-2 d-grid">
+   @* <div class="col-md-2 d-grid">
         <button type="submit" class="btn btn-sm btn-primary">
             <i class="fas fa-search"></i> Tìm kiếm
+        </button>
+    </div>*@
+    <!-- Nút Export -->
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        <button type="submit" class="btn btn-success" formaction="@Url.Action("ExportToExcel")">
+            <i class="fas fa-file-excel"></i> Xuất Excel
         </button>
     </div>
 </form>
