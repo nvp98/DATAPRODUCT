@@ -1,5 +1,756 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+@model List<Data_Product.Controllers.BM_GangThoi_ThepModelView>
 @{
+    var selectedList = ViewBag.SelectedList as List<Data_Product.Controllers.BM_GangThoi_ThepModelView> ?? new();
 }
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+}
+<style>
+    .left-container_header{
+        border-right: solid;
+    }
+    .main-content{
+        position: fixed;
+        top:300px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+    }
+
+    .left-container{
+        border-radius: 5px;
+        box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+        border-right: solid;
+        height: 100vh;
+        overflow-x: scroll;
+    }
+
+
+    .right-container{
+        border-radius: 5px;
+        box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+        height: 100vh;
+        overflow-x: scroll;
+    }
+
+ 
+    /* Chrome, Edge, Safari */
+    .right-container::-webkit-scrollbar,
+    .left-container::-webkit-scrollbar {
+      width: 3px;  
+      height: 3px;  
+    }
+
+    .right-container::-webkit-scrollbar-track,
+    .left-container::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .right-container::-webkit-scrollbar-thumb,
+    .left-container::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 3px;
+    }
+
+    .right-container::-webkit-scrollbar-thumb:hover,
+    .left-container::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+
+    /* Firefox */
+    .right-container,
+    .left-container {
+      scrollbar-width: thin; 
+      scrollbar-color: #888 #f1f1f1;
+    }
+
+
+
+    .filter-item{
+        margin-top: 5px;
+        height: 40px;
+    }
+
+    .table-container{
+        width: 100%;
+        height: 100%;
+    }
+
+    .btn{
+        height: 35px;
+        margin-left: 20px;
+    }
+
+
+    .table_tbx {
+        border: solid grey 1px;
+        max-width: 60px;
+        border-radius: 5px;
+        padding: 2px 5px;
+    }
+
+    .status-card{
+        height: 35px;
+        width: 80px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        font-weight: 400;
+    }
+    
+</style>
+    <div class="app-main__outer">
+        <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+            <div class="tab-content">
+                <div class="row">
+                    <div class="card">
+                        <div class="row" style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: fixed; background-color: #F9F9F9;padding: 20px 10px; height: 250px; z-index: 1;  box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);">
+                            @* <div class="row" style="flex: 2; text-align: left; padding: 2% 2% 2% 0%;">
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b">
+                                        BM.16/QT.05.09
+                                    </b>
+                                </span>
+                            </div> *@
+                            @* <div class="row" style="width:100%"> *@
+                                <div class="col-5 left-container_header">
+                                    <h5><strong>KHU VỰC NHẬN THÙNG</strong></h5>
+                                    <hr />
+                                    <div class="row g-3">
+                                        <!-- Cột chứa các input/dropdown -->
+                                        <div class="col-12">
+                                            <div class="row g-3">
+                                                <!-- Ngày làm việc -->
+                                                <div class="col-lg-6 col-12 filter-item">
+                                                <div class="row mb-3">
+                                                    <label for="NgayLamViec" class="col-sm-5 col-form-label">Ngày làm việc: </label>
+                                                    <div class="col-sm-7">
+                                                        <input type="date" class="form-control form-control-sm" id="ID_NgayLamViec" name="NgayLamViec"
+                                                                min="@ViewBag.MinDate"
+                                                                max="@ViewBag.MaxDate"
+                                                                value="@ViewBag.DefaultDate"
+                                                                onkeydown="return false;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Ca làm việc -->
+                                                <div class="col-lg-6 col-12 filter-item">
+                                                <div class="row mb-3">
+                                                    <label for="CaLamViec" class="col-sm-5 col-form-label">Ca làm việc: </label>
+                                                    <div class="col-sm-7">
+                                                        <select class="form-select form-select-sm" id="IDCaLamViec" name="CaLamViec">
+                                                            <option value="">-- Ca làm việc --</option>
+                                                            <option value="1">Ca 1</option>
+                                                            <option value="2">Ca 2</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                </div>
+
+                                                <!-- Lò cao -->
+                                                <div class="col-lg-6 col-12 filter-item">
+                                                    <div class="row mb-3">
+                                                        <label for="LoCao" class="col-sm-5 col-form-label">Lò cao:</label>
+                                                        <div class="col-sm-7">
+                                                            <select class="form-select form-select-sm" id="IDLoCao" name="LoCao">
+                                                                <option value="null">-- Lò cao --</option>
+                                                                <option value="1">Lò cao 1</option>
+                                                                <option value="2">Lò cao 2</option>
+                                                                <option value="3">Lò cao 3</option>
+                                                                <option value="4">Lò cao 4</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Chuyển đến -->
+                                                <div class="col-lg-6 col-12 filter-item">
+                                                    <div class="row mb-3">
+                                                        <label for="ChuyenDen" class="col-sm-5 col-form-label">Chuyển đến:</label>
+                                                        <div class="col-sm-7">
+                                                            <select class="form-select form-select-sm" id="IDChuyenDen" name="ChuyenDen">
+                                                                <option value="null">-- Chuyển đến --</option>
+                                                                <option value="1">Chuyển đến 1</option>
+                                                                <option value="2">Chuyển đến 2</option>
+                                                                <option value="3">Chuyển đến 3</option>
+                                                                <option value="4">Chuyển đến 4</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Tình trạng -->
+                                                <div class="col-lg-6 col-12 filter-item">
+                                                    <div class="row mb-3">
+                                                        <label for="ChuyenDen" class="col-sm-5 col-form-label">Tình trạng:</label>
+                                                        <div class="col-sm-7">
+                                                            <select class="form-select form-select-sm" id="IDTinhTrang" name="TinhTrang">
+                                                                <option value="null">-- Tình trạng --</option>
+                                                                <option value="1">Tình trạng 1</option>
+                                                                <option value="2">Tình trạng 2</option>
+                                                                <option value="3">Tình trạng 3</option>
+                                                                <option value="4">Tình trạng 4</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Timf kieem -->
+                                                <div class="col-lg-6 col-12 d-flex  justify-content-end filter-item">
+                                                        <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3 d-flex align-items-end">
+                                        <div class="col-12 d-flex justify-content-end">
+                                            <button class="btn btn-warning btn-sm px-4" id="IDbtnLuuKR">Lưu KR</button>
+                                            <button class="btn btn-success btn-sm px-4" id="IDbtnNhanThung">Nhận</button>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-7 right-container_header" style="position: relative">
+                                    <h5><strong>KHU VỰC XỬ LÝ SỐ LIỆU</strong></h5>
+                                    <hr />
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="row g-3">
+                                                <!-- Ngày làm việc -->
+                                                <div class="col-lg-6 col-12 filter-item">
+                                                    <div class="row mb-3">
+                                                        <label for="ngayLamViec" class="col-sm-4 col-form-label">Ngày làm việc: </label>
+                                                        <div class="col-sm-8">
+                                                            <input type="date" class="form-control form-control-sm" id="ngayLamViec" name="ngayLamViec" min="@ViewBag.MinDate"
+                                                                    max="@ViewBag.MaxDate"
+                                                                    value="@ViewBag.DefaultDate"
+                                                                    onkeydown="return false;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Ca làm việc -->
+                                                <div class="col-lg-6 col-12 filter-item">
+                                                    <div class="row mb-3">
+                                                        <label for="caLamViec" class="col-sm-3 col-form-label">Ca làm việc: </label>
+                                                        <div class="col-sm-9">
+                                                            <select class="form-select form-select-sm" id="caLamViec" name="caLamViec">
+                                                                <option value="">-- Ca làm việc --</option>
+                                                                <option value="1">Ca 1</option>
+                                                                <option value="2">Ca 2</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Lò thổi -->
+                                                <div class="col-lg-6 col-12 filter-item">
+                                                    <div class="row mb-3">
+                                                        <label for="caLamViec" class="col-sm-4 col-form-label">Lò thổi: </label>
+                                                        <div class="col-sm-8">
+                                                            <select class="form-select form-select-sm" id="IDLoThoi" name="LoThoi">
+                                                                <option value="null">-- Lò thổi --</option>
+                                                                <option value="1">Lò thổi 1</option>
+                                                                <option value="2">Lò thổi 2</option>
+                                                                <option value="3">Lò thổi 3</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Timf kieem -->
+                                                <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
+                                                        <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-3" style="position: absolute;bottom: 0;right: 15px;">
+                                        <div class="col-12 d-flex justify-content-end">
+                                            <button class="btn btn-warning btn-sm px-4"  id="BtnAnHien">Ẩn/Hiện</button>
+                                            <button class="btn btn-warning btn-sm px-4"  id="BtnLuuPhieu">Lưu</button>
+                                            <button class="btn btn-success btn-sm px-4"  id="BtnXuatPhieuExcel">Xuất Excel</button>
+                                            <button class="btn btn-success btn-sm px-4"  id="BtnXuatPhieuPDF">Xuất PDF</button>
+                                            <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung">Hủy nhận</button>
+                                            @* button mở modal check mẻ thổi *@
+                                            <button class="btn btn-primary" id="OpenModalMeThoi">Mẻ thổi</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @* </div> *@
+                        </div>
+                        <div class="row main-content">
+                            <div class="col-5 left-container">
+                                <div class="table-container">
+                                    <table class="table table-bordered table-sm mt-4 text-center align-middle" id="IDtbKhuVucNhanThung">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Giờ NM</th>
+                                                <th>Mã thùng gang</th>
+                                                <th>Lò cao</th>
+                                                <th>Thùng số</th>
+                                                <th>Chuyển đến</th>
+                                                <th>KR</th>
+                                                <th>Chọn thùng</th>
+                                                <th>Tình trạng</th>
+                                                <th>HRC1</th>
+                                                <th>HRC2</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr data-id="@item.Id">
+                                                    <td>@item.GioNM</td>
+                                                    <td>@item.MaThungGang</td>
+                                                    <td>@item.Locao</td>
+                                                    <td>@item.ThungSo</td>
+                                                    <td>@item.ChuyenDen</td>
+                                                    <td>
+                                                        <input type="checkbox" name="KR" value="@item.IsKR" id="IDcbxLuuKR"/>
+                                                    </td>
+                                                    <td>
+                                                        <input type="checkbox" name="ChonThung" value="@item.IsChonThung" id="IDcbxNhanThung"/>
+                                                    </td>
+                                                    <td>
+                                                        @* chưa refactor đoạn này cho gọn, chờ logic model cụ thể *@
+                                                        @if(item.TinhTrang == Data_Product.Controllers.TinhTrang.ChuaChuyen)
+                                                        {
+                                                            <div class="status-card bg-secondary">
+                                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                                    Chưa chuyển
+                                                                </span>
+                                                            </div>
+                                                        }
+                                                        @if (item.TinhTrang == Data_Product.Controllers.TinhTrang.ChoXuLy)
+                                                        {
+                                                            <div class="status-card bg-warning">
+                                                                <span class="small pt-2 ps-1" style="color: black;">
+                                                                    Chờ xử lý
+                                                                </span>
+                                                            </div>
+                                                        }
+                                                        @if (item.TinhTrang == Data_Product.Controllers.TinhTrang.DaNhan)
+                                                        {
+                                                            <div class="status-card bg-success">
+                                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                                    Đã nhận
+                                                                </span>
+                                                            </div>
+                                                        }
+                                                        @if (item.TinhTrang == Data_Product.Controllers.TinhTrang.DaChot)
+                                                        {
+                                                            <div class="status-card bg-success">
+                                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                                    Đã chốt
+                                                                </span>
+                                                            </div>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        @foreach(var hrc1 in item.HRC1)
+                                                        {
+                                                            <span>@hrc1</span><br />
+                                                        }
+                                                    </td>
+                                                <td>
+                                                    @foreach (var hrc2 in item.HRC2)
+                                                    {
+                                                        <span>@hrc2</span>
+                                                
+                                                        <br />
+                                                    }
+                                                </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-7 right-container">
+                                <div class="table-container">
+                                    <table class="table table-bordered table-sm mt-4 text-center align-middle" id="IDtbXuLySoLieu">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Chọn thùng</th>
+                                                <th>Mã thùng thép</th>
+                                                <th>Lò cao</th>
+                                                <th>Thùng số</th>
+                                                <th>Khối lượng thùng & gang lỏng (T)</th>
+                                                <th>Khối lượng thùng (T)</th>
+                                                <th>Khối lượng gang lỏng (T)</th>
+                                                <th>Thùng trung gian</th>
+                                                <th>KL thùng & gang lỏng (T) </th>
+                                                <th>KL thùng (T)</th>
+                                                <th>KL vào lò thổi </th>
+                                                <th>Mẻ thổi</th>
+                                                <th>Ghi chú</th>
+                                                <th>Trạng thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                         @* hàng cuối để chốt tổng khối lượng thùng *@ 
+                                        <tfoot>
+                                            <tr style="height: 50px;">
+                                                <td style="font-weight: 600">Tổng</td>
+                                                <td colspan="8"></td>
+                                                <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
+                                                    0.00
+                                                </td>
+                                                <td colspan="3"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal mẻ thổi -->
+    <div class="modal fade" id="ModalDanhSachMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Danh sách Mẻ thổi</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          </div>
+          <div class="modal-body">
+               <div class="row">
+                    <div class="col-12 d-flex justify-content-end">
+                        <button id="BtnModalFormTaoMeThoi" class="btn btn-primary btn-sm px-4">Tạo mẻ thổi</button>
+                    </div>
+               </div>
+               <div class="row">
+                   <table class="table table-bordered table-sm mt-4 text-center align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mẻ thổi</th>
+                                <th>Tình trạng mẻ thổi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>250525A002684</td>
+                                <td>
+                                    <div class="status-card bg-success">
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Đã sử dụng
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>250525A00265</td>
+                                <td>
+                                    <div class="status-card bg-success">
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Đã sử dụng
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>250525A00266</td>
+                                <td>
+                                    <div class="status-card bg-success">
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Đã sử dụng
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>250525A002687</td>
+                                <td>
+                                    <div class="status-card bg-warning">
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Chờ xử lý
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+               </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+
+    <!-- Modal form tạo mẻ thổi -->
+     <div class="modal fade " id="ModalFormTaoMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Tạo Mẻ thổi</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          </div>
+          <div class="modal-body">
+              <form>
+                  <div class="mb-3">
+                    <label for="SoLuongMe" class="form-label">Số lượng mẻ thổi</label>
+                    <input type="number" class="form-control" id="TbxSoLuongMe" aria-describedby="SoLuongMe">
+                  </div>
+                  <button type="submit" class="btn btn-primary">Tạo</button>
+               </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    @* logic auto tinhs toan so lieu*@
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
+            $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong', function () {
+                const $row = $(this).closest('tr'); 
+
+                const KLThungVaGangLong = parseFloat($(this).val()); 
+                const KLThung = parseFloat($row.find('.KLThung').text());
+                if(KLThungVaGangLong >= KLThung){
+                    const result = (KLThungVaGangLong -  KLThung).toFixed(2);
+                    $row.find('.KLGangLong').text(result);
+                } else{
+                    $row.find('.KLGangLong').text("0.00");
+                }
+            });
+
+
+            // Tính khối lượng vào lò thổi khi nhập vào KL Thùng & gang lỏng vào lò thổi
+            $('#IDtbXuLySoLieu').on('input', '.KLThungVaGangLongVaoLoThoi, .KLThungVaoLoThoi', function () {
+                const $row = $(this).closest('tr'); 
+                const KLThungVaGangLongVaoLoThoi = parseFloat($row.find('.KLThungVaGangLongVaoLoThoi').val());
+                const KLThungVaoLoThoi = parseFloat($row.find('.KLThungVaoLoThoi').val());
+
+                if (!isNaN(KLThungVaGangLongVaoLoThoi) && !isNaN(KLThungVaoLoThoi) && KLThungVaGangLongVaoLoThoi >= KLThungVaoLoThoi) {
+                    const result = KLThungVaGangLongVaoLoThoi - KLThungVaoLoThoi; 
+                    $row.find('.KLVaoLoThoi').text(result.toFixed(2));
+
+                    let total = 0;
+                    $("#IDtbXuLySoLieu .KLVaoLoThoi").each(function () {
+                        const value = parseFloat($(this).text());
+                        if (!isNaN(value)) {
+                            total += value;
+                        }
+                    });
+                    $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
+                } else {
+                    $row.find('#IDKLVaoLoThoi').text("0.00");
+                }
+            });
+        
+            // event mở modal danh sach me thoir
+            $('#OpenModalMeThoi').click(function () {
+            var modalMeThoi = new bootstrap.Modal(document.getElementById('ModalDanhSachMeThoi'));
+            modalMeThoi.show();
+            });
+
+             // event mở modal Form taoj me thoi
+            $('#BtnModalFormTaoMeThoi').click(function () {
+                const modalFormMeThoi = new bootstrap.Modal(document.getElementById('ModalFormTaoMeThoi'));
+                modalFormMeThoi.show();
+            });
+        });
+       
+    </script>
+
+    @* logic nhan thung *@
+    <script type="text/javascript">
+        function renderStatusCard(tinhTrang) {
+            let label = "";
+            let bgClass = "";
+            let textColor = "";
+
+            switch (tinhTrang) {
+                case 0: // ChuaChuyen
+                    label = "Chưa chuyển";
+                    bgClass = "bg-secondary";
+                    textColor = "white";
+                    break;
+                case 1: // ChoXuLy
+                    label = "Chờ xử lý";
+                    bgClass = "bg-warning";
+                    textColor = "black";
+                    break;
+                case 2: // DaNhan
+                    label = "Đã nhận";
+                    bgClass = "bg-success";
+                    textColor = "white";
+                    break;
+                case 3: // DaChot
+                    label = "Đã chốt";
+                    bgClass = "bg-success";
+                    textColor = "white";
+                    break;
+                default:
+                    label = "Không rõ";
+                    bgClass = "bg-light";
+                    textColor = "black";
+            }
+
+            return `
+                <div class="status-card ${bgClass}">
+                    <span class="small pt-2 ps-1" style="color: ${textColor};">
+                        ${label}
+                    </span>
+                </div>
+            `;
+        }
+
+        $('#IDbtnNhanThung').click(function () {
+            let selectedIds = [];
+            $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+                const checkbox = $(this).find('#IDcbxNhanThung');
+                if (checkbox.is(':checked')) {
+                    const id = $(this).data('id');
+                    selectedIds.push(id);
+                }
+            });
+
+            if (selectedIds.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 dòng.");
+                return;
+            }
+
+            $.ajax({
+                url: "/BM_GangThoi_Thep/Nhan",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedIds),
+                processData: false,
+                success: function (data) {
+                    const tbody = $('#IDtbXuLySoLieu tbody');
+                    tbody.empty();
+                    data.forEach(item => {
+                        const tinhTrangHTML = renderStatusCard(item.tinhTrang);
+
+                        tbody.append(`
+                            <tr data-id="${item.id}">
+                                <td>
+                                    <input class="table_tbx cbxChonHuyNhan" type="checkbox" name="Chon"  value="" />
+                                </td>
+                                <td>${item.maThungThep}</td>
+                                <td>${item.locao}</td>
+                                <td>${item.thungSo}</td>
+                                <td>
+                                    <input class="table_tbx KhoiLuongThungVaGangLong" type="text" name="KhoiLuongThungVaGangLong" value="" />
+                                </td>
+                                <td class="KLThung">${item.klThung}</td>
+                                <td class="KLGangLong">0.00</td>
+                                <td>
+                                    <input class="table_tbx" type="text" name="ThungTrungGian" id="IDThungTrungGian" value="" />
+                                </td>
+                                <td>
+                                    <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="text" name="KLThungVaGangLongVaoLoThoi" value="" />
+                                </td>
+                                <td>
+                                    <input class="table_tbx KLThungVaoLoThoi" type="text" name="KLThungVaoLoThoi"  value="" />
+                                </td>
+                                <td id="IDKLVaoLoThoi" class="KLVaoLoThoi">0.00</td>
+                                <td>${item.methoi ?  item.methoi : ""}</td>
+                                <td>
+                                    <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="" />
+                                </td>
+                                <td>
+                                    ${tinhTrangHTML}
+                                </td>
+                            </tr>
+                        `);
+                    });
+                    // reset lại các check box
+                    $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+                        $(this).find('#IDcbxNhanThung').prop('checked', false);
+                        
+                    });
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
+        });
+
+
+    </script>
+
+    @* logic huy nhan thung *@
+    <script type="text/javascript">
+        $('#IDbtnHuyNhanThung').click(function () {
+            const $rows = $('#IDtbXuLySoLieu tbody tr');
+            const selectedRows = $rows.filter(function () {
+                return $(this).find('.cbxChonHuyNhan').is(':checked');
+            });
+
+            if (selectedRows.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 dòng.");
+                return;
+            }
+
+            const selectedIds = selectedRows.map(function () {
+                return $(this).data('id');
+            }).get();
+
+            $.ajax({
+                url: "/BM_GangThoi_Thep/HuyNhan",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedIds),
+                processData: false,
+                success: function (data) {
+                    if (data.success) {
+                        selectedRows.remove(); // Xóa các dòng đã chọn
+                    } else {
+                        alert(data.message || "Xử lý thất bại.");
+                    }
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
+        });
+
+    </script>
