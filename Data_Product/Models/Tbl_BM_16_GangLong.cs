@@ -1,15 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data_Product.Models
 {
-    public class NguoiNhanModel
-    {
-        [Key]
-        public int Id { get; set; }
-        public int ID_NguoiNhan { get; set; }
-        public int TongSoLanNhan { get; set; }
-    }
+    
     public class Tbl_BM_16_GangLong
     {
         [Key]
@@ -84,6 +79,8 @@ namespace Data_Product.Models
 
         [StringLength(255)]
         public string? T_GhiChu { get; set; }
+        public int? G_Ca { get; set; }
+        public int? T_Ca { get; set; }
 
         public DateTime? NgayTao { get; set; }
 
@@ -99,12 +96,23 @@ namespace Data_Product.Models
 
         public int? T_ID_NguoiHuyNhan { get; set; }
         public int? ID_NguoiChot { get; set; }
-
-        public int? ID_Locao { get; set; }
         public int? G_ID_Kip { get; set; }
         public int? T_ID_Kip { get; set; }
 
+        public int? ID_Locao { get; set; }
+        [NotMapped]
+        public string TenLoCao { get; set; }
+
         public int? ID_LoThoi { get; set; }
+        [NotMapped]
+        public string TenLoThoi { get; set; }
+        [NotMapped]
+        public string MaLoThoi { get; set; }
+
         public int? ID_MeThoi { get; set; }
+        [NotMapped]
+        public string MaMeThoi { get; set; }
+
+        public int? ID_Phieu { get; set; }
     }
 }
