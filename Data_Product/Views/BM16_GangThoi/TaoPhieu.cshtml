@@ -39,7 +39,11 @@
 		pageNo = pager.CurrentPage;
 	}
 }
+@{
+	var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+	var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
 
+}
 @using (Html.BeginForm("TaoPhieu", "BM16_GangThoi", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
 {
 	<div class="app-main__outer">
@@ -121,13 +125,12 @@
 									</div>
 
 									<!-- Kíp -->
-									<div class="col">
-										<div class="d-flex align-items-center bg-light rounded shadow-sm px-3 py-2">
-											<label for="CaKip" class="form-label mb-0 text-dark me-2" style="font-size: 14px; min-width: 90px;">Kíp:</label>
-											<select class="form-select form-select-sm w-auto" name="CaKip" id="CaKip" disabled></select>
-										</div>
+									<div class="col d-flex align-items-center">
+										<label for="CaKip" class="col-form-label fw-semibold me-2 mb-0">Kíp:</label>
+										<select id="CaKip" class="form-select form-select-sm" disabled>
+											<option value="null" selected>-- Kíp làm việc --</option>
+										</select>
 									</div>
-
 									<!-- Nút tìm -->
 									<div class="col d-flex align-items-center justify-content-end">
 										<button type="submit" class="btn btn-primary px-4 py-2 fs-6" name="btnSearch" id="btnSearch" value="1">
@@ -137,10 +140,23 @@
 									</div>
 
 								</div>
+
 							</div>
 						</div>
 					</div>
-					<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 14px;">
+
+
+					<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 12px;">
+						<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
+							Ẩn/Hiện
+						</button>
+						<button type="button" class="btn btn-success me-2">
+							<i class="bi bi-arrow-right-circle"></i> Chuyển
+						</button>
+
+						<button type="button" class="btn btn-danger">
+							<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
+						</button>
 						<div class="table-responsive" style="height: auto;">
 							<table class="table table-bordered table-hover align-middle text-center" id="dataTable">
 								<thead class="table-light">
@@ -159,6 +175,10 @@
 										<th colspan="4">Vận chuyển đến</th>
 										<th rowspan="2">Giờ NM</th>
 										<th rowspan="2">Ghi chú</th>
+										<th rowspan="2" class="toggle-col">Người nhận 1</th>
+										<th rowspan="2" class="toggle-col">BP nhận 1</th>
+										<th rowspan="2" class="toggle-col">Người nhận 2</th>
+										<th rowspan="2" class="toggle-col">BP nhận 2</th>
 									</tr>
 									<tr>
 										<th>NM.HRC1</th>
@@ -168,14 +188,7 @@
 									</tr>
 								</thead>
 								<tbody>
-									<!-- Dữ liệu dòng ở đây -->
-									<!-- Nút thêm dòng mới -->
 									<tr id="addRowBtnContainer">
-										<td colspan="18" class="text-center">
-											<button id="addRowBtn" type="button" class="btn btn-outline-primary btn-sm">
-												<i class="bi bi-plus-lg"></i> Thêm dòng
-											</button>
-										</td>
 									</tr>
 								</tbody>
 							</table>
@@ -207,244 +220,340 @@
 	</div>
 </div>
 @* -- End modal cảnh báo hủy phiếu-- *@
-
-<script>
+@section Scripts {
+	<script>
 		$(document).ready(function () {
-			let maxIndex = 0;
+				let maxIndex = 0;
+				$("#btnSearch").on("click", function (e) {
+				e.preventDefault(); // Ngăn submit form nếu có
 
-			function loadTableData(selectedDate, selectedLoCao, selectedKip) {
-				$.ajax({
-					url: "/BM16_GangThoi/GetSoMeGangBKMis",
-					type: "GET",
-					data: {
-						ngay: selectedDate,
-						ID_LoCao: selectedLoCao,
-						IDKip: selectedKip
-					},
-					success: function (data) {
-						maxIndex = data.length;
-						let tableBody = $("#dataTable tbody");
-						tableBody.find("tr:not(#addRowBtnContainer)").remove();
-
-						$.each(data, function (index, item) {
-							let soMe = item.testPatternCode ? item.testPatternCode : "";
-							let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
-							let phanLoai = item.classifyName ? item.classifyName : "";
-							let time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
-
-							let row = `
-								<tr>
-										<td class='text-center delItem' >
-
-										<a class="btn btn-danger btn-sm" title="Xóa">
-											<i class="bi bi-trash"></i>
-										</a>
-									</td>
-										<td class='text-center copyItem'>
-										<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-											<i class="bi bi-copy"></i>
-										</a>
-									</td>
-										<td name="maThung">${maThung}</td>
-										<td name="soMe">${soMe}</td>
-										<td name="ThungSo"></td>
-										<td name="Gio">${time}</td>
-										<td name="PhanLoai">${phanLoai}</td>
-										<input type="number" name="KhoiLuongXeGoong" class="form-control" style="width: 100px; padding: 4px;"></td>
-										<td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
-										<td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
-										<td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="" disabled style="width: 100px; padding: 4px;"></td>
-										<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
-										<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-										<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
-										<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-										<td><input type="time" name="GioNM" class="form-control" value="${gioNM}" style="width: 120px; padding: 4px;"></td>
-										<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 180px; resize: none; padding: 4px;"></textarea></td>
-
-								</tr>
-							`;
-
-							$(row).insertBefore("#addRowBtnContainer");
-						});
-					},
-					error: function (err) {
-						console.error("Lỗi tải dữ liệu: ", err);
-					}
-				});
-			}
-
-			$("#IDCa").change(function () {
-				let selectedCa = $(this).val();
 				let selectedDate = $("#ID_Day").val();
-				let kipDropdown = $("#CaKip");
+					console.log(selectedDate);
+				let selectedLoCao = $("#IDLoCao").val();
+					console.log("locao",selectedLoCao);
+				let selectedCa = $("#IDCa").val();
+					console.log("calamviec",selectedCa);
+				let selectedKip = $("#CaKip").val();
+					console.log("cakip",selectedKip);
 
-				// Reset dropdown
-				kipDropdown.empty().append("<option value='null'>-- Kíp làm việc --</option>").prop("disabled", true);
+				// Kiểm tra dữ liệu đầu vào
+				if (!selectedDate || selectedLoCao === "null" || !selectedKip || selectedKip === "null") {
+					alert("Vui lòng chọn đầy đủ Ngày, Lò cao, Ca, Kíp!");
+					return;
+				}
+				// Gọi hàm lấy dữ liệu từ server
+				loadTableData(selectedDate, selectedLoCao, selectedKip,selectedCa);
+			});
 
-				if (!selectedCa || selectedCa === "null" || !selectedDate) return;
+					function loadTableData(selectedDate, selectedLoCao, selectedKip,selectedCa) {
+					$.ajax({
+						url: "/BM16_GangThoi/GetSoMeGangBKMis",
+						type: "GET",
+						data: {
+							ngay: selectedDate,
+							ID_LoCao: selectedLoCao,
+							IDKip: selectedKip
+						},
+						success: function (data) {
+							console.log(data);
+							maxIndex = data.length;
+							let tableBody = $("#dataTable tbody");
+							tableBody.find("tr:not(#addRowBtnContainer)").remove();
 
-				$.ajax({
-					url: "/BM16_GangThoi/GetKipFromCa",
-					type: "GET",
-					data: { Ngay: selectedDate, Ca: selectedCa },
-					success: function (res) {
-						kipDropdown.empty().prop("disabled", true);
-						if (res.length > 0) {
-							$.each(res, function (index, item) {
-								kipDropdown.append(`<option value='${item.iD_Kip}' data-info='${item.tenKip}'>${item.tenKip}</option>`);
+							$.each(data, function (index, item) {
+								let soMe = item.testPatternCode ? item.testPatternCode : "";
+								let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
+								let phanLoai = item.classifyName ? item.classifyName : "";
+								let time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
+								let maThung= generateMaThung(selectedDate, selectedLoCao, selectedCa, index + 1);
+								let row = `
+									<tr>
+											<td class='text-center delItem' >
+
+											<a class="btn btn-danger btn-sm" title="Xóa">
+												<i class="bi bi-trash"></i>
+											</a>
+										</td>
+											<td class='text-center copyItem'>
+											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
+												<i class="bi bi-copy"></i>
+											</a>
+										</td>
+											<td name="maThung">${maThung}</td>
+											<td name="soMe">${soMe}</td>
+											<td name="ThungSo">${thungSo}</td>
+											<td name="Gio">${time}</td>
+											<td name="PhanLoai">${phanLoai}</td>
+											<td><input type="number" name="KhoiLuongXeGoong" class="form-control" style="width: 100px; padding: 4px;"></td>
+											<td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
+											<td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
+											<td><input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
+											<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
+											<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
+											<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
+											<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
+											<td>${time}</td>
+											<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 180px; resize: none; padding: 4px;"></textarea></td>
+											<td class="toggle-col"> </td>
+											<td class="toggle-col"> </td>
+											<td class="toggle-col"> </td>
+											<td class="toggle-col"> </td>
+
+									</tr>
+								`;
+
+									$(row).insertBefore("#addRowBtnContainer");
 							});
-						} else {
-							kipDropdown.append("<option value='null' disabled selected>-- Kíp làm việc --</option>");
+						},
+						error: function (err) {
+							console.error("Lỗi tải dữ liệu: ", err);
 						}
-					},
-					error: function (err) {
-						console.error("Lỗi khi tải dữ liệu kíp: ", err);
-						kipDropdown.empty().append("<option value='null' disabled selected>-- Kíp làm việc --</option>").prop("disabled", true);
-					}
-				});
-			});
-	
-			// click add row
-			$("#addRowBtn").click(function (e) {
-				e.preventDefault();
-				let maThung = "";
-				let soMe = "";
-				let thungSo = "";
-				let time = "";
-				let phanLoai = "";
-				let gioNM = "";
-				let index = maxIndex;
-				let row = `
-					<tr>
-							<td class='text-center delItem' >
-							<a class="btn btn-danger btn-sm" title="Xóa">
-								<i class="bi bi-trash"></i>
-							</a>
-						</td>
-							<td class='text-center copyItem'>
-									<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-										<i class="bi bi-copy"></i>
-									</a>
-						 </td>
-						<td name="maThung">280525L2N001.00</td>
-						<td name="soMe">${soMe}</td>
-						<td name="ThungSo"></td>
-						<td name="Gio">${time}</td>
-						<td name="PhanLoai">${phanLoai}</td>
-						<td><input type="number" name="KhoiLuongXeGoong" class="form-control" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="" disabled style="width: 100px; padding: 4px;"></td>
-						<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="time" name="GioNM" class="form-control" value="${gioNM}" style="width: 120px; padding: 4px;"></td>
-						<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 180px; resize: none; padding: 4px;"></textarea></td>
-						</tr>
+					});
+				}
 
-				`;
-				$(row).insertBefore("#addRowBtnContainer");
-				maxIndex++;
-			});
+				$("#IDCa").change(function () {
+					let selectedCa = $(this).val();
+					let selectedDate = $("#ID_Day").val();
+					let kipDropdown = $("#CaKip");
 
-			$(document).on("click", ".delItem a", function (e) {
-				e.preventDefault();
-				$(this).closest("tr").remove();
-			});
-	@* begin hàm copy dòng  
-			$(document).on("click", ".copyRowBtn", function () {
-				const row = $(this).closest("tr");
-				const clonedRow = row.clone(true);
-				const maThungId = row.find("td[name='maThung']");
-				let maThung = maThungId.text().trim();
+					// Reset dropdown
+					kipDropdown.empty().append("<option value='null'>-- Kíp làm việc --</option>").prop("disabled", true);
 
-				let [prefix, suffix] = maThung.split(".");
-				let suffixNum = parseInt(suffix || "0", 10) + 1;
-				let newMaThung = `${prefix}.${suffixNum.toString().padStart(2, '0')}`;
+					if (!selectedCa || selectedCa === "null" || !selectedDate) return;
 
-				clonedRow.find("td[name='maThung']").text(newMaThung);
-				clonedRow.insertAfter(row);
-			});
-	@* end hàm copy dòng *@
-				$(document).on("click", ".copyRowBtn", function () {
-				const row = $(this).closest("tr");
-				const clonedRow = row.clone(true);
-				const maThungCell = row.find("td[name='maThung']");
-				let maThung = maThungCell.text().trim(); // Ví dụ: 280525L2N001.00
-
-				let [prefix, _] = maThung.split(".");
-
-		@* // Tìm hậu tố lớn nhất có cùng tiền tố *@
-				let maxSuffix = 0;
-				$("td[name='maThung']").each(function () {
-					let text = $(this).text().trim();
-					let [pfx, sfx] = text.split(".");
-					if (pfx === prefix) {
-						let number = parseInt(sfx, 10);
-						if (!isNaN(number)) {
-							maxSuffix = Math.max(maxSuffix, number);
+					$.ajax({
+						url: "/BM16_GangThoi/GetKipFromCa",
+						type: "GET",
+						data: { Ngay: selectedDate, Ca: selectedCa },
+						success: function (res) {
+							kipDropdown.empty().prop("disabled", true);
+							if (res.length > 0) {
+								$.each(res, function (index, item) {
+									kipDropdown.append(`<option value='${item.iD_Kip}' data-info='${item.tenKip}'>${item.tenKip}</option>`);
+								});
+							} else {
+								kipDropdown.append("<option value='null' disabled selected>-- Kíp làm việc --</option>");
+							}
+						},
+						error: function (err) {
+							console.error("Lỗi khi tải dữ liệu kíp: ", err);
+							kipDropdown.empty().append("<option value='null' disabled selected>-- Kíp làm việc --</option>").prop("disabled", true);
 						}
-					}
+					});
 				});
 
-				@* // Sinh mã mới *@
-				let newMaThung = `${prefix}.${(maxSuffix + 1).toString().padStart(2, '0')}`;
-				clonedRow.find("td[name='maThung']").text(newMaThung);
-
-		@* // Tìm vị trí chèn đúng thứ tự tăng dần theo Mã Thùng *@
-				let inserted = false;
-				$("#dataTable tbody tr").each(function () {
-					const currentCell = $(this).find("td[name='maThung']");
-					if (currentCell.length > 0) {
-						let currentMaThung = currentCell.text().trim();
-						if (currentMaThung > newMaThung) {
-							clonedRow.insertBefore($(this));
-							inserted = true;
-							return false;
-						}
-					}
+				$(document).on("click", ".delItem a", function (e) {
+					e.preventDefault();
+					$(this).closest("tr").remove();
 				});
+	@* begin hàm copy dòng  *@
+
+					$(document).on("click", ".copyRowBtn", function () {
+					const row = $(this).closest("tr");
+					const clonedRow = row.clone(true);
+					const maThungCell = row.find("td[name='maThung']");
+					let maThung = maThungCell.text().trim(); // Ví dụ: 280525L2N001.00
+
+					let [prefix, _] = maThung.split(".");
+
+	@* // Tìm hậu tố lớn nhất có cùng tiền tố *@
+					let maxSuffix = 0;
+					$("td[name='maThung']").each(function () {
+						let text = $(this).text().trim();
+						let [pfx, sfx] = text.split(".");
+						if (pfx === prefix) {
+							let number = parseInt(sfx, 10);
+							if (!isNaN(number)) {
+								maxSuffix = Math.max(maxSuffix, number);
+							}
+						}
+					});
+
+	@* // Sinh mã mới *@
+					let newMaThung = `${prefix}.${(maxSuffix + 1).toString().padStart(2, '0')}`;
+					clonedRow.find("td[name='maThung']").text(newMaThung);
+
+	@* // Tìm vị trí chèn đúng thứ tự tăng dần theo Mã Thùng *@
+					let inserted = false;
+					$("#dataTable tbody tr").each(function () {
+						const currentCell = $(this).find("td[name='maThung']");
+						if (currentCell.length > 0) {
+							let currentMaThung = currentCell.text().trim();
+							if (currentMaThung > newMaThung) {
+								clonedRow.insertBefore($(this));
+								inserted = true;
+								return false;
+							}
+						}
+					});
 
 	@* 	// Nếu không có dòng nào lớn hơn thì chèn trước nút "Thêm dòng" *@
-				if (!inserted) {
-					$("#addRowBtnContainer").before(clonedRow);
-				}
-			});
+					if (!inserted) {
+						$("#addRowBtnContainer").before(clonedRow);
+					}
+				});
 
+	@* end hàm copy dòng *@
 
-			$(document).on("change", ".form-check-input", function () {
-				let row = $(this).closest("tr");
-				row.find(".form-check-input").not(this).prop("checked", false);
-			});
+		$(document).ready(function () {
+		// Tìm các cột toggle-col theo vị trí (index bắt đầu từ 1)
+		let toggleColIndexes = [15,16,17,18];
 
-			$(document).on("input", "input[id^='KLThung_'], input[id^='KLThungGL_']", function () {
-				let index = $(this).attr("id").split("_")[1];
-				let klThung = parseFloat($("#KLThung_" + index).val()) || 0;
-				let klThungGL = parseFloat($("#KLThungGL_" + index).val()) || 0;
-
-				let klGLCR = (klThungGL - klThung) ? parseFloat((klThungGL - klThung).toFixed(2)) : 0;
-
-				$("#KLGLCR_" + index).val(klGLCR);
-			});
-
-
-
-
-	});
-
-</script>
-<script type="text/javascript">
-	$("#IDTaiKhoan, #IDTaiKhoan_QLCL").chosen({
-		width: "100%"
-	});
-
-	$("#IDKip").chosen({
-		width: "100%"
-	});
-	$(document).ready(function () {
-		$('#multiSelect').chosen({
-			width: '100%'
+		// Duyệt qua hàng tiêu đề để lấy vị trí các cột có class toggle-col
+		$('#dataTable thead tr:first-child th').each(function (index) {
+			if ($(this).hasClass('toggle-col')) {
+				toggleColIndexes.push(index + 1); // nth-child dùng 1-based index
+			}
 		});
-	});
-</script>
+
+		// Hàm ẩn các cột
+		function hideToggleColumns() {
+			toggleColIndexes.forEach(i => {
+				$('#dataTable th:nth-child(' + i + ')').hide();  // Ẩn tiêu đề
+				$('#dataTable td:nth-child(' + i + ')').hide();  // Ẩn ô dữ liệu
+			});
+		}
+
+		// Hàm hiện các cột
+		function showToggleColumns() {
+			toggleColIndexes.forEach(i => {
+				$('#dataTable th:nth-child(' + i + ')').show();  // Hiện tiêu đề
+				$('#dataTable td:nth-child(' + i + ')').show();  // Hiện ô dữ liệu
+			});
+		}
+		// Ẩn ngay khi load
+		hideToggleColumns();
+		// Bật tắt khi bấm nút
+		let isHidden = true;
+		$('#toggleColumnsBtn').on('click', function () {
+			if (isHidden) {
+				showToggleColumns();
+			} else {
+				hideToggleColumns();
+			}
+			isHidden = !isHidden;
+			});
+		});
+		$(document).on("change", ".form-check-input", function () {
+			let row = $(this).closest("tr");
+			row.find(".form-check-input").not(this).prop("checked", false);
+		});
+
+		$(document).on("input", "input[id^='KLThung_'], input[id^='KLThungGL_']", function () {
+			let index = $(this).attr("id").split("_")[1];
+			let klThung = parseFloat($("#KLThung_" + index).val()) || 0;
+			let klThungGL = parseFloat($("#KLThungGL_" + index).val()) || 0;
+
+			let klGLCR = (klThungGL - klThung) ? parseFloat((klThungGL - klThung).toFixed(2)) : 0;
+
+			$("#KLGLCR_" + index).val(klGLCR);
+		});
+
+		});
+				// Hàm tạo mã thùng
+		function generateMaThung(dateStr, loCao, ca, stt) {
+			const date = new Date(dateStr);
+			const dd = String(date.getDate()).padStart(2, '0');
+			const mm = String(date.getMonth() + 1).padStart(2, '0');
+			const yy = String(date.getFullYear()).slice(-2);
+
+			const caChar = (ca === '1') ? 'N' : 'D';
+			const sttFormatted = String(stt).padStart(3, '0');
+
+			return `${dd}${mm}${yy}L${loCao}${caChar}${sttFormatted}.00`;
+		}
+		$(document).ready(function () {
+		  $("#btnSave").on("click", function (e) {
+			e.preventDefault();
+
+			let phieuData = {
+			  Ngay: $("#ID_Day").val(),
+			  LoCao: $("#IDLoCao").val(),
+			  Ca: $("#IDCa").val(),
+			  Kip: $("#CaKip").val(),
+			  DanhSachThung: []
+			};
+
+			$("#dataTable tbody tr").not("#addRowBtnContainer").each(function () {
+			  let $tr = $(this);
+
+			  let thung = {
+				MaThung: $tr.find("td[name='maThung']").text().trim(),
+				SoMe: $tr.find("td[name='soMe']").text().trim(),
+				ThungSo: $tr.find("td[name='ThungSo']").text().trim(),
+				Gio: $tr.find("td[name='Gio']").text().trim(),
+				PhanLoai: $tr.find("td[name='PhanLoai']").text().trim(),
+				KhoiLuongXeGoong: $tr.find("input[name='KhoiLuongXeGoong']").val(),
+				KhoiLuongThung: $tr.find("input[name='KhoiLuongThung']").val(),
+				KLThungGangLong: $tr.find("input[name='KLThungGangLong']").val(),
+				KLGangLong: $tr.find("input[name='KLGangLong']").val(),
+				VanChuyenHRC1: $tr.find("input[name='VanChuyenHRC1']").is(":checked"),
+				VanChuyenHRC2: $tr.find("input[name='VanChuyenHRC2']").is(":checked"),
+				VanChuyenDUC1: $tr.find("input[name='VanChuyenDUC1']").is(":checked"),
+				VanChuyenDUC2: $tr.find("input[name='VanChuyenDUC2']").is(":checked"),
+				GioNM: $tr.find("td").eq(15).text().trim(),
+				GhiChu: $tr.find("textarea[name='GhiChu']").val()
+			  };
+
+			  phieuData.DanhSachThung.push(thung);
+			});
+
+			if (!phieuData.Ngay || phieuData.LoCao === "null" || phieuData.Ca === "null" || phieuData.Kip === "null") {
+			  alert("Vui lòng điền đầy đủ thông tin phiếu!");
+			  return;
+			}
+
+			const dataToSend = {
+			  ID_LoCao: parseInt(phieuData.LoCao),
+			  ID_Kip: parseInt(phieuData.Kip),
+			  ID_Ca:parseInt(phieuData.Ca),
+			  ThungGangs: phieuData.DanhSachThung.map(x => ({
+				MaThungGang: x.MaThung,
+				BKMIS_SoMe: x.SoMe,
+				BKMIS_ThungSo: x.ThungSo,
+				BKMIS_Gio: x.Gio,
+				BKMIS_PhanLoai: x.PhanLoai,
+				KL_XeGoong: parseFloat(x.KhoiLuongXeGoong) || 0,
+				G_KLThungChua: parseFloat(x.KhoiLuongThung) || 0,
+				G_KLThungVaGang: parseFloat(x.KLThungGangLong) || 0,
+				G_KLGangLong: (parseFloat(x.KLThungGangLong) || 0) - (parseFloat(x.KhoiLuongThung) || 0),
+			    ChuyenDen:x.VanChuyenHRC1 ? "HRC1" : x.VanChuyenHRC2 ? "HRC2" : x.VanChuyenDUC1 ? "DUC1" : x.VanChuyenDUC2 ? "DUC2" : "KHONG_XAC_DINH",
+				G_GhiChu: x.GhiChu
+			  }))
+			};
+
+			$.ajax({
+			  url: '/BM16_GangThoi/TaoPhieu',
+			  type: 'POST',
+			  contentType: 'application/json',
+			  data: JSON.stringify(dataToSend),
+			  headers: {
+				'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+			  },
+			  success: function(response) {
+				console.log('Success', response);
+				alert('Tạo phiếu thành công!');
+			  },
+			  error: function(xhr, status, error) {
+				console.error('Error', xhr.responseText);
+				alert('Lỗi khi tạo phiếu!');
+			  }
+			});
+		  });
+		});
+	</script>
+	<script type="text/javascript">
+		$("#IDTaiKhoan, #IDTaiKhoan_QLCL").chosen({
+			width: "100%"
+		});
+
+		$("#IDKip").chosen({
+			width: "100%"
+		});
+		$(document).ready(function () {
+			$('#multiSelect').chosen({
+				width: '100%'
+			});
+		});
+	</script>
+}

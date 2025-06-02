@@ -3,6 +3,7 @@
 @using Data_Product.Repositorys;
 @using Microsoft.EntityFrameworkCore;
 @inject Data_Product.Repositorys.DataContext _context
+@model List<Tbl_BM_16_GangLong>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
@@ -44,7 +45,7 @@
 		<div class="app-main__inner" style="display:block;padding-bottom: 0px;">
 			<div class="tab-content">
 				<div class="row">
-					<div class="card">
+					@* <div class="card">
 						<div class="row" style="width:100%">
 							<div style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: absolute; background-color: #F9F9F9; width: 100%;height: 80px;margin-top: -33px; ">
 								<div style="flex: 2; text-align: left; padding: 2% 2% 2% 0%;">
@@ -118,7 +119,7 @@
 							</div>
 						</div>
 
-					</div>
+					</div> *@
 					<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 14px;">
 						<div class="row w-100 justify-content-end mb-3">
 							<div class="col-auto">
@@ -162,306 +163,50 @@
 									</tr>
 								</thead>
 								<tbody>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>1</td>
-										<td>08:00</td>
-										<td>1</td>
-										<td>1200</td>
-										<td>300</td>
-										<td>1500</td>
-										<td>1200</td>
-										<td>✓</td>
-										<td></td>
-										<td></td>
-										<td></td>
-										<td>08:15</td>
-										<td>Không</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-danger btn-sm">Chưa chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>2</td>
-										<td>08:10</td>
-										<td>1</td>
-										<td>1210</td>
-										<td>310</td>
-										<td>1520</td>
-										<td>1210</td>
-										<td></td>
-										<td>✓</td>
-										<td></td>
-										<td></td>
-										<td>08:25</td>
-										<td>Không</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-success btn-sm">Đã chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>3</td>
-										<td>08:20</td>
-										<td>2</td>
-										<td>1220</td>
-										<td>320</td>
-										<td>1540</td>
-										<td>1220</td>
-										<td></td>
-										<td></td>
-										<td>✓</td>
-										<td></td>
-										<td>08:35</td>
-										<td>Chờ xử lý</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-danger btn-sm">Chưa chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>4</td>
-										<td>08:30</td>
-										<td>1</td>
-										<td>1230</td>
-										<td>330</td>
-										<td>1560</td>
-										<td>1230</td>
-										<td>✓</td>
-										<td></td>
-										<td></td>
-										<td></td>
-										<td>08:45</td>
-										<td>OK</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-success btn-sm">Đã chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>5</td>
-										<td>08:40</td>
-										<td>1</td>
-										<td>1240</td>
-										<td>340</td>
-										<td>1580</td>
-										<td>1240</td>
-										<td></td>
-										<td>✓</td>
-										<td></td>
-										<td></td>
-										<td>08:55</td>
-										<td>Không</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-success btn-sm">Đã chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>6</td>
-										<td>08:50</td>
-										<td>2</td>
-										<td>1250</td>
-										<td>350</td>
-										<td>1600</td>
-										<td>1250</td>
-										<td></td>
-										<td></td>
-										<td></td>
-										<td>✓</td>
-										<td>09:05</td>
-										<td>Có vấn đề</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-danger btn-sm">Chưa chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>7</td>
-										<td>09:00</td>
-										<td>1</td>
-										<td>1260</td>
-										<td>360</td>
-										<td>1620</td>
-										<td>1260</td>
-										<td>✓</td>
-										<td></td>
-										<td></td>
-										<td></td>
-										<td>09:15</td>
-										<td>Không</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-success btn-sm">Đã chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>8</td>
-										<td>09:10</td>
-										<td>1</td>
-										<td>1270</td>
-										<td>370</td>
-										<td>1640</td>
-										<td>1270</td>
-										<td></td>
-										<td>✓</td>
-										<td></td>
-										<td></td>
-										<td>09:25</td>
-										<td>Không</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-success btn-sm">Đã chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>9</td>
-										<td>09:20</td>
-										<td>1</td>
-										<td>1280</td>
-										<td>380</td>
-										<td>1660</td>
-										<td>1280</td>
-										<td></td>
-										<td></td>
-										<td>✓</td>
-										<td></td>
-										<td>09:35</td>
-										<td>Không</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-danger btn-sm">Chưa chuyển</button></td>
-									</tr>
-									<tr>
-										<td class='text-center delItem'>
-
-											<a class="btn btn-danger btn-sm" title="Xóa">
-												<i class="bi bi-trash"></i>
-											</a>
-										</td>
-										<td class='text-center copyItem'>
-											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-												<i class="bi bi-copy"></i>
-											</a>
-										</td>
-										<td>170525L2N001.00</td>
-										<td>GBF251B1117111</td>
-										<td>10</td>
-										<td>09:30</td>
-										<td>1</td>
-										<td>1290</td>
-										<td>390</td>
-										<td>1680</td>
-										<td>1290</td>
-										<td>✓</td>
-										<td></td>
-										<td></td>
-										<td></td>
-										<td>09:45</td>
-										<td>Không</td>
-										<td><input type="checkbox"></td>
-										<td><button class="btn btn-success btn-sm">Đã chuyển</button></td>
-									</tr>
+									@if (ViewBag.DanhSachThung != null)
+									{
+										foreach (var item in ViewBag.DanhSachThung)
+										{
+											<tr>
+												<td class='text-center delItem'>
+													<a class="btn btn-danger btn-sm" title="Xóa">
+														<i class="bi bi-trash"></i>
+													</a>
+												</td>
+												<td class='text-center copyItem'>
+													<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
+														<i class="bi bi-copy"></i>
+													</a>
+												</td>
+												<td>@item.MaThung</td>
+												<td>@item.SoMe</td>
+												<td>@item.ThuTuThung</td>
+												<td>@item.GioNhaMay</td>
+												<td>@item.PhanLoai</td>
+												<td>@item.KL_XeGoong</td>
+												<td>@item.KL_Thung</td>
+												<td>@item.KL_Thung_GangLong</td>
+												<td>@item.KL_GangLong_CanRay</td>
+												<td>@(item.DenHRC1 ? "✓" : "")</td>
+												<td>@(item.DenHRC2 ? "✓" : "")</td>
+												<td>@(item.DenDuc1 ? "✓" : "")</td>
+												<td>@(item.DenDuc2 ? "✓" : "")</td>
+												<td>@item.GioNM</td>
+												<td>@item.GhiChu</td>
+												<td><input type="checkbox" /></td>
+												<td>
+													@if (item.DaChuyen)
+													{
+														<button class="btn btn-success btn-sm">Đã chuyển</button>
+													}
+													else
+													{
+														<button class="btn btn-danger btn-sm">Chưa chuyển</button>
+													}
+												</td>
+											</tr>
+										}
+									}
 								</tbody>
 
 							</table>
@@ -473,160 +218,3 @@
 		</div>
 	</div>
 }
-<script>
-		$(document).ready(function () {
-			let maxIndex = 0;
-
-			function loadTableData(selectedDate, selectedLoCao, selectedKip) {
-				$.ajax({
-					url: "/BM16_GangThoi/GetSoMeGangBKMis",
-					type: "GET",
-					data: {
-						ngay: selectedDate,
-						ID_LoCao: selectedLoCao,
-						IDKip: selectedKip
-					},
-					success: function (data) {
-						maxIndex = data.length;
-						let tableBody = $("#dataTable tbody");
-						tableBody.find("tr:not(#addRowBtnContainer)").remove();
-
-						$.each(data, function (index, item) {
-							let soMe = item.testPatternCode ? item.testPatternCode : "";
-							let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
-							let phanLoai = item.classifyName ? item.classifyName : "";
-							let time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
-
-							let row = `
-								<tr>
-										<td class='text-center delItem' >
-
-										<a class="btn btn-danger btn-sm" title="Xóa">
-											<i class="bi bi-trash"></i>
-										</a>
-									</td>
-										<td class='text-center copyItem'>
-										<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-											<i class="bi bi-copy"></i>
-										</a>
-									</td>
-										<td><input type="text" name="maThung" class="form-control" value="${maThung}" disabled style="width: 100px; padding: 1px;"></td>
-						<td><input type="text" name="SoMe" class="form-control" value="${soMe}" disabled style="width: 100px; padding: 1px;"></td>
-						<td><input type="text" name="ThungSo" class="form-control" value="${thungSo}" disabled style="width: 50px; padding: 1px;"></td>
-						<td><input type="text" name="Gio" class="form-control" value="${time}" disabled style="width: 50px; padding: 4px;"></td>
-						<td><input type="text" name="PhanLoai" class="form-control" value="${phanLoai}" disabled style="width: 50px; padding: 2px;"></td>
-						<td><input type="number" name="KhoiLuongXeGoong" class="form-control" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="" disabled style="width: 100px; padding: 4px;"></td>
-						<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="time" name="GioNM" class="form-control" value="${gioNM}" style="width: 120px; padding: 4px;"></td>
-						<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 180px; resize: none; padding: 4px;"></textarea></td>
-
-								</tr>
-							`;
-
-							$(row).insertBefore("#addRowBtnContainer");
-						});
-					},
-					error: function (err) {
-						console.error("2 tải dữ liệu: ", err);
-					}
-				});
-			}
-			// click add row
-			$("#addRowBtn").click(function (e) {
-				e.preventDefault();
-				let maThung = "";
-				let soMe = "";
-				let thungSo = "";
-				let time = "";
-				let phanLoai = "";
-				let gioNM = "";
-				let index = maxIndex;
-				let row = `
-					<tr>
-							<td class='text-center delItem' >
-							<a class="btn btn-danger btn-sm" title="Xóa">
-								<i class="bi bi-trash"></i>
-							</a>
-						</td>
-							<td class='text-center copyItem'>
-									<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
-										<i class="bi bi-copy"></i>
-									</a>
-						 </td>
-						<td><input type="text" name="maThung" class="form-control" value="${maThung}" readonly style="width: 100px; padding: 1px;"></td>
-						<td><input type="text" name="SoMe" class="form-control" value="${soMe}" readonly style="width: 100px; padding: 1px;"></td>
-						<td><input type="text" name="ThungSo" class="form-control" value="${thungSo}" readonly style="width: 50px; padding: 1px;"></td>
-						<td><input type="text" name="Gio" class="form-control" value="${time}" disabled style="width: 50px; padding: 4px;"></td>
-						<td><input type="text" name="PhanLoai" class="form-control" value="${phanLoai}" disabled style="width: 50px; padding: 2px;"></td>
-						<td><input type="number" name="KhoiLuongXeGoong" class="form-control" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="" style="width: 100px; padding: 4px;"></td>
-						<td><input id="KLGLCR_${index}" name="KLGangLongCanRay" type="text" class="form-control" value="" disabled style="width: 100px; padding: 4px;"></td>
-						<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="time" name="GioNM" class="form-control" value="${gioNM}" style="width: 120px; padding: 4px;"></td>
-						<textarea name="GhiChu" class="form-control" rows="2" style="width: 180px; resize: none; padding: 4px;"></textarea></td>
-						<td><input type="checkbox" name="ChonThung" class="form-check-input" style="width: 20px; height: 20px;"></td>
-						<td><input type="text" name="TinhTrang" class="form-control" style="width: 140px; padding: 4px;"></td>
-						</tr>
-
-				`;
-				$(row).insertBefore("#addRowBtnContainer");
-				maxIndex++;
-			});
-
-			$(document).on("click", ".delItem a", function (e) {
-				e.preventDefault();
-				$(this).closest("tr").remove();
-			});
-	@* begin hàm copy dòng  *@
-			$(document).on("click", ".copyRowBtn", function () {
-				const row = $(this).closest("tr");
-				const clonedRow = row.clone(true);
-				clonedRow.insertAfter(row);
-			});
-	@* end hàm copy dòng *@
-	@* begin hàm chọn tất cả dòng  *@
-			$(document).ready(function(){
-				$("#chonTatCaThung").on("change",function(){
-					let isChecked = $(this).is(":checked");
-					$("input[name='ChonThung']").prop("checked", isChecked);
-				});
-	@*  // Khi checkbox dòng thay đổi => kiểm tra lại checkbox tổng *@
-				$(document).on("change", "input[name='ChonThung']", function () {
-					let all = $("input[name='ChonThung']").length;
-					let checked = $("input[name='ChonThung']:checked").length;
-					$("#chonTatCaThung").prop("checked", all === checked);
-				 });
-			});
-	@* end hàm chọn tất cả dòng *@
-			$(document).on("change", ".form-check-input", function () {
-				let row = $(this).closest("tr");
-				row.find(".form-check-input").not(this).prop("checked", false);
-			});
-		}
-	});
-
-</script>
-<script type="text/javascript">
-	$("#IDTaiKhoan, #IDTaiKhoan_QLCL").chosen({
-		width: "100%"
-	});
-
-	$("#IDKip").chosen({
-		width: "100%"
-	});
-	$(document).ready(function () {
-		$('#multiSelect').chosen({
-			width: '100%'
-		});
-	});
-</script>

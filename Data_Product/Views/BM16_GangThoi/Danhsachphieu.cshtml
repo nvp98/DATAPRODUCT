@@ -1,7 +1,7 @@
 ﻿
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-@model List<PhieuGiaoNhanViewModel>
+@model List<Tbl_BM_16_Phieu>
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
 @if (TempData["msgSuccess"] != null)
@@ -87,7 +87,6 @@
 									<option value=""></option>
 									<option value="1">Ca Ngày</option>
 									<option value="2">Ca Đêm</option>
-									@* <option value="3">Ca ngày</option> *@
 								</select>
 							</div>
 
@@ -126,10 +125,9 @@
 									<tr>
 										<td class="text-center"><a href="@Url.Action("Edit_Demo","BM16_GangThoi", new { id = item.MaPhieu })" class="text-primary">@item.MaPhieu</a></td>
 										<td class="text-center">@item.Ngay</td>
-										<td class="text-center">@item.Ca</td>
-										<td class="text-center">@item.LoCao</td>
-										<td class="text-center">@item.BoPhanTao</td>
-										<td class="text-center">@item.NguoiTao</td>
+										<td class="text-center">@item.ID_Kip</td>
+										<td class="text-center">@item.ID_Locao</td>
+										<td class="text-center">@item.ID_NguoiTao</td>
 										<td class="text-center">@item.ThoiGianTao</td>
 										<td class="text-center">
 											<a href="@Url.Action("Edit_Demo","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>
@@ -148,3 +146,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
