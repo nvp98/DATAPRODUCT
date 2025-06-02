@@ -1,21 +1,35 @@
-﻿using Data_Product.Repositorys;
+﻿using Data_Product.Models;
+using Data_Product.Repositorys;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 
 namespace Data_Product.Controllers
 {
 
     public enum TinhTrang
     {
+        [Display(Name = "Chưa chuyển")]
         ChuaChuyen,
+        
+        [Display(Name = "Chờ xử lý")]
         ChoXuLy,
+        
+        [Display(Name = "Đã chuyển")]
+        DaChuyen,
+        
+        [Display(Name = "Đã nhận")]
         DaNhan,
-        DaChot,
-        DaSuDung
+
+        [Display(Name = "Đã chốt")]
+        DaChot
     }
 
     public enum CaLamViec
@@ -24,35 +38,14 @@ namespace Data_Product.Controllers
         Dem, // 2 = "Đ"
     }
 
-
-    public class BM_GangThoi_ThepModelView
+    public class NhanThungDto
     {
-        public int Id { get; set; }
-        public string GioNM { get; set; }
-        public string MaThungGang { get; set; }
-        public CaLamViec Ca { get; set; }
-        public int LoThoi { get; set; }
-        public int Locao { get; set; }
-        public int ThungSo { get; set; }
-        public double KLThung{ get; set; }
-        public string ChuyenDen { get; set; }
-        public bool? IsKR { get; set; }
-        public bool IsChonThung { get; set; }
-        public TinhTrang TinhTrang { get; set; }
-        public List<string> HRC1 { get; set; }
-        public List<string> HRC2 { get; set; }
+        public List<int> selectedIds { get; set; }
+        public DateTime ngayNhan { get; set; }
+        public int idCa { get; set; }
+        public int idLoThoi { get; set; }
+        public int idNguoiNhan { get; set; }
 
-        // kết hợp với khu vực xử lý số liệu
-        public string MaThungThep { get; set; } // MaThungThep kế thừa từ MaThungGang theo format (MaThungGang + Ngày + Ca + Lò thổi + 00 (số lần nhận thùng + thêm 1) =>> EX: 17L2N001.00.17NT1.00)
-        public double? KLThungVaGangLong { get; set; }
-        public double? KLGangLong { get; set; }
-
-        public int? ThungTrungGian { get; set; }
-        public double? KLThungVaGangLongVaoLoThoi { get; set; }
-        public double KLThungVaoLoThoi { get; set; }
-
-        public string Methoi { get; set; }
-        public string GhiChu { get; set; }
 
     }
     public class BM_GangThoi_ThepController : Controller
@@ -61,20 +54,9 @@ namespace Data_Product.Controllers
         private readonly ICompositeViewEngine _viewEngine;
 
 
-        // Mockup data maaux
-        private static List<BM_GangThoi_ThepModelView> allItems = new List<BM_GangThoi_ThepModelView>
-        {
-            new BM_GangThoi_ThepModelView { Id = 1, GioNM = "7:30", MaThungGang = "17L2N001.00", Ca = CaLamViec.Ngay, LoThoi = 1,  Locao = 2, ThungSo = 8, KLThung = 57.22, ChuyenDen = "HRC1", IsKR = false, IsChonThung = false, TinhTrang = TinhTrang.DaNhan, HRC1 = new List<string>{"Bùi Tá Trung", "Nguyễn Hoàng Hưng" }, HRC2 = new List<string>{"Đòan Văn Tây" }},
-            new BM_GangThoi_ThepModelView { Id = 2, GioNM = "8:15", MaThungGang = "17L2N002.00", Ca = CaLamViec.Ngay, LoThoi = 2, Locao = 2, ThungSo = 11, KLThung = 59.22, ChuyenDen = "HRC1", IsKR = false, IsChonThung = false, TinhTrang = TinhTrang.DaNhan, HRC1 = new List<string>{"Bùi Tá Trung", "Nguyễn Hoàng Hưng" }, HRC2 = new List<string>{"Đòan Văn Tây" }},
-            new BM_GangThoi_ThepModelView { Id = 3, GioNM = "9:20", MaThungGang = "17L2N003.00", Ca = CaLamViec.Dem, LoThoi = 3, Locao = 3, ThungSo = 33, KLThung = 59.22, ChuyenDen = "HRC2", IsKR = false, IsChonThung = false, TinhTrang = TinhTrang.DaNhan, HRC1 = new List<string>{ "Nguyễn Hoàng Hưng", "Nguyễn Hoàng Hưng" }, HRC2 = new List<string>{ }},
-            new BM_GangThoi_ThepModelView { Id = 4, GioNM = "10:45", MaThungGang = "17L2N004.00", Ca = CaLamViec.Dem, LoThoi = 1, Locao = 4, ThungSo = 23, KLThung = 59.22, ChuyenDen = "HRC1", IsKR = false, IsChonThung = false, TinhTrang = TinhTrang.ChoXuLy, HRC1 = new List<string>{ }, HRC2 = new List<string>{ }},
-            new BM_GangThoi_ThepModelView { Id = 5, GioNM = "14:20", MaThungGang = "17L2N005.00", Ca = CaLamViec.Ngay, LoThoi = 5, Locao = 1, ThungSo = 90, KLThung = 68.22, ChuyenDen = "HRC2", IsKR = false, IsChonThung = false, TinhTrang = TinhTrang.ChoXuLy, HRC1 = new List<string>{}, HRC2 = new List<string>{ }},
-            new BM_GangThoi_ThepModelView { Id = 6, GioNM = "21:33", MaThungGang = "17L2N006.00", Ca = CaLamViec.Dem, LoThoi = 6, Locao = 2, ThungSo = 7, KLThung = 68.22, ChuyenDen = "HRC1", IsKR = false, IsChonThung = false, TinhTrang = TinhTrang.ChoXuLy, HRC1 = new List<string>{ }, HRC2 = new List<string>{}},
-
-        };
-
+        private static List<Tbl_BM_16_GangLong> allItems = new();
         // Danh sách được nhận
-        private static List<BM_GangThoi_ThepModelView> selectedItems = new();
+        private static List<Tbl_BM_16_GangLong> selectedItems = new();
 
         public BM_GangThoi_ThepController(DataContext _context, ICompositeViewEngine viewEngine)
         {
@@ -82,66 +64,240 @@ namespace Data_Product.Controllers
             _viewEngine = viewEngine;
         }
 
-        
-        public IActionResult Index()
+
+        public async Task<IActionResult> Index(DateTime? ngayLamViec, int? idKip, string? chuyenDen, int? idTrangThai, int? idLocao)
         {
-            ViewBag.SelectedItems = selectedItems;
-            return View(allItems);
+            // Lò cao
+            var loCaoList = await _context.Tbl_LoCao.ToListAsync();
+            ViewBag.LoCaoList = loCaoList;
+
+            // Lò Thổi
+            var loThoiList = await _context.Tbl_LoThoi.ToListAsync();
+            ViewBag.LoThoiList = loThoiList;
+
+            // Tình trạng
+            var enumValues = System.Enum.GetValues(typeof(TinhTrang))
+                                   .Cast<TinhTrang>()
+                                   .Select(e => new SelectListItem
+                                   {
+                                       Value = ((int)e).ToString(),
+                                       Text = e.GetType()
+                                                .GetMember(e.ToString())
+                                                .First()
+                                                .GetCustomAttribute<DisplayAttribute>()?
+                                                .GetName() ?? e.ToString()
+                                   }).ToList();
+
+            ViewBag.TinhTrangList = enumValues;
+
+            var query = _context.Tbl_BM_16_GangLong.AsQueryable();
+
+            if (ngayLamViec.HasValue)
+            {
+                query = query.Where(x => x.NgayLuyenGang == ngayLamViec.Value);
+            }
+
+            if (idKip.HasValue)
+            {
+                query = query.Where(x => x.G_ID_Kip == idKip.Value);
+            }
+
+            if (idLocao.HasValue)
+            {
+                query = query.Where(x => x.ID_Locao == idLocao.Value);
+            }
+
+            if (idTrangThai.HasValue)
+            {
+                query = query.Where(x => x.ID_TrangThai == idTrangThai.Value);
+            }
+
+            if (!string.IsNullOrEmpty(chuyenDen))
+            {
+                query = query.Where(x => x.ChuyenDen.Contains(chuyenDen));
+            }
+
+            var res = await (from a in _context.Tbl_BM_16_GangLong
+                             join trangThai in _context.Tbl_BM_16_TrangThai on a.T_ID_TrangThai equals trangThai.ID
+                             join loCao in _context.Tbl_LoCao on a.ID_Locao equals loCao.ID
+                             select new Tbl_BM_16_GangLong
+                             {
+                                 ID = a.ID,
+                                 MaThungGang = a.MaThungGang,
+                                 BKMIS_ThungSo = a.BKMIS_ThungSo,
+                                 NgayLuyenGang = a.NgayLuyenGang,
+                                 ChuyenDen = a.ChuyenDen,
+                                 Gio_NM = a.Gio_NM,
+                                 KR = a.KR,
+                                 T_ID_TrangThai = a.T_ID_TrangThai,
+                                 TrangThaiLT = trangThai.TenTrangThai,
+                                 ID_Locao = a.ID_Locao,
+                                 TenLoCao = loCao.TenLoCao,
+                                 T_NguoiNhanList = a.T_NguoiNhanList
+                             }).ToListAsync();
+
+            var data = res;
+           
+            return View(data);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TimKiemThungDaNhan(DateTime? ngayLamViec, int? idKip, int? idLoThoi)
+        {
+            var query = _context.Tbl_BM_16_GangLong.AsQueryable();
+
+            query = query.Where(x => x.T_ID_TrangThai == (int)TinhTrang.DaNhan);
+
+            if (ngayLamViec.HasValue)
+            {
+                query = query.Where(x => x.NgayLuyenThep == ngayLamViec.Value);
+            }
+
+            if (idKip.HasValue)
+            {
+                query = query.Where(x => x.T_ID_Kip == idKip.Value);
+            }
+
+            if (idLoThoi.HasValue)
+            {
+                query = query.Where(x => x.ID_LoThoi == idLoThoi.Value);
+            }
+
+            var res = await (from a in _context.Tbl_BM_16_GangLong
+                             join trangThai in _context.Tbl_BM_16_TrangThai on a.ID_TrangThai equals trangThai.ID
+                             join loCao in _context.Tbl_LoCao on a.ID_Locao equals loCao.ID
+                             join meThoi in _context.Tbl_MeThoi on a.ID_MeThoi equals meThoi.ID
+                             select new Tbl_BM_16_GangLong
+                             {
+                                 ID = a.ID,
+                                 MaThungThep = a.MaThungThep,
+                                 BKMIS_ThungSo = a.BKMIS_ThungSo,
+                                 NgayLuyenThep = a.NgayLuyenThep,
+                                 ChuyenDen = a.ChuyenDen,
+                                 KR = a.KR,
+                                 T_KLThungVaGang = a.T_KLThungVaGang,
+                                 T_KLThungChua = a.T_KLThungChua,
+                                 T_KLGangLong = a.T_KLGangLong,
+                                 ThungTrungGian = a.ThungTrungGian,
+                                 T_KLThungVaGang_Thoi = a.T_KLThungVaGang_Thoi,
+                                 T_KLThungChua_Thoi = a.T_KLThungChua_Thoi,
+                                 T_KLGangLongThoi = a.T_KLGangLongThoi,
+                                 MaMeThoi = meThoi.MaMeThoi,
+                                 TrangThai = trangThai.TenTrangThai,
+                                 TenLoCao = loCao.TenLoCao,
+                             }).ToListAsync();
+
+            var data = res.ToList();
+            return Ok(data);
         }
 
         [HttpPost]
-        public JsonResult Nhan ([FromBody]List<int> selectedIds)
+        public async Task<IActionResult> Nhan([FromBody] NhanThungDto payload)
         {
-            var selected = allItems.Where(x => selectedIds.Contains(x.Id))
-            .Select(x =>
+            if (payload.selectedIds == null || payload.selectedIds.Count == 0 || payload.ngayNhan == null || payload.idCa == null || payload.idLoThoi == null || payload.idNguoiNhan == null)
+                return BadRequest("Danh sách ID trống.");
+
+            // Lấy tất cả các thùng cần xử lý
+            var thungs = await _context.Tbl_BM_16_GangLong
+                                       .Where(x => payload.selectedIds.Contains(x.ID))
+                                       .ToListAsync();
+
+            if (thungs.Count == 0) return NotFound("Không tìm thấy thùng nào.");
+
+            // Bọc trong transaction để bảo toàn dữ liệu
+            using var tran = await _context.Database.BeginTransactionAsync();
+
+            foreach (var t in thungs)
             {
-                var selectedItem = JsonConvert.DeserializeObject<BM_GangThoi_ThepModelView>(
-                    JsonConvert.SerializeObject(x));
+                // tao ma thung Thep
+                int countItem = thungs.Count(s => s.MaThungGang == t.MaThungGang);
+                string countSelected = countItem == 0 ? "00" : countItem < 10 ? "0" + countItem : countItem.ToString();
 
-                int countItem = selectedItems.Count(s => s.Id == x.Id);
-                string countSelected = countItem < 10 ? "0" + countItem : countItem.ToString();
-
-                string ca = x.Ca == CaLamViec.Ngay ? "N" : "Đ";
+                string ca = t.T_Ca == (int)CaLamViec.Ngay ? "N" : "Đ";
                 string dayStr = DateTime.Now.Day.ToString("00");
-                selectedItem.MaThungThep = $"{x.MaThungGang}.{dayStr}{ca}T{x.LoThoi}.{countSelected}";
+                string MaThungThep = $"{t.MaThungGang}.{dayStr}{ca}T{payload.idLoThoi}.{countSelected}";
 
-                selectedItem.TinhTrang = TinhTrang.DaNhan;
 
-                return selectedItem;
-            }
-            ).ToList();
-
-            // check lại và chèn vào đúng vị trí
-            foreach (var item in selected)
-            {
-                int existingIndex = selectedItems.FindLastIndex(x => x.Id == item.Id);
-                if (existingIndex >= 0)
+                // tao danh sach nguoi nhan
+                List<NguoiNhanModel> listNguoiNhan = t.T_NguoiNhanList;
+                var item = listNguoiNhan.FirstOrDefault(x => x.ID_NguoiNhan == payload.idNguoiNhan);
+                if (item != null)
                 {
-                    selectedItems.Insert(existingIndex + 1, item);
+                    item.TongSoLanNhan += 1;
                 }
                 else
                 {
-                    selectedItems.Add(item);
+                    listNguoiNhan.Add(new NguoiNhanModel
+                    {
+                        ID_NguoiNhan = payload.idNguoiNhan,
+                        TongSoLanNhan = 1
+                    });
+                }
+
+                if (t.T_ID_TrangThai == (int)TinhTrang.DaNhan)
+                {
+                    // 2. Tạo bản sao
+                    var clone = new Tbl_BM_16_GangLong
+                    {
+                        MaThungGang = t.MaThungGang,
+                        BKMIS_SoMe = t.BKMIS_SoMe,
+                        BKMIS_Gio = t.BKMIS_Gio,
+                        BKMIS_PhanLoai = t.BKMIS_PhanLoai,
+                        BKMIS_ThungSo = t.BKMIS_ThungSo,
+                        NgayLuyenGang = t.NgayLuyenGang,
+                        KL_XeGoong = t.KL_XeGoong,
+                        G_KLThungChua = t.G_KLThungChua,
+                        G_KLThungVaGang = t.G_KLThungVaGang,
+                        G_KLGangLong = t.G_KLGangLong,
+                        ChuyenDen = t.ChuyenDen,
+                        Gio_NM = t.Gio_NM,
+                        G_GhiChu = t.G_GhiChu,
+                        G_Ca = t.G_Ca,
+                        G_ID_Kip = t.G_ID_Kip,
+                        G_ID_NguoiChuyen = t.G_ID_NguoiChuyen,
+                        G_ID_NguoiLuu = t.G_ID_NguoiLuu,
+                        G_ID_NguoiThuHoi = t.G_ID_NguoiThuHoi,
+                        G_ID_TrangThai = t.G_ID_TrangThai,
+                        MaThungThep = MaThungThep,
+                        ID_TrangThai = t.ID_TrangThai,
+                        T_ID_TrangThai = (int)TinhTrang.DaNhan,
+                        ID_Locao = t.ID_Locao,
+                        ID_Phieu = t.ID_Phieu,
+                        T_NguoiNhanList = listNguoiNhan
+
+                    };
+                    _context.Tbl_BM_16_GangLong.Add(clone);
+                }
+                else
+                {
+                    // Thùng chưa nhận → cập nhật sang Đã nhận
+                    t.T_ID_TrangThai = (int)TinhTrang.DaNhan;
+                    t.MaThungThep = MaThungThep;
+                    t.T_NguoiNhanList = listNguoiNhan;
                 }
             }
-            return Json(selectedItems);
+
+            await _context.SaveChangesAsync();
+            await tran.CommitAsync();
+
+            return Ok(new { Message = "Đã xử lý nhận thùng.", Count = payload.selectedIds.Count });
         }
 
-        [HttpPost]
-        public JsonResult HuyNhan([FromBody] List<int> selectedIds)
-        {
-            var selected = allItems
-                .Where(x => selectedIds.Contains(x.Id))
-                .ToList();
+        //[HttpPost]
+        //public JsonResult HuyNhan([FromBody] List<int> selectedIds)
+        //{
+        //    var selected = allItems
+        //        .Where(x => selectedIds.Contains(x.Id))
+        //        .ToList();
 
-            foreach (var item in selected)
-            {
-                item.TinhTrang = TinhTrang.ChoXuLy;
+        //    foreach (var item in selected)
+        //    {
+        //        item.TinhTrang = TinhTrang.ChoXuLy;
 
-                selectedItems.RemoveAll(x => x.Id == item.Id);
-            }
+        //        selectedItems.RemoveAll(x => x.Id == item.Id);
+        //    }
 
-            return Json(new { success = true, message = "Hủy nhận thành công!" });
-        }
+        //    return Json(new { success = true, message = "Hủy nhận thành công!" });
+        //}
     }
 }

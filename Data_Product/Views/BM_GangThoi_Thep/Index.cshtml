@@ -10,9 +10,12 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-@model List<Data_Product.Controllers.BM_GangThoi_ThepModelView>
+@model IEnumerable<Data_Product.Models.Tbl_BM_16_GangLong>
+
 @{
-    var selectedList = ViewBag.SelectedList as List<Data_Product.Controllers.BM_GangThoi_ThepModelView> ?? new();
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
 }
 
 @if (TempData["msgSuccess"] != null)
@@ -40,8 +43,8 @@
         border-right: solid;
     }
     .main-content{
-        position: fixed;
-        top:300px;
+        position: absolute;
+        top:250px;
         background-color: white;
         border-radius: 5px;
         box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
@@ -52,7 +55,7 @@
         box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
         border-right: solid;
         height: 100vh;
-        overflow-x: scroll;
+        overflow-y: auto;
     }
 
 
@@ -60,7 +63,7 @@
         border-radius: 5px;
         box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
         height: 100vh;
-        overflow-x: scroll;
+        overflow-y: auto;
     }
 
  
@@ -109,6 +112,7 @@
     .btn{
         height: 35px;
         margin-left: 20px;
+        font-size: 12px;
     }
 
 
@@ -127,311 +131,286 @@
         justify-content: center;
         font-weight: 400;
     }
+
+    .hide-col{
+        display: none;
+    }
     
 </style>
     <div class="app-main__outer">
-        <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
-            <div class="tab-content">
-                <div class="row">
-                    <div class="card">
-                        <div class="row" style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: fixed; background-color: #F9F9F9;padding: 20px 10px; height: 250px; z-index: 1;  box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);">
-                            @* <div class="row" style="flex: 2; text-align: left; padding: 2% 2% 2% 0%;">
-                                <span class="text-muted small pt-2 ps-1">
-                                    <b style="color:#06428b">
-                                        BM.16/QT.05.09
-                                    </b>
-                                </span>
-                            </div> *@
-                            @* <div class="row" style="width:100%"> *@
-                                <div class="col-5 left-container_header">
-                                    <h5><strong>KHU VỰC NHẬN THÙNG</strong></h5>
-                                    <hr />
-                                    <div class="row g-3">
-                                        <!-- Cột chứa các input/dropdown -->
-                                        <div class="col-12">
-                                            <div class="row g-3">
-                                                <!-- Ngày làm việc -->
-                                                <div class="col-lg-6 col-12 filter-item">
+        <div class="app-main__inner" style="display:block;padding-bottom: 0px; font-size: 13px;">
+            <div class="row">
+                <div class="card">
+                    <div class="row" style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: fixed; background-color: #F9F9F9;padding: 20px 10px; height: 250px; z-index: 1;  box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);">
+                        @* <div class="row" style="flex: 2; text-align: left; padding: 2% 2% 2% 0%;">
+                            <span class="text-muted small pt-2 ps-1">
+                                <b style="color:#06428b">
+                                    BM.16/QT.05.09
+                                </b>
+                            </span>
+                        </div> *@
+                        @* <div class="row" style="width:100%"> *@
+                            <input type="text" style="display: none" id="ID_currentUser" value="@TaiKhoan.ID_TaiKhoan" />
+                            <div class="col-5 left-container_header">
+                                <h5><strong>KHU VỰC NHẬN THÙNG</strong></h5>
+                                <hr />
+                                <div class="row g-3">
+                                    <!-- Cột chứa các input/dropdown -->
+                                    <div class="col-12">
+                                        <div class="row g-3">
+                                            <!-- Ngày làm việc -->
+                                            <div class="col-lg-6 col-12 filter-item">
+                                            <div class="row mb-3">
+                                                <label for="NgayLamViec" class="col-sm-5 col-form-label">Ngày làm việc: </label>
+                                                <div class="col-sm-7">
+                                                    <input type="date" class="form-control form-control-sm" id="ID_NgayLamViec" name="NgayLamViec"
+                                                            min="@ViewBag.MinDate"
+                                                            max="@ViewBag.MaxDate"
+                                                            value="@ViewBag.DefaultDate"
+                                                            onkeydown="return false;">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Ca làm việc -->
+                                            <div class="col-lg-6 col-12 filter-item">
+                                            <div class="row mb-3">
+                                                <label for="CaLamViec" class="col-sm-5 col-form-label">Ca làm việc: </label>
+                                                <div class="col-sm-7">
+                                                    <select class="form-select form-select-sm" id="IDCaLamViec" name="CaLamViec">
+                                                        <option value="">-- Ca làm việc --</option>
+                                                        <option value="1">Ca 1</option>
+                                                        <option value="2">Ca 2</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            </div>
+
+                                            <!-- Lò cao -->
+                                            <div class="col-lg-6 col-12 filter-item">
                                                 <div class="row mb-3">
-                                                    <label for="NgayLamViec" class="col-sm-5 col-form-label">Ngày làm việc: </label>
+                                                    <label for="LoCao" class="col-sm-5 col-form-label">Lò cao:</label>
                                                     <div class="col-sm-7">
-                                                        <input type="date" class="form-control form-control-sm" id="ID_NgayLamViec" name="NgayLamViec"
-                                                                min="@ViewBag.MinDate"
+                                                        <select class="form-select form-select-sm" id="IDLoCao" name="LoCao">
+                                                            <option value="null">-- Lò cao --</option>
+                                                            @foreach (var locao in ViewBag.LoCaoList)
+                                                            {
+                                                                <option value="@locao.ID">@locao.TenLoCao</option>
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Chuyển đến -->
+                                            <div class="col-lg-6 col-12 filter-item">
+                                                <div class="row mb-3">
+                                                    <label for="ChuyenDen" class="col-sm-5 col-form-label">Chuyển đến:</label>
+                                                    <div class="col-sm-7">
+                                                        <select class="form-select form-select-sm" id="IDChuyenDen" name="ChuyenDen">
+                                                            <option value="null">-- Chuyển đến --</option>
+                                                            <option value="HRC1">HRC 1</option>
+                                                            <option value="Duc1">Đúc 1</option>
+                                                            <option value="HRC2">HRC 2</option>
+                                                            <option value="Duc2">Đúc 2</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Tình trạng -->
+                                            <div class="col-lg-6 col-12 filter-item">
+                                                <div class="row mb-3">
+                                                    <label for="ChuyenDen" class="col-sm-5 col-form-label">Tình trạng:</label>
+                                                    <div class="col-sm-7">
+                                                        <select class="form-select form-select-sm" id="IDTinhTrang" name="TinhTrang">
+                                                        <option value="null">-- Tình trạng --</option>
+                                                        @foreach (var trangthai in ViewBag.TinhTrangList)
+                                                        {
+                                                            <option value="@trangthai.Value">@trangthai.Text</option>
+                                                        }
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- Timf kieem -->
+                                            <div class="col-lg-6 col-12 d-flex  justify-content-end filter-item">
+                                                    <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 d-flex align-items-end">
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <button class="btn btn-warning btn-sm px-4" id="IDbtnLuuKR">Lưu KR</button>
+                                        <button class="btn btn-success btn-sm px-4" id="IDbtnNhanThung">Nhận</button>
+                                        <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung">Hủy nhận</button>
+                                            
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-7 right-container_header" style="position: relative">
+                                <h5><strong>KHU VỰC XỬ LÝ SỐ LIỆU</strong></h5>
+                                <hr />
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <div class="row g-3">
+                                            <!-- Ngày làm việc -->
+                                            <div class="col-lg-6 col-12 filter-item">
+                                                <div class="row mb-3">
+                                                    <label for="ngayLamViec" class="col-sm-4 col-form-label">Ngày làm việc: </label>
+                                                    <div class="col-sm-8">
+                                                        <input type="date" class="form-control form-control-sm" id="IDNgayNhan" name="ngayLamViec" min="@ViewBag.MinDate"
                                                                 max="@ViewBag.MaxDate"
                                                                 value="@ViewBag.DefaultDate"
                                                                 onkeydown="return false;">
+                                                        <small class="error-msg text-danger">Vui lòng chọn ngày</small>
                                                         </div>
-                                                    </div>
                                                 </div>
+                                            </div>
 
-                                                <!-- Ca làm việc -->
-                                                <div class="col-lg-6 col-12 filter-item">
+                                            <!-- Ca làm việc -->
+                                            <div class="col-lg-6 col-12 filter-item">
                                                 <div class="row mb-3">
-                                                    <label for="CaLamViec" class="col-sm-5 col-form-label">Ca làm việc: </label>
-                                                    <div class="col-sm-7">
-                                                        <select class="form-select form-select-sm" id="IDCaLamViec" name="CaLamViec">
+                                                    <label for="caLamViec" class="col-sm-3 col-form-label">Ca làm việc: </label>
+                                                    <div class="col-sm-9">
+                                                        <select class="form-select form-select-sm" id="IDCaNhan" name="CaNhan">
                                                             <option value="">-- Ca làm việc --</option>
                                                             <option value="1">Ca 1</option>
                                                             <option value="2">Ca 2</option>
                                                         </select>
+                                                        <small class="error-msg text-danger">Vui lòng chọn Ca làm việc</small>
                                                     </div>
                                                 </div>
-                                                </div>
+                                            </div>
 
-                                                <!-- Lò cao -->
-                                                <div class="col-lg-6 col-12 filter-item">
-                                                    <div class="row mb-3">
-                                                        <label for="LoCao" class="col-sm-5 col-form-label">Lò cao:</label>
-                                                        <div class="col-sm-7">
-                                                            <select class="form-select form-select-sm" id="IDLoCao" name="LoCao">
-                                                                <option value="null">-- Lò cao --</option>
-                                                                <option value="1">Lò cao 1</option>
-                                                                <option value="2">Lò cao 2</option>
-                                                                <option value="3">Lò cao 3</option>
-                                                                <option value="4">Lò cao 4</option>
-                                                            </select>
-                                                        </div>
+                                            <!-- Lò thổi -->
+                                            <div class="col-lg-6 col-12 filter-item">
+                                                <div class="row mb-3">
+                                                    <label for="caLamViec" class="col-sm-4 col-form-label">Lò thổi: </label>
+                                                    <div class="col-sm-8">
+                                                        <select class="form-select form-select-sm" id="IDLoThoi" name="LoThoi">
+                                                            <option value="null">-- Lò thổi --</option>
+                                                            @foreach (var lothoi in ViewBag.LoThoiList)
+                                                            {
+                                                                <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
+                                                            }
+                                                        </select>
+                                                        <small class="error-msg text-danger">Vui lòng chọn Lò thổi</small>
                                                     </div>
                                                 </div>
-
-                                                <!-- Chuyển đến -->
-                                                <div class="col-lg-6 col-12 filter-item">
-                                                    <div class="row mb-3">
-                                                        <label for="ChuyenDen" class="col-sm-5 col-form-label">Chuyển đến:</label>
-                                                        <div class="col-sm-7">
-                                                            <select class="form-select form-select-sm" id="IDChuyenDen" name="ChuyenDen">
-                                                                <option value="null">-- Chuyển đến --</option>
-                                                                <option value="1">Chuyển đến 1</option>
-                                                                <option value="2">Chuyển đến 2</option>
-                                                                <option value="3">Chuyển đến 3</option>
-                                                                <option value="4">Chuyển đến 4</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Tình trạng -->
-                                                <div class="col-lg-6 col-12 filter-item">
-                                                    <div class="row mb-3">
-                                                        <label for="ChuyenDen" class="col-sm-5 col-form-label">Tình trạng:</label>
-                                                        <div class="col-sm-7">
-                                                            <select class="form-select form-select-sm" id="IDTinhTrang" name="TinhTrang">
-                                                                <option value="null">-- Tình trạng --</option>
-                                                                <option value="1">Tình trạng 1</option>
-                                                                <option value="2">Tình trạng 2</option>
-                                                                <option value="3">Tình trạng 3</option>
-                                                                <option value="4">Tình trạng 4</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!-- Timf kieem -->
-                                                <div class="col-lg-6 col-12 d-flex  justify-content-end filter-item">
-                                                        <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
-                                                </div>
+                                            </div>
+                                            <!-- Timf kieem -->
+                                            <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
+                                                    <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row g-3 d-flex align-items-end">
-                                        <div class="col-12 d-flex justify-content-end">
-                                            <button class="btn btn-warning btn-sm px-4" id="IDbtnLuuKR">Lưu KR</button>
-                                            <button class="btn btn-success btn-sm px-4" id="IDbtnNhanThung">Nhận</button>
-                                            
-                                        </div>
-                                    </div>
                                 </div>
-                                <div class="col-7 right-container_header" style="position: relative">
-                                    <h5><strong>KHU VỰC XỬ LÝ SỐ LIỆU</strong></h5>
-                                    <hr />
-                                    <div class="row g-3">
-                                        <div class="col-12">
-                                            <div class="row g-3">
-                                                <!-- Ngày làm việc -->
-                                                <div class="col-lg-6 col-12 filter-item">
-                                                    <div class="row mb-3">
-                                                        <label for="ngayLamViec" class="col-sm-4 col-form-label">Ngày làm việc: </label>
-                                                        <div class="col-sm-8">
-                                                            <input type="date" class="form-control form-control-sm" id="ngayLamViec" name="ngayLamViec" min="@ViewBag.MinDate"
-                                                                    max="@ViewBag.MaxDate"
-                                                                    value="@ViewBag.DefaultDate"
-                                                                    onkeydown="return false;">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Ca làm việc -->
-                                                <div class="col-lg-6 col-12 filter-item">
-                                                    <div class="row mb-3">
-                                                        <label for="caLamViec" class="col-sm-3 col-form-label">Ca làm việc: </label>
-                                                        <div class="col-sm-9">
-                                                            <select class="form-select form-select-sm" id="caLamViec" name="caLamViec">
-                                                                <option value="">-- Ca làm việc --</option>
-                                                                <option value="1">Ca 1</option>
-                                                                <option value="2">Ca 2</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Lò thổi -->
-                                                <div class="col-lg-6 col-12 filter-item">
-                                                    <div class="row mb-3">
-                                                        <label for="caLamViec" class="col-sm-4 col-form-label">Lò thổi: </label>
-                                                        <div class="col-sm-8">
-                                                            <select class="form-select form-select-sm" id="IDLoThoi" name="LoThoi">
-                                                                <option value="null">-- Lò thổi --</option>
-                                                                <option value="1">Lò thổi 1</option>
-                                                                <option value="2">Lò thổi 2</option>
-                                                                <option value="3">Lò thổi 3</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!-- Timf kieem -->
-                                                <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
-                                                        <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <div class="row g-3" style="position: absolute;bottom: 0;right: 15px;">
+                                    <div class="col-12 d-flex justify-content-end">
+                                        <button class="btn btn-warning btn-sm px-4"  id="BtnAnHien">Ẩn/Hiện</button>
+                                        <button class="btn btn-warning btn-sm px-4"  id="BtnLuuPhieu">Lưu</button>
+                                        <button class="btn btn-success btn-sm px-4"  id="BtnXuatPhieuExcel">Xuất Excel</button>
+                                        <button class="btn btn-success btn-sm px-4"  id="BtnXuatPhieuPDF">Xuất PDF</button>
+                                        @* button mở modal check mẻ thổi *@
+                                        <button class="btn btn-primary" id="OpenModalMeThoi">Mẻ thổi</button>
                                     </div>
-                                    <div class="row g-3" style="position: absolute;bottom: 0;right: 15px;">
-                                        <div class="col-12 d-flex justify-content-end">
-                                            <button class="btn btn-warning btn-sm px-4"  id="BtnAnHien">Ẩn/Hiện</button>
-                                            <button class="btn btn-warning btn-sm px-4"  id="BtnLuuPhieu">Lưu</button>
-                                            <button class="btn btn-success btn-sm px-4"  id="BtnXuatPhieuExcel">Xuất Excel</button>
-                                            <button class="btn btn-success btn-sm px-4"  id="BtnXuatPhieuPDF">Xuất PDF</button>
-                                            <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung">Hủy nhận</button>
-                                            @* button mở modal check mẻ thổi *@
-                                            <button class="btn btn-primary" id="OpenModalMeThoi">Mẻ thổi</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @* </div> *@
-                        </div>
-                        <div class="row main-content">
-                            <div class="col-5 left-container">
-                                <div class="table-container">
-                                    <table class="table table-bordered table-sm mt-4 text-center align-middle" id="IDtbKhuVucNhanThung">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Giờ NM</th>
-                                                <th>Mã thùng gang</th>
-                                                <th>Lò cao</th>
-                                                <th>Thùng số</th>
-                                                <th>Chuyển đến</th>
-                                                <th>KR</th>
-                                                <th>Chọn thùng</th>
-                                                <th>Tình trạng</th>
-                                                <th>HRC1</th>
-                                                <th>HRC2</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var item in Model)
-                                            {
-                                                <tr data-id="@item.Id">
-                                                    <td>@item.GioNM</td>
-                                                    <td>@item.MaThungGang</td>
-                                                    <td>@item.Locao</td>
-                                                    <td>@item.ThungSo</td>
-                                                    <td>@item.ChuyenDen</td>
-                                                    <td>
-                                                        <input type="checkbox" name="KR" value="@item.IsKR" id="IDcbxLuuKR"/>
-                                                    </td>
-                                                    <td>
-                                                        <input type="checkbox" name="ChonThung" value="@item.IsChonThung" id="IDcbxNhanThung"/>
-                                                    </td>
-                                                    <td>
-                                                        @* chưa refactor đoạn này cho gọn, chờ logic model cụ thể *@
-                                                        @if(item.TinhTrang == Data_Product.Controllers.TinhTrang.ChuaChuyen)
-                                                        {
-                                                            <div class="status-card bg-secondary">
-                                                                <span class="small pt-2 ps-1" style="color: white;">
-                                                                    Chưa chuyển
-                                                                </span>
-                                                            </div>
-                                                        }
-                                                        @if (item.TinhTrang == Data_Product.Controllers.TinhTrang.ChoXuLy)
-                                                        {
-                                                            <div class="status-card bg-warning">
-                                                                <span class="small pt-2 ps-1" style="color: black;">
-                                                                    Chờ xử lý
-                                                                </span>
-                                                            </div>
-                                                        }
-                                                        @if (item.TinhTrang == Data_Product.Controllers.TinhTrang.DaNhan)
-                                                        {
-                                                            <div class="status-card bg-success">
-                                                                <span class="small pt-2 ps-1" style="color: white;">
-                                                                    Đã nhận
-                                                                </span>
-                                                            </div>
-                                                        }
-                                                        @if (item.TinhTrang == Data_Product.Controllers.TinhTrang.DaChot)
-                                                        {
-                                                            <div class="status-card bg-success">
-                                                                <span class="small pt-2 ps-1" style="color: white;">
-                                                                    Đã chốt
-                                                                </span>
-                                                            </div>
-                                                        }
-                                                    </td>
-                                                    <td>
-                                                        @foreach(var hrc1 in item.HRC1)
-                                                        {
-                                                            <span>@hrc1</span><br />
-                                                        }
-                                                    </td>
-                                                <td>
-                                                    @foreach (var hrc2 in item.HRC2)
-                                                    {
-                                                        <span>@hrc2</span>
-                                                
-                                                        <br />
-                                                    }
-                                                </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
                                 </div>
                             </div>
-                            <div class="col-7 right-container">
-                                <div class="table-container">
-                                    <table class="table table-bordered table-sm mt-4 text-center align-middle" id="IDtbXuLySoLieu">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Chọn thùng</th>
-                                                <th>Mã thùng thép</th>
-                                                <th>Lò cao</th>
-                                                <th>Thùng số</th>
-                                                <th>Khối lượng thùng & gang lỏng (T)</th>
-                                                <th>Khối lượng thùng (T)</th>
-                                                <th>Khối lượng gang lỏng (T)</th>
-                                                <th>Thùng trung gian</th>
-                                                <th>KL thùng & gang lỏng (T) </th>
-                                                <th>KL thùng (T)</th>
-                                                <th>KL vào lò thổi </th>
-                                                <th>Mẻ thổi</th>
-                                                <th>Ghi chú</th>
-                                                <th>Trạng thái</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                         @* hàng cuối để chốt tổng khối lượng thùng *@ 
-                                        <tfoot>
-                                            <tr style="height: 50px;">
-                                                <td style="font-weight: 600">Tổng</td>
-                                                <td colspan="8"></td>
-                                                <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
-                                                    0.00
+                        @* </div> *@
+                    </div>
+                    <div class="row main-content">
+                        <div class="col-5 left-container">
+                            <div class="table-container">
+                                <table class="table table-bordered table-sm mt-4 text-center align-middle" id="IDtbKhuVucNhanThung">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Giờ NM</th>
+                                            <th>Mã thùng gang</th>
+                                            <th>Lò cao</th>
+                                            <th>Thùng số</th>
+                                            <th>Chuyển đến</th>
+                                            <th>KR</th>
+                                            <th>Chọn thùng</th>
+                                            <th>Tình trạng</th>
+                                            <th>HRC1</th>
+                                            <th>HRC2</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr data-id="@item.ID">
+                                                <td>@item.Gio_NM</td>
+                                                <td>@item.MaThungGang</td>
+                                                <td>@item.TenLoCao</td>
+                                                <td>@item.BKMIS_ThungSo</td>
+                                                <td>@item.ChuyenDen</td>
+                                                <td>
+                                                    <input type="checkbox" name="KR" value="@item.KR" id="IDcbxLuuKR"/>
                                                 </td>
-                                                <td colspan="3"></td>
+                                                <td>
+                                                    <input type="checkbox" name="ChonThung" value="" id="IDcbxNhanThung"/>
+                                                </td>
+                                                <td class="status-cell" data-tinhtrang="@item.T_ID_TrangThai">
+                                                </td>
+                                                <td>
+                                                    @foreach(var hrc1 in item.T_NguoiNhanList)
+                                                    {
+                                                    <span>@hrc1.ID_NguoiNhan - (@hrc1.TongSoLanNhan)</span>
+                                                
+                                                    <br />
+                                                    }
+                                                    
+                                                </td>
+                                            <td>
+                                                @* @foreach (var hrc2 in item.HRC2)
+                                                {
+                                                    <span>@hrc2</span>
+                                                
+                                                    <br />
+                                                } *@
+                                            </td>
                                             </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-7 right-container">
+                            <div class="table-container">
+                                <table class="table table-bordered table-sm mt-4 text-center align-middle" id="IDtbXuLySoLieu">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="hide-col">Mã thùng thép</th>
+                                            <th>Lò cao</th>
+                                            <th>Thùng số</th>
+                                            <th>Khối lượng thùng & gang lỏng (T)</th>
+                                            <th>Khối lượng thùng (T)</th>
+                                            <th>Khối lượng gang lỏng (T)</th>
+                                            <th>Thùng trung gian</th>
+                                            <th>KL thùng & gang lỏng (T) </th>
+                                            <th>KL thùng (T)</th>
+                                            <th>KL vào lò thổi </th>
+                                            <th>Mẻ thổi</th>
+                                            <th>Ghi chú</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                        @* hàng cuối để chốt tổng khối lượng thùng *@ 
+                                    <tfoot>
+                                        <tr style="height: 50px;">
+                                            <td class="total-space" colspan="8" style="font-weight: 600; text-align: start">Tổng</td>
+                                            <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
+                                                0.00
+                                            </td>
+                                            <td colspan="3"></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -546,6 +525,42 @@
     @* logic auto tinhs toan so lieu*@
     <script type="text/javascript">
         $(document).ready(function () {
+            // render card trạng thái
+            function renderStatusCard(tinhTrang) {
+                const statusMap = {
+                    1: { label: "Chưa chuyển", bgClass: "bg-secondary", textColor: "white" },
+                    2: { label: "Chờ xử lý", bgClass: "bg-warning", textColor: "black" },
+                    3: { label: "Đã chuyển", bgClass: "bg-success", textColor: "white" },
+                    4: { label: "Đã nhận", bgClass: "bg-success", textColor: "white" },
+                    5: { label: "Đã chốt", bgClass: "bg-success", textColor: "white" },
+                };
+
+                const { label, bgClass, textColor } = statusMap[tinhTrang] || {
+                    label: "Không rõ", bgClass: "bg-light", textColor: "black"
+                };
+
+                return `
+                    <div class="status-card ${bgClass}">
+                        <span class="small pt-2 ps-1" style="color: ${textColor};">
+                            ${label}
+                        </span>
+                    </div>
+                `;
+            }
+            $(".status-cell").each(function () {
+                const tinhTrang = parseInt($(this).data("tinhtrang"));
+                const html = renderStatusCard(tinhTrang);
+                $(this).html(html);
+            });
+
+            // value cac field
+            const NgayLamViec = $('#ID_NgayLamViec').val();
+            const IDCaLamViec = $('#IDCaLamViec').val();
+            const IDLoCao = $('#IDLoCao').val();
+            const IDChuyenDen = $('#IDChuyenDen').val
+            const IDTinhTrang = $('#IDTinhTrang').val();
+           
+
             // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
             $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong', function () {
                 const $row = $(this).closest('tr'); 
@@ -580,7 +595,7 @@
                     });
                     $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
                 } else {
-                    $row.find('#IDKLVaoLoThoi').text("0.00");
+                    $row.find('#IDKLVaoLoThoi').text("0.00");s
                 }
             });
         
@@ -595,52 +610,41 @@
                 const modalFormMeThoi = new bootstrap.Modal(document.getElementById('ModalFormTaoMeThoi'));
                 modalFormMeThoi.show();
             });
+
+
+            // event An/Hien ma Thùng Thép
+            $('#BtnAnHien').click(function() {
+                $('.hide-col').toggle();
+                if ($('.hide-col:first').is(':visible')) {
+                  $('.total-space').attr("colspan", 9)
+                } else {
+                  $('.total-space').attr("colspan", 8)
+                }
+                
+            })
         });
-       
-    </script>
 
-    @* logic nhan thung *@
-    <script type="text/javascript">
-        function renderStatusCard(tinhTrang) {
-            let label = "";
-            let bgClass = "";
-            let textColor = "";
+         @* logic nhan thung *@
+        
 
-            switch (tinhTrang) {
-                case 0: // ChuaChuyen
-                    label = "Chưa chuyển";
-                    bgClass = "bg-secondary";
-                    textColor = "white";
-                    break;
-                case 1: // ChoXuLy
-                    label = "Chờ xử lý";
-                    bgClass = "bg-warning";
-                    textColor = "black";
-                    break;
-                case 2: // DaNhan
-                    label = "Đã nhận";
-                    bgClass = "bg-success";
-                    textColor = "white";
-                    break;
-                case 3: // DaChot
-                    label = "Đã chốt";
-                    bgClass = "bg-success";
-                    textColor = "white";
-                    break;
-                default:
-                    label = "Không rõ";
-                    bgClass = "bg-light";
-                    textColor = "black";
-            }
+        // function validateForm(fieldList) {
+        //   let isValid = true;
 
-            return `
-                <div class="status-card ${bgClass}">
-                    <span class="small pt-2 ps-1" style="color: ${textColor};">
-                        ${label}
-                    </span>
-                </div>
-            `;
-        }
+        //   $('.error-msg').text('');
+
+        //   fieldList.forEach(field => {
+        //     const input = $('#' + field.id);
+        //     const value = input.val().trim();
+        //     const errorEl = input.next('.error-msg');
+
+        //     if (value === '') {
+        //       errorEl.text(field.message || 'Trường này là bắt buộc.');
+        //       isValid = false;
+        //     }
+        //   });
+
+        //   return isValid;
+        // }
 
         $('#IDbtnNhanThung').click(function () {
             let selectedIds = [];
@@ -655,13 +659,37 @@
             if (selectedIds.length === 0) {
                 alert("Vui lòng chọn ít nhất 1 dòng.");
                 return;
+            } 
+
+            // ID current user
+            const ID_currentUser = $('#ID_currentUser').val();
+
+            const NgayNhan = $('#IDNgayNhan').val();
+            const IDCaNhan = $('#IDCaNhan').val();
+            const IDLoThoi = $('#IDLoThoi').val();
+
+            if(!NgayNhan){
+                alert("Vui lòng chọn Ngày"); return;
+            }
+            if(!IDCaNhan ){
+                alert("Vui lòng chọn Ca"); return;
+            }
+            if(!IDLoThoi){
+                alert("Vui lòng chọn Lò thổi"); return;
             }
 
+            const payload = {
+                selectedIds,
+                ngayNhan: NgayNhan, 
+                idCa: IDCaNhan, 
+                idLoThoi: IDLoThoi,
+                idNguoiNhan: ID_currentUser
+            }
             $.ajax({
                 url: "/BM_GangThoi_Thep/Nhan",
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify(selectedIds),
+                data: JSON.stringify(payload),
                 processData: false,
                 success: function (data) {
                     const tbody = $('#IDtbXuLySoLieu tbody');
@@ -671,10 +699,7 @@
 
                         tbody.append(`
                             <tr data-id="${item.id}">
-                                <td>
-                                    <input class="table_tbx cbxChonHuyNhan" type="checkbox" name="Chon"  value="" />
-                                </td>
-                                <td>${item.maThungThep}</td>
+                                <td class="hide-col">${item.maThungThep}</td>
                                 <td>${item.locao}</td>
                                 <td>${item.thungSo}</td>
                                 <td>
@@ -702,10 +727,10 @@
                             </tr>
                         `);
                     });
-                    // reset lại các check box
+
                     $('#IDtbKhuVucNhanThung tbody tr').each(function () {
                         $(this).find('#IDcbxNhanThung').prop('checked', false);
-                        
+
                     });
                 },
                 error: function () {
@@ -713,44 +738,44 @@
                 }
             });
         });
-
-
     </script>
+
+
 
     @* logic huy nhan thung *@
     <script type="text/javascript">
-        $('#IDbtnHuyNhanThung').click(function () {
-            const $rows = $('#IDtbXuLySoLieu tbody tr');
-            const selectedRows = $rows.filter(function () {
-                return $(this).find('.cbxChonHuyNhan').is(':checked');
-            });
+        // $('#IDbtnHuyNhanThung').click(function () {
+        //     const $rows = $('#IDtbXuLySoLieu tbody tr');
+        //     const selectedRows = $rows.filter(function () {
+        //         return $(this).find('.cbxChonHuyNhan').is(':checked');
+        //     });
 
-            if (selectedRows.length === 0) {
-                alert("Vui lòng chọn ít nhất 1 dòng.");
-                return;
-            }
+        //     if (selectedRows.length === 0) {
+        //         alert("Vui lòng chọn ít nhất 1 dòng.");
+        //         return;
+        //     }
 
-            const selectedIds = selectedRows.map(function () {
-                return $(this).data('id');
-            }).get();
+        //     const selectedIds = selectedRows.map(function () {
+        //         return $(this).data('id');
+        //     }).get();
 
-            $.ajax({
-                url: "/BM_GangThoi_Thep/HuyNhan",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(selectedIds),
-                processData: false,
-                success: function (data) {
-                    if (data.success) {
-                        selectedRows.remove(); // Xóa các dòng đã chọn
-                    } else {
-                        alert(data.message || "Xử lý thất bại.");
-                    }
-                },
-                error: function () {
-                    alert("Lỗi khi nhận dữ liệu!");
-                }
-            });
-        });
+        //     $.ajax({
+        //         url: "/BM_GangThoi_Thep/HuyNhan",
+        //         type: "POST",
+        //         contentType: "application/json",
+        //         data: JSON.stringify(selectedIds),
+        //         processData: false,
+        //         success: function (data) {
+        //             if (data.success) {
+        //                 selectedRows.remove(); 
+        //             } else {
+        //                 alert(data.message || "Xử lý thất bại.");
+        //             }
+        //         },
+        //         error: function () {
+        //             alert("Lỗi khi nhận dữ liệu!");
+        //         }
+        //     });
+        // });
 
     </script>
