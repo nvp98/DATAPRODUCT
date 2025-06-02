@@ -85,8 +85,14 @@ namespace Data_Product.Models
         public DateTime? NgayTao { get; set; }
 
         public int? G_ID_TrangThai { get; set; }
+        [NotMapped]
+        public string TrangThaiLG { get; set; }
         public int? T_ID_TrangThai { get; set; }
+        [NotMapped]
+        public string TrangThaiLT { get; set; }
         public int? ID_TrangThai { get; set; }
+        [NotMapped]
+        public string TrangThai { get; set; }
 
         public int? G_ID_NguoiLuu { get; set; }
         public int? G_ID_NguoiChuyen { get; set; }
