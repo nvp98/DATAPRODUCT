@@ -32,5 +32,7 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_NhatKy_LyDo> Tbl_NhatKy_LyDo { get; set; }
         public DbSet<Tbl_NhatKy_SanXuat> Tbl_NhatKy_SanXuat { get; set; }
         public DbSet<Tbl_NhatKy_SanXuat_ChiTiet> Tbl_NhatKy_SanXuat_ChiTiet { get; set; }
+        public DbSet<Tbl_BM_16_GangLong> Tbl_BM_16_GangLong { get; set; }
+        public DbSet<Tbl_BM_16_Phieu> Tbl_BM_16_Phieu { get; set; }
     }
 }
