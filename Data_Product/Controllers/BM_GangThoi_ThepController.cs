@@ -133,7 +133,6 @@ namespace Data_Product.Controllers
                                  TrangThaiLT = trangThai.TenTrangThai,
                                  ID_Locao = a.ID_Locao,
                                  TenLoCao = loCao.TenLoCao,
-                                 T_NguoiNhanList = a.T_NguoiNhanList
                              }).ToListAsync();
 
             var data = res;
@@ -219,20 +218,20 @@ namespace Data_Product.Controllers
 
 
                 // tao danh sach nguoi nhan
-                List<NguoiNhanModel> listNguoiNhan = t.T_NguoiNhanList;
-                var item = listNguoiNhan.FirstOrDefault(x => x.ID_NguoiNhan == payload.idNguoiNhan);
-                if (item != null)
-                {
-                    item.TongSoLanNhan += 1;
-                }
-                else
-                {
-                    listNguoiNhan.Add(new NguoiNhanModel
-                    {
-                        ID_NguoiNhan = payload.idNguoiNhan,
-                        TongSoLanNhan = 1
-                    });
-                }
+                //List<NguoiNhanModel> listNguoiNhan = t.T_NguoiNhanList;
+                //var item = listNguoiNhan.FirstOrDefault(x => x.ID_NguoiNhan == payload.idNguoiNhan);
+                //if (item != null)
+                //{
+                //    item.TongSoLanNhan += 1;
+                //}
+                //else
+                //{
+                //    listNguoiNhan.Add(new NguoiNhanModel
+                //    {
+                //        ID_NguoiNhan = payload.idNguoiNhan,
+                //        TongSoLanNhan = 1
+                //    });
+                //}
 
                 if (t.T_ID_TrangThai == (int)TinhTrang.DaNhan)
                 {
@@ -263,7 +262,7 @@ namespace Data_Product.Controllers
                         T_ID_TrangThai = (int)TinhTrang.DaNhan,
                         ID_Locao = t.ID_Locao,
                         ID_Phieu = t.ID_Phieu,
-                        T_NguoiNhanList = listNguoiNhan
+                        //T_NguoiNhanList = listNguoiNhan
 
                     };
                     _context.Tbl_BM_16_GangLong.Add(clone);
@@ -273,7 +272,7 @@ namespace Data_Product.Controllers
                     // Thùng chưa nhận → cập nhật sang Đã nhận
                     t.T_ID_TrangThai = (int)TinhTrang.DaNhan;
                     t.MaThungThep = MaThungThep;
-                    t.T_NguoiNhanList = listNguoiNhan;
+                    //t.T_NguoiNhanList = listNguoiNhan;
                 }
             }
 
