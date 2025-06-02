@@ -652,10 +652,10 @@ namespace Data_Product.Controllers
 
                     }
 
-                    Worksheet.Range("A7:R" + (row)).Style.Font.SetFontName("Times New Roman");
-                    Worksheet.Range("A7:R" + (row)).Style.Font.SetFontSize(13);
-                    Worksheet.Range("A7:R" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                    Worksheet.Range("A7:R" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                    Worksheet.Range("A7:Q" + (row)).Style.Font.SetFontName("Times New Roman");
+                    Worksheet.Range("A7:Q" + (row)).Style.Font.SetFontSize(13);
+                    Worksheet.Range("A7:Q" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    Worksheet.Range("A7:Q" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
 
                     Workbook.SaveAs(fileNamemaunew);

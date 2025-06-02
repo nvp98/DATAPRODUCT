@@ -14,7 +14,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="App_Data\template_NhatKy_SanXuat.xlsx" />
     <None Remove="Models\Tbl_TrinhKyBoSung.cs~RF1f541f7d.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="App_Data\template_NhatKy_SanXuat.xlsx">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\BM\" />
     <Folder Include="wwwroot\Pdf\" />
     <Folder Include="wwwroot\ReceivedReports\" />
   </ItemGroup>
