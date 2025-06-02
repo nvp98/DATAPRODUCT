@@ -151,7 +151,7 @@ namespace Data_Product.Controllers
             if (IDKip != null)
             {
                 var dt = DateTime.Parse(ngay);
-                var ca = _context.Tbl_Kip.FirstOrDefault(x => x.TenCa == IDKip && x.NgayLamViec == dt);
+                var ca = _context.Tbl_Kip.FirstOrDefault(x => x.ID_Kip == Int32.Parse(IDKip) && x.NgayLamViec == dt);
                 cakip = ca?.TenCa + ca?.TenKip; //1A,2A,1B...
             }
             var dvt = new List<Bkmis_view>();
@@ -177,21 +177,21 @@ namespace Data_Product.Controllers
                         query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc2 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc2.ProductionDate = '" +
-                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" + cakip + "'";
+                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc2.ShiftName ='" + cakip + "'";
                     }
                     else if (ID_LoCao == 3)
                     {
                         query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc3 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc3.ProductionDate = '" +
-                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" + cakip + "'";
+                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc3.ShiftName ='" + cakip + "'";
                     }
                     else if (ID_LoCao == 4)
                     {
                         query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
                        "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc4 " +
                        "where bkmis_kcshpsdq.view_dq1_lg_daura_lc4.ProductionDate = '" +
-                        ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" + cakip + "'";
+                        ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc4.ShiftName ='" + cakip + "'";
                     }
 
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
