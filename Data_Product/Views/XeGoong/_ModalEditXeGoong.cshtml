@@ -1,0 +1,39 @@
+﻿@model Data_Product.Models.Tbl_XeGoong
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Edit" method="post" id="formEditXeGoong">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Chỉnh sửa Xe Goong</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="mb-3">
+                        <label asp-for="ID_LoCao" class="form-label">Chọn Lò Cao</label>
+                        <select asp-for="ID_LoCao" class="form-select" asp-items="ViewBag.LoCaoList" disabled>
+                            <option value="">-- Chọn Lò Cao --</option>
+                        </select>
+                        <span asp-validation-for="ID_LoCao" class="text-danger" type="hidden"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="KL_Xe" class="form-label">Khối Lượng Xe</label>
+                        <input asp-for="KL_Xe" class="form-control" />
+                        <span asp-validation-for="KL_Xe" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

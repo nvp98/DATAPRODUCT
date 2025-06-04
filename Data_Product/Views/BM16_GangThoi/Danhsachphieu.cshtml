@@ -123,15 +123,15 @@
 								@foreach (var item in Model)
 								{
 									<tr>
-										<td class="text-center"><a href="@Url.Action("Edit_Demo","BM16_GangThoi", new { id = item.MaPhieu })" class="text-primary">@item.MaPhieu</a></td>
+										<td class="text-center"><a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="text-primary">@item.MaPhieu</a></td>
 										<td class="text-center">@item.Ngay</td>
 										<td class="text-center">@item.ID_Kip</td>
 										<td class="text-center">@item.ID_Locao</td>
 										<td class="text-center">@item.ID_NguoiTao</td>
 										<td class="text-center">@item.ThoiGianTao</td>
 										<td class="text-center">
-											<a href="@Url.Action("Edit_Demo","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>
-											<a href="@Url.Action("Edit_Demo","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-warning">Sửa</a>
+											<a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>
+											<a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-warning">Sửa</a>
 										</td>
 									</tr>
 								}
