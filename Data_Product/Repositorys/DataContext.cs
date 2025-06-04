@@ -38,6 +38,8 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_MeThoi> Tbl_MeThoi { get; set; }
         public DbSet<Tbl_LoCao> Tbl_LoCao { get; set; }
         public DbSet<Tbl_BM_16_Phieu> Tbl_BM_16_Phieu { get; set; }
+        public DbSet<Tbl_BM_16_TaiKhoan_Thung> Tbl_BM_16_TaiKhoan_Thung { get; set; }
+        public DbSet<Tbl_Counter_MeThoi> Tbl_Counter_MeThoi { get; set; }
         public DbSet<Tbl_XeGoong> Tbl_XeGoong { get; set; } 
     }
 }

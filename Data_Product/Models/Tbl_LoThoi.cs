@@ -8,5 +8,6 @@ namespace Data_Product.Models
         public int ID { get; set; }
         public string TenLoThoi { get; set; }
         public DateTime NgayTao { get; set; }
+        public string MaLoThoi { get; set; }
     }
 }
