@@ -12,6 +12,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using Data_Product.DTO.BM_16_DTO;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 
 namespace Data_Product.Controllers
@@ -123,9 +124,6 @@ namespace Data_Product.Controllers
 
             return Json(CaKip);
         }
-
-
-
         public async Task<IActionResult> Danhsachphieu()
         {
            var danhSachPhieu = await _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.Ngay).ToListAsync();
@@ -201,7 +199,7 @@ namespace Data_Product.Controllers
                         ID_Locao = model.ID_Locao,
                         G_ID_Kip = model.ID_Kip,
                         T_ID_TrangThai = 2,
-                        ID_TrangThai = 2
+                        ID_TrangThai = 1
                     };
 
                     await _context.Tbl_BM_16_GangLong.AddAsync(thungGang);
@@ -222,24 +220,42 @@ namespace Data_Product.Controllers
                 });
             }
         }
-
-        public async Task<IActionResult> Edit_Demo(string id)
+        public async Task<IActionResult> DetailPhieu(string id)
         {
             if (string.IsNullOrEmpty(id))
-            {
                 return BadRequest("Mã phiếu không hợp lệ.");
-            }
 
             var phieu = await _context.Tbl_BM_16_Phieu.FirstOrDefaultAsync(p => p.MaPhieu == id);
             if (phieu == null)
-            {
                 return NotFound("Không tìm thấy phiếu.");
-            }
 
             var danhSachThung = await _context.Tbl_BM_16_GangLong
                 .Where(t => t.MaPhieu == id)
-                .OrderBy(t => t.BKMIS_ThungSo)
                 .ToListAsync();
+
+            // Chuyển sang view model nhẹ cho hiển thị
+            var viewData = danhSachThung.Select(t => new
+            {
+                MaThung = t.MaThungGang,
+                SoMe = t.BKMIS_SoMe,
+                ThuTuThung = t.BKMIS_ThungSo,
+                GioNhaMay = t.BKMIS_Gio,
+                PhanLoai = t.BKMIS_PhanLoai,
+                KL_XeGoong = t.KL_XeGoong,
+                KL_Thung = t.G_KLThungChua,
+                KL_Thung_GangLong = t.G_KLThungVaGang,
+                KL_GangLong_CanRay = t.G_KLGangLong,
+                DenHRC1 = t.ChuyenDen == "HRC1",
+                DenHRC2 = t.ChuyenDen == "HRC2",
+                DenDuc1 = t.ChuyenDen == "DUC1",
+                DenDuc2 = t.ChuyenDen == "DUC2",
+                GioNM = t.Gio_NM,
+                GhiChu = t.G_GhiChu,
+                DaChuyen = t.G_ID_TrangThai==1, 
+                TrangThai = t.ID_TrangThai,
+            }).ToList();
+
+            ViewBag.DanhSachThung = viewData;
 
             ViewBag.MaPhieu = phieu.MaPhieu;
             ViewBag.Ngay = phieu.Ngay;
@@ -247,7 +263,108 @@ namespace Data_Product.Controllers
             ViewBag.ID_Locao = phieu.ID_Locao;
             ViewBag.ThoiGianTao = phieu.ThoiGianTao;
 
-            return View(danhSachThung);
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> Chuyenthung([FromBody] List<string> dsthung)
+        {
+            try 
+            { 
+                if (dsthung == null || !dsthung.Any())
+                {
+                   return Json(new { success = false, message = "Vui lòng chọn ít nhất một thùng" });
+                }
+                var thungs = await _context.Tbl_BM_16_GangLong.Where(t=> dsthung.Contains(t.MaThungGang)).ToListAsync();
+                if (!thungs.Any())
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thùng nào" });
+                }
+                var thungKhongHopLe = thungs.Where(t => t.G_ID_TrangThai != 1).ToList();
+               
+                if (thungKhongHopLe.Any())
+                {
+                    var maThungs = string.Join(", ", thungKhongHopLe.Select(t => t.MaThungGang));
+                    return Json(new { success = false, message = $"Các thùng sau không ở trạng thái 'Chưa chuyển': {maThungs}" });
+                }
+                var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                if (string.IsNullOrEmpty(tenTaiKhoan))
+                    return Unauthorized("Phiên đăng nhập không hợp lệ.");
+
+                var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+                if (taiKhoan == null)
+                    return Unauthorized("Tài khoản không tồn tại.");
+
+                int idNhanVienChuyen = taiKhoan.ID_TaiKhoan;
+
+                foreach (var thung in thungs)
+                {
+                    thung.G_ID_TrangThai = 3; // Đã chuyển
+                    thung.G_ID_NguoiChuyen = idNhanVienChuyen;
+                    thung.ID_TrangThai = 2;
+                    //thung.Gio_NM = DateTime.Now.ToString("HH:mm");
+                    //thung.NgayTao = DateTime.Now;
+                }
+                await _context.SaveChangesAsync();
+                return Json(new
+                {
+                    success = true,
+                    message = $"Đã chuyển thành công {thungs.Count} thùng.",
+                    count = thungs.Count
+
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi khi chuyển thùng: {ex.Message}" });
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult>ThuHoiThung([FromBody] List<string> dsthuhoi)
+        {
+            try
+            {
+                if (dsthuhoi == null || !dsthuhoi.Any())
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn ít nhất một thùng" });
+                }
+                var thungs = await _context.Tbl_BM_16_GangLong.Where( t => dsthuhoi.Contains(t.MaThungGang) 
+                && t.G_ID_TrangThai == 3 
+                && t.T_ID_TrangThai == 2 
+                && t.ID_TrangThai == 2).ToListAsync();
+
+                if (!thungs.Any())
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thùng nào" });
+                }
+                var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                if (string.IsNullOrEmpty(tenTaiKhoan))
+                    return Unauthorized("Phiên đăng nhập không hợp lệ.");
+
+                var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+                if (taiKhoan == null)
+                    return Unauthorized("Tài khoản không tồn tại.");
+
+                int idNhanVienThuHoi = taiKhoan.ID_TaiKhoan;
+                foreach (var thung in thungs)
+                {
+                    thung.G_ID_TrangThai = 1; // Chưa chuyển
+                    thung.ID_TrangThai = 1;   // Chưa chuyển
+                    thung.G_ID_NguoiThuHoi = idNhanVienThuHoi;             
+                }
+                await _context.SaveChangesAsync();
+                return Json(new
+                {
+                    success = true,
+                    message = $"Đã thu hồi thành công {thungs.Count} thùng.",
+                    count = thungs.Count
+
+                });
+            }
+
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi khi thu hồi thùng: {ex.Message}" });
+            }
         }
     }
 }
