@@ -1,0 +1,28 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<form id="formTaoMeThoi">
+    <div class="mb-3">
+        <label for="loThoi" class="form-label">Lò Thổi</label>
+        <select class="form-select" id="formLoThoi" name="loThoi">
+            <option value="">-- Lò thổi --</option>
+            @foreach (var lothoi in ViewBag.LoThoiList)
+            {
+                <option data-id="@lothoi.ID" value="@lothoi.MaLoThoi">@lothoi.TenLoThoi</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="soLuong" class="form-label"></label>
+        <input type="number" class="form-control" id="formSoLuong" name="soLuong" min="1" value="" />
+    </div>
+
+    
+
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" id="btnDongModalTaoMeThoi">Đóng</button>
+        <button type="button" class="btn btn-primary" onclick="submitTaoMe()">Lưu</button>
+    </div>
+</form>

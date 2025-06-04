@@ -54,6 +54,8 @@ namespace Data_Product.Models
 
         public bool? KR { get; set; }
 
+        public bool? T_copy{ get; set; }
+
         [StringLength(20)]
         public string? MaThungThep { get; set; }
 

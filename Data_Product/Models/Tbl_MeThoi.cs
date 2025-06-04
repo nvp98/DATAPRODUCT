@@ -11,5 +11,9 @@ namespace Data_Product.Models
         public string MaMeThoi { get; set; }
         public int ID_NguoiTao { get; set; }
         public int ID_TrangThai { get; set; }
+        public int ID_LoThoi { get; set; }
+
+        [NotMapped]
+        public string? MaLoThoi { get; set; }
     }
 }

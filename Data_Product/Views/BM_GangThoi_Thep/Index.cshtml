@@ -39,77 +39,100 @@
     }
 }
 <style>
-    .left-container_header{
-        border-right: solid;
-    }
-    .main-content{
-        position: absolute;
-        top:250px;
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
+    body {
+        overflow: hidden; /* Ngăn cuộn toàn bộ trang */
     }
 
-    .left-container{
-        border-radius: 5px;
-        box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
-        border-right: solid;
-        height: 100vh;
-        overflow-y: auto;
+    .isolated-layout {
+        all: initial;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh; /* Chiếm toàn bộ chiều cao viewport */
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        overflow: hidden; /* Ngăn cuộn container chính */
+        font-size: 11px;
     }
 
-
-    .right-container{
-        border-radius: 5px;
-        box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);
-        height: 100vh;
-        overflow-y: auto;
+    .isolated-layout .header-fixed {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background-color: #f8f9fa;
+        padding: 10px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
- 
-    /* Chrome, Edge, Safari */
-    .right-container::-webkit-scrollbar,
-    .left-container::-webkit-scrollbar {
-      width: 3px;  
-      height: 3px;  
+    .isolated-layout .content {
+        flex-grow: 1; /* Mở rộng để chiếm không gian còn lại */
+        display: flex;
+        flex-direction: column;
     }
 
-    .right-container::-webkit-scrollbar-track,
-    .left-container::-webkit-scrollbar-track {
-      background: #f1f1f1;
+    .isolated-layout .table-container {
+        max-height: calc(100vh - 120px); /* Trừ chiều cao header (ước lượng 120px) */
+        overflow-y: auto; /* Chỉ bảng cuộn dọc */
+        margin-top: 20px;
+        border: 1px solid #dee2e6;
+        padding-bottom: 200px; /* Padding để các dòng cuối không bị khuất */
     }
 
-    .right-container::-webkit-scrollbar-thumb,
-    .left-container::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 3px;
+    /* Tùy chỉnh thanh cuộn cho WebKit (Chrome, Safari) */
+    .isolated-layout .table-container::-webkit-scrollbar {
+        width: 2px; /* Chiều rộng thanh cuộn mỏng hơn */
     }
 
-    .right-container::-webkit-scrollbar-thumb:hover,
-    .left-container::-webkit-scrollbar-thumb:hover {
-      background: #555;
+    .isolated-layout .table-container::-webkit-scrollbar-thumb {
+        background-color: #888; /* Màu thanh kéo */
+        border-radius: 1px; /* Bo góc thanh kéo */
     }
 
-    /* Firefox */
-    .right-container,
-    .left-container {
-      scrollbar-width: thin; 
-      scrollbar-color: #888 #f1f1f1;
+    .isolated-layout .table-container::-webkit-scrollbar-thumb:hover {
+        background-color: #555; /* Màu khi hover */
     }
 
+    .isolated-layout .table-container::-webkit-scrollbar-track {
+        background-color: #f1f1f1; /* Màu nền thanh cuộn */
+    }
 
+    /* Tùy chỉnh thanh cuộn cho Firefox */
+    .isolated-layout .table-container {
+        scrollbar-width: thin; /* Thanh cuộn mỏng */
+        scrollbar-color: #888 #f1f1f1; /* Màu thanh kéo và nền */
+    }
 
-    .filter-item{
+    .isolated-layout .table-container table {
+        width: 100%;
+        margin: 0;
+    }
+
+    .isolated-layout .table-container thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 10;
+    }
+
+    .isolated-layout .table-container tbody tr:hover {
+        background-color: #f1f3f5;
+    }
+
+    .col-5{
+        border-right: solid black 1px;
+    }
+
+    .filter-item {
         margin-top: 5px;
         height: 40px;
     }
 
-    .table-container{
+    .table-container {
         width: 100%;
         height: 100%;
     }
 
-    .btn{
+    .btn {
         height: 35px;
         margin-left: 20px;
         font-size: 12px;
@@ -123,369 +146,278 @@
         padding: 2px 5px;
     }
 
-    .status-card{
+    .status-card {
         height: 35px;
         width: 80px;
         border-radius: 5px;
         display: flex;
         justify-content: center;
+        align-items: center;
         font-weight: 400;
     }
+    .status-text{
+        padding: 0 !important;
+        font-size: 12px;
+    }
 
-    .hide-col{
+    .hide-col {
         display: none;
     }
-    
+
 </style>
-    <div class="app-main__outer">
-        <div class="app-main__inner" style="display:block;padding-bottom: 0px; font-size: 13px;">
+<div class="isolated-layout">
+    <div class="header-fixed">
+        <div class="container-fluid">
+            <input type="text" style="display: none" id="ID_currentUser" value="@TaiKhoan.ID_TaiKhoan" />
             <div class="row">
-                <div class="card">
-                    <div class="row" style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: fixed; background-color: #F9F9F9;padding: 20px 10px; height: 250px; z-index: 1;  box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);">
-                        @* <div class="row" style="flex: 2; text-align: left; padding: 2% 2% 2% 0%;">
-                            <span class="text-muted small pt-2 ps-1">
-                                <b style="color:#06428b">
-                                    BM.16/QT.05.09
-                                </b>
-                            </span>
-                        </div> *@
-                        @* <div class="row" style="width:100%"> *@
-                            <input type="text" style="display: none" id="ID_currentUser" value="@TaiKhoan.ID_TaiKhoan" />
-                            <div class="col-5 left-container_header">
-                                <h5><strong>KHU VỰC NHẬN THÙNG</strong></h5>
-                                <hr />
-                                <div class="row g-3">
-                                    <!-- Cột chứa các input/dropdown -->
-                                    <div class="col-12">
-                                        <div class="row g-3">
-                                            <!-- Ngày làm việc -->
-                                            <div class="col-lg-6 col-12 filter-item">
-                                            <div class="row mb-3">
-                                                <label for="NgayLamViec" class="col-sm-5 col-form-label">Ngày làm việc: </label>
-                                                <div class="col-sm-7">
-                                                    <input type="date" class="form-control form-control-sm" id="ID_NgayLamViec" name="NgayLamViec"
-                                                            min="@ViewBag.MinDate"
-                                                            max="@ViewBag.MaxDate"
-                                                            value="@ViewBag.DefaultDate"
-                                                            onkeydown="return false;">
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Ca làm việc -->
-                                            <div class="col-lg-6 col-12 filter-item">
-                                            <div class="row mb-3">
-                                                <label for="CaLamViec" class="col-sm-5 col-form-label">Ca làm việc: </label>
-                                                <div class="col-sm-7">
-                                                    <select class="form-select form-select-sm" id="IDCaLamViec" name="CaLamViec">
-                                                        <option value="">-- Ca làm việc --</option>
-                                                        <option value="1">Ca 1</option>
-                                                        <option value="2">Ca 2</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            </div>
-
-                                            <!-- Lò cao -->
-                                            <div class="col-lg-6 col-12 filter-item">
-                                                <div class="row mb-3">
-                                                    <label for="LoCao" class="col-sm-5 col-form-label">Lò cao:</label>
-                                                    <div class="col-sm-7">
-                                                        <select class="form-select form-select-sm" id="IDLoCao" name="LoCao">
-                                                            <option value="null">-- Lò cao --</option>
-                                                            @foreach (var locao in ViewBag.LoCaoList)
-                                                            {
-                                                                <option value="@locao.ID">@locao.TenLoCao</option>
-                                                            }
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Chuyển đến -->
-                                            <div class="col-lg-6 col-12 filter-item">
-                                                <div class="row mb-3">
-                                                    <label for="ChuyenDen" class="col-sm-5 col-form-label">Chuyển đến:</label>
-                                                    <div class="col-sm-7">
-                                                        <select class="form-select form-select-sm" id="IDChuyenDen" name="ChuyenDen">
-                                                            <option value="null">-- Chuyển đến --</option>
-                                                            <option value="HRC1">HRC 1</option>
-                                                            <option value="Duc1">Đúc 1</option>
-                                                            <option value="HRC2">HRC 2</option>
-                                                            <option value="Duc2">Đúc 2</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Tình trạng -->
-                                            <div class="col-lg-6 col-12 filter-item">
-                                                <div class="row mb-3">
-                                                    <label for="ChuyenDen" class="col-sm-5 col-form-label">Tình trạng:</label>
-                                                    <div class="col-sm-7">
-                                                        <select class="form-select form-select-sm" id="IDTinhTrang" name="TinhTrang">
-                                                        <option value="null">-- Tình trạng --</option>
-                                                        @foreach (var trangthai in ViewBag.TinhTrangList)
-                                                        {
-                                                            <option value="@trangthai.Value">@trangthai.Text</option>
-                                                        }
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- Timf kieem -->
-                                            <div class="col-lg-6 col-12 d-flex  justify-content-end filter-item">
-                                                    <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
-                                            </div>
+                <div class="col-5">
+                    <h5><strong>KHU VỰC NHẬN THÙNG</strong></h5>
+                    <hr />
+                    <div class="row g-3">
+                        <!-- Cột chứa các input/dropdown -->
+                        <div class="col-12">
+                            <div class="row g-3">
+                                <!-- Ngày làm việc -->
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="NgayLamViec" class="col-sm-5 col-form-label">Ngày làm việc: </label>
+                                        <div class="col-sm-7">
+                                            <input type="date" class="form-control form-control-sm" id="ID_NgayLamViec" name="NgayLamViec"
+                                                   min="@ViewBag.MinDate"
+                                                   max="@ViewBag.MaxDate"
+                                                   value="@ViewBag.DefaultDate"
+                                                   onkeydown="return false;">
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row g-3 d-flex align-items-end">
-                                    <div class="col-12 d-flex justify-content-end">
-                                        <button class="btn btn-warning btn-sm px-4" id="IDbtnLuuKR">Lưu KR</button>
-                                        <button class="btn btn-success btn-sm px-4" id="IDbtnNhanThung">Nhận</button>
-                                        <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung">Hủy nhận</button>
-                                            
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-7 right-container_header" style="position: relative">
-                                <h5><strong>KHU VỰC XỬ LÝ SỐ LIỆU</strong></h5>
-                                <hr />
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        <div class="row g-3">
-                                            <!-- Ngày làm việc -->
-                                            <div class="col-lg-6 col-12 filter-item">
-                                                <div class="row mb-3">
-                                                    <label for="ngayLamViec" class="col-sm-4 col-form-label">Ngày làm việc: </label>
-                                                    <div class="col-sm-8">
-                                                        <input type="date" class="form-control form-control-sm" id="IDNgayNhan" name="ngayLamViec" min="@ViewBag.MinDate"
-                                                                max="@ViewBag.MaxDate"
-                                                                value="@ViewBag.DefaultDate"
-                                                                onkeydown="return false;">
-                                                        <small class="error-msg text-danger">Vui lòng chọn ngày</small>
-                                                        </div>
-                                                </div>
-                                            </div>
 
-                                            <!-- Ca làm việc -->
-                                            <div class="col-lg-6 col-12 filter-item">
-                                                <div class="row mb-3">
-                                                    <label for="caLamViec" class="col-sm-3 col-form-label">Ca làm việc: </label>
-                                                    <div class="col-sm-9">
-                                                        <select class="form-select form-select-sm" id="IDCaNhan" name="CaNhan">
-                                                            <option value="">-- Ca làm việc --</option>
-                                                            <option value="1">Ca 1</option>
-                                                            <option value="2">Ca 2</option>
-                                                        </select>
-                                                        <small class="error-msg text-danger">Vui lòng chọn Ca làm việc</small>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Lò thổi -->
-                                            <div class="col-lg-6 col-12 filter-item">
-                                                <div class="row mb-3">
-                                                    <label for="caLamViec" class="col-sm-4 col-form-label">Lò thổi: </label>
-                                                    <div class="col-sm-8">
-                                                        <select class="form-select form-select-sm" id="IDLoThoi" name="LoThoi">
-                                                            <option value="null">-- Lò thổi --</option>
-                                                            @foreach (var lothoi in ViewBag.LoThoiList)
-                                                            {
-                                                                <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
-                                                            }
-                                                        </select>
-                                                        <small class="error-msg text-danger">Vui lòng chọn Lò thổi</small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- Timf kieem -->
-                                            <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
-                                                    <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
-                                            </div>
+                                <!-- Ca làm việc -->
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="CaLamViec" class="col-sm-5 col-form-label">Ca làm việc: </label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDCaLamViec" name="CaLamViec">
+                                                <option value="">-- Ca làm việc --</option>
+                                                <option value="1">Ca 1</option>
+                                                <option value="2">Ca 2</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="row g-3" style="position: absolute;bottom: 0;right: 15px;">
-                                    <div class="col-12 d-flex justify-content-end">
-                                        <button class="btn btn-warning btn-sm px-4"  id="BtnAnHien">Ẩn/Hiện</button>
-                                        <button class="btn btn-warning btn-sm px-4"  id="BtnLuuPhieu">Lưu</button>
-                                        <button class="btn btn-success btn-sm px-4"  id="BtnXuatPhieuExcel">Xuất Excel</button>
-                                        <button class="btn btn-success btn-sm px-4"  id="BtnXuatPhieuPDF">Xuất PDF</button>
-                                        @* button mở modal check mẻ thổi *@
-                                        <button class="btn btn-primary" id="OpenModalMeThoi">Mẻ thổi</button>
-                                    </div>
-                                </div>
-                            </div>
-                        @* </div> *@
-                    </div>
-                    <div class="row main-content">
-                        <div class="col-5 left-container">
-                            <div class="table-container">
-                                <table class="table table-bordered table-sm mt-4 text-center align-middle" id="IDtbKhuVucNhanThung">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Giờ NM</th>
-                                            <th>Mã thùng gang</th>
-                                            <th>Lò cao</th>
-                                            <th>Thùng số</th>
-                                            <th>Chuyển đến</th>
-                                            <th>KR</th>
-                                            <th>Chọn thùng</th>
-                                            <th>Tình trạng</th>
-                                            <th>HRC1</th>
-                                            <th>HRC2</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var item in Model)
-                                        {
-                                            <tr data-id="@item.ID">
-                                                <td>@item.Gio_NM</td>
-                                                <td>@item.MaThungGang</td>
-                                                <td>@item.TenLoCao</td>
-                                                <td>@item.BKMIS_ThungSo</td>
-                                                <td>@item.ChuyenDen</td>
-                                                <td>
-                                                    <input type="checkbox" name="KR" value="@item.KR" id="IDcbxLuuKR"/>
-                                                </td>
-                                                <td>
-                                                    <input type="checkbox" name="ChonThung" value="" id="IDcbxNhanThung"/>
-                                                </td>
-                                                <td class="status-cell" data-tinhtrang="@item.T_ID_TrangThai">
-                                                </td>
-                                                <td>
-                                                    @* @foreach(var hrc1 in item.T_NguoiNhanList)
-                                                    {
-                                                    <span>@hrc1.ID_NguoiNhan - (@hrc1.TongSoLanNhan)</span>
-                                                
-                                                    <br />
-                                                    } *@
-                                                    
-                                                </td>
-                                            <td>
-                                                @* @foreach (var hrc2 in item.HRC2)
+
+                                <!-- Lò cao -->
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="LoCao" class="col-sm-5 col-form-label">Lò cao:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDLoCao" name="LoCao">
+                                                <option value="">-- Lò cao --</option>
+                                                @foreach (var locao in ViewBag.LoCaoList)
                                                 {
-                                                    <span>@hrc2</span>
-                                                
-                                                    <br />
+                                                    <option value="@locao.ID">@locao.TenLoCao</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Chuyển đến -->
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="ChuyenDen" class="col-sm-5 col-form-label">Chuyển đến:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDChuyenDen" name="ChuyenDen">
+                                                <option value="">-- Chuyển đến --</option>
+                                                <option value="HRC1">HRC 1</option>
+                                                <option value="Duc1">Đúc 1</option>
+                                                <option value="HRC2">HRC 2</option>
+                                                <option value="Duc2">Đúc 2</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tình trạng -->
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="ChuyenDen" class="col-sm-5 col-form-label">Tình trạng:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDTinhTrang" name="TinhTrang">
+                                                <option value="">-- Tình trạng --</option>
+                                                <option value="4">Đã nhận</option>
+                                                <option value="2">Chờ xử lý</option>
+                                                @* @foreach (var trangthai in ViewBag.TinhTrangList)
+                                                {
+                                                    <option value="@trangthai.Value">@trangthai.Text</option>
                                                 } *@
-                                            </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Timf kieem -->
+                                <div class="col-lg-6 col-12 d-flex  justify-content-end filter-item">
+                                    <button class="btn btn-primary btn-sm px-4" id="btnSeachLG">Tìm kiếm</button>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-7 right-container">
-                            <div class="table-container">
-                                <table class="table table-bordered table-sm mt-4 text-center align-middle" id="IDtbXuLySoLieu">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="hide-col">Mã thùng thép</th>
-                                            <th>Lò cao</th>
-                                            <th>Thùng số</th>
-                                            <th>Khối lượng thùng & gang lỏng (T)</th>
-                                            <th>Khối lượng thùng (T)</th>
-                                            <th>Khối lượng gang lỏng (T)</th>
-                                            <th>Thùng trung gian</th>
-                                            <th>KL thùng & gang lỏng (T) </th>
-                                            <th>KL thùng (T)</th>
-                                            <th>KL vào lò thổi </th>
-                                            <th>Mẻ thổi</th>
-                                            <th>Ghi chú</th>
-                                            <th>Trạng thái</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                        @* hàng cuối để chốt tổng khối lượng thùng *@ 
-                                    <tfoot>
-                                        <tr style="height: 50px;">
-                                            <td class="total-space" colspan="8" style="font-weight: 600; text-align: start">Tổng</td>
-                                            <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
-                                                0.00
-                                            </td>
-                                            <td colspan="3"></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                    </div>
+                    <div class="row g-3 d-flex align-items-end">
+                        <div class="col-12 d-flex justify-content-end">
+                            <button class="btn btn-warning btn-sm px-4" id="btnLuuKR">Lưu KR</button>
+                            <button class="btn btn-success btn-sm px-4" id="IDbtnNhanThung">Nhận</button>
+                            <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung">Hủy nhận</button>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-7">
+                    <h5><strong>KHU VỰC XỬ LÝ SỐ LIỆU</strong></h5>
+                    <hr />
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="row g-3">
+                                <!-- Ngày làm việc -->
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="ngayLamViec" class="col-sm-4 col-form-label">Ngày làm việc: </label>
+                                        <div class="col-sm-8">
+                                            <input type="date" class="form-control form-control-sm" id="IDNgayNhan" name="ngayLamViec" min="@ViewBag.MinDate"
+                                                   max="@ViewBag.MaxDate"
+                                                   value="@ViewBag.DefaultDate"
+                                                   onkeydown="return false;">
+                                            <small class="error-msg text-danger">Vui lòng chọn ngày</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Ca làm việc -->
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="caLamViec" class="col-sm-3 col-form-label">Ca làm việc: </label>
+                                        <div class="col-sm-9">
+                                            <select class="form-select form-select-sm" id="IDCaNhan" name="CaNhan">
+                                                <option value="">-- Ca làm việc --</option>
+                                                <option value="1">Ca 1</option>
+                                                <option value="2">Ca 2</option>
+                                            </select>
+                                            <small class="error-msg text-danger">Vui lòng chọn Ca làm việc</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Lò thổi -->
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="caLamViec" class="col-sm-4 col-form-label">Lò thổi: </label>
+                                        <div class="col-sm-8">
+                                            <select class="form-select form-select-sm" id="IDLoThoi" name="LoThoi">
+                                                <option value="">-- Lò thổi --</option>
+                                                @foreach (var lothoi in ViewBag.LoThoiList)
+                                                {
+                                                    <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
+                                                }
+                                            </select>
+                                            <small class="error-msg text-danger">Vui lòng chọn Lò thổi</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Timf kieem -->
+                                <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
+                                    <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                    <div class="row g-3" style="position: absolute;bottom: 10px;right: 12px;">
+                        <div class="col-12 d-flex justify-content-end">
+                            <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
+                            <button class="btn btn-warning btn-sm px-4" id="BtnLuuPhieu">Lưu</button>
+                            <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel">Xuất Excel</button>
+                            <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
+                            @* button mở modal check mẻ thổi *@
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTaoMeThoi" onclick="loadModalTaoMe()">Tạo Mẻ thổi</button>
+                            <button class="btn btn-primary" data-bs-toggle="modal" onclick="loadModalFilterMeThoi()">Chon Mẻ</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
+    <div class="content">
+        <div class="container-fluid">
+            <div class="row"> 
+                <div class="col-5 left-container">
+                    <div class="table-container" role="region" aria-label="Scrollable Table 1">
+                        <table class="table table-bordered text-center align-middle" id="IDtbKhuVucNhanThung">
+                            <thead>
+                                <tr>
+                                    <th>Giờ NM</th>
+                                    <th>Mã thùng gang</th>
+                                    <th>Lò cao</th>
+                                    <th>Thùng số</th>
+                                    <th>Chuyển đến</th>
+                                    <th>KR</th>
+                                    <th>Chọn thùng</th>
+                                    <th>Tình trạng</th>
+                                    <th>Người nhận</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-7 right-container">
+                    <div class="table-container" role="region" aria-label="Scrollable Table 2">
+                        <table class="table table-bordered text-center align-middle" id="IDtbXuLySoLieu">
+                            <thead>
+                                <tr>
+                                    <th class="hide-col">Mã thùng thép</th>
+                                    <th>Lò cao</th>
+                                    <th>Thùng số</th>
+                                    <th>Khối lượng thùng & gang lỏng (T)</th>
+                                    <th>Khối lượng thùng (T)</th>
+                                    <th>Khối lượng gang lỏng (T)</th>
+                                    <th>Thùng trung gian</th>
+                                    <th>KL thùng & gang lỏng (T) </th>
+                                    <th>KL thùng (T)</th>
+                                    <th>KL vào lò thổi </th>
+                                    <th>Mẻ thổi</th>
+                                    <th>Ghi chú</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            @* hàng cuối để chốt tổng khối lượng thùng *@ 
+                                    <tfoot>
+                                <tr style="height: 50px;">
+                                    <td class="total-space" colspan="8" style="font-weight: 600; text-align: start">Tổng</td>
+                                    <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
+                                        0.00
+                                    </td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+  
 
     <!-- Modal mẻ thổi -->
-    <div class="modal fade" id="ModalDanhSachMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal fade" id="modalFilterMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Danh sách Mẻ thổi</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
-          <div class="modal-body">
-               <div class="row">
-                    <div class="col-12 d-flex justify-content-end">
-                        <button id="BtnModalFormTaoMeThoi" class="btn btn-primary btn-sm px-4">Tạo mẻ thổi</button>
-                    </div>
-               </div>
-               <div class="row">
-                   <table class="table table-bordered table-sm mt-4 text-center align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Mẻ thổi</th>
-                                <th>Tình trạng mẻ thổi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>250525A002684</td>
-                                <td>
-                                    <div class="status-card bg-success">
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Đã sử dụng
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>250525A00265</td>
-                                <td>
-                                    <div class="status-card bg-success">
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Đã sử dụng
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>250525A00266</td>
-                                <td>
-                                    <div class="status-card bg-success">
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Đã sử dụng
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>250525A002687</td>
-                                <td>
-                                    <div class="status-card bg-warning">
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Chờ xử lý
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-               </div>
+          <div class="modal-body" id="modalFilerMethoi">
+               
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -496,24 +428,14 @@
     
 
     <!-- Modal form tạo mẻ thổi -->
-     <div class="modal fade " id="ModalFormTaoMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal fade" id="modalTaoMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Tạo Mẻ thổi</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
           </div>
-          <div class="modal-body">
-              <form>
-                  <div class="mb-3">
-                    <label for="SoLuongMe" class="form-label">Số lượng mẻ thổi</label>
-                    <input type="number" class="form-control" id="TbxSoLuongMe" aria-describedby="SoLuongMe">
-                  </div>
-                  <button type="submit" class="btn btn-primary">Tạo</button>
-               </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <div class="modal-body" id="modalTaoMe">
           </div>
         </div>
       </div>
@@ -524,7 +446,105 @@
 
     @* logic auto tinhs toan so lieu*@
     <script type="text/javascript">
+            // function showAlert(message, type) {
+            //     const alertId = 'alert-' + Date.now();
+            //     const alertHtml = `
+            //         <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
+            //             ${message}
+            //             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            //         </div>
+            //     `;
+
+            //     $('#alertContainer').html(alertHtml);
+
+            //     setTimeout(() => {
+            //         const alertElement = bootstrap.Alert.getOrCreateInstance(document.getElementById(alertId));
+            //         alertElement.close();
+            //     }, 2000);
+            // }
         $(document).ready(function () {
+            //render table Khu Vuc Nhan Thung
+                function renderTableNhanThung(data) {
+                  const tbody = $('#IDtbKhuVucNhanThung tbody');
+                  tbody.empty();
+                  if(data.length){
+                      data.forEach(item => {
+                        const tinhTrangHTML = renderStatusCard(item.t_ID_TrangThai);
+
+                        const nguoiNhanHtml = item.nguoiNhanList.length > 0
+                            ? item.nguoiNhanList.join('<br>')
+                            : '';
+
+                        const html = `
+                          <tr data-id="${item.id}">
+                            <td>${item.gio_NM}</td>
+                            <td>${item.maThungGang}</td>
+                            <td>${item.iD_Locao}</td>
+                            <td>${item.bkmiS_ThungSo}</td>
+                            <td>${item.chuyenDen}</td>
+                                <td>
+                                    <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                                </td>
+                                <td>
+                                    <input type="checkbox" class="cbx-nhanThung" name="ChonThung" value="" ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                                </td>
+                                <td class="status-cell">
+                                    ${tinhTrangHTML}
+                                </td>
+                                <td class="nguoi-nhan">
+                                    ${nguoiNhanHtml}
+                                </td>
+                            </tr>
+                          `;
+                        tbody.append(html);
+                      });
+                  } else {
+                      const html = `
+                        <div>
+                            <span>Không tìm thấy dữ liệu</span>
+                        </div>
+                          `;
+                       tbody.append(html);
+                  }
+
+                }
+            // Search Luyen Gang de nhan thung
+            function SearchLT() {
+                // value cac field
+                const NgayLamViec = $('#ID_NgayLamViec').val() || null;
+                const IDCaLamViec = $('#IDCaLamViec').val() || null;
+                const IDLoCao = $('#IDLoCao').val() || null;
+                const IDChuyenDen = $('#IDChuyenDen').val() || null;
+                const IDTinhTrang = $('#IDTinhTrang').val() || null;
+
+                const payload = {
+                    NgayLuyenGang: NgayLamViec,
+                    ID_TrangThai: IDTinhTrang,
+                    ID_Locao: IDLoCao,
+                    ChuyenDen: IDChuyenDen,
+                    G_Ca: IDCaLamViec
+                };
+
+                $.ajax({
+                    url: '/BM_GangThoi_Thep/SearchLT',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function (data) {
+                        renderTableNhanThung(data);
+                    },
+                    error: function (err) {
+                        alert("Lỗi khi tìm kiếm dữ liệu");
+                    }
+                });
+            }
+            // render tim kiem ban dau
+             const today = new Date().toISOString().split("T")[0];
+            $('#ID_NgayLamViec').val(today);
+
+            SearchLT(); // call hàm search
+
+
             // render card trạng thái
             function renderStatusCard(tinhTrang) {
                 const statusMap = {
@@ -541,38 +561,27 @@
 
                 return `
                     <div class="status-card ${bgClass}">
-                        <span class="small pt-2 ps-1" style="color: ${textColor};">
+                    <span class="status-text small pt-2 ps-1" style="color: ${textColor};">
                             ${label}
                         </span>
                     </div>
                 `;
             }
-            $(".status-cell").each(function () {
-                const tinhTrang = parseInt($(this).data("tinhtrang"));
-                const html = renderStatusCard(tinhTrang);
-                $(this).html(html);
-            });
-
-            // value cac field
-            const NgayLamViec = $('#ID_NgayLamViec').val();
-            const IDCaLamViec = $('#IDCaLamViec').val();
-            const IDLoCao = $('#IDLoCao').val();
-            const IDChuyenDen = $('#IDChuyenDen').val
-            const IDTinhTrang = $('#IDTinhTrang').val();
-           
+            
 
             // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
-            $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong', function () {
-                const $row = $(this).closest('tr'); 
+            $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong, .KhoiLuongThung', function () {
+                const $row = $(this).closest('tr');
+                const KLThungVaGangLongVaoLoThoi = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
+                const KLThungVaoLoThoi = parseFloat($row.find('.KhoiLuongThung').val());
 
-                const KLThungVaGangLong = parseFloat($(this).val()); 
-                const KLThung = parseFloat($row.find('.KLThung').text());
-                if(KLThungVaGangLong >= KLThung){
-                    const result = (KLThungVaGangLong -  KLThung).toFixed(2);
-                    $row.find('.KLGangLong').text(result);
-                } else{
-                    $row.find('.KLGangLong').text("0.00");
-                }
+                    if (!isNaN(KLThungVaGangLongVaoLoThoi) && !isNaN(KLThungVaoLoThoi) && KLThungVaGangLongVaoLoThoi >= KLThungVaoLoThoi) {
+                        const result = KLThungVaGangLongVaoLoThoi - KLThungVaoLoThoi;
+                    $row.find('.KLGangLong').text(result.toFixed(2));
+                       
+                    } else {
+                        $row.find('.KLGangLong').text("0.00");
+                    }
             });
 
 
@@ -595,21 +604,21 @@
                     });
                     $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
                 } else {
-                    $row.find('#IDKLVaoLoThoi').text("0.00");s
+                    $row.find('#IDKLVaoLoThoi').text("0.00");
                 }
             });
         
             // event mở modal danh sach me thoir
-            $('#OpenModalMeThoi').click(function () {
-            var modalMeThoi = new bootstrap.Modal(document.getElementById('ModalDanhSachMeThoi'));
-            modalMeThoi.show();
-            });
+            // $('#OpenModalMeThoi').click(function () {
+            // var modalMeThoi = new bootstrap.Modal(document.getElementById('ModalDanhSachMeThoi'));
+            // modalMeThoi.show();
+            // });
 
              // event mở modal Form taoj me thoi
-            $('#BtnModalFormTaoMeThoi').click(function () {
-                const modalFormMeThoi = new bootstrap.Modal(document.getElementById('ModalFormTaoMeThoi'));
-                modalFormMeThoi.show();
-            });
+            // $('#BtnModalFormTaoMeThoi').click(function () {
+            //     const modalFormMeThoi = new bootstrap.Modal(document.getElementById('ModalFormTaoMeThoi'));
+            //     modalFormMeThoi.show();
+            // });
 
 
             // event An/Hien ma Thùng Thép
@@ -621,123 +630,237 @@
                   $('.total-space').attr("colspan", 8)
                 }
                 
-            })
-        });
-
-         @* logic nhan thung *@
-        
-
-        // function validateForm(fieldList) {
-        //   let isValid = true;
-
-        //   $('.error-msg').text('');
-
-        //   fieldList.forEach(field => {
-        //     const input = $('#' + field.id);
-        //     const value = input.val().trim();
-        //     const errorEl = input.next('.error-msg');
-
-        //     if (value === '') {
-        //       errorEl.text(field.message || 'Trường này là bắt buộc.');
-        //       isValid = false;
-        //     }
-        //   });
-
-        //   return isValid;
-        // }
-
-        $('#IDbtnNhanThung').click(function () {
-            let selectedIds = [];
-            $('#IDtbKhuVucNhanThung tbody tr').each(function () {
-                const checkbox = $(this).find('#IDcbxNhanThung');
-                if (checkbox.is(':checked')) {
-                    const id = $(this).data('id');
-                    selectedIds.push(id);
-                }
             });
 
-            if (selectedIds.length === 0) {
-                alert("Vui lòng chọn ít nhất 1 dòng.");
+                   
+            
+            // Btn search LT
+            $('#btnSeachLG').click(function () {
+                SearchLT();
+            });
+
+             // Luu KR
+            $('#btnLuuKR').click(function () {
+                let selectedList = [];
+                $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+                    const id = $(this).data('id');
+                    const checkbox = $(this).find('.cbx-luuKR');
+                    let isChecked = false;
+                    if (checkbox.is(':checked')) {
+                        isChecked = true;
+                    }
+                    selectedList.push({id: id, isChecked: isChecked});
+                });
+
+                if (selectedList.length === 0) {
+                    alert("Vui lòng chọn ít nhất 1 dòng.");
+                    return;
+                }
+                $.ajax({
+                    url: "/BM_GangThoi_Thep/LuuKR",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(selectedList),
+                    processData: false,
+                    success: function (res) {
+                        alert("Lưu KR thành công!")
+                    }
+                })
+            })
+
+             @* logic nhan thung *@
+            $('#IDbtnNhanThung').click(function () {
+                let selectedIds = [];
+                $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+                    const checkbox = $(this).find('.cbx-nhanThung');
+                    if (checkbox.is(':checked')) {
+                        const id = $(this).data('id');
+                        selectedIds.push(id);
+                    }
+                });
+
+                if (selectedIds.length === 0) {
+                    alert("Vui lòng chọn ít nhất 1 dòng.");
+                    return;
+                }
+
+                // ID current user
+                const ID_currentUser = $('#ID_currentUser').val();
+
+                const NgayNhan = $('#IDNgayNhan').val();
+                const IDCaNhan = $('#IDCaNhan').val();
+                const IDLoThoi = $('#IDLoThoi').val();
+
+                if(!NgayNhan){
+                    alert("Vui lòng chọn Ngày"); return;
+                }
+                if(!IDCaNhan ){
+                    alert("Vui lòng chọn Ca"); return;
+                }
+                if(!IDLoThoi){
+                    alert("Vui lòng chọn Lò thổi"); return;
+                }
+
+                const payload = {
+                    selectedIds,
+                    ngayNhan: NgayNhan,
+                    idCa: IDCaNhan,
+                    idLoThoi: IDLoThoi,
+                    idNguoiNhan: ID_currentUser
+                }
+                $.ajax({
+                    url: "/BM_GangThoi_Thep/Nhan",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(payload),
+                    processData: false,
+                    success: function (res) {
+                        const tbody = $('#IDtbXuLySoLieu tbody');
+                        tbody.empty();
+                        res.data.forEach(item => {
+                            const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
+
+                            // show du lieu khi chon o table 2
+                            tbody.append(`
+                                <tr data-id="${item.id}">
+                                    <td class="hide-col">${item.maThungThep}</td>
+                                    <td>${item.iD_LoCao}</td>
+                                    <td>${item.bkmiS_ThungSo}</td>
+                                    <td>
+                                        <input class="table_tbx KhoiLuongThungVaGangLong" type="text" name="KhoiLuongThungVaGangLong" value="" />
+                                    </td>
+                                    <td class="KLThung">
+                                        <input class="table_tbx KhoiLuongThung" type="text" name="KhoiLuongThung" value="" />
+                                    </td>
+                                    <td class="KLGangLong">0.00</td>
+                                    <td>
+                                        <input class="table_tbx" type="text" name="ThungTrungGian" id="IDThungTrungGian" value="" />
+                                    </td>
+                                    <td>
+                                        <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="text" name="KLThungVaGangLongVaoLoThoi" value="" />
+                                    </td>
+                                    <td>
+                                        <input class="table_tbx KLThungVaoLoThoi" type="text" name="KLThungVaoLoThoi"  value="" />
+                                    </td>
+                                    <td id="IDKLVaoLoThoi" class="KLVaoLoThoi">0.00</td>
+                                    <td class="meThoi">
+                                        <button class="btn btn-primary" data-bs-toggle="modal" onclick="loadModalFilterMeThoi()">Chon Mẻ</button>
+                                    </td>
+                                    <td>
+                                        <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="" />
+                                    </td>
+                                    <td>
+                                        ${tinhTrangHTML}
+                                    </td>
+                                </tr>
+                            `);
+
+                            // update trang thai
+                            const row1 = $(`#IDtbKhuVucNhanThung tr[data-id="${item.id}"]`);
+                            const html = renderStatusCard(item.t_ID_TrangThai);
+                            row1.find('.status-cell').html(html);
+
+                            // const nguoiNhanHtml = item.nguoiNhanList.length > 0
+                            // ? item.nguoiNhanList.join('<br>')
+                            // : '';
+                            // row1.find('.nguoi-nhan').html(nguoiNhanHtml);
+                        });
+
+
+                        
+                        $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+                            $(this).find('.cbx-nhanThung').prop('checked', false);
+                        });
+                    },
+                    error: function () {
+                        alert("Lỗi khi nhận dữ liệu!");
+                    }
+                });
+            });
+        });
+
+        
+    </script>
+
+    @* Logic me thoi *@
+    <script>
+        // open modal chon me thoi
+        function loadModalFilterMeThoi() {
+            const id_LoThoi = $('#IDLoThoi').val();
+
+            if(!id_LoThoi){
+                alert("Vui lòng chọn Lò thổi");
+                $('#modalFilerMethoi').empty();
                 return;
-            } 
-
-            // ID current user
-            const ID_currentUser = $('#ID_currentUser').val();
-
-            const NgayNhan = $('#IDNgayNhan').val();
-            const IDCaNhan = $('#IDCaNhan').val();
-            const IDLoThoi = $('#IDLoThoi').val();
-
-            if(!NgayNhan){
-                alert("Vui lòng chọn Ngày"); return;
             }
-            if(!IDCaNhan ){
-                alert("Vui lòng chọn Ca"); return;
+
+            $.ajax({
+                url: '/MeThoi/FilterMeThoi', 
+                type: 'POST',
+                contentType: 'application/json',
+                processData: false,
+                data: JSON.stringify(id_LoThoi),
+                success: function (html) {
+                var modalMeThoi = new bootstrap.Modal(document.getElementById('modalFilterMeThoi'));
+                    modalMeThoi.show();
+                    $('#modalFilerMethoi').html(html);
+                },
+                error: function () {
+                    $('#modalFilerMethoi').html('<div class="text-danger">Không thể tải nội dung.</div>');
+                }
+            });
+        }
+
+        // open modal tao me
+        function loadModalTaoMe() {
+            $.ajax({
+                url: '/MeThoi/TaoMeThoi', 
+                type: 'GET',
+                success: function (html) {
+                    $('#modalTaoMe').html(html);
+                },
+                error: function () {
+                    $('#modalTaoMe').html('<div class="text-danger">Không thể tải nội dung.</div>');
+                }
+            });
+        }
+
+        // tao me
+        function submitTaoMe() {
+            const maLoThoi = $('#formLoThoi').val();
+            const soLuong = $('#formSoLuong').val();
+
+            const selectedOption = $('#formLoThoi option:selected');
+            const idLoThoi = selectedOption.data('id');
+
+            if(!soLuong){
+                alert("Vui lòng nhập số lượng mẻ thổi muốn tạo"); return;
             }
-            if(!IDLoThoi){
+            if(!maLoThoi){
                 alert("Vui lòng chọn Lò thổi"); return;
             }
 
-            const payload = {
-                selectedIds,
-                ngayNhan: NgayNhan, 
-                idCa: IDCaNhan, 
-                idLoThoi: IDLoThoi,
-                idNguoiNhan: ID_currentUser
-            }
             $.ajax({
-                url: "/BM_GangThoi_Thep/Nhan",
-                type: "POST",
-                contentType: "application/json",
-                data: JSON.stringify(payload),
+                url: '/MeThoi/TaoMeThoi',
+                method: 'POST',
+                contentType: 'application/json',
                 processData: false,
-                success: function (data) {
-                    const tbody = $('#IDtbXuLySoLieu tbody');
-                    tbody.empty();
-                    data.forEach(item => {
-                        const tinhTrangHTML = renderStatusCard(item.tinhTrang);
-
-                        tbody.append(`
-                            <tr data-id="${item.id}">
-                                <td class="hide-col">${item.maThungThep}</td>
-                                <td>${item.locao}</td>
-                                <td>${item.thungSo}</td>
-                                <td>
-                                    <input class="table_tbx KhoiLuongThungVaGangLong" type="text" name="KhoiLuongThungVaGangLong" value="" />
-                                </td>
-                                <td class="KLThung">${item.klThung}</td>
-                                <td class="KLGangLong">0.00</td>
-                                <td>
-                                    <input class="table_tbx" type="text" name="ThungTrungGian" id="IDThungTrungGian" value="" />
-                                </td>
-                                <td>
-                                    <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="text" name="KLThungVaGangLongVaoLoThoi" value="" />
-                                </td>
-                                <td>
-                                    <input class="table_tbx KLThungVaoLoThoi" type="text" name="KLThungVaoLoThoi"  value="" />
-                                </td>
-                                <td id="IDKLVaoLoThoi" class="KLVaoLoThoi">0.00</td>
-                                <td>${item.methoi ?  item.methoi : ""}</td>
-                                <td>
-                                    <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="" />
-                                </td>
-                                <td>
-                                    ${tinhTrangHTML}
-                                </td>
-                            </tr>
-                        `);
-                    });
-
-                    $('#IDtbKhuVucNhanThung tbody tr').each(function () {
-                        $(this).find('#IDcbxNhanThung').prop('checked', false);
-
-                    });
+                data: JSON.stringify({
+                    maLoThoi: maLoThoi,
+                    soLuong: parseInt(soLuong),
+                    id_LoThoi: idLoThoi
+                }),
+                success: function (res) {
+                    // showAlert('Tạo mẻ thổi thành công!', 'success');
+                    $('#btnDongModalTaoMeThoi').click();
+                     alert("Tạo mẻ thổi thành công!")
                 },
-                error: function () {
-                    alert("Lỗi khi nhận dữ liệu!");
+                error: function (err) {
+                    // showAlert('Tạo mẻ thổi thất bại: ' + xhr.responseText, 'danger');
+                    alert("Tạo mẻ thổi thất bại")
                 }
             });
-        });
+        }
     </script>
 
 
