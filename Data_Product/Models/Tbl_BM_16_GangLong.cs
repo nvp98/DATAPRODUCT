@@ -101,6 +101,7 @@ namespace Data_Product.Models
         public int? G_ID_NguoiThuHoi { get; set; }
 
         public int? T_ID_NguoiLuu { get; set; }
+        public int? T_ID_NguoiNhan { get; set; }
 
         public int? T_ID_NguoiHuyNhan { get; set; }
         public int? ID_NguoiChot { get; set; }

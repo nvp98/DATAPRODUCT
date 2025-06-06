@@ -9,6 +9,14 @@
         public int? G_Ca { get; set; }
     }
 
+
+    public class SearchThungDaNhanDto
+    {
+        public DateTime? NgayLamViec { get; set; } 
+        public int? T_Ca { get; set; }
+        public int? ID_LoThoi { get; set; }
+    }
+
     public class LuuKRDto
     {
         public int id { get; set; }
