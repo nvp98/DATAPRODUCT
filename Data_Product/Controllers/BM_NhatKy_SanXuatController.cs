@@ -37,8 +37,13 @@ namespace Data_Product.Controllers
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
             int ID_NhanVien_BG = TaiKhoan.ID_TaiKhoan;
+            var trangThaiList = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "0", Text = "Đang lưu" },
+                new SelectListItem { Value = "1", Text = "Hoàn thành" }
+            };
 
-            ViewBag.TTList = new SelectList(_context.Tbl_TrangThai.ToList(), "ID_TrangThai", "TenTrangThai", ID_TrangThai);
+            ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
             var res = await(from a in _context.Tbl_NhatKy_SanXuat.Where(x => x.ID_NhanVien_SX == ID_NhanVien_BG && !x.IsDelete)
                             join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan
                             select new Tbl_NhatKy_SanXuat
@@ -68,7 +73,7 @@ namespace Data_Product.Controllers
             return View(data);
         }
 
-        public async Task<IActionResult> Index_All(DateTime? begind, DateTime? endd, int? ID_TrangThai, string noidungDung,int? IDPhongBan,int? LyDoDung, string? IDCa, int page = 1)
+        public async Task<IActionResult> Index_All(DateTime? begind, DateTime? endd, int? ID_TrangThai, string noidungDung,int? IDPhongBan, int? IDXuong, int? LyDoDung, string? IDCa, int page = 1)
         {
             DateTime Now = DateTime.Now;
             DateTime startDay = new DateTime(Now.Year, Now.Month, 1);
@@ -79,6 +84,7 @@ namespace Data_Product.Controllers
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
             int ID_NhanVien_BG = TaiKhoan.ID_TaiKhoan;
+            ViewBag.TaiKhoan = TaiKhoan;
             var trangThaiList = new List<SelectListItem>
             {
                 new SelectListItem { Value = "0", Text = "Đang lưu" },
@@ -97,7 +103,8 @@ namespace Data_Product.Controllers
             ViewBag.IDPhongBan = new SelectList(_context.Tbl_PhongBan.ToList(), "ID_PhongBan", "TenPhongBan", IDPhongBan);
             ViewBag.LyDoDung = new SelectList(_context.Tbl_NhatKy_LyDo.ToList(), "ID", "TenLyDo", LyDoDung);
             ViewBag.noidungDung = noidungDung;
-
+            ViewBag.IDXuong =  new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", IDXuong);
+            ViewBag.XuongSelect = IDXuong??0;
 
             // Bắt đầu bằng IQueryable (chưa gọi DB)
             var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x => !x.IsDelete)
@@ -115,11 +122,13 @@ namespace Data_Product.Controllers
                                  Tbl_TaiKhoan = b,
                                  NhatKy_SanXuat_ChiTiet = c,
                                  ID_PhongBan_SX = a.ID_PhongBan_SX,
+                                 TinhTrangCheckPhieu = _context.Tbl_PKHXuLyPhieu.FirstOrDefault(x=>x.ID_NKDSX == a.ID && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan) != null?1:0
                              };
             // Áp dụng điều kiện lọc nếu có
             if (ID_TrangThai != null) query = query.Where(x => x.TinhTrang == ID_TrangThai);
             if (IDCa != null) query = query.Where(x => x.Ca == IDCa);
             if (IDPhongBan != null) query = query.Where(x => x.ID_PhongBan_SX == IDPhongBan);
+            if (IDXuong != null) query = query.Where(x => x.NhatKy_SanXuat_ChiTiet.Any(a=>a.ID_Xuong == IDXuong));
             if (LyDoDung != null) query = query.Where(x => x.NhatKy_SanXuat_ChiTiet.Any(a => a.LyDo_DungThietBi == LyDoDung));
             if (startDay != default && endDay != default) query = query.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay);
             if (noidungDung != null) query = query.Where(x => x.NhatKy_SanXuat_ChiTiet.Any(a=> (!string.IsNullOrEmpty(a.NoiDungDung) && a.NoiDungDung.ToLower().Contains(noidungDung.ToLower()))));
@@ -413,7 +422,7 @@ namespace Data_Product.Controllers
             catch (Exception e)
             {
                 TempData["msgError"] = "<script>alert('Thêm mới thất bại, lỗi " + e + " ');</script>";
-                return RedirectToAction("Edit", "BM_NhatKy_SanXuat");
+                return RedirectToAction("Edit", "BM_NhatKy_SanXuat", new { IDNKSX = _DO.ID });
             }
         }
 
@@ -681,6 +690,50 @@ namespace Data_Product.Controllers
             }
         }
 
+        public async Task<IActionResult> XoaDuLieu(int? id)
+        {
+            try {
+                var nkdsx = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == id);
+                if (nkdsx.Any())
+                {
+                    _context.Tbl_NhatKy_SanXuat_ChiTiet.RemoveRange(nkdsx);
+                    _context.SaveChanges();
+                    TempData["msgSuccess"] = "<script>alert('Xóa dữ liệu thành công!');</script>";
+                }
+                return RedirectToAction("Edit", "BM_NhatKy_SanXuat", new { IDNKSX = id });
+            }
+            catch (Exception ex)
+            {
+                TempData["msgSuccess"] = "<script>alert('Có lỗi "+ex+" khi xóa dữ liệu.');</script>";
+
+                return RedirectToAction("Edit", "BM_NhatKy_SanXuat", new { IDNKSX = id });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult CheckXuLy([FromBody] List<int> selectedItems)
+        {
+            if (selectedItems == null || !selectedItems.Any())
+                return BadRequest("Không có dữ liệu cần xóa.");
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            // Xử lý danh sách ID được chọn
+            foreach (var id in selectedItems)
+            {
+                // Lưu vào database
+                _context.Tbl_PKHXuLyPhieu.Add(new Tbl_PKHXuLyPhieu
+                {
+                    ID_NKDSX = id,
+                    ID_TaiKhoan = TaiKhoan.ID_TaiKhoan,
+                    NgayXuLy = DateTime.Now,
+                    TinhTrang = true
+                });
+            }
+            _context.SaveChanges();
+
+            return Ok();
+        }
 
     }
 }

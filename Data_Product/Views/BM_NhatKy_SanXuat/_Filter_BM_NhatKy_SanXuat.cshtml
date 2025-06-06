@@ -40,6 +40,10 @@
         @Html.DropDownList("IDPhongBan", null, "---- Phòng ban ----", new { @id = "IDPhongBan", @class = "form-select form-select-sm" })
     </div>
 
+    <div class="col-md-2">
+        @Html.DropDownList("IDXuong", null, "---- Xưởng ----", new { @id = "IDXuong", @class = "form-select form-select-sm" })
+    </div>
+
     <!-- Trạng thái phiếu -->
     <div class="col-md-2">
         @Html.DropDownList("ID_TrangThai", null, "---- Trạng thái phiếu ----", new { @id = "ID_TrangThai", @class = "form-select form-select-sm" })
@@ -59,3 +63,42 @@
         </button>
     </div>
 </form>
+<script type="text/javascript">
+    var IDPBC = $("#IDPhongBan").val();
+    if (IDPBC != null) {
+        $.get("/BM_11/Xuong", { IDPhongBan: $("#IDPhongBan").val() }, function (data) {
+            if (data[0] != null) {
+                $("#IDXuong").empty();
+                $("#IDXuong").append("<option value ='" + null + "'>" + "--Chọn xưởng--" + "</option>")
+                $.each(data, function (index, row) {
+
+                    if (@ViewBag.XuongSelect == row.iD_Xuong) {
+                        $("#IDXuong").append("<option value ='" + row.iD_Xuong + "' selected>" + row.tenXuong + "</option>");
+                    }
+                    else {
+                        $("#IDXuong").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                    }
+                });
+            }
+            else {
+                $("#IDXuong").empty();
+                $("#IDXuong").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+            }
+        });
+    }
+    $("#IDPhongBan").change(function () {
+        $.get("/BM_11/Xuong", { IDPhongBan: $("#IDPhongBan").val() }, function (data) {
+            if (data[0] != null) {
+                $("#IDXuong").empty();
+                $("#IDXuong").append("<option value ='" + null + "'>" + "--Chọn xưởng--" + "</option>")
+                $.each(data, function (index, row) {
+                    $("#IDXuong").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                });
+            }
+            else {
+                $("#IDXuong").empty();
+                $("#IDXuong").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+            }
+        });
+    });
+</script>

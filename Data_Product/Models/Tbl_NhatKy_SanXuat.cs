@@ -18,6 +18,8 @@ namespace Data_Product.Models
         public int TinhTrang { get; set; }
         public bool IsDelete { get; set; }
         [NotMapped]
+        public int TinhTrangCheckPhieu { get; set; }
+        [NotMapped]
         public List<Tbl_NhatKy_SanXuat_ChiTiet> NhatKy_SanXuat_ChiTiet { get; set; }
 
         [NotMapped]

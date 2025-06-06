@@ -97,8 +97,8 @@
                                                 <label for="colFormLabel" class="col-auto col-form-label">   Ca :</label>
                                                 <div class="col-auto">
                                                     <span style="color:black; font-size:14px;">
-                                                        <select class="form-control marginTB5 SelectCA" name="IDCa" id="IDCa">
-                                                            <option value='null'>-- Ca làm việc --</option>
+                                                        <select class="form-control marginTB5 SelectCA" name="IDCa" id="IDCa" required>
+                                                            <option value=''>-- Ca làm việc --</option>
                                                             <option value='1'>1</option>
                                                             <option value='2'>2</option>
                                                         </select>
@@ -147,16 +147,16 @@
                                             Hủy bỏ
                                         </span>
                                     </button>
-                                    <button type="submit" class="btn btn-warning" name="luu" id="luu" value="2">
+                                   @* <button type="submit" class="btn btn-warning" name="luu" id="luu" value="2">
                                         <i class="bi bi-floppy"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Lưu
                                         </span>
-                                    </button>
+                                    </button>*@
                                     <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
                                         <i class="bi bi-send"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
-                                            Gửi phiếu
+                                            Gửi dữ liệu
                                         </span>
                                     </button>
                                 </div><!-- End Recent Sales -->
@@ -321,11 +321,10 @@
                                             <td>
                                               <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[{index}].ID_Xuong" style="width: 100%" required>
                                                     <option value=''>--Chọn Xưởng--</option>
-                                @foreach (var item in ViewBag.IDXuong)
-                                {
-                                                                    <option value='@item.Value'>@item.Text</option>
-
-                                }
+                                                    @foreach (var item in ViewBag.IDXuong)
+                                                    {
+                                                        <option value='@item.Value'>@item.Text</option>
+                                                    }
                                                 </select>
                                             </td>
                                             <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemDung"  class="form-control" required ></td>
@@ -398,24 +397,33 @@
 <script>
     $(document).ready(function () {
         $('#TaoPhieu').on('submit', function (e) {
-    @* e.preventDefault(); // Ngăn gửi form mặc định*@
-                let isValid = true;
-            let selectedValueCaKip = $('#CaKip').val();
-            @*let BenNhan = $('#IDTaiKhoan').val();*@
-            // Kiểm tra nếu chưa chọn giá trị hợp lệ
-            if (selectedValueCaKip == null) {
-                isValid = false;
-                alert('Vui lòng chọn Ca Kíp!');
-                return false; // Ngăn form submit
+            let isValid = true; // mặc định là hợp lệ
+            let selectedValueCa = $('#IDCa').val();
+            const form = document.getElementById("TaoPhieu");
+            const inputs = form.querySelectorAll('input[type="time"]');
+            for (const input of inputs) {
+                const value = input.value;
+
+                if (selectedValueCa == "1" && value && (value < "08:00" || value > "20:00")) {
+                    isValid = false;
+                    alert('Vui lòng điền đúng khoảng thời gian ca Ngày từ 08:00 - 20:00!');
+                    input.focus();
+                    break; // Thoát vòng lặp
+                }
+                else if (selectedValueCa == "2" && value && (value >= "08:00" && value <= "20:00")) {
+                    isValid = false;
+                    alert('Vui lòng điền đúng khoảng thời gian ca Đêm từ 20:00 - 08:00!');
+                    input.focus();
+                    break; // Thoát vòng lặp
+                }
             }
-
-            const table = document.getElementById('table');
-
-            // Nếu tất cả đều hợp lệ, thực hiện hành động
-            if (isValid) {
-    @*alert('Dữ liệu hợp lệ. Tiến hành gửi form!');*@
-                    // Thực hiện gửi form nếu cần
-                    return true;
+            const rowCount = document.querySelectorAll('tr.data-row').length;
+            if (rowCount === 0) {
+                isValid = false;
+                alert("Không có dòng dữ liệu nào! Vui lòng thêm ít nhất 1 dòng trước khi lưu.");
+            }
+            if (!isValid) {
+                e.preventDefault(); // Chặn submit nếu có lỗi
             }
         });
     });
@@ -423,7 +431,7 @@
 </script>
 
 <script type="text/javascript">
-        const dateInput = document.getElementById("ID_Day");
+    const dateInput = document.getElementById("ID_Day");
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
@@ -433,11 +441,11 @@
         return date.toISOString().split("T")[0];
     }
 
- @*   dateInput.min = formatDate(yesterday);
-    dateInput.max = formatDate(today);
-    // Đặt giá trị mặc định là ngày hiện tại
-    dateInput.value = formatDate(new Date());*@
-    dateInput.value = formatDate(new Date())
+    @*   dateInput.min = formatDate(yesterday);
+        dateInput.max = formatDate(today);
+        // Đặt giá trị mặc định là ngày hiện tại
+        dateInput.value = formatDate(new Date());*@
+        dateInput.value = formatDate(new Date())
 
     // Ngăn người dùng nhập từ bàn phím
     dateInput.addEventListener("keydown", function (event) {
@@ -486,3 +494,4 @@
     });
 
 </script>
+

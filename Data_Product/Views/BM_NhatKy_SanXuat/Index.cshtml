@@ -33,45 +33,32 @@
         <div class="tab-content">
             <div class="row">
                 <div class="card">
-                    <div class="row" style="width:100%; height: 120px;">
-                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available;">
-                            <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
 
-                                <span class="text-muted small pt-2 ps-1">
-                                    <b style="color:#06428b;font-size: 15px;">
-                                        PHIẾU YÊU CẦU ĐẾN TÔI
-                                    </b>
-                                </span>
-                            </div>
-                        </div>
-
-
-                    </div>
                     <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
                         <div class="row">
                             <div class="col-md-1" style="padding-top:0.5%;text-align: left;">
-                                <span class="text-center" style="margin-top: 8px">
+                                <small class="text-center" style="margin-top: 8px">
                                     <b style="font-size: 15px;
                                        color: black;">TỪ NGÀY :</b>
-                                </span>
+                                </small>
                             </div>
                             <div class="col-md-2">
-                                @Html.TextBox("begind", null, new { @id = "begind", @type = "date", @class = "form-control" })
+                                @Html.TextBox("begind", null, new { @id = "begind", @type = "date", @class = "form-control form-control-sm" })
                             </div>
                             <div class="col-md-1" style="padding-top:0.5%;text-align: center;">
-                                <span class="text-center" style="margin-top: 8px">
+                                <small class="text-center" style="margin-top: 8px">
                                     <b style="font-size: 15px; color: black;">ĐẾN NGÀY :</b>
-                                </span>
+                                </small>
                             </div>
 
                             <div class="col-md-2">
-                                @Html.TextBox("endd", null, new { @id = "endd", @type = "date", @class = "form-control" })
+                                @Html.TextBox("endd", null, new { @id = "endd", @type = "date", @class = "form-control form-control-sm" })
                             </div>
                             <div class="col-md-1" style="padding-top:0.5%;text-align: right;">
-                                <span class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">TRẠNG THÁI :</b></span>
+                                <small class="text-center" style="margin-top: 8px"><b style="font-size: 15px; color: black;">TRẠNG THÁI :</b></small>
                             </div>
                             <div class="col-md-2">
-                                @Html.DropDownList("TTList", null, "----  Trạng thái phiếu  ----", new { id = "ID_TrangThai", @class = "form-control"})
+                                @Html.DropDownList("TTList", null, "----  Trạng thái phiếu  ----", new { id = "ID_TrangThai", @class = "form-control form-control-sm"})
                             </div>
                             <div class="col-md-2" style="text-align:left;">
                                 <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
@@ -121,7 +108,7 @@
                                             else
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                    <a class="nav-link collapsed" href="@Url.Action("Edit", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>
@@ -167,18 +154,25 @@
                                 <ul class="pagination justify-content-start ">
                                     @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
                                     {
+                                        var begind = @ViewContext.HttpContext.Request.Query["begind"];
+                                        var endd = @ViewContext.HttpContext.Request.Query["endd"];
                                         <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@pge">@pge</a>
+                                            <a class="page-link" asp-asp-controller="BM_NhatKy_SanXuat" asp-action="Index" asp-route-begind="@begind"
+                                       asp-route-endd="@endd" asp-route-page="@pge">@pge</a>
 
                                         </li>
                                     }
                                     @if (pager.CurrentPage < pager.TotalPages)
                                     {
+                                        var begind = @ViewContext.HttpContext.Request.Query["begind"];
+                                        var endd = @ViewContext.HttpContext.Request.Query["endd"];
                                         <li class="page-item">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
+                                            <a class="page-link" asp-asp-controller="BM_NhatKy_SanXuat" asp-action="Index" asp-route-begind="@begind"
+                                       asp-route-endd="@endd" asp-route-page="@(pager.CurrentPage + 1)">Next</a>
                                         </li>
                                         <li class="page-item">
-                                            <a class="page-link" asp-asp-controller="BM_11" asp-action="Index" asp-route-page="@(pager.TotalPages)">Last</a>
+                                            <a class="page-link" asp-asp-controller="BM_NhatKy_SanXuat" asp-action="Index" asp-route-begind="@begind"
+                                       asp-route-endd="@endd" asp-route-page="@(pager.TotalPages)">Last</a>
                                         </li>
                                     }
                                 </ul>
@@ -199,7 +193,4 @@
         window.location.href = '@Url.Action("Index", "BM_NhatKy_SanXuat")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
     });
 
-    $("#ID_TrangThai").chosen({
-        width: "100%"
-    });
 </script>

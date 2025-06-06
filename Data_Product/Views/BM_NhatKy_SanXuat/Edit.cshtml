@@ -57,7 +57,7 @@
         }
 </style>
 
-@using (Html.BeginForm("Create", "BM_NhatKy_SanXuat", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
+@using (Html.BeginForm("Edit", "BM_NhatKy_SanXuat", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
 {
     @Html.HiddenFor(model => model.ID)
     <div class="app-main__outer">
@@ -81,7 +81,7 @@
                                                         DateTime NgayLamViec = DateTime.Now;
                                                     }
                                                     <span style="color:black; font-size:14px;">
-                                                        @Html.TextBox("ID_Day", null, new { @id = "ID_Day", @name = "ID_Day", @type = "date", @class = "form-control" })
+                                                        @Html.TextBox("ID_Day", null, new { @id = "ID_Day", @name = "ID_Day", @type = "date", @class = "form-control",@readonly = "readonly" })
                                                     </span>
                                                 </div>
                                                 <script type="text/javascript">
@@ -98,27 +98,9 @@
                                             <div class="row ">
                                                 <label for="colFormLabel" class="col-auto col-form-label">   Ca :</label>
                                                 <div class="col-auto">
-                                                    <span style="color:black; font-size:14px;">
-                                                        <select class="form-control marginTB5 SelectCA" name="IDCa" id="IDCa">
-                                                            <option value='null'>-- Ca làm việc --</option>
-                                                            @if(Model.Ca == "1")
-                                                            {
-                                                                <option value='1' selected>1</option>
-                                                                <option value='2'>2</option>
-                                                            }
-                                                            else if(Model.Ca =="2")
-                                                            {
-                                                                <option value='1'>1</option>
-                                                                <option value='2' selected>2</option>
-                                                            }
-                                                            else
-                                                            {
-                                                                <option value='1'>1</option>
-                                                                <option value='2'>2</option>
-                                                            }
-                                                           
-                                                        </select>
-                                                    </span>
+                                                    <div style="color:black; font-size:14px;" class="form-control">
+                                                        @Model.Ca@ViewBag.TenKip
+                                                    </div>
                                                     <script type="text/javascript">
                                                         $("#IDCa").change(function () {
                                                             $("#CaKip").empty();
@@ -143,7 +125,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-xxl-3 col-md-6 p-2" style=" background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                        @*<div class="col-xxl-3 col-md-6 p-2" style=" background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
                                             <div class="row ">
                                                 <label for="colFormLabel" class="col-auto col-form-label">Kíp:</label>
                                                 <div class="col-auto">
@@ -154,14 +136,14 @@
                                                     </span>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div>*@
                                     </div><!-- End Recent Sales -->
                                 </div><!-- End Recent Sales -->
                                 <div class="col-4 m-auto" style=" ">
-                                    <button type="button" class="btn btn-danger" onclick="window.location.href='@Url.Action("Index", "Menu")';">
+                                    <button type="button" class="btn btn-danger" onclick="if(confirm('Bạn có chắc chắn muốn xóa?')) { window.location.href='@Url.Action("XoaDuLieu", "BM_NhatKy_SanXuat", new { id = Model.ID })'; }">
                                         <i class="bi bi-x-lg"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
-                                            Hủy bỏ
+                                            Xóa dữ liệu
                                         </span>
                                     </button>
                                     <button type="submit" class="btn btn-warning" name="luu" id="luu" value="2">
@@ -337,7 +319,7 @@
                                             <tr class="data-row">
                                                 <td>
                                                     <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_Xuong" style="width: 100%" required>
-                                                        <option value='null'>--Chọn Xưởng--</option>
+                                                        <option value=''>--Chọn Xưởng--</option>
                                                         @foreach (var it in ViewBag.IDXuong)
                                                         {
                                                             if(item.ID_Xuong.ToString() == @it.Value)
@@ -374,7 +356,7 @@
                                  <tr class="data-row">
                                             <td>
                                               <select class="form-control marginTB5 LoCao" name="NhatKy_SanXuat_ChiTiet[{index}].ID_Xuong" style="width: 100%" required>
-                                                    <option value='null'>--Chọn Xưởng--</option>
+                                                    <option value=''>--Chọn Xưởng--</option>
                                 @foreach (var item in ViewBag.IDXuong)
                                 {
                                                                         <option value='@item.Value'>@item.Text</option>
@@ -453,24 +435,34 @@
 <script>
     $(document).ready(function () {
         $('#TaoPhieu').on('submit', function (e) {
-    @* e.preventDefault(); // Ngăn gửi form mặc định*@
-                let isValid = true;
-            let selectedValueCaKip = $('#CaKip').val();
-    @*let BenNhan = $('#IDTaiKhoan').val();*@
-                // Kiểm tra nếu chưa chọn giá trị hợp lệ
-                if (selectedValueCaKip == null) {
+            let isValid = true; // mặc định là hợp lệ
+            let selectedValueCa = $('#IDCa').val();
+            const form = document.getElementById("TaoPhieu");
+            const inputs = form.querySelectorAll('input[type="time"]');
+            for (const input of inputs) {
+                const value = input.value;
+
+                if (selectedValueCa == "1" && value && (value < "08:00" || value > "20:00")) {
+                    isValid = false;
+                    alert('Vui lòng điền đúng khoảng thời gian ca Ngày từ 08:00 - 20:00!');
+                    input.focus();
+                    break; // Thoát vòng lặp
+                }
+                else if (selectedValueCa == "2" && value && (value >= "08:00" && value <= "20:00")) {
+                    isValid = false;
+                    alert('Vui lòng điền đúng khoảng thời gian ca Đêm từ 20:00 - 08:00!');
+                    input.focus();
+                    break; // Thoát vòng lặp
+                }
+            }
+            const rowCount = document.querySelectorAll('tr.data-row').length;
+            if (rowCount === 0) {
                 isValid = false;
-                alert('Vui lòng chọn Ca Kíp!');
-                return false; // Ngăn form submit
+                alert("Không có dòng dữ liệu nào! Vui lòng thêm ít nhất 1 dòng trước khi lưu.");
             }
 
-            const table = document.getElementById('table');
-
-            // Nếu tất cả đều hợp lệ, thực hiện hành động
-            if (isValid) {
-    @*alert('Dữ liệu hợp lệ. Tiến hành gửi form!');*@
-                        // Thực hiện gửi form nếu cần
-                        return true;
+            if (!isValid) {
+                e.preventDefault(); // Chặn submit nếu có lỗi
             }
         });
     });

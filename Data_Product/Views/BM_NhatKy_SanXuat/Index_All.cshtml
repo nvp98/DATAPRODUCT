@@ -33,11 +33,17 @@
         <div class="tab-content">
             <div class="row">
                 <div class="card">
-                    
+                   
                     @*Filter*@
                     <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
                         <div class="row">
                             @Html.Partial("_Filter_BM_NhatKy_SanXuat", pager)
+                            <div class="col">
+                                @if (@ViewBag.TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || @ViewBag.TaiKhoan.ID_Quyen == 1)
+                                {
+                                    <button type="submit" class="btn btn-primary" style="margin-right:8px" onclick="SubmitForm()">Check phiếu đã xử lý</button>
+                                }
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
@@ -46,6 +52,13 @@
                                 <thead style="height: 60px;font-size: 14px;">
                                     <tr>
                                         <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        @if (@ViewBag.TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || @ViewBag.TaiKhoan.ID_Quyen == 1)
+                                        {
+                                            <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">
+                                                <input type="checkbox" id="selectAll" /> Chọn Tất Cả<br />
+                                            </th>
+
+                                        }
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Số Phiếu</th>
                                         <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Kíp làm việc</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Ngày dừng sản xuất</th>
@@ -61,16 +74,32 @@
                                     }
                                     @foreach (var item in Model)
                                     {
-                                        <tr>
+                                        <tr class="@(item.TinhTrangCheckPhieu ==1?"table-success":"")">
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 @RowNo@{
                                                     RowNo++;
                                                 }
                                             </td>
+                                            @if (@ViewBag.TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || @ViewBag.TaiKhoan.ID_Quyen == 1)
+                                            {
+                                                if (item.TinhTrangCheckPhieu == 1)
+                                                {
+                                                    <td class="text-center">
+                                                        <input type="checkbox" name="CheckedselectedItems" checked disabled value="@item.ID" />
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td class="text-center">
+                                                        <input type="checkbox" class="itemCheckbox" name="selectedItems" value="@item.ID" />
+                                                    </td>
+                                                }
+
+                                            }
                                             @if (item.TinhTrang == 0)
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("Edit", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>
@@ -160,5 +189,50 @@
 
     $("#ID_TrangThai").chosen({
         width: "100%"
+    });
+
+    function SubmitForm() {
+        const checkedValues = Array.from(document.querySelectorAll('.itemCheckbox:checked'))
+            .map(cb => cb.value);
+       
+        $.ajax({
+            url: '/BM_NhatKy_SanXuat/CheckXuLy',
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() || ''
+            },
+            data: JSON.stringify(checkedValues),
+            success: function () {
+                alert("Xử lý thành công!");
+                location.reload();
+            },
+            error: function () {
+                alert("Xóa thất bại!");
+            }
+        });
+    }
+
+</script>
+
+<script>
+    document.getElementById('selectAll').addEventListener('change', function () {
+        // Lấy tất cả các checkbox có class là itemCheckbox
+        const checkboxes = document.querySelectorAll('.itemCheckbox');
+
+        // Nếu checkbox "Chọn Tất Cả" được chọn thì tất cả đều được chọn
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    });
+
+    // Cập nhật trạng thái của "Chọn Tất Cả" khi bỏ chọn bất kỳ checkbox nào
+    document.querySelectorAll('.itemCheckbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            // Kiểm tra nếu có bất kỳ checkbox nào chưa chọn
+            selectAllCheckbox.checked = Array.from(document.querySelectorAll('.itemCheckbox'))
+                .every(item => item.checked);
+        });
     });
 </script>
