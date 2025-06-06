@@ -13,6 +13,7 @@ using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using Data_Product.DTO.BM_16_DTO;
 using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 
 namespace Data_Product.Controllers
@@ -199,7 +200,8 @@ namespace Data_Product.Controllers
                         ID_Locao = model.ID_Locao,
                         G_ID_Kip = model.ID_Kip,
                         T_ID_TrangThai = 2,
-                        ID_TrangThai = 1
+                        ID_TrangThai = 1,
+                        T_copy = false,
                     };
 
                     await _context.Tbl_BM_16_GangLong.AddAsync(thungGang);
@@ -228,9 +230,9 @@ namespace Data_Product.Controllers
             var phieu = await _context.Tbl_BM_16_Phieu.FirstOrDefaultAsync(p => p.MaPhieu == id);
             if (phieu == null)
                 return NotFound("Không tìm thấy phiếu.");
-
+            var kip = await _context.Tbl_Kip.FirstOrDefaultAsync(k => k.ID_Kip == phieu.ID_Kip);
             var danhSachThung = await _context.Tbl_BM_16_GangLong
-                .Where(t => t.MaPhieu == id)
+                .Where(t => t.MaPhieu == id && t.T_copy == false )
                 .ToListAsync();
 
             // Chuyển sang view model nhẹ cho hiển thị
@@ -258,11 +260,13 @@ namespace Data_Product.Controllers
             ViewBag.DanhSachThung = viewData;
 
             ViewBag.MaPhieu = phieu.MaPhieu;
-            ViewBag.Ngay = phieu.Ngay;
+            ViewBag.Ngay = phieu.Ngay.ToString("yyyy-MM-dd");
             ViewBag.ID_Kip = phieu.ID_Kip;
             ViewBag.ID_Locao = phieu.ID_Locao;
             ViewBag.ThoiGianTao = phieu.ThoiGianTao;
 
+            ViewBag.TenKip = kip?.TenKip;
+            ViewBag.TenCa = kip?.TenCa;
             return View();
         }
         [HttpPost]
@@ -334,7 +338,7 @@ namespace Data_Product.Controllers
 
                 if (!thungs.Any())
                 {
-                    return Json(new { success = false, message = "Không tìm thấy thùng nào" });
+                    return Json(new { success = false, message = "Liên hệ NM.Luyện Thép Hủy Nhận thùng này trước khi thu hồi" });
                 }
                 var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
                 if (string.IsNullOrEmpty(tenTaiKhoan))
@@ -366,5 +370,31 @@ namespace Data_Product.Controllers
                 return Json(new { success = false, message = $"Lỗi khi thu hồi thùng: {ex.Message}" });
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> EditThung([FromBody] Tbl_BM_16_GangLong thung)
+        {
+            if (string.IsNullOrEmpty(thung.MaThungGang))
+                return Json(new { success = false, message = "Thiếu mã thùng" });
+            var thunggang = await _context.Tbl_BM_16_GangLong.FirstOrDefaultAsync(t => t.MaThungGang == thung.MaThungGang);
+            if (thunggang == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thùng" });
+                }
+            if (thunggang.ID_TrangThai != 2 || thunggang.T_ID_TrangThai != 2 || thunggang.G_ID_TrangThai != 3)
+                {
+                    return Json(new { success = false, message = "Trạng thái thùng không hợp lệ để chỉnh sửa." });
+                }
+                    thunggang.G_KLGangLong = thung.G_KLGangLong;
+                    thunggang.G_KLThungChua = thung.G_KLThungChua;
+                    thunggang.G_KLThungVaGang = thung.G_KLThungVaGang;
+                    thunggang.G_GhiChu = thung.G_GhiChu;
+                    thunggang.KL_XeGoong = thung.KL_XeGoong;
+                    thunggang.ChuyenDen = thung.ChuyenDen;
+                    thunggang.Gio_NM = thung.Gio_NM;
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Cập nhật thùng thành công" });
+        }
+
+
     }
 }
