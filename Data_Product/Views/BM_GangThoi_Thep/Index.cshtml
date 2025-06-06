@@ -7,6 +7,7 @@
 
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -65,17 +66,17 @@
     }
 
     .isolated-layout .content {
-        flex-grow: 1; /* Mở rộng để chiếm không gian còn lại */
+        flex-grow: 1; 
         display: flex;
         flex-direction: column;
     }
 
     .isolated-layout .table-container {
-        max-height: calc(100vh - 120px); /* Trừ chiều cao header (ước lượng 120px) */
-        overflow-y: auto; /* Chỉ bảng cuộn dọc */
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
         margin-top: 20px;
         border: 1px solid #dee2e6;
-        padding-bottom: 200px; /* Padding để các dòng cuối không bị khuất */
+        padding-bottom: 200px; 
     }
 
     /* Tùy chỉnh thanh cuộn cho WebKit (Chrome, Safari) */
@@ -143,7 +144,7 @@
         border: solid grey 1px;
         max-width: 60px;
         border-radius: 5px;
-        padding: 2px 5px;
+        padding: 5px 5px;
     }
 
     .status-card {
@@ -164,6 +165,24 @@
         display: none;
     }
 
+    .chosen-container-single .chosen-single {
+        height: 30px; 
+        line-height: 30px; 
+        font-size: 12px; 
+        padding: 0 8px;
+    }
+
+    .chosen-container .chosen-drop {
+        font-size: 12px;
+    }
+
+    .chosen-container {
+        font-size: 12px;
+    }
+
+    .chosen-container-single .chosen-single span {
+        margin-right: 20px;
+    }
 </style>
 <div class="isolated-layout">
     <div class="header-fixed">
@@ -265,7 +284,7 @@
                         <div class="col-12 d-flex justify-content-end">
                             <button class="btn btn-warning btn-sm px-4" id="btnLuuKR">Lưu KR</button>
                             <button class="btn btn-success btn-sm px-4" id="IDbtnNhanThung">Nhận</button>
-                            <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung">Hủy nhận</button>
+                            <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung" style="display:none">Hủy nhận</button>
 
                         </div>
                     </div>
@@ -323,7 +342,7 @@
                                 </div>
                                 <!-- Timf kieem -->
                                 <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
-                                    <button class="btn btn-primary btn-sm px-4">Tìm kiếm</button>
+                                    <button class="btn btn-primary btn-sm px-4" id="btnSeachThungDaNhan">Tìm kiếm</button>
                                 </div>
                             </div>
                         </div>
@@ -331,12 +350,10 @@
                     <div class="row g-3" style="position: absolute;bottom: 10px;right: 12px;">
                         <div class="col-12 d-flex justify-content-end">
                             <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
-                            <button class="btn btn-warning btn-sm px-4" id="BtnLuuPhieu">Lưu</button>
+                            <button class="btn btn-warning btn-sm px-4" id="BtnLuu">Lưu</button>
                             <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel">Xuất Excel</button>
                             <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
-                            @* button mở modal check mẻ thổi *@
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTaoMeThoi" onclick="loadModalTaoMe()">Tạo Mẻ thổi</button>
-                            <button class="btn btn-primary" data-bs-toggle="modal" onclick="loadModalFilterMeThoi()">Chon Mẻ</button>
                         </div>
                     </div>
                 </div>
@@ -348,7 +365,7 @@
             <div class="row"> 
                 <div class="col-5 left-container">
                     <div class="table-container" role="region" aria-label="Scrollable Table 1">
-                        <table class="table table-bordered text-center align-middle" id="IDtbKhuVucNhanThung">
+                        <table class="table table-bordered text-center align-middle table-hover" id="IDtbKhuVucNhanThung">
                             <thead>
                                 <tr>
                                     <th>Giờ NM</th>
@@ -369,7 +386,7 @@
                 </div>
                 <div class="col-7 right-container">
                     <div class="table-container" role="region" aria-label="Scrollable Table 2">
-                        <table class="table table-bordered text-center align-middle" id="IDtbXuLySoLieu">
+                        <table class="table table-bordered text-center align-middle table-hover" id="IDtbXuLySoLieu">
                             <thead>
                                 <tr>
                                     <th class="hide-col">Mã thùng thép</th>
@@ -408,23 +425,7 @@
 </div>
   
 
-    <!-- Modal mẻ thổi -->
-    <div class="modal fade" id="modalFilterMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Danh sách Mẻ thổi</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-          </div>
-          <div class="modal-body" id="modalFilerMethoi">
-               
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-          </div>
-        </div>
-      </div>
-    </div>
+
     
 
     <!-- Modal form tạo mẻ thổi -->
@@ -442,131 +443,253 @@
     </div>
 
 
+<script>
+    window.meThoiList = @Html.Raw(Json.Serialize(ViewBag.MeThoiList));
+</script>
 
 
     @* logic auto tinhs toan so lieu*@
     <script type="text/javascript">
-            // function showAlert(message, type) {
-            //     const alertId = 'alert-' + Date.now();
-            //     const alertHtml = `
-            //         <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
-            //             ${message}
-            //             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-            //         </div>
-            //     `;
+        // render card trạng thái
+        function renderStatusCard(tinhTrang) {
+            const statusMap = {
+                1: { label: "Chưa chuyển", bgClass: "bg-secondary", textColor: "white" },
+                2: { label: "Chờ xử lý", bgClass: "bg-warning", textColor: "black" },
+                3: { label: "Đã chuyển", bgClass: "bg-success", textColor: "white" },
+                4: { label: "Đã nhận", bgClass: "bg-success", textColor: "white" },
+                5: { label: "Đã chốt", bgClass: "bg-success", textColor: "white" },
+            };
 
-            //     $('#alertContainer').html(alertHtml);
+            const { label, bgClass, textColor } = statusMap[tinhTrang] || {
+                label: "Không rõ", bgClass: "bg-light", textColor: "black"
+            };
 
-            //     setTimeout(() => {
-            //         const alertElement = bootstrap.Alert.getOrCreateInstance(document.getElementById(alertId));
-            //         alertElement.close();
-            //     }, 2000);
-            // }
-        $(document).ready(function () {
-            //render table Khu Vuc Nhan Thung
-                function renderTableNhanThung(data) {
-                  const tbody = $('#IDtbKhuVucNhanThung tbody');
-                  tbody.empty();
-                  if(data.length){
-                      data.forEach(item => {
-                        const tinhTrangHTML = renderStatusCard(item.t_ID_TrangThai);
+            return `
+                <div class="status-card ${bgClass}">
+                <span class="status-text small pt-2 ps-1" style="color: ${textColor};">
+                        ${label}
+                    </span>
+                </div>
+            `;
+        }
 
-                        const nguoiNhanHtml = item.nguoiNhanList.length > 0
-                            ? item.nguoiNhanList.join('<br>')
-                            : '';
-
-                        const html = `
-                          <tr data-id="${item.id}">
-                            <td>${item.gio_NM}</td>
-                            <td>${item.maThungGang}</td>
-                            <td>${item.iD_Locao}</td>
-                            <td>${item.bkmiS_ThungSo}</td>
-                            <td>${item.chuyenDen}</td>
+        // render khu vực xử lý số liệu
+        function renderTableXuLySoLieu(data) {
+            const tbody = $('#IDtbXuLySoLieu tbody');
+            tbody.empty();
+            if(data.length){
+                data.forEach(item => {
+                    const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
+                    const html = `
+                            <tr data-id="${item.id}">
+                                <td class="hide-col">${item.maThungThep}</td>
+                                <td>${item.iD_Locao}</td>
+                                <td>${item.bkmiS_ThungSo}</td>
                                 <td>
-                                    <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                                    <input class="table_tbx KhoiLuongThungVaGangLong" type="number" name="KhoiLuongThungVaGangLong" value="${item.t_KLThungVaGang ?? ''}" />
+                                </td>
+                                <td class="KLThung">
+                                    <input class="table_tbx KhoiLuongThung" type="number" name="KhoiLuongThung" value="${item.t_KLThungChua ?? ''}" />
+                                </td>
+                                <td class="KLGangLong">${item.t_KLGangLong ?? '00.0'}</td>
+                                <td>
+                                    <input class="table_tbx" type="number" name="ThungTrungGian" id="IDThungTrungGian" value="${item.thungTrungGian ?? ''}" />
                                 </td>
                                 <td>
-                                    <input type="checkbox" class="cbx-nhanThung" name="ChonThung" value="" ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                                    <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" name="KLThungVaGangLongVaoLoThoi" value="${item.t_KLThungVaGang_Thoi ?? ''}" />
                                 </td>
-                                <td class="status-cell">
+                                <td>
+                                    <input class="table_tbx KLThungVaoLoThoi" type="number" name="KLThungVaoLoThoi"  value="${item.t_KLThungChua_Thoi ?? ''}" />
+                                </td>
+                                <td id="IDKLVaoLoThoi" class="KLVaoLoThoi">${item.t_KLGangLongThoi ?? '00.0'}</td>
+                                <td class="meThoi">
+                                    <select class="form-control selectMeThoi" style="width:100%;">
+                                        <option value="">-- Mẻ thổi --</option>
+                                        ${item.iD_MeThoi && !window.meThoiList.some(m => m.id === item.iD_MeThoi)
+                                            ? `<option value="${item.iD_MeThoi}" selected>${item.maMeThoi}</option>`
+                                            : ''
+                                        }
+                                        ${window.meThoiList.map(m =>
+                                            `<option value="${m.id}" ${m.id === item.iD_MeThoi ? 'selected' : ''}>${m.maMeThoi}</option>`
+                                        ).join('')}
+                                    </select>
+                                </select>
+                                </td>
+                                <td>
+                                    <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="${item.t_GhiChu ?? ''}" />
+                                </td>
+                                <td>
                                     ${tinhTrangHTML}
                                 </td>
-                                <td class="nguoi-nhan">
-                                    ${nguoiNhanHtml}
-                                </td>
                             </tr>
-                          `;
-                        tbody.append(html);
-                      });
-                  } else {
-                      const html = `
-                        <div>
-                            <span>Không tìm thấy dữ liệu</span>
-                        </div>
-                          `;
-                       tbody.append(html);
-                  }
+                      `;
+                    tbody.append(html);
+                    tbody.find(".selectMeThoi").chosen({ width: "100%" });
+                    sumPhieu();
+              });
+          } else {
 
+          // TODO
+              const html = `
+                <div>
+                    <span>Không tìm thấy dữ liệu</span>
+                </div>
+                  `;
+               tbody.append(html);
+          }
+        }
+
+        function SearchThungDaNhanTheoUser(){
+            // value cac field
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            const payload = {
+                NgayLamViec: NgayNhan,
+                ID_LoThoi: IDLoThoi,
+                T_Ca: IDCaNhan
+            };
+            $.ajax({
+                url: '/BM_GangThoi_Thep/TimKiemThungDaNhan',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function (data) {
+                    renderTableXuLySoLieu(data);
+
+                },
+                error: function (err) {
+                    alert("Lỗi khi tìm kiếm dữ liệu");
                 }
-            // Search Luyen Gang de nhan thung
-            function SearchLT() {
-                // value cac field
-                const NgayLamViec = $('#ID_NgayLamViec').val() || null;
-                const IDCaLamViec = $('#IDCaLamViec').val() || null;
-                const IDLoCao = $('#IDLoCao').val() || null;
-                const IDChuyenDen = $('#IDChuyenDen').val() || null;
-                const IDTinhTrang = $('#IDTinhTrang').val() || null;
+            });
+        }
 
-                const payload = {
-                    NgayLuyenGang: NgayLamViec,
-                    ID_TrangThai: IDTinhTrang,
-                    ID_Locao: IDLoCao,
-                    ChuyenDen: IDChuyenDen,
-                    G_Ca: IDCaLamViec
-                };
+        //render table Khu Vuc Nhan Thung
+        function renderTableNhanThung(data) {
+            const tbody = $('#IDtbKhuVucNhanThung tbody');
+            tbody.empty();
+            if(data.length){
+                data.forEach(item => {
+                const tinhTrangHTML = renderStatusCard(item.t_ID_TrangThai);
 
-                $.ajax({
-                    url: '/BM_GangThoi_Thep/SearchLT',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(payload),
-                    success: function (data) {
-                        renderTableNhanThung(data);
-                    },
-                    error: function (err) {
-                        alert("Lỗi khi tìm kiếm dữ liệu");
-                    }
+                const nguoiNhanHtml = item.nguoiNhanList.length > 0
+                    ? item.nguoiNhanList.join('<br>')
+                    : '';
+
+                const html = `
+                <tr data-id="${item.id}" data-mathung="${item.maThungGang}">
+                    <td>${item.gio_NM}</td>
+                    <td>${item.maThungGang}</td>
+                    <td>${item.iD_Locao}</td>
+                    <td>${item.bkmiS_ThungSo}</td>
+                    <td>${item.chuyenDen}</td>
+                        <td>
+                            <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                        </td>
+                        <td>
+                            <input type="checkbox" class="cbx-nhanThung" name="ChonThung" value="" ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                        </td>
+                        <td class="status-cell" data-status="${item.t_ID_TrangThai}">
+                            ${tinhTrangHTML}
+                        </td>
+                        <td class="nguoi-nhan">
+                            ${nguoiNhanHtml}
+                        </td>
+                    </tr>
+                    `;
+                tbody.append(html);
                 });
+            } else {
+                // TODO
+                const html = `
+                <div>
+                    <span>Không tìm thấy dữ liệu</span>
+                </div>
+                    `;
+                tbody.append(html);
             }
+        }
+
+
+        // Search Luyen Gang de nhan thung
+        function SearchLT() {
+            // value cac field
+            const NgayLamViec = $('#ID_NgayLamViec').val() || null;
+            const IDCaLamViec = $('#IDCaLamViec').val() || null;
+            const IDLoCao = $('#IDLoCao').val() || null;
+            const IDChuyenDen = $('#IDChuyenDen').val() || null;
+            const IDTinhTrang = $('#IDTinhTrang').val() || null;
+
+            const payload = {
+                NgayLuyenGang: NgayLamViec,
+                ID_TrangThai: IDTinhTrang,
+                ID_Locao: IDLoCao,
+                ChuyenDen: IDChuyenDen,
+                G_Ca: IDCaLamViec
+            };
+
+            $.ajax({
+                url: '/BM_GangThoi_Thep/SearchLT',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function (data) {
+                    renderTableNhanThung(data);
+                },
+                error: function (err) {
+                    alert("Lỗi khi tìm kiếm dữ liệu");
+                }
+            });
+        }
+
+
+
+         // tinh sum
+        function sumPhieu(){
+            let total = 0;
+            $("#IDtbXuLySoLieu .KLVaoLoThoi").each(function () {
+                const value = parseFloat($(this).text());
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+            $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
+        }
+        // Logic Luu
+        function getTableData() {
+            const data = [];
+
+            $('#IDtbXuLySoLieu tbody tr').each(function () {
+                const row = $(this);
+                const rowData = {
+                    ID: row.data('id') || null,
+                    T_KLThungVaGang: row.find('input[name="KhoiLuongThungVaGangLong"]').val()|| null,
+                    T_KLThungChua: row.find('input[name="KhoiLuongThung"]').val()|| null,
+                    T_KLGangLong: row.find('.KLGangLong').text().trim()|| null,
+                    ThungTrungGian: row.find('input[name="ThungTrungGian"]').val()|| null,
+                    T_KLThungVaGang_Thoi: row.find('input[name="KLThungVaGangLongVaoLoThoi"]').val()|| null,
+                    T_KLThungChua_Thoi: row.find('input[name="KLThungVaoLoThoi"]').val()|| null,
+                    T_KLGangLongThoi: row.find('.KLVaoLoThoi').text().trim()|| null,
+                    ID_MeThoi:  parseInt(row.find('.selectMeThoi').val())|| null,
+                    GhiChu: row.find('input[name="GhiChu"]').val()|| null
+                };
+                data.push(rowData);
+            });
+
+            return data;
+        }
+
+        // xu ly khi load
+        $(document).ready(function () {
+
             // render tim kiem ban dau
              const today = new Date().toISOString().split("T")[0];
             $('#ID_NgayLamViec').val(today);
 
             SearchLT(); // call hàm search
-
-
-            // render card trạng thái
-            function renderStatusCard(tinhTrang) {
-                const statusMap = {
-                    1: { label: "Chưa chuyển", bgClass: "bg-secondary", textColor: "white" },
-                    2: { label: "Chờ xử lý", bgClass: "bg-warning", textColor: "black" },
-                    3: { label: "Đã chuyển", bgClass: "bg-success", textColor: "white" },
-                    4: { label: "Đã nhận", bgClass: "bg-success", textColor: "white" },
-                    5: { label: "Đã chốt", bgClass: "bg-success", textColor: "white" },
-                };
-
-                const { label, bgClass, textColor } = statusMap[tinhTrang] || {
-                    label: "Không rõ", bgClass: "bg-light", textColor: "black"
-                };
-
-                return `
-                    <div class="status-card ${bgClass}">
-                    <span class="status-text small pt-2 ps-1" style="color: ${textColor};">
-                            ${label}
-                        </span>
-                    </div>
-                `;
-            }
+            SearchThungDaNhanTheoUser()// call hàm search
+            
             
 
             // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
@@ -584,6 +707,7 @@
                     }
             });
 
+           
 
             // Tính khối lượng vào lò thổi khi nhập vào KL Thùng & gang lỏng vào lò thổi
             $('#IDtbXuLySoLieu').on('input', '.KLThungVaGangLongVaoLoThoi, .KLThungVaoLoThoi', function () {
@@ -594,33 +718,14 @@
                 if (!isNaN(KLThungVaGangLongVaoLoThoi) && !isNaN(KLThungVaoLoThoi) && KLThungVaGangLongVaoLoThoi >= KLThungVaoLoThoi) {
                     const result = KLThungVaGangLongVaoLoThoi - KLThungVaoLoThoi; 
                     $row.find('.KLVaoLoThoi').text(result.toFixed(2));
-
-                    let total = 0;
-                    $("#IDtbXuLySoLieu .KLVaoLoThoi").each(function () {
-                        const value = parseFloat($(this).text());
-                        if (!isNaN(value)) {
-                            total += value;
-                        }
-                    });
-                    $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
+                    
+                    sumPhieu();
+                    
                 } else {
                     $row.find('#IDKLVaoLoThoi').text("0.00");
                 }
             });
         
-            // event mở modal danh sach me thoir
-            // $('#OpenModalMeThoi').click(function () {
-            // var modalMeThoi = new bootstrap.Modal(document.getElementById('ModalDanhSachMeThoi'));
-            // modalMeThoi.show();
-            // });
-
-             // event mở modal Form taoj me thoi
-            // $('#BtnModalFormTaoMeThoi').click(function () {
-            //     const modalFormMeThoi = new bootstrap.Modal(document.getElementById('ModalFormTaoMeThoi'));
-            //     modalFormMeThoi.show();
-            // });
-
-
             // event An/Hien ma Thùng Thép
             $('#BtnAnHien').click(function() {
                 $('.hide-col').toggle();
@@ -632,11 +737,15 @@
                 
             });
 
-                   
             
             // Btn search LT
             $('#btnSeachLG').click(function () {
                 SearchLT();
+            });
+
+            // Btn search Thung Da Nhan
+            $('#btnSeachThungDaNhan').click(function () {
+                SearchThungDaNhanTheoUser();
             });
 
              // Luu KR
@@ -666,9 +775,71 @@
                         alert("Lưu KR thành công!")
                     }
                 })
-            })
+            });
 
-             @* logic nhan thung *@
+            // logic huy nhan thung
+            // Khi checkbox thay đổi
+            $(document).on('change', '.cbx-nhanThung', function () {
+                let checkedRows = $('.cbx-nhanThung:checked');
+
+                if (checkedRows.length > 0) {
+                    $('#IDbtnHuyNhanThung').show();
+                } else {
+                    $('#IDbtnHuyNhanThung').hide();
+                }
+            });
+
+            $('#IDbtnHuyNhanThung').click(function () {
+
+                const selectedRows = $('.cbx-nhanThung:checked');
+                if (selectedRows.length === 0) {
+                    alert("Vui lòng chọn ít nhất 1 dòng.");
+                    return;
+                }
+
+                let isValid = true;
+                const invalidMaThungs = [];
+                const selectedMaThungs = [];
+
+                selectedRows.each(function () {
+                    const row = $(this).closest('tr');
+                    const status = parseInt(row.find('.status-cell').data('status'));
+                    const maThung = row.data('mathung');
+
+                    if (status !== 4) { // 4 = Đã nhận
+                        isValid = false;
+                        invalidMaThungs.push(maThung);
+                    }
+
+                    selectedMaThungs.push(maThung);
+                });
+
+                if (!isValid) {
+                    alert('Chỉ được hủy những thùng đã nhận.\nCác thùng không hợp lệ: ' + invalidMaThungs.join(', '));
+                    return;
+                }
+
+                const payload = {
+                    selectedMaThungs,
+                    idNguoiHuyNhan: $('#ID_currentUser').val()
+                };
+
+                $.ajax({
+                    url: "/BM_GangThoi_Thep/HuyNhan",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(payload),
+                    success: function (res) {
+                        if(res.success){
+                            // render lai
+                            SearchLT();
+                            SearchThungDaNhanTheoUser();
+                        }
+                    }
+                });
+            });
+
+             // logic nhan thung 
             $('#IDbtnNhanThung').click(function () {
                 let selectedIds = [];
                 $('#IDtbKhuVucNhanThung tbody tr').each(function () {
@@ -708,6 +879,7 @@
                     idLoThoi: IDLoThoi,
                     idNguoiNhan: ID_currentUser
                 }
+
                 $.ajax({
                     url: "/BM_GangThoi_Thep/Nhan",
                     type: "POST",
@@ -715,62 +887,11 @@
                     data: JSON.stringify(payload),
                     processData: false,
                     success: function (res) {
-                        const tbody = $('#IDtbXuLySoLieu tbody');
-                        tbody.empty();
-                        res.data.forEach(item => {
-                            const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
+                        // render lai 
+                        SearchLT();
 
-                            // show du lieu khi chon o table 2
-                            tbody.append(`
-                                <tr data-id="${item.id}">
-                                    <td class="hide-col">${item.maThungThep}</td>
-                                    <td>${item.iD_LoCao}</td>
-                                    <td>${item.bkmiS_ThungSo}</td>
-                                    <td>
-                                        <input class="table_tbx KhoiLuongThungVaGangLong" type="text" name="KhoiLuongThungVaGangLong" value="" />
-                                    </td>
-                                    <td class="KLThung">
-                                        <input class="table_tbx KhoiLuongThung" type="text" name="KhoiLuongThung" value="" />
-                                    </td>
-                                    <td class="KLGangLong">0.00</td>
-                                    <td>
-                                        <input class="table_tbx" type="text" name="ThungTrungGian" id="IDThungTrungGian" value="" />
-                                    </td>
-                                    <td>
-                                        <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="text" name="KLThungVaGangLongVaoLoThoi" value="" />
-                                    </td>
-                                    <td>
-                                        <input class="table_tbx KLThungVaoLoThoi" type="text" name="KLThungVaoLoThoi"  value="" />
-                                    </td>
-                                    <td id="IDKLVaoLoThoi" class="KLVaoLoThoi">0.00</td>
-                                    <td class="meThoi">
-                                        <button class="btn btn-primary" data-bs-toggle="modal" onclick="loadModalFilterMeThoi()">Chon Mẻ</button>
-                                    </td>
-                                    <td>
-                                        <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="" />
-                                    </td>
-                                    <td>
-                                        ${tinhTrangHTML}
-                                    </td>
-                                </tr>
-                            `);
-
-                            // update trang thai
-                            const row1 = $(`#IDtbKhuVucNhanThung tr[data-id="${item.id}"]`);
-                            const html = renderStatusCard(item.t_ID_TrangThai);
-                            row1.find('.status-cell').html(html);
-
-                            // const nguoiNhanHtml = item.nguoiNhanList.length > 0
-                            // ? item.nguoiNhanList.join('<br>')
-                            // : '';
-                            // row1.find('.nguoi-nhan').html(nguoiNhanHtml);
-                        });
-
-
-                        
-                        $('#IDtbKhuVucNhanThung tbody tr').each(function () {
-                            $(this).find('.cbx-nhanThung').prop('checked', false);
-                        });
+                        // render cac thung da nhan
+                        SearchThungDaNhanTheoUser();
                     },
                     error: function () {
                         alert("Lỗi khi nhận dữ liệu!");
@@ -779,37 +900,56 @@
             });
         });
 
-        
-    </script>
+
+         
+
+        $('#BtnLuu').click(function () {
+            const payload = getTableData();
+            $.ajax({
+                url: "/BM_GangThoi_Thep/Luu",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+                processData: false,
+                success: function (res) {
+                    alert("Lưu thành công!");
+                    // SearchThungDaNhanTheoUser();
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            })
+        })
+</script>
 
     @* Logic me thoi *@
     <script>
         // open modal chon me thoi
-        function loadModalFilterMeThoi() {
-            const id_LoThoi = $('#IDLoThoi').val();
+        // function loadModalFilterMeThoi() {
+        //     const id_LoThoi = $('#IDLoThoi').val();
 
-            if(!id_LoThoi){
-                alert("Vui lòng chọn Lò thổi");
-                $('#modalFilerMethoi').empty();
-                return;
-            }
+        //     if(!id_LoThoi){
+        //         alert("Vui lòng chọn Lò thổi");
+        //         $('#modalFilerMethoi').empty();
+        //         return;
+        //     }
 
-            $.ajax({
-                url: '/MeThoi/FilterMeThoi', 
-                type: 'POST',
-                contentType: 'application/json',
-                processData: false,
-                data: JSON.stringify(id_LoThoi),
-                success: function (html) {
-                var modalMeThoi = new bootstrap.Modal(document.getElementById('modalFilterMeThoi'));
-                    modalMeThoi.show();
-                    $('#modalFilerMethoi').html(html);
-                },
-                error: function () {
-                    $('#modalFilerMethoi').html('<div class="text-danger">Không thể tải nội dung.</div>');
-                }
-            });
-        }
+        //     $.ajax({
+        //         url: '/MeThoi/FilterMeThoi', 
+        //         type: 'POST',
+        //         contentType: 'application/json',
+        //         processData: false,
+        //         data: JSON.stringify(id_LoThoi),
+        //         success: function (html) {
+        //         var modalMeThoi = new bootstrap.Modal(document.getElementById('modalFilterMeThoi'));
+        //             modalMeThoi.show();
+        //             $('#modalFilerMethoi').html(html);
+        //         },
+        //         error: function () {
+        //             $('#modalFilerMethoi').html('<div class="text-danger">Không thể tải nội dung.</div>');
+        //         }
+        //     });
+        // }
 
         // open modal tao me
         function loadModalTaoMe() {
@@ -851,54 +991,13 @@
                     id_LoThoi: idLoThoi
                 }),
                 success: function (res) {
-                    // showAlert('Tạo mẻ thổi thành công!', 'success');
                     $('#btnDongModalTaoMeThoi').click();
-                     alert("Tạo mẻ thổi thành công!")
+                     alert("Tạo mẻ thổi thành công!");
+                    window.location.reload();
                 },
                 error: function (err) {
-                    // showAlert('Tạo mẻ thổi thất bại: ' + xhr.responseText, 'danger');
                     alert("Tạo mẻ thổi thất bại")
                 }
             });
         }
-    </script>
-
-
-
-    @* logic huy nhan thung *@
-    <script type="text/javascript">
-        // $('#IDbtnHuyNhanThung').click(function () {
-        //     const $rows = $('#IDtbXuLySoLieu tbody tr');
-        //     const selectedRows = $rows.filter(function () {
-        //         return $(this).find('.cbxChonHuyNhan').is(':checked');
-        //     });
-
-        //     if (selectedRows.length === 0) {
-        //         alert("Vui lòng chọn ít nhất 1 dòng.");
-        //         return;
-        //     }
-
-        //     const selectedIds = selectedRows.map(function () {
-        //         return $(this).data('id');
-        //     }).get();
-
-        //     $.ajax({
-        //         url: "/BM_GangThoi_Thep/HuyNhan",
-        //         type: "POST",
-        //         contentType: "application/json",
-        //         data: JSON.stringify(selectedIds),
-        //         processData: false,
-        //         success: function (data) {
-        //             if (data.success) {
-        //                 selectedRows.remove(); 
-        //             } else {
-        //                 alert(data.message || "Xử lý thất bại.");
-        //             }
-        //         },
-        //         error: function () {
-        //             alert("Lỗi khi nhận dữ liệu!");
-        //         }
-        //     });
-        // });
-
     </script>
