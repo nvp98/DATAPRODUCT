@@ -48,11 +48,44 @@
 	<div class="app-main__outer">
 		<div class="app-main__inner" style="display:block;padding-bottom: 0px;">
 			<div id="alertContainer" class="mt-3"></div>
+			<div class="row">
+				<div class="col mb-3">
+					<label class="form-label">Mã phiếu:</label>
+					<input type="text" class="form-control" value="@ViewBag.MaPhieu" readonly id="PhieuID" />
+				</div>
+
+				<div class="col mb-3">
+					<label class="form-label">Ngày:</label>
+					 <input type="date" class="form-control" value="@ViewBag.Ngay" readonly id="ID_Day" /> 
+				</div>
+
+				<div class="col mb-3">
+					<label class="form-label">Tên kíp:</label>
+					<input type="text" class="form-control" value="@ViewBag.TenKip" readonly id="IDKip"/>
+				</div>
+
+				<div class="col mb-3">
+					<label class="form-label">Tên ca:</label>
+					<input type="text" class="form-control" value="@ViewBag.TenCa" readonly id="IDCa"/>
+				</div>
+
+				<div class="col mb-3">
+					<label class="form-label">Tên lò cao:</label>
+					<input type="text" class="form-control" value="@ViewBag.ID_Locao" readonly id="ID_Locao" />
+				</div>
+				<div class="col mb-3" hidden>
+					<input type="text" class="form-control" value="@ViewBag.ID_Kip" readonly id="ID_Kip" />
+				</div>
+			</div>
 			<div class="tab-content">
 				<div class="row">
 					<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 14px;">
 						<div class="row w-100 justify-content-end mb-3">
 							<div class="col-auto">
+								<button type="button" class="btn btn-secondary" id="btnLamMoi">
+									<i class="bi bi-arrow-clockwise"></i>
+									<span class="small pt-2 ps-1 text-white">Làm mới</span>
+								</button>
 								<button type="button" class="btn btn-success me-2">
 									<i class="bi bi-arrow-right-circle"></i> Chuyển
 								</button>
@@ -112,25 +145,34 @@
 													</a>
 												</td>
 												<td class='text-center copyItem'>
-													<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
+													<a class="btn btn-primary btn-sm btn-edit-thung" title="Chỉnh sửa thùng"
+													   data-bs-toggle="modal" data-bs-target="#editThungModal">
 														<i class="bi bi-copy"></i>
 													</a>
 												</td>
-												<td>@item.MaThung</td>
-												<td>@item.SoMe</td>
-												<td>@item.ThuTuThung</td>
-												<td>@item.GioNhaMay</td>
-												<td>@item.PhanLoai</td>
-												<td>@item.KL_XeGoong</td>
-												<td>@item.KL_Thung</td>
-												<td>@item.KL_Thung_GangLong</td>
-												<td>@item.KL_GangLong_CanRay</td>
+												<td name="maThung" >@item.MaThung</td>
+												<td name="soMe">@item.SoMe</td>
+												<td name="ThungSo">@item.ThuTuThung</td>
+												<td name="Gio">@item.GioNhaMay</td>
+												<td name ="PhanLoai">@item.PhanLoai</td>
+												<td>
+													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px; " disabled />
+												</td>
+												<td>
+													<input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung" style="width: 100px; padding: 4px;">
+												</td>
+												<td>
+													<input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung_GangLong" style="width: 100px; padding: 4px;">
+												</td>
+												<td>
+													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;">
+												</td>
 												<td><input type="checkbox" @(item.DenHRC1 ? "checked" : "") disabled /></td>
 												<td><input type="checkbox" @(item.DenHRC2 ? "checked" : "") disabled /></td>
 												<td><input type="checkbox" @(item.DenDuc1 ? "checked" : "") disabled /></td>
 												<td><input type="checkbox" @(item.DenDuc2 ? "checked" : "") disabled /></td>
 												<td>@item.GioNM</td>
-												<td>@item.GhiChu</td>
+												<td><textarea name="GhiChu" class="form-control" rows="2" value="@item.GhiChu" style="width: 100px; resize: none; padding: 4px;"></textarea></td>
 												<td><input type="checkbox" class="chon-thung-checkbox"/></td>
 												<td>
 													@if (item.DaChuyen)
@@ -173,6 +215,109 @@
 		</div>
 	</div>
 }
+<!-- Modal -->
+<div class="modal fade" id="editThungModal" tabindex="-1" aria-labelledby="editThungModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="editThungModalLabel">Chỉnh sửa thùng</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+			</div>
+			<div class="modal-body">
+				<input type="hidden" id="modalMaThungHidden" />
+
+				<div class="row">
+					<!-- Cột trái -->
+					<div class="col-md-6">
+						<div class="form-group mb-3">
+							<label for="modalMaThung">Mã thùng</label>
+							<input type="text" id="modalMaThung" class="form-control" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="modalSoMe">Số mẻ</label>
+							<input type="text" id="modalSoMe" class="form-control" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="modalGio">Giờ</label>
+							<input type="time" id="modalGio" class="form-control" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="modalPhanLoai">Phân loại</label>
+							<input type="text" id="modalPhanLoai" class="form-control" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="modalKLXeGoong">KL xe goong</label>
+							<input type="number" id="modalKLXeGoong" class="form-control" step="0.01" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="modalKLThung">KL thùng</label>
+							<input type="number" id="modalKLThung" class="form-control" step="0.01" />
+						</div>
+					</div>
+
+					<!-- Cột phải -->
+					<div class="col-md-6">
+						<div class="form-group mb-3">
+							<label for="modalKLThungGangLong">KL thùng & gang lỏng</label>
+							<input type="number" id="modalKLThungGangLong" class="form-control" step="0.01" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="modalKLGangLong">KL gang lỏng</label>
+							<input type="number" id="modalKLGangLong" class="form-control" step="0.01" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label class="form-label">Vận chuyển đến</label>
+							<div class="row">
+								<div class="col-6">
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="checkboxHRC1">
+										<label class="form-check-label" for="checkboxHRC1">HRC1</label>
+									</div>
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="checkboxHRC2">
+										<label class="form-check-label" for="checkboxHRC2">HRC2</label>
+									</div>
+								</div>
+								<div class="col-6">
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="checkboxDUC1">
+										<label class="form-check-label" for="checkboxDUC1">Đúc 1</label>
+									</div>
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="checkboxDUC2">
+										<label class="form-check-label" for="checkboxDUC2">Đúc 2</label>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="modalGioNM">Giờ NM</label>
+							<input type="time" id="modalGioNM" class="form-control" />
+						</div>
+
+						<div class="form-group mb-3">
+							<label for="modalGhiChu">Ghi chú</label>
+							<textarea id="modalGhiChu" class="form-control" rows="2" style="resize: none;"></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="modal-footer">
+				<button type="button" id="btnLuuThung" class="btn btn-primary">Lưu</button>
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+			</div>
+		</div>
+	</div>
+</div>
 
 <script>
 	$(document).ready(function()
@@ -248,6 +393,9 @@
 			}
 			isHidden = !isHidden;
 		});
+		$("#btnLamMoi").click(function() {
+		loadThemSoMeMoi();
+		});
 	});
 
 	// Hàm gọi API chuyển thùng
@@ -291,25 +439,170 @@
 					  }
 					});
 		}
-			function showAlert(message, type) {
-			  const alertHtml = `
-				<div class="alert alert-${type} alert-dismissible fade show" role="alert">
-				  ${message}
-				  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-				</div>
-			  `;
-			  const alertContainer = document.getElementById('alertContainer');
-			  alertContainer.innerHTML = alertHtml;
+	function showAlert(message, type) {
+		const alertHtml = `
+		<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+			${message}
+			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+		</div>
+		`;
+		const alertContainer = document.getElementById('alertContainer');
+		alertContainer.innerHTML = alertHtml;
 
-			  // Tự động ẩn sau 5 giây
-			  setTimeout(() => {
-				const alert = alertContainer.querySelector('.alert');
-				if (alert) {
-				  alert.classList.remove('show');
-				  alert.classList.add('hide');
+		// Tự động ẩn sau 5 giây
+		setTimeout(() => {
+		const alert = alertContainer.querySelector('.alert');
+		if (alert) {
+			alert.classList.remove('show');
+			alert.classList.add('hide');
+		}
+		}, 5000);
+	}
+					// Hàm tạo mã thùng
+	function generateMaThung(dateStr, loCao, ca, stt) {
+			const date = new Date(dateStr);
+			const dd = String(date.getDate()).padStart(2, '0');
+			const mm = String(date.getMonth() + 1).padStart(2, '0');
+			const yy = String(date.getFullYear()).slice(-2);
+			const caChar = (ca === '1') ? 'N' : 'D';
+			const sttFormatted = String(stt).padStart(3, '0');
+
+			return `${dd}${mm}${yy}L${loCao}${caChar}${sttFormatted}.00`;
+	}
+	function getLastThungIndex() {
+		let maxIndex = 0;
+		$("#dataTable tbody td[name='maThung']").each(function () {
+			let ma = $(this).text().trim();
+			let match = ma.match(/(\d{3})\.00$/); // match số cuối
+			if (match) {
+				let num = parseInt(match[1]);
+				if (num > maxIndex) {
+					maxIndex = num;
 				}
-			  }, 5000);
 			}
+		});
+		return maxIndex;
+	}
+
+	function loadThemSoMeMoi() {
+		let ngay = $("#ID_Day").val();
+		let idLoCao = $("#ID_Locao").val();
+		let idKip = $("#ID_Kip").val();
+		// console.log(ngay); 
+		// // let Ca = $("#ID_Kip").val();
+		// // let idKip =  Ca + Kip
+		 console.log("===== kip detail", idKip)
+		$.ajax({
+			url: "/BM16_GangThoi/GetSoMeGangBKMis",
+			type: "GET",
+			data: {
+				ngay: ngay,
+				ID_LoCao: idLoCao,
+				IDKip: idKip
+			},
+			success: function (data) {
+				console.log ("data====",data)
+				let tableBody = $("#dataTable tbody");
+
+				// Bước 1: Lấy toàn bộ số mẻ đã tồn tại trong bảng
+				let soMeHienTai = [];
+				tableBody.find("td[name='soMe']").each(function () {
+					soMeHienTai.push($(this).text().trim());
+				});
+				console.log("Các số mẻ hiện tại:", soMeHienTai);
+				// Bước 2: Lặp từng dòng mới, nếu chưa tồn tại thì thêm
+				let index = tableBody.find("tr").length;
+				let lastIndex = getLastThungIndex();
+		
+				data.forEach((item, i) => {
+					let soMe = item.testPatternCode ? item.testPatternCode : "";
+					if (!soMeHienTai.includes(soMe)) {
+						lastIndex++; // tăng số thứ tự
+						let maThung = generateMaThung(ngay, idLoCao, idKip, lastIndex); // dùng đúng tham số
+						let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
+						let phanLoai = item.classifyName ? item.classifyName : "";
+						let time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
+						let row = `
+							<tr class="row-new">
+								<td class='text-center delItem'><a class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a></td>
+								<td class='text-center copyItem'><a class="btn btn-secondary btn-sm copyRowBtn"><i class="bi bi-copy"></i></a></td>
+								<td name="maThung">${maThung}</td>
+								<td name="soMe">${soMe}</td>
+								<td name="ThungSo">${thungSo}</td>
+								<td name="Gio">${time}</td>
+								<td name="PhanLoai">${phanLoai}</td>
+								<td><input type="number" name="KhoiLuongXeGoong" class="form-control" value="0" style="width: 100px;"></td>
+								<td><input id="KLThung_${index}" name="KhoiLuongThung" type="number" class="form-control" value="" style="width: 100px;"></td>
+								<td><input id="KLThungGL_${index}" name="KLThungGangLong" type="number" class="form-control" value="" style="width: 100px;"></td>
+								<td><input id="KLGLCR_${index}" name="KLGangLong" type="number" class="form-control" value="" style="width: 100px;"></td>
+								<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input"></td>
+								<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input"></td>
+								<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input"></td>
+								<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input"></td>
+								<td>${time}</td>
+								<td><textarea name="GhiChu" class="form-control" style="width: 100px; resize: none; padding: 4px;"></textarea></td>
+								<td><input type="checkbox" class="chon-thung-checkbox"/></td>
+								<td></td>
+								<td class="toggle-col"></td>
+								<td class="toggle-col"></td>
+								<td class="toggle-col"></td>
+								<td class="toggle-col"></td>
+								<td class="toggle-col"></td>
+							</tr>`;
+						tableBody.append(row);
+						index++;
+					}
+				});
+			},
+			error: function () {
+				alert("Không thể lấy dữ liệu BKMIS.");
+			}
+		});
+	}
+		function saveGangThoiVaoPhieu() {
+		let phieuID = $("#PhieuID").val();
+		let danhSachThung = [];
+
+		$("#dataTable tbody tr[data-new='true']").each(function () {
+			let row = $(this);
+			danhSachThung.push({
+				MaThung: row.find("td[name='maThung']").text().trim(),
+				SoMe: row.find("td[name='soMe']").text().trim(),
+				ThungSo: row.find("td[name='ThungSo']").text().trim(),
+				Gio: row.find("td[name='Gio']").text().trim(),
+				PhanLoai: row.find("td[name='PhanLoai']").text().trim(),
+				KhoiLuongXeGoong: parseFloat(row.find("input[name='KhoiLuongXeGoong']").val()) || 0,
+				KhoiLuongThung: parseFloat(row.find("input[name='KhoiLuongThung']").val()) || 0,
+				KhoiLuongGangLong: parseFloat(row.find("input[name='KLGangLong']").val()) || 0,
+				KLThungGangLong: parseFloat(row.find("input[name='KLThungGangLong']").val()) || 0,
+				VanChuyenHRC1: row.find("input[name='VanChuyenHRC1']").is(":checked"),
+				VanChuyenHRC2: row.find("input[name='VanChuyenHRC2']").is(":checked"),
+				VanChuyenDUC1: row.find("input[name='VanChuyenDUC1']").is(":checked"),
+				VanChuyenDUC2: row.find("input[name='VanChuyenDUC2']").is(":checked"),
+				GhiChu: row.find("textarea[name='GhiChu']").val()
+			});
+		});
+
+		// gửi lên controller
+		$.ajax({
+			url: "/BM16_GangThoi/SaveGangThoi",
+			type: "POST",
+			contentType: "application/json",
+			data: JSON.stringify({
+				PhieuID: parseInt(phieuID),
+				DanhSachThung: danhSachThung
+			}),
+			success: function (res) {
+				alert(res.message || "Lưu thành công!");
+			},
+			error: function (err) {
+				alert("Lỗi khi lưu: " + err.responseText);
+			}
+		});
+	}
+
+	
+
 
 
 </script>
