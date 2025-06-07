@@ -1,7 +1,7 @@
 ﻿
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-@model List<Tbl_BM_16_Phieu>
+@model List<Data_Product.DTO.BM_16_DTO.PhieuViewModel>
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
 @if (TempData["msgSuccess"] != null)
@@ -113,7 +113,6 @@
 									<th rowspan="3">Ngày</th>
 									<th rowspan="3">Ca</th>
 									<th rowspan="3">Lò Cao</th>
-									<th rowspan="3">Bộ Phận Tạo</th>
 									<th rowspan="3">Người Tạo</th>
 									<th rowspan="3">Thời Gian Tạo</th>
 									<th rowspan="3">Thao Tác</th>
@@ -125,9 +124,9 @@
 									<tr>
 										<td class="text-center"><a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="text-primary">@item.MaPhieu</a></td>
 										<td class="text-center">@item.Ngay</td>
-										<td class="text-center">@item.ID_Kip</td>
-										<td class="text-center">@item.ID_Locao</td>
-										<td class="text-center">@item.ID_NguoiTao</td>
+										<td class="text-center">@item.TenCa</td>
+										<td class="text-center">@item.TenLoCao</td>
+										<td class="text-center">@item.TenNguoiTao</td>
 										<td class="text-center">@item.ThoiGianTao</td>
 										<td class="text-center">
 											<a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>

@@ -14,6 +14,9 @@ using Microsoft.Extensions.Logging;
 using Data_Product.DTO.BM_16_DTO;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.DotNet.Scaffolding.Shared.Messaging;
+using Org.BouncyCastle.Asn1.Ocsp;
+using iTextSharp.text;
+using DocumentFormat.OpenXml.Office2016.Excel;
 
 
 namespace Data_Product.Controllers
@@ -127,7 +130,24 @@ namespace Data_Product.Controllers
         }
         public async Task<IActionResult> Danhsachphieu()
         {
-           var danhSachPhieu = await _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.Ngay).ToListAsync();
+           var danhSachPhieu = await _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.Ngay)
+                .Select(p => new PhieuViewModel
+                {
+                   MaPhieu = p.MaPhieu,
+                   Ngay = p.Ngay,
+                   ThoiGianTao = p.ThoiGianTao.ToString("HH:mm:ss"),
+                   TenNguoiTao = _context.Tbl_TaiKhoan
+                                  .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
+                                  .Select(tk => tk.HoVaTen).FirstOrDefault(),
+                    TenCa = _context.Tbl_Kip
+                              .Where(k => k.ID_Kip == p.ID_Kip)
+                              .Select(k => k.TenKip)
+                              .FirstOrDefault(),
+                    TenLoCao =_context.Tbl_LoCao
+                            .Where(lc=>lc.ID == p.ID_Locao)
+                            .Select(lc=>lc.TenLoCao).FirstOrDefault(),
+                })
+                .ToListAsync();
             return View(danhSachPhieu);
         }
         [HttpGet]
@@ -380,10 +400,9 @@ namespace Data_Product.Controllers
                 {
                     return Json(new { success = false, message = "Không tìm thấy thùng" });
                 }
-            if (thunggang.ID_TrangThai != 2 || thunggang.T_ID_TrangThai != 2 || thunggang.G_ID_TrangThai != 3)
-                {
-                    return Json(new { success = false, message = "Trạng thái thùng không hợp lệ để chỉnh sửa." });
-                }
+
+            if (thunggang.ID_TrangThai == 2 || thunggang.T_ID_TrangThai == 2 || thunggang.G_ID_TrangThai != 3)
+               
                     thunggang.G_KLGangLong = thung.G_KLGangLong;
                     thunggang.G_KLThungChua = thung.G_KLThungChua;
                     thunggang.G_KLThungVaGang = thung.G_KLThungVaGang;
@@ -395,6 +414,70 @@ namespace Data_Product.Controllers
             return Json(new { success = true, message = "Cập nhật thùng thành công" });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> SaveThung([FromBody] SaveThungDto req)
+        {
+            if (req == null || req.DanhSachThung == null || !req.DanhSachThung.Any())
+            {
+                return  BadRequest("Dữ liệu không hợp lệ.");
+            }
+            try
+            {
+                var phieu = await _context.Tbl_BM_16_Phieu.FirstOrDefaultAsync(p => p.MaPhieu == req.MaPhieu);
+
+                var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                if (string.IsNullOrEmpty(tenTaiKhoan))
+                    return Unauthorized("Phiên đăng nhập không hợp lệ.");
+
+                var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+                if (taiKhoan == null)
+                    return Unauthorized("Tài khoản không tồn tại.");
+
+                int idNhanVienTao = taiKhoan.ID_TaiKhoan;
+
+                if (phieu == null)
+                {
+                    return NotFound("Không tìm thấy phiếu.");
+                }
+                // Thêm các dòng gang thỏi vào phiếu này
+                foreach (var item in req.DanhSachThung)
+                {
+                    var gangThoi = new Tbl_BM_16_GangLong
+                    {
+                        MaPhieu = req.MaPhieu,
+                        MaThungGang = item.MaThungGang,
+                        BKMIS_SoMe = item.BKMIS_SoMe,
+                        BKMIS_ThungSo = item.BKMIS_ThungSo,
+                        BKMIS_Gio = item.BKMIS_Gio,
+                        BKMIS_PhanLoai = item.BKMIS_PhanLoai,
+                        KL_XeGoong = item.KL_XeGoong,
+                        NgayLuyenGang = DateTime.Now,
+                        G_KLThungChua = item.G_KLThungChua,
+                        G_KLThungVaGang = item.G_KLThungVaGang,
+                        G_KLGangLong = item.G_KLGangLong,
+                        ChuyenDen = item.ChuyenDen ?? "",
+                        Gio_NM = DateTime.Now.ToString("HH:mm"),
+                        G_GhiChu = item.G_GhiChu,
+                        G_ID_TrangThai = 1,
+                        NgayTao = DateTime.Now,
+                        G_ID_NguoiLuu = idNhanVienTao,
+                        ID_Locao = req.ID_Locao,
+                        G_ID_Kip = req.ID_Kip,
+                        T_ID_TrangThai = 2,
+                        ID_TrangThai = 1,
+                        T_copy = false,
+                    };
+                     _context.Tbl_BM_16_GangLong.Add(gangThoi);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            return Json(new { success = true, });
+        }
 
     }
 }

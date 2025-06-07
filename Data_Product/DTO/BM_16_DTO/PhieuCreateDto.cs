@@ -10,4 +10,15 @@ namespace Data_Product.DTO.BM_16_DTO
         [JsonPropertyName("ThungGangs")]
         public List<ThungGangDto> DanhSachThung { get; set; }
     }
+    public class PhieuViewModel
+    {
+        public string MaPhieu { get; set; }
+        public DateTime Ngay { get; set; }
+        public string TenNguoiTao { get; set; }
+        public string TenCa { get; set; }
+        public string TenLoCao { get; set; } 
+        public String ThoiGianTao { get; set; }
+    }
+
+
 }
