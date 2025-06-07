@@ -3,6 +3,7 @@
 @using Data_Product.Repositorys;
 @inject Data_Product.Repositorys.DataContext _context
 @using System.Security.Claims;
+@using Microsoft.EntityFrameworkCore;
 
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -126,8 +127,9 @@
                                     }
                                     @foreach (var item_ in Model)
                                     {
-                                        var item = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == item_.ID_BBGN).FirstOrDefault();
-                                        var checkColor = _context.Tbl_PKHXuLyPhieu.Where(x => x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                        int IDBBGN = item_.ID_BBGN;
+                                        var item = _context.Tbl_BienBanGiaoNhan.FirstOrDefault(x => x.ID_BBGN == IDBBGN);
+                                        var checkColor = _context.Tbl_PKHXuLyPhieu.Where(x => x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && x.ID_BBGN == IDBBGN).FirstOrDefault();
                                         string mau = "";
                                         if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
                                         {

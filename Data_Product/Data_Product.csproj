@@ -14,7 +14,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="App_Data\template_NhatKy_SanXuat.xlsx" />
     <None Remove="Models\Tbl_TrinhKyBoSung.cs~RF1f541f7d.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="App_Data\template_NhatKy_SanXuat.xlsx">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -41,11 +49,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.18" />
+    <PackageReference Include="MySql.Data" Version="9.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Rotativa.AspNetCore" Version="1.4.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\BM\" />
     <Folder Include="wwwroot\Pdf\" />
     <Folder Include="wwwroot\ReceivedReports\" />
   </ItemGroup>

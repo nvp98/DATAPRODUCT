@@ -66,7 +66,7 @@
                         <span class="badge bg-primary badge-number">4</span>
                     </a><!-- End Notification Icon -->
 
-             
+
 
                 </li><!-- End Notification Nav -->
 
@@ -81,7 +81,7 @@
 
                 <li class="nav-item dropdown pe-3">
 
-                    @if(TaiKhoan != null)
+                    @if (TaiKhoan != null)
                     {
                         var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
 
@@ -129,7 +129,7 @@
 
                         </ul>
                     }
-                
+
                 </li>
 
             </ul>
@@ -199,18 +199,32 @@
                                     <span>Ca/Kíp làm việc</span>
                                 </a>
                             </li>
+
+                          @*  <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "Locao")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Lo cao</span>
+                                </a>
+                            </li>*@
+
+                           @* <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "KLxethung")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>KL xe thùng</span>
+                                </a>
+                            </li>*@
+
                         </ul>
                     </li>
 
                     <!-- End Icons Nav -->
-                    
                     <!-- End Icons Nav -->
                 }
                 // quản lý lô
-                List<string> valuesToCheckLo = new List<string> { "1","2","3","6" };
-                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 )
+                List<string> valuesToCheckLo = new List<string> { "1", "2", "3", "6" };
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3)
                 {
-                   
+
                 }
                 <li class="nav-item">
                     @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || valuesToCheckLo.Any(value => ListQuyen.Contains(value)))
@@ -219,7 +233,7 @@
                             <i class="bi bi-newspaper"></i><span>Thông tin vật tư</span><i class="bi bi-chevron-down ms-auto"></i>
                         </a>
                     }
-                    
+
                     <ul id="icons-vattu" class="nav-content collapse " data-bs-parent="#sidebar-nav">
                         @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3)
                         {
@@ -261,62 +275,171 @@
                     </li>
 
                     <!-- End F.A.Q Page Nav -->
-                    <li class="nav-item">
+                    @*  <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("Index","BM_11")">
                             <i class="bi bi-envelope-arrow-down"></i>
                             <span>Viêc tôi bắt đầu</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link collapsed" href="@Url.Action("Index","BM01_GangLong")">
+                            <i class="bi bi-envelope-arrow-down"></i>
+                            <span>Đang chờ xử lý </span>
+                        </a>
+                    </li> *@
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-hospital"></i><span>Việc tôi bắt đầu </span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-bieumau" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index","BM_11")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
+                                </a>
+                            </li>
+                           @* <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index_Started","BM")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>BM.16</span>
+                                </a>
+                            </li>*@
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index","BM_NhatKy_SanXuat")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>BM.12/QT.05 Nhật ký sản xuất </span>
+                                </a>
+                            </li>
 
+
+                        </ul>
+                    </li>
                     <!-- End Contact Page Nav -->
 
-                    <li class="nav-item">
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau1" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-hospital"></i><span>Việc đến tôi </span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-bieumau1" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("Index", "XuLyPhieu")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
+                                </a>
+                            </li>
+                           @* <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index","XulyphieuBM")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>Việc đến tôi (BM.16)</span>
+                                </a>
+                            </li>*@
+
+                        </ul>
+                    </li>
+                   @*  <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("Index", "XuLyPhieu")">
                             <i class="bi bi-envelope-arrow-up"></i>
                             <span>Việc đến tôi</span>
                         </a>
-                    </li>
+                    </li> *@
+
+                   
+
+
                 }
                 List<string> QuyenKH = new List<string> { "1", "3" };
                 <li class="nav-heading" style="margin-top: 25px;">Kiểm soát phiếu</li>
                 if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 3 || QuyenKH.Any(value => ListQuyen.Contains(value)))
                 {
-                    
-                    <li class="nav-item">
+
+                    @* <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("PhieuBoSung","XuLyPhieu")">
                             <i class="bi bi-envelope-open"></i>
                             <span>Phiếu xác nhận phê duyệt</span>
                         </a>
                     </li>
+ *@
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau2" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-envelope-open"></i><span>Phiếu xác nhận phê duyệt </span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-bieumau2" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("PhieuBoSung","XuLyPhieu")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
+                                </a>
+                            </li>
+                        </ul>
 
-                    <li class="nav-item">
+                    </li>
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau3" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-envelope-open"></i><span>PKH Xử lý xóa phiếu </span><i class="bi bi-chevron-down ms-auto"></i>
+                        </a>
+                        <ul id="icons-bieumau3" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("PKHXoaPhieu","XuLyPhieu")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    @* <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("PKHXoaPhieu","XuLyPhieu")">
                             <i class="bi bi-envelope-open"></i>
                             <span>PKH Xử lý xóa phiếu</span>
                         </a>
-                    </li>
+                    </li> *@
 
                     <!-- End F.A.Q Page Nav -->
 
-                    <li class="nav-item">
-                        <a class="nav-link collapsed" href="@Url.Action("PhieuNhanThongTin","XuLyPhieu")">
-                            <i class="bi bi-envelope-paper"></i>
-                            <span>Phiếu nhận thông tin</span>
+
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau4" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-envelope-open"></i><span>Phiếu nhận thông tin </span><i class="bi bi-chevron-down ms-auto"></i>
                         </a>
+                        <ul id="icons-bieumau4" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("PhieuNhanThongTin","XuLyPhieu")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
+                                </a>
+                            </li>
+
+                        </ul>
                     </li>
 
+                  
+
                     <!-- End F.A.Q Page Nav -->
-                   
                 }
-                List<string> QuyenQLBBGN = new List<string> { "1","2", "3","4","7","8" };
+                List<string> QuyenQLBBGN = new List<string> { "1", "2", "3", "4", "7", "8" };
                 if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || TaiKhoan.ID_Quyen == 4 || TaiKhoan.ID_Quyen == 8 || QuyenQLBBGN.Any(value => ListQuyen.Contains(value)))
                 {
-                    <li class="nav-item">
-                        <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_11")">
-                            <i class="bi bi-envelope"></i>
-                            <span>Tất cả các phiếu</span>
+
+                    <li class="nav-item1">
+                        <a class="nav-link collapsed" data-bs-target="#icons-bieumau5" data-bs-toggle="collapse" href="#">
+                            <i class="bi bi-envelope-open"></i><span>Tất cả các phiếu </span><i class="bi bi-chevron-down ms-auto"></i>
                         </a>
+                        <ul id="icons-bieumau5" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_11")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_NhatKy_SanXuat")">
+                                    <i class="bi bi-circle"></i>
+                                    <span> BM.12/QT.05 Nhật ký sản xuất</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
+                   
                 }
 
             }
@@ -327,7 +450,7 @@
     <main id="main" class="main" style="height:80%; padding: 0% 1% 0% 1%;">
         @RenderBody()
     </main><!-- End #main -->
-@*    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>*@
+    @*    <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>*@
     @*<script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>*@
     @*<script src="~/js/site.js" asp-append-version="true"></script>*@
@@ -341,12 +464,12 @@
     <script src="~/vendor/simple-datatables/simple-datatables.js"></script>
     <script src="~/vendor/tinymce/tinymce.min.js"></script>
     <script src="~/vendor/php-email-form/validate.js"></script>
-
+    @RenderSection("scripts", required: false)
     <!-- Template Main JS File -->
     <script src="~/js/main.js"></script>
     @*<script src="~/lib/jquery/dist/jquery.min.js"></script>*@
     @*<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>*@
     @*<script src="~/js/site.js" asp-append-version="true"></script>*@
-@*    @await RenderSectionAsync("Scripts", required: false)*@
+    @*  @await RenderSectionAsync("Scripts", required: true) *@
 </body>
 </html>
