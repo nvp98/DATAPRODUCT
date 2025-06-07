@@ -304,7 +304,6 @@
                                                    max="@ViewBag.MaxDate"
                                                    value="@ViewBag.DefaultDate"
                                                    onkeydown="return false;">
-                                            <small class="error-msg text-danger">Vui lòng chọn ngày</small>
                                         </div>
                                     </div>
                                 </div>
@@ -319,7 +318,6 @@
                                                 <option value="1">Ca 1</option>
                                                 <option value="2">Ca 2</option>
                                             </select>
-                                            <small class="error-msg text-danger">Vui lòng chọn Ca làm việc</small>
                                         </div>
                                     </div>
                                 </div>
@@ -336,7 +334,6 @@
                                                     <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
                                                 }
                                             </select>
-                                            <small class="error-msg text-danger">Vui lòng chọn Lò thổi</small>
                                         </div>
                                     </div>
                                 </div>
@@ -528,13 +525,13 @@
                     sumPhieu();
               });
           } else {
-
-          // TODO
               const html = `
-                <div>
-                    <span>Không tìm thấy dữ liệu</span>
-                </div>
-                  `;
+                    <tr>
+                        <td colspan="14" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                        </td>
+                    </tr>
+                `;
                tbody.append(html);
           }
         }
@@ -601,12 +598,13 @@
                 tbody.append(html);
                 });
             } else {
-                // TODO
-                const html = `
-                <div>
-                    <span>Không tìm thấy dữ liệu</span>
-                </div>
-                    `;
+               const html = `
+                    <tr>
+                        <td colspan="14" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                        </td>
+                    </tr>
+                `;
                 tbody.append(html);
             }
         }
@@ -780,9 +778,16 @@
             // logic huy nhan thung
             // Khi checkbox thay đổi
             $(document).on('change', '.cbx-nhanThung', function () {
-                let checkedRows = $('.cbx-nhanThung:checked');
-
-                if (checkedRows.length > 0) {
+                let showButton = false;
+                $('.cbx-nhanThung:checked').each(function () {
+                    const row = $(this).closest('tr');
+                    const status = parseInt(row.find('.status-cell').data('status'));
+                    if (status === 4) { // 4 = Đã nhận
+                        showButton = true;
+                        return false;
+                    }
+                });
+                if (showButton) {
                     $('#IDbtnHuyNhanThung').show();
                 } else {
                     $('#IDbtnHuyNhanThung').hide();
@@ -863,7 +868,7 @@
                 const IDLoThoi = $('#IDLoThoi').val();
 
                 if(!NgayNhan){
-                    alert("Vui lòng chọn Ngày"); return;
+                    alert("Vui lòng chọn Ngày Nhận"); return;
                 }
                 if(!IDCaNhan ){
                     alert("Vui lòng chọn Ca"); return;
@@ -899,10 +904,8 @@
                 });
             });
         });
-
-
          
-
+        // logic luu
         $('#BtnLuu').click(function () {
             const payload = getTableData();
             $.ajax({
@@ -921,83 +924,55 @@
             })
         })
 </script>
+@* Logic me thoi *@
+<script>
+    // open modal tao me
+    function loadModalTaoMe() {
+        $.ajax({
+            url: '/MeThoi/TaoMeThoi', 
+            type: 'GET',
+            success: function (html) {
+                $('#modalTaoMe').html(html);
+            },
+            error: function () {
+                $('#modalTaoMe').html('<div class="text-danger">Không thể tải nội dung.</div>');
+            }
+        });
+    }
 
-    @* Logic me thoi *@
-    <script>
-        // open modal chon me thoi
-        // function loadModalFilterMeThoi() {
-        //     const id_LoThoi = $('#IDLoThoi').val();
+    // tao me
+    function submitTaoMe() {
+        const maLoThoi = $('#formLoThoi').val();
+        const soLuong = $('#formSoLuong').val();
 
-        //     if(!id_LoThoi){
-        //         alert("Vui lòng chọn Lò thổi");
-        //         $('#modalFilerMethoi').empty();
-        //         return;
-        //     }
+        const selectedOption = $('#formLoThoi option:selected');
+        const idLoThoi = selectedOption.data('id');
 
-        //     $.ajax({
-        //         url: '/MeThoi/FilterMeThoi', 
-        //         type: 'POST',
-        //         contentType: 'application/json',
-        //         processData: false,
-        //         data: JSON.stringify(id_LoThoi),
-        //         success: function (html) {
-        //         var modalMeThoi = new bootstrap.Modal(document.getElementById('modalFilterMeThoi'));
-        //             modalMeThoi.show();
-        //             $('#modalFilerMethoi').html(html);
-        //         },
-        //         error: function () {
-        //             $('#modalFilerMethoi').html('<div class="text-danger">Không thể tải nội dung.</div>');
-        //         }
-        //     });
-        // }
-
-        // open modal tao me
-        function loadModalTaoMe() {
-            $.ajax({
-                url: '/MeThoi/TaoMeThoi', 
-                type: 'GET',
-                success: function (html) {
-                    $('#modalTaoMe').html(html);
-                },
-                error: function () {
-                    $('#modalTaoMe').html('<div class="text-danger">Không thể tải nội dung.</div>');
-                }
-            });
+        if(!soLuong){
+            alert("Vui lòng nhập số lượng mẻ thổi muốn tạo"); return;
+        }
+        if(!maLoThoi){
+            alert("Vui lòng chọn Lò thổi"); return;
         }
 
-        // tao me
-        function submitTaoMe() {
-            const maLoThoi = $('#formLoThoi').val();
-            const soLuong = $('#formSoLuong').val();
-
-            const selectedOption = $('#formLoThoi option:selected');
-            const idLoThoi = selectedOption.data('id');
-
-            if(!soLuong){
-                alert("Vui lòng nhập số lượng mẻ thổi muốn tạo"); return;
+        $.ajax({
+            url: '/MeThoi/TaoMeThoi',
+            method: 'POST',
+            contentType: 'application/json',
+            processData: false,
+            data: JSON.stringify({
+                maLoThoi: maLoThoi,
+                soLuong: parseInt(soLuong),
+                id_LoThoi: idLoThoi
+            }),
+            success: function (res) {
+                $('#btnDongModalTaoMeThoi').click();
+                    alert("Tạo mẻ thổi thành công!");
+                window.location.reload();
+            },
+            error: function (err) {
+                alert("Tạo mẻ thổi thất bại")
             }
-            if(!maLoThoi){
-                alert("Vui lòng chọn Lò thổi"); return;
-            }
-
-            $.ajax({
-                url: '/MeThoi/TaoMeThoi',
-                method: 'POST',
-                contentType: 'application/json',
-                processData: false,
-                data: JSON.stringify({
-                    maLoThoi: maLoThoi,
-                    soLuong: parseInt(soLuong),
-                    id_LoThoi: idLoThoi
-                }),
-                success: function (res) {
-                    $('#btnDongModalTaoMeThoi').click();
-                     alert("Tạo mẻ thổi thành công!");
-                    window.location.reload();
-                },
-                error: function (err) {
-                    alert("Tạo mẻ thổi thất bại")
-                }
-            });
-        }
-    </script>
+        });
+    }
+</script>

@@ -1,5 +1,311 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@using Data_Product.Repositorys;
+@using System.Security.Claims;
+@inject Data_Product.Repositorys.DataContext _context
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
 }
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
+}
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
+}
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="row" style="width:100%; height: 70px;">
+                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available;">
+                            <div class="col-8" style="text-align: left;padding: 1% 2% 1% 0%; ">
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        DANH SÁCH THÙNG
+                                    </b>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%; color: black; font-size: 13px">
+                        <div class="row">
+                            <!-- Cột chứa bộ lọc -->
+                            <div class="col-12">
+                                <div class="row">
+                                    <!-- Lò Cao -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Lò Cao:</label>
+                                        <select class="form-select form-select-sm" id="LoCao" name="LoCao">
+                                            <option value="">-- Lò cao --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Lò Thổi -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Lò Thổi:</label>
+                                        <select class="form-select form-select-sm" id="LoThoi" name="LoThoi">
+                                            <option value="">-- Lò Thổi --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Từ ngày LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label for="TuNgayLG" class="form-label">Từ ngày LG:</label>
+                                        <input type="date" class="form-control form-control-sm" id="TuNgayLG" name="TuNgayLG"
+                                               min="@ViewBag.MinDate" max="@ViewBag.MaxDate" value="@ViewBag.DefaultDate"
+                                               onkeydown="return false;">
+                                    </div>
+
+                                    <!-- Đến ngày LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label for="DenNgayLG" class="form-label">Đến ngày LG:</label>
+                                        <input type="date" class="form-control form-control-sm" id="DenNgayLG" name="DenNgayLG"
+                                               min="@ViewBag.MinDate" max="@ViewBag.MaxDate" value="@ViewBag.DefaultDate"
+                                               onkeydown="return false;">
+                                    </div>
+
+                                    <!-- Từ ngày LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label for="TuNgayLT" class="form-label">Từ ngày LT:</label>
+                                        <input type="date" class="form-control form-control-sm" id="TuNgayLT" name="TuNgayLT"
+                                               min="@ViewBag.MinDate" max="@ViewBag.MaxDate" value="@ViewBag.DefaultDate"
+                                               onkeydown="return false;">
+                                    </div>
+
+                                    <!-- Đến ngày LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label for="DenNgayLT" class="form-label">Đến ngày LT:</label>
+                                        <input type="date" class="form-control form-control-sm" id="DenNgayLT" name="DenNgayLT"
+                                               min="@ViewBag.MinDate" max="@ViewBag.MaxDate" value="@ViewBag.DefaultDate"
+                                               onkeydown="return false;">
+                                    </div>
+
+                                    <!-- Ca LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Ca LT:</label>
+                                        <select class="form-select form-select-sm" id="CaLT" name="CaLT">
+                                            <option value="">-- Ca --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Ca LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Ca LG:</label>
+                                        <select class="form-select form-select-sm" id="CaLG" name="CaLG">
+                                            <option value="">-- Ca --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Kíp LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Kíp LT:</label>
+                                        <select class="form-select form-select-sm" id="KipLT" name="KipLT">
+                                            <option value="">-- Kíp --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Kíp LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Kíp LG:</label>
+                                        <select class="form-select form-select-sm" id="KipLG" name="KipLG">
+                                            <option value="">-- kíp --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Chuyển đến -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Chuyển đến:</label>
+                                        <select class="form-select form-select-sm" id="ChuyenDen" name="ChuyenDen">
+                                            <option value="">-- Chuyển đến --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Thùng số -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Thùng số:</label>
+                                        <input type="number" class="form-control form-control-sm" id="ThungSo" />
+                                    </div>
+
+                                    <!-- Tình trạng chốt -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Tình trạng chốt:</label>
+                                        <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
+                                            <option value="">-- Tình trạng --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Tình trạng LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Tình trạng LT:</label>
+                                        <select class="form-select form-select-sm" id="TinhTrangLT" name="TinhTrangLT">
+                                            <option value="">-- Tình trạng --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Tình trạng LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Tình trạng LG:</label>
+                                        <select class="form-select form-select-sm" id="TinhTrangLG" name="TinhTrangLG">
+                                            <option value="">-- Tình trạng --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Mã thùng gang -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Mã thùng gang:</label>
+                                        <input type="text" class="form-control form-control-sm" id="MaThungGang" />
+                                    </div>
+
+                                    <!-- Mã thùng thép -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Mã thùng thép:</label>
+                                        <input type="text" class="form-control form-control-sm" id="MaThungThep" />
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <div class="d-flex flex-row justify-content-start align-items-end gap-2">
+                                            <button class="btn btn-warning btn-sm px-4" id="btnTimKiem">Tìm kiếm</button>
+                                            <button class="btn btn-success btn-sm px-4" id="btnXuatExcel">Xuất Excel</button>
+                                            <button class="btn btn-danger btn-sm px-4" id="btnChotThung">Chốt thùng</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cột chứa nút -->
+                            @* <div class="col-2 d-flex flex-column justify-content-start align-items-end gap-2">
+                                <button class="btn btn-warning btn-sm px-4" id="btnTimKiem">Tìm kiếm</button>
+                                <button class="btn btn-success btn-sm px-4" id="btnXuatExcel">Xuất Excel</button>
+                                <button class="btn btn-danger btn-sm px-4" id="btnChotThung">Chốt thùng</button>
+                            </div> *@
+                        </div>
+
+                    </div>
+                    <div class="card-body" style=" font-size: 13px">
+                        <div class="table-responsive" style="height: 550px;">
+                            <table class="table table-bordered text-center align-middle table-hover" id="IDtbKhuVucNhanThung">
+                                <thead>
+                                    <tr>
+                                        <th>Ngày LG</th>
+                                        <th>Ca LG</th>
+                                        <th>Kíp LG</th>
+                                        <th>Mã thùng gang</th>
+                                        <th>Lò cao</th>
+                                        <th>Số mẻ</th>
+                                        <th>Thùng số</th>
+                                        <th>Giờ</th>
+                                        <th>Phân loại</th>
+                                        <th>KL xe goong</th>
+                                        <th>KL thùng</th>
+                                        <th>KL thùng và gang</th>
+                                        <th>KL gang lỏng</th>
+                                        <th>Chuyển đến</th>
+                                        <th>KR</th>
+                                        <th>Giờ NM</th>
+                                        <th>Tình trạng LG</th>
+                                        <th>Ngày LT</th>
+                                        <th>Ca LT</th>
+                                        <th>Kíp LT</th>
+                                        <th>Mã thùng thép</th>
+                                        <th>Lò thổi</th>
+                                        <th>Thùng trung gian</th>
+                                        <th>KL thùng & gang lỏng (T)</th>
+                                        <th>KL thùng (T)</th>
+                                        <th>KL vào lò thổi (T)</th>
+                                        <th>Mẻ</th>
+                                        <th>Tình trạng LT</th>
+                                        <th>Người nhận</th>
+                                        <th>Chọn thùng</th>
+                                        <th>Tình trạng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>
+                                            <input type="checkbox" disabled/>
+                                        </td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>Giờ NM</td>
+                                        <td>
+                                            <input type="checkbox"/>
+                                        </td>
+                                        <td>Giờ NM</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

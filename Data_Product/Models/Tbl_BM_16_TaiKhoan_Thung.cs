@@ -5,5 +5,6 @@
         public int ID { get; set; }
         public int ID_taiKhoan { get; set; }
         public string MaThungGang { get; set; }
+        public string MaThungThep { get; set; }
     }
 }
