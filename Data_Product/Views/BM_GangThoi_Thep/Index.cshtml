@@ -248,9 +248,9 @@
                                             <select class="form-select form-select-sm" id="IDChuyenDen" name="ChuyenDen">
                                                 <option value="">-- Chuyển đến --</option>
                                                 <option value="HRC1">HRC 1</option>
-                                                <option value="Duc1">Đúc 1</option>
+                                                <option value="DUC1">Đúc 1</option>
                                                 <option value="HRC2">HRC 2</option>
-                                                <option value="Duc2">Đúc 2</option>
+                                                <option value="DUC2">Đúc 2</option>
                                             </select>
                                         </div>
                                     </div>
@@ -304,7 +304,6 @@
                                                    max="@ViewBag.MaxDate"
                                                    value="@ViewBag.DefaultDate"
                                                    onkeydown="return false;">
-                                            <small class="error-msg text-danger">Vui lòng chọn ngày</small>
                                         </div>
                                     </div>
                                 </div>
@@ -319,7 +318,6 @@
                                                 <option value="1">Ca 1</option>
                                                 <option value="2">Ca 2</option>
                                             </select>
-                                            <small class="error-msg text-danger">Vui lòng chọn Ca làm việc</small>
                                         </div>
                                     </div>
                                 </div>
@@ -336,7 +334,6 @@
                                                     <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
                                                 }
                                             </select>
-                                            <small class="error-msg text-danger">Vui lòng chọn Lò thổi</small>
                                         </div>
                                     </div>
                                 </div>
@@ -407,7 +404,7 @@
                             <tbody>
                             </tbody>
                             @* hàng cuối để chốt tổng khối lượng thùng *@ 
-                                    <tfoot>
+                             <tfoot>
                                 <tr style="height: 50px;">
                                     <td class="total-space" colspan="8" style="font-weight: 600; text-align: start">Tổng</td>
                                     <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
@@ -486,24 +483,24 @@
                                 <td>${item.iD_Locao}</td>
                                 <td>${item.bkmiS_ThungSo}</td>
                                 <td>
-                                    <input class="table_tbx KhoiLuongThungVaGangLong" type="number" name="KhoiLuongThungVaGangLong" value="${item.t_KLThungVaGang ?? ''}" />
+                                    <input class="table_tbx KhoiLuongThungVaGangLong" type="number" name="KhoiLuongThungVaGangLong" value="${item.t_KLThungVaGang ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td class="KLThung">
-                                    <input class="table_tbx KhoiLuongThung" type="number" name="KhoiLuongThung" value="${item.t_KLThungChua ?? ''}" />
+                                    <input class="table_tbx KhoiLuongThung" type="number" name="KhoiLuongThung" value="${item.t_KLThungChua ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
-                                <td class="KLGangLong">${item.t_KLGangLong ?? '00.0'}</td>
+                                    <td class="KLGangLong">${item.t_KLGangLong ?? '00.0'}</td>
                                 <td>
-                                    <input class="table_tbx" type="number" name="ThungTrungGian" id="IDThungTrungGian" value="${item.thungTrungGian ?? ''}" />
-                                </td>
-                                <td>
-                                    <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" name="KLThungVaGangLongVaoLoThoi" value="${item.t_KLThungVaGang_Thoi ?? ''}" />
+                                    <input class="table_tbx" type="number" name="ThungTrungGian" id="IDThungTrungGian" value="${item.thungTrungGian ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td>
-                                    <input class="table_tbx KLThungVaoLoThoi" type="number" name="KLThungVaoLoThoi"  value="${item.t_KLThungChua_Thoi ?? ''}" />
+                                    <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" name="KLThungVaGangLongVaoLoThoi" value="${item.t_KLThungVaGang_Thoi ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                                </td>
+                                <td>
+                                    <input class="table_tbx KLThungVaoLoThoi" type="number" name="KLThungVaoLoThoi"  value="${item.t_KLThungChua_Thoi ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td id="IDKLVaoLoThoi" class="KLVaoLoThoi">${item.t_KLGangLongThoi ?? '00.0'}</td>
                                 <td class="meThoi">
-                                    <select class="form-control selectMeThoi" style="width:100%;">
+                                <select class="form-control selectMeThoi" style="width:100%;" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}>
                                         <option value="">-- Mẻ thổi --</option>
                                         ${item.iD_MeThoi && !window.meThoiList.some(m => m.id === item.iD_MeThoi)
                                             ? `<option value="${item.iD_MeThoi}" selected>${item.maMeThoi}</option>`
@@ -516,7 +513,7 @@
                                 </select>
                                 </td>
                                 <td>
-                                    <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="${item.t_GhiChu ?? ''}" />
+                                <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="${item.t_GhiChu ?? '' }" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td>
                                     ${tinhTrangHTML}
@@ -528,42 +525,17 @@
                     sumPhieu();
               });
           } else {
-
-          // TODO
               const html = `
-                <div>
-                    <span>Không tìm thấy dữ liệu</span>
-                </div>
-                  `;
+                    <tr>
+                        <td colspan="14" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                        </td>
+                    </tr>
+                `;
                tbody.append(html);
           }
         }
-
-        function SearchThungDaNhanTheoUser(){
-            // value cac field
-            const NgayNhan = $('#IDNgayNhan').val() || null;
-            const IDCaNhan = $('#IDCaNhan').val() || null;
-            const IDLoThoi = $('#IDLoThoi').val() || null;
-
-            const payload = {
-                NgayLamViec: NgayNhan,
-                ID_LoThoi: IDLoThoi,
-                T_Ca: IDCaNhan
-            };
-            $.ajax({
-                url: '/BM_GangThoi_Thep/TimKiemThungDaNhan',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(payload),
-                success: function (data) {
-                    renderTableXuLySoLieu(data);
-
-                },
-                error: function (err) {
-                    alert("Lỗi khi tìm kiếm dữ liệu");
-                }
-            });
-        }
+        
 
         //render table Khu Vuc Nhan Thung
         function renderTableNhanThung(data) {
@@ -571,7 +543,7 @@
             tbody.empty();
             if(data.length){
                 data.forEach(item => {
-                const tinhTrangHTML = renderStatusCard(item.t_ID_TrangThai);
+                const tinhTrangHTML = renderStatusCard(item.iD_TrangThai == 5 ? item.iD_TrangThai : item.t_ID_TrangThai);
 
                 const nguoiNhanHtml = item.nguoiNhanList.length > 0
                     ? item.nguoiNhanList.join('<br>')
@@ -585,12 +557,12 @@
                     <td>${item.bkmiS_ThungSo}</td>
                     <td>${item.chuyenDen}</td>
                         <td>
-                            <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                            <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                         </td>
                         <td>
-                            <input type="checkbox" class="cbx-nhanThung" name="ChonThung" value="" ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                            <input type="checkbox" class="cbx-nhanThung" name="ChonThung" value="" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                         </td>
-                        <td class="status-cell" data-status="${item.t_ID_TrangThai}">
+                        <td class="status-cell" data-status="${item.iD_TrangThai == 5 ? item.iD_TrangThai : item.t_ID_TrangThai}">
                             ${tinhTrangHTML}
                         </td>
                         <td class="nguoi-nhan">
@@ -601,12 +573,13 @@
                 tbody.append(html);
                 });
             } else {
-                // TODO
-                const html = `
-                <div>
-                    <span>Không tìm thấy dữ liệu</span>
-                </div>
-                    `;
+               const html = `
+                    <tr>
+                        <td colspan="14" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                        </td>
+                    </tr>
+                `;
                 tbody.append(html);
             }
         }
@@ -643,7 +616,31 @@
             });
         }
 
+        function SearchThungDaNhanTheoUser(){
+            // value cac field
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
 
+            const payload = {
+                NgayLamViec: NgayNhan,
+                ID_LoThoi: IDLoThoi,
+                T_Ca: IDCaNhan
+            };
+            $.ajax({
+                url: '/BM_GangThoi_Thep/TimKiemThungDaNhan',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function (data) {
+                    renderTableXuLySoLieu(data);
+
+                },
+                error: function (err) {
+                    alert("Lỗi khi tìm kiếm dữ liệu");
+                }
+            });
+        }
 
          // tinh sum
         function sumPhieu(){
@@ -780,9 +777,16 @@
             // logic huy nhan thung
             // Khi checkbox thay đổi
             $(document).on('change', '.cbx-nhanThung', function () {
-                let checkedRows = $('.cbx-nhanThung:checked');
-
-                if (checkedRows.length > 0) {
+                let showButton = false;
+                $('.cbx-nhanThung:checked').each(function () {
+                    const row = $(this).closest('tr');
+                    const status = parseInt(row.find('.status-cell').data('status'));
+                    if (status === 4) { // 4 = Đã nhận
+                        showButton = true;
+                        return false;
+                    }
+                });
+                if (showButton) {
                     $('#IDbtnHuyNhanThung').show();
                 } else {
                     $('#IDbtnHuyNhanThung').hide();
@@ -863,7 +867,7 @@
                 const IDLoThoi = $('#IDLoThoi').val();
 
                 if(!NgayNhan){
-                    alert("Vui lòng chọn Ngày"); return;
+                    alert("Vui lòng chọn Ngày Nhận"); return;
                 }
                 if(!IDCaNhan ){
                     alert("Vui lòng chọn Ca"); return;
@@ -899,10 +903,8 @@
                 });
             });
         });
-
-
          
-
+        // logic luu
         $('#BtnLuu').click(function () {
             const payload = getTableData();
             $.ajax({
@@ -921,83 +923,55 @@
             })
         })
 </script>
+@* Logic me thoi *@
+<script>
+    // open modal tao me
+    function loadModalTaoMe() {
+        $.ajax({
+            url: '/MeThoi/TaoMeThoi', 
+            type: 'GET',
+            success: function (html) {
+                $('#modalTaoMe').html(html);
+            },
+            error: function () {
+                $('#modalTaoMe').html('<div class="text-danger">Không thể tải nội dung.</div>');
+            }
+        });
+    }
 
-    @* Logic me thoi *@
-    <script>
-        // open modal chon me thoi
-        // function loadModalFilterMeThoi() {
-        //     const id_LoThoi = $('#IDLoThoi').val();
+    // tao me
+    function submitTaoMe() {
+        const maLoThoi = $('#formLoThoi').val();
+        const soLuong = $('#formSoLuong').val();
 
-        //     if(!id_LoThoi){
-        //         alert("Vui lòng chọn Lò thổi");
-        //         $('#modalFilerMethoi').empty();
-        //         return;
-        //     }
+        const selectedOption = $('#formLoThoi option:selected');
+        const idLoThoi = selectedOption.data('id');
 
-        //     $.ajax({
-        //         url: '/MeThoi/FilterMeThoi', 
-        //         type: 'POST',
-        //         contentType: 'application/json',
-        //         processData: false,
-        //         data: JSON.stringify(id_LoThoi),
-        //         success: function (html) {
-        //         var modalMeThoi = new bootstrap.Modal(document.getElementById('modalFilterMeThoi'));
-        //             modalMeThoi.show();
-        //             $('#modalFilerMethoi').html(html);
-        //         },
-        //         error: function () {
-        //             $('#modalFilerMethoi').html('<div class="text-danger">Không thể tải nội dung.</div>');
-        //         }
-        //     });
-        // }
-
-        // open modal tao me
-        function loadModalTaoMe() {
-            $.ajax({
-                url: '/MeThoi/TaoMeThoi', 
-                type: 'GET',
-                success: function (html) {
-                    $('#modalTaoMe').html(html);
-                },
-                error: function () {
-                    $('#modalTaoMe').html('<div class="text-danger">Không thể tải nội dung.</div>');
-                }
-            });
+        if(!soLuong){
+            alert("Vui lòng nhập số lượng mẻ thổi muốn tạo"); return;
+        }
+        if(!maLoThoi){
+            alert("Vui lòng chọn Lò thổi"); return;
         }
 
-        // tao me
-        function submitTaoMe() {
-            const maLoThoi = $('#formLoThoi').val();
-            const soLuong = $('#formSoLuong').val();
-
-            const selectedOption = $('#formLoThoi option:selected');
-            const idLoThoi = selectedOption.data('id');
-
-            if(!soLuong){
-                alert("Vui lòng nhập số lượng mẻ thổi muốn tạo"); return;
+        $.ajax({
+            url: '/MeThoi/TaoMeThoi',
+            method: 'POST',
+            contentType: 'application/json',
+            processData: false,
+            data: JSON.stringify({
+                maLoThoi: maLoThoi,
+                soLuong: parseInt(soLuong),
+                id_LoThoi: idLoThoi
+            }),
+            success: function (res) {
+                $('#btnDongModalTaoMeThoi').click();
+                    alert("Tạo mẻ thổi thành công!");
+                window.location.reload();
+            },
+            error: function (err) {
+                alert("Tạo mẻ thổi thất bại")
             }
-            if(!maLoThoi){
-                alert("Vui lòng chọn Lò thổi"); return;
-            }
-
-            $.ajax({
-                url: '/MeThoi/TaoMeThoi',
-                method: 'POST',
-                contentType: 'application/json',
-                processData: false,
-                data: JSON.stringify({
-                    maLoThoi: maLoThoi,
-                    soLuong: parseInt(soLuong),
-                    id_LoThoi: idLoThoi
-                }),
-                success: function (res) {
-                    $('#btnDongModalTaoMeThoi').click();
-                     alert("Tạo mẻ thổi thành công!");
-                    window.location.reload();
-                },
-                error: function (err) {
-                    alert("Tạo mẻ thổi thất bại")
-                }
-            });
-        }
-    </script>
+        });
+    }
+</script>

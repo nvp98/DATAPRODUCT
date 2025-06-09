@@ -106,7 +106,12 @@ namespace Data_Product.Models
         public int? T_ID_NguoiHuyNhan { get; set; }
         public int? ID_NguoiChot { get; set; }
         public int? G_ID_Kip { get; set; }
+        [NotMapped]
+        public string G_TenKip { get; set; }
+
         public int? T_ID_Kip { get; set; }
+        [NotMapped]
+        public string T_TenKip { get; set; }
 
         public int? ID_Locao { get; set; }
         [NotMapped]
@@ -123,5 +128,11 @@ namespace Data_Product.Models
         public string MaMeThoi { get; set; }
 
         public int? ID_Phieu { get; set; }
+
+        [NotMapped]
+        public string HoVaTen { get; set; }
+
+        [NotMapped]
+        public string TenPhongBan { get; set; }
     }
 }

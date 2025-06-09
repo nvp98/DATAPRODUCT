@@ -1,5 +1,641 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@using Data_Product.Repositorys;
+@using System.Security.Claims;
+@inject Data_Product.Repositorys.DataContext _context
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
 }
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
+}
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
+}
+
+<style>
+
+    /* Tùy chỉnh thanh cuộn cho WebKit (Chrome, Safari) */
+    .table-responsive::-webkit-scrollbar {
+        width: 2px; /* Chiều rộng thanh cuộn mỏng hơn */
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background-color: #888; /* Màu thanh kéo */
+        border-radius: 1px; /* Bo góc thanh kéo */
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background-color: #555; /* Màu khi hover */
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background-color: #f1f1f1; /* Màu nền thanh cuộn */
+    }
+
+    /* Tùy chỉnh thanh cuộn cho Firefox */
+    .table-responsive {
+        scrollbar-width: thin; /* Thanh cuộn mỏng */
+        scrollbar-color: #888 #f1f1f1; /* Màu thanh kéo và nền */
+    }
+
+    table {
+        width: 100%;
+        margin: 0;
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa !important;
+        z-index: 10;
+
+    }
+
+    .status-card {
+        height: 35px;
+        width: 80px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 400;
+    }
+
+    .status-text {
+        padding: 0 !important;
+        font-size: 12px;
+    }
+</style>
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="row" style="width:100%; height: 70px;">
+                        <div style="display: flex; align-items: center;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available; z-index: 11">
+                            <div class="col" style="text-align: left;padding: 1% 2% 1% 0%;">
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        DANH SÁCH THÙNG
+                                    </b>
+                                </span>
+                            </div>
+                            <button class="btn btn-primary btn-sm px-4 status-card" style=" font-size: 13px" id="btnReset">Reset</button>
+                        </div>
+                    </div>
+                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%; color: black; font-size: 13px">
+                        <div class="row">
+                            <!-- Cột chứa bộ lọc -->
+                            <div class="col-12">
+
+                                <div class="row">
+                                    <!-- Lò Cao -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Lò Cao:</label>
+                                        <select class="form-select form-select-sm" id="LoCao" name="LoCao">
+                                            <option value="">-- Lò cao --</option>
+                                            @foreach (var locao in ViewBag.LoCaoList)
+                                            {
+                                                <option value="@locao.ID">@locao.TenLoCao</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <!-- Lò Thổi -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Lò Thổi:</label>
+                                        <select class="form-select form-select-sm" id="LoThoi" name="LoThoi">
+                                            <option value="">-- Lò Thổi --</option>
+                                            @foreach (var lothoi in ViewBag.LoThoiList)
+                                            {
+                                                <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <!-- Từ ngày LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label for="TuNgayLG" class="form-label">Từ ngày LG:</label>
+                                        <input type="date" class="form-control form-control-sm" id="TuNgayLG" name="TuNgayLG"
+                                                onkeydown="return false;">
+                                    </div>
+
+                                    <!-- Đến ngày LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label for="DenNgayLG" class="form-label">Đến ngày LG:</label>
+                                        <input type="date" class="form-control form-control-sm" id="DenNgayLG" name="DenNgayLG"
+                                               
+                                                onkeydown="return false;">
+                                    </div>
+
+                                    <!-- Từ ngày LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label for="TuNgayLT" class="form-label">Từ ngày LT:</label>
+                                        <input type="date" class="form-control form-control-sm" id="TuNgayLT" name="TuNgayLT"
+                                               
+                                                onkeydown="return false;">
+                                    </div>
+
+                                    <!-- Đến ngày LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label for="DenNgayLT" class="form-label">Đến ngày LT:</label>
+                                        <input type="date" class="form-control form-control-sm" id="DenNgayLT" name="DenNgayLT"
+                                               
+                                                onkeydown="return false;">
+                                    </div>
+
+                                    <!-- Ca LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Ca LT:</label>
+                                        <select class="form-select form-select-sm" id="CaLT" name="CaLT">
+                                            <option value="">-- Ca --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Ca LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Ca LG:</label>
+                                        <select class="form-select form-select-sm" id="CaLG" name="CaLG">
+                                            <option value="">-- Ca --</option>
+                                            <option value="1">Ca 1</option>
+                                            <option value="2">Ca 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Kíp LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Kíp LT:</label>
+                                        <select class="form-select form-select-sm" id="KipLT" name="KipLT">
+                                            <option value="">-- Kíp --</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="C">C</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Kíp LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Kíp LG:</label>
+                                        <select class="form-select form-select-sm" id="KipLG" name="KipLG">
+                                            <option value="">-- Kíp --</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="C">C</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Chuyển đến -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Chuyển đến:</label>
+                                        <select class="form-select form-select-sm" id="ChuyenDen" name="ChuyenDen">
+                                            <option value="">-- Chuyển đến --</option>
+                                            <option value="HRC1">HRC 1</option>
+                                            <option value="DUC1">Đúc 1</option>
+                                            <option value="HRC2">HRC 2</option>
+                                            <option value="DUC2">Đúc 2</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Thùng số -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Thùng số:</label>
+                                        <input type="number" class="form-control form-control-sm" id="ThungSo" />
+                                    </div>
+
+                                    <!-- Tình trạng chốt -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Tình trạng chốt:</label>
+                                        <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
+                                            <option value="">-- Tình trạng --</option>
+                                            <option value="1">Chưa chuyển</option>
+                                            <option value="2">Chờ xử lý</option>
+                                            <option value="5">Đã chốt</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Tình trạng LT -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Tình trạng LT:</label>
+                                        <select class="form-select form-select-sm" id="TinhTrangLT" name="TinhTrangLT">
+                                            <option value="">-- Tình trạng --</option>
+                                            <option value="2">Chờ xử lý</option>
+                                            <option value="4">Đã nhận</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Tình trạng LG -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Tình trạng LG:</label>
+                                        <select class="form-select form-select-sm" id="TinhTrangLG" name="TinhTrangLG">
+                                            <option value="">-- Tình trạng --</option>
+                                            <option value="1">Chưa chuyển</option>
+                                            <option value="3">Đã chuyển</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Mã thùng gang -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Mã thùng gang:</label>
+                                        <input type="text" class="form-control form-control-sm" id="MaThungGang" />
+                                    </div>
+
+                                    <!-- Mã thùng thép -->
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <label class="form-label">Mã thùng thép:</label>
+                                        <input type="text" class="form-control form-control-sm" id="MaThungThep" />
+                                    </div>
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                                        <div class="d-flex flex-row justify-content-start align-items-end gap-2">
+                                            <button class="btn btn-warning btn-sm px-4 " id="btnTimKiem">Tìm kiếm</button>
+                                            <button class="btn btn-success btn-sm px-4" id="btnXuatExcel">Xuất Excel</button>
+                                            <button class="btn btn-danger btn-sm px-4" id="btnChotThung">Chốt thùng</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="card-body" style=" font-size: 13px">
+                        <div class="table-responsive" style="height: 550px;">
+                            <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu">
+                                <thead>
+                                    <tr>
+                                        <th>Ngày LG</th>
+                                        <th>Ca LG</th>
+                                        <th>Kíp LG</th>
+                                        <th>Mã thùng gang</th>
+                                        <th>Lò cao</th>
+                                        <th>Số mẻ</th>
+                                        <th>Thùng số</th>
+                                        <th>Giờ</th>
+                                        <th>Phân loại</th>
+                                        <th>KL xe goong</th>
+                                        <th>KL thùng</th>
+                                        <th>KL thùng và gang</th>
+                                        <th>KL gang lỏng</th>
+                                        <th>Chuyển đến</th>
+                                        <th>KR</th>
+                                        <th>Giờ NM</th>
+                                        <th>Tình trạng LG</th>
+                                        <th>Ngày LT</th>
+                                        <th>Ca LT</th>
+                                        <th>Kíp LT</th>
+                                        <th>Mã thùng thép</th>
+                                        <th>Lò thổi</th>
+                                        <th>Thùng trung gian</th>
+                                        <th>KL thùng & gang lỏng (T)</th>
+                                        <th>KL thùng (T)</th>
+                                        <th>KL vào lò thổi (T)</th>
+                                        <th>Mẻ</th>
+                                        <th>Tình trạng LT</th>
+                                        <th>BP Nhận</th>
+                                        <th>Người nhận</th>
+                                        <th>Chọn thùng</th>
+                                        <th>Tình trạng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    
+                                </tbody>
+                                @* hàng cuối để chốt tổng khối lượng thùng *@ 
+                                 <tfoot>
+                                        <tr style="height: 50px;">
+                                            <td colspan="12" style="font-weight: 600; text-align: start">Tổng</td>
+                                            <td id="IDTongKLGangLong" style="font-weight: 600">
+                                                0.00
+                                            </td>
+                                            <td colspan="12"></td>
+                                            <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
+                                                0.00
+                                            </td>
+                                            <td colspan="6"></td>
+                                        </tr>
+                                    </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // reset cacs filter search
+        function clearFilter(ids = []) {
+          ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            switch(el.type) {
+              case 'checkbox':
+                el.checked = false;
+                break;
+              case 'select-one':
+              case 'select-multiple':
+                el.selectedIndex = 0; // reset về option đầu tiên
+                break;
+              case 'date':
+              case 'text':
+              case 'number':
+              default:
+                el.value = '';
+            }
+          });
+        }
+        // setup range ngày
+        function setupDateRange(fromDateId, toDateId) {
+            const fromDate = document.getElementById(fromDateId);
+            const toDate = document.getElementById(toDateId);
+
+            if (!fromDate || !toDate) return;
+
+            const today = new Date().toISOString().split('T')[0];
+
+            fromDate.max = today;
+            toDate.max = today;
+
+            fromDate.addEventListener('change', function () {
+                toDate.min = this.value;
+
+                if (toDate.value && toDate.value < this.value) {
+                    toDate.value = '';
+                }
+            });
+
+            toDate.addEventListener('change', function () {
+                fromDate.max = this.value;
+
+                if (fromDate.value && fromDate.value > this.value) {
+                    fromDate.value = '';
+                }
+            });
+        }
+
+        // tinh sum
+       function TongKLGangLong(){
+           let total = 0;
+        $("#tblDuLieu .G_KL_GangLong").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLGangLong").text(total.toFixed(2));
+       }
+
+       function TongKLVaoLoThoi(){
+           let total = 0;
+           $("#tblDuLieu .KL_GangVaoLoThoi").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
+       }
+
+        // render card trạng thái
+         function renderStatusCard(tinhTrang) {
+             const statusMap = {
+                 1: { label: "Chưa chuyển", bgClass: "bg-secondary", textColor: "white" },
+                 2: { label: "Chờ xử lý", bgClass: "bg-warning", textColor: "black" },
+                 3: { label: "Đã chuyển", bgClass: "bg-success", textColor: "white" },
+                 4: { label: "Đã nhận", bgClass: "bg-success", textColor: "white" },
+                 5: { label: "Đã chốt", bgClass: "bg-success", textColor: "white" },
+             };
+
+             const { label, bgClass, textColor } = statusMap[tinhTrang] || {
+                 label: "Không rõ", bgClass: "bg-light", textColor: "black"
+             };
+
+             return `
+                 <div class="status-card ${bgClass}">
+                 <span class="status-text small pt-2 ps-1" style="color: ${textColor};">
+                         ${label}
+                     </span>
+                 </div>
+             `;
+         }
+
+         function getDayOnly(dateString) {
+            if (!dateString) return "";
+
+            const date = new Date(dateString);
+            if (isNaN(date)) return ""; 
+
+            return String(date.getDate()).padStart(2, '0');
+        }
+
+        // render khu vực xử lý số liệu
+        function renderTable(data) {
+         const tbody = $('#tblDuLieu tbody');
+            tbody.empty();
+            if(data.length){
+                data.forEach(item => {
+                    const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
+                    const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
+                    const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
+                    const ngayLG = getDayOnly(item.ngayLuyenGang);
+                    const ngayLT = getDayOnly(item.ngayLuyenThep);
+
+                    const html = `
+                            <tr data-id="${item.id}">
+                                  <td>${ngayLG ?? ''}</td>
+                                  <td>${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>
+                                  <td>${item.g_TenKip ?? ''}</td>
+                                  <td>${item.maThungGang ?? ''}</td>
+                                  <td>${item.iD_Locao ?? ''}</td>
+                                  <td>${item.bkmiS_SoMe ?? ''}</td>
+                                  <td>${item.bkmiS_ThungSo ?? ''}</td>
+                                  <td>${item.bkmiS_Gio ?? ''}</td>
+                                  <td>${item.bkmiS_PhanLoai ?? ''}</td>
+                                  <td>${item.kL_XeGoong ?? ''}</td>
+                                  <td>${item.g_KLThungVaGang ?? ''}</td>
+                                  <td>${item.g_KLThungChua ?? ''}</td>
+                                  <td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>
+                                  <td>${item.chuyenDen ?? ''}</td>
+                                  <td>
+                                    ${item.kr === true ?
+                                         `<input type="checkbox" ${item.kr ? "checked" : ""} onclick="return false;" style="pointer-events: none;"/>`
+                                         : ''
+                                     }
+                                  </td>
+                                  <td>${item.gio_NM ?? ''}</td>
+                                  <td>${tinhTrangLGHTML ?? ''}</td>
+                                  <td>${ngayLT ?? ''}</td>
+                                  <td>${item.t_Ca == null ? '' : (item.t_Ca === 1 ? 'N' : 'Đ')}</td>
+                                  <td>${item.t_TenKip ?? ''}</td>
+                                  <td>${item.maThungThep ?? ''}</td>
+                                  <td>${item.iD_LoThoi ?? ''}</td>
+                                  <td>${item.thungTrungGian ?? ''}</td>
+                                  <td>${item.t_KLThungVaGang_Thoi ?? ''}</td>
+                                  <td>${item.t_KLThungChua_Thoi ?? ''}</td>
+                                  <td class="KL_GangVaoLoThoi">
+                                   ${item.t_KLGangLongThoi ?? ''}
+                                  </td>
+                                  <td>${item.maMeThoi ?? ''}</td>
+                                  <td>${tinhTrangLTHTML}</td>
+                                  <td>${item.tenPhongBan ?? ''}</td>
+                                  <td style="min-width: 100px;">${item.hoVaTen ?? ''}</td>
+                                  <td>
+                                    ${item.iD_TrangThai == 5 || item.t_ID_TrangThai != 4 ? ''
+                                        : ` <input type="checkbox" class="cbx-chotThung"  ${item.iD_TrangThai == 5 || item.t_ID_TrangThai != 4 ? "disabled" : ""}/>`
+                                    }
+                                  </td>
+                                  <td>${tinhTrangHTML}</td>
+                            </tr>
+                      `;
+                    tbody.append(html);
+
+                    TongKLGangLong();
+                    TongKLVaoLoThoi();
+              });
+          } else {
+              const html = `
+                    <tr>
+                        <td colspan="31" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                        </td>
+                    </tr>
+                `;
+               tbody.append(html);
+          }
+        }
+
+         // Search 
+         function Search() {
+             // value cac field
+                const ID_LoCao = $("#LoCao").val() || null;
+                const ID_LoThoi = $("#LoThoi").val() || null;
+                const TuNgayLG = $("#TuNgayLG").val() || null;
+                const DenNgayLG = $("#DenNgayLG").val() || null;
+                const TuNgayLT = $("#TuNgayLT").val() || null;
+                const DenNgayLT = $("#DenNgayLT").val() || null;
+                const CaLT = $("#CaLT").val() || null;
+                const CaLG = $("#CaLG").val() || null;
+                const KipLT = $("#KipLT").val() || null;
+                const KipLG = $("#KipLG").val() || null;
+                const ChuyenDen = $("#ChuyenDen").val() || null;
+                const ThungSo = $("#ThungSo").val() || null;
+                const TinhTrangLT = $("#TinhTrangLT").val() || null;
+                const TinhTrangLG = $("#TinhTrangLG").val() || null;
+                const MaThungGang = $("#MaThungGang").val() || null;
+                const MaThungThep = $("#MaThungThep").val() || null;
+                const TinhTrangChot = $("#TinhTrangChot").val() || null;
+
+                 const dto = {
+                    ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
+                    ID_LoThoi: ID_LoThoi ? parseInt(ID_LoThoi) : null,
+                    TuNgay_LG: TuNgayLG || null,
+                    DenNgay_LG: DenNgayLG || null,
+                    TuNgay_LT: TuNgayLT || null,
+                    DenNgay_LT: DenNgayLT || null,
+                    Ca_LT: CaLT ? parseInt(CaLT) : null,
+                    Ca_LG: CaLG ? parseInt(CaLG) : null,
+                    ID_Kip_LT: KipLT ? parseInt(KipLT) : null,
+                    ID_Kip_LG: KipLG ? parseInt(KipLG) : null,
+                    ChuyenDen: ChuyenDen || null,
+                    ThungSo: ThungSo || null,
+                    ID_TinhTrang_LT: TinhTrangLT ? parseInt(TinhTrangLT) : null,
+                    ID_TinhTrang_LG: TinhTrangLG ? parseInt(TinhTrangLG) : null,
+                    ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null, 
+                    MaThungGang: MaThungGang || null,
+                    MaThungThep: MaThungThep || null
+                };
+
+             $.ajax({
+              url: '/BM16_GangThoi_PKH/Search',
+                 method: 'POST',
+                 contentType: 'application/json',
+                 data: JSON.stringify(dto),
+                 success: function (data) {
+                     console.log(data);
+                    renderTable(data);
+                 },
+                 error: function (err) {
+                     alert("Lỗi khi tìm kiếm dữ liệu");
+                 }
+             });
+         }
+       
+         // logic chot thung
+        $('#btnChotThung').click(function () {
+              let selectedIds = [];
+              $('#tblDuLieu tbody tr').each(function () {
+                  const checkbox = $(this).find('.cbx-chotThung');
+                  if (checkbox.is(':checked')) {
+                      const id = $(this).data('id');
+                      selectedIds.push({id: id});
+                  }
+              });
+
+              if (selectedIds.length === 0) {
+                  alert("Vui lòng chọn ít nhất 1 dòng.");
+                  return;
+              }
+
+               console.log(selectedIds)
+
+             
+              $.ajax({
+                  url: "/BM16_GangThoi_PKH/ChotThung",
+                  type: "POST",
+                  contentType: "application/json",
+                    data: JSON.stringify(selectedIds),
+                  processData: false,
+                  success: function (res) {
+                      // render lai
+                      Search();
+                  },
+                  error: function () {
+                      alert("Lỗi khi nhận dữ liệu!");
+                  }
+              });
+        });
+
+        $("#btnTimKiem").click(function() {
+            Search();   
+        })
+
+        $("#btnReset").click(function() {
+            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep']);
+            Search();
+        })
+
+        // xu ly khi load
+        $(document).ready(function () {
+            // cho luyen gang
+            setupDateRange('TuNgayLG','DenNgayLG');
+
+             // cho luyen thep
+            setupDateRange('TuNgayLT','DenNgayLT');
+        });
+</script>
