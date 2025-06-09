@@ -35,15 +35,35 @@
                 <div class="card">
                    
                     @*Filter*@
-                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
+                    <div class="card-header">
                         <div class="row">
                             @Html.Partial("_Filter_BM_NhatKy_SanXuat", pager)
                             <div class="col">
                                 @if (@ViewBag.TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || @ViewBag.TaiKhoan.ID_Quyen == 1)
                                 {
-                                    <button type="submit" class="btn btn-primary" style="margin-right:8px" onclick="SubmitForm()">Check phiếu đã xử lý</button>
+                                    <button type="submit" class="btn btn-primary btn-sm" style="margin-right:8px" onclick="SubmitForm()">Check phiếu đã xử lý</button>
+                                }
+                                @if (@ViewBag.TaiKhoan.TenTaiKhoan == GlobalVariables.HPDQ02384 || @ViewBag.TaiKhoan.ID_Quyen == 1)
+                                {
+                                    <button id="btn-Khoa" type="button" class="btn btn-success btn-sm">
+                                        <i class="bi bi-box-arrow-up"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            <i></i><span style="color: white;">Xử lý khóa phiếu</span>
+                                        </span>
+                                    </button>
                                 }
                             </div>
+                            <div class="modal fade" id="myModalKhoa" role="dialog" data-url='@Url.Action("KhoaPhieu","BM_NhatKy_SanXuat")'></div>
+                            <script type="text/javascript">
+                                $('#btn-Khoa').click(function () {
+                                    var url = $('#myModalKhoa').data('url');
+                                    $.get(url, function (data) {
+                                        $("#myModalKhoa").html(data);
+                                        $("#ModalTitle").html("Khóa Xử lý");
+                                        $("#myModalKhoa").modal('show');
+                                    });
+                                });
+                            </script>
                         </div>
                     </div>
                     <div class="card-body">
@@ -58,6 +78,10 @@
                                                 <input type="checkbox" id="selectAll" /> Chọn Tất Cả<br />
                                             </th>
 
+                                        }
+                                        @if (@ViewBag.TaiKhoan.TenTaiKhoan == GlobalVariables.HPDQ02384 || @ViewBag.TaiKhoan.ID_Quyen == 1)
+                                        {
+                                            <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Khóa</th>
                                         }
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Số Phiếu</th>
                                         <th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Kíp làm việc</th>
@@ -96,6 +120,36 @@
                                                 }
 
                                             }
+                                            @if (@ViewBag.TaiKhoan.TenTaiKhoan == GlobalVariables.HPDQ02384 || @ViewBag.TaiKhoan.ID_Quyen == 1)
+                                            {
+                                                if (item.IsLock == false)
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button class="btn btn-success btn-sm btn-lock-phieu"
+                                                                data-id="@item.ID"
+                                                                data-sophieu="@item.SoPhieu"
+                                                                title="Khóa phiếu">
+                                                            <i class="bi bi-unlock-fill"></i>
+                                                        </button>
+                                                    </td>
+                                                }
+                                                else
+                                                {
+                                                    <td class="text-center" style="font-size:14px;">
+                                                        <button class="btn btn-danger btn-sm btn-unlock-phieu"
+                                                                data-id="@item.ID"
+                                                                data-sophieu="@item.SoPhieu"
+                                                                title="Mở Khóa phiếu">
+                                                            <i class="bi bi-unlock-fill"></i>
+                                                        </button>
+                                                       @* <a class="btn btn-danger btn-sm" title="Mở Khóa phiếu" href="@Url.Action("Unlock", "BM_11", new { id = item.ID })"
+                                                           onclick="return confirm('Bạn muốn mở khóa phiếu : @item.SoPhieu')">
+                                                            <i class="bi bi-lock-fill"></i>
+                                                        </a>*@
+                                                    </td>
+                                                }
+                                            }
+
                                             @if (item.TinhTrang == 0)
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
@@ -187,9 +241,9 @@
     //    window.location.href = '@Url.Action("Index_All", "BM_NhatKy_SanXuat")?ID_TrangThai=' + ID_TrangThai + '&begind=' + $('#begind').val() + '&endd=' + $('#endd').val();
     //});
 
-    $("#ID_TrangThai").chosen({
-        width: "100%"
-    });
+    //$("#ID_TrangThai").chosen({
+    //    width: "100%"
+    //});
 
     function SubmitForm() {
         const checkedValues = Array.from(document.querySelectorAll('.itemCheckbox:checked'))
@@ -208,7 +262,7 @@
                 location.reload();
             },
             error: function () {
-                alert("Xóa thất bại!");
+                alert("Xử lý thất bại!");
             }
         });
     }
@@ -236,3 +290,53 @@
         });
     });
 </script>
+
+<script>
+    $(document).on('click', '.btn-lock-phieu', function () {
+        var id = $(this).data('id');
+        var soPhieu = $(this).data('sophieu');
+
+        if (!confirm("Bạn muốn khóa phiếu: " + soPhieu + "?")) {
+            return;
+        }
+
+        $.ajax({
+            url: '/BM_NhatKy_SanXuat/XuLyKhoa',     // action trong controller
+            type: 'POST',
+            data: { id: id },
+            success: function (res) {
+                alert(res.message);
+
+                // Reload lại bảng nếu cần
+                location.reload(); // hoặc gọi lại hàm load dữ liệu
+            },
+            error: function (xhr) {
+                alert("Lỗi: " + xhr.responseText);
+            }
+        });
+    });
+    $(document).on('click', '.btn-unlock-phieu', function () {
+        var id = $(this).data('id');
+        var soPhieu = $(this).data('sophieu');
+
+        if (!confirm("Bạn muốn khóa phiếu: " + soPhieu + "?")) {
+            return;
+        }
+
+        $.ajax({
+            url: '/BM_NhatKy_SanXuat/XuLyMoKhoa',     // action trong controller
+            type: 'POST',
+            data: { id: id },
+            success: function (res) {
+                alert(res.message);
+
+                // Reload lại bảng nếu cần
+                location.reload(); // hoặc gọi lại hàm load dữ liệu
+            },
+            error: function (xhr) {
+                alert("Lỗi: " + xhr.responseText);
+            }
+        });
+    });
+</script>
+

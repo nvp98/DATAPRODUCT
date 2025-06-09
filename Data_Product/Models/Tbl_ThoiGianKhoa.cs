@@ -10,5 +10,7 @@ namespace Data_Product.Models
         public int Nam { get; set; }
         public DateTime NgayXuLy { get; set; }
         public Boolean IsLock { get; set; }
+
+        public string? MaBB { get; set; }
     }
 }

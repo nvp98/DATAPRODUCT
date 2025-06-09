@@ -97,10 +97,10 @@
                                                     RowNo++;
                                                 }
                                             </td>
-                                            @if (item.TinhTrang == 0)
+                                            @if (item.IsLock == true)
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("Edit", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>

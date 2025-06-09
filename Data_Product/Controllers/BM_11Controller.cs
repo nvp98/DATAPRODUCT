@@ -2356,14 +2356,15 @@ namespace Data_Product.Controllers
                 if (monthPicker != null && CheckUnlock == false)
                 {
                     DateTime tg = (DateTime)monthPicker.Value;
-                    var checkTg = _context.Tbl_ThoiGianKhoa.Where(x => x.Thang == tg.Month && x.Nam == tg.Year).FirstOrDefault();
+                    var checkTg = _context.Tbl_ThoiGianKhoa.Where(x => x.Thang == tg.Month && x.Nam == tg.Year && x.MaBB =="BBGN").FirstOrDefault();
                     if(checkTg == null)
                     {
                         Tbl_ThoiGianKhoa khoa = new Tbl_ThoiGianKhoa()
                         {
                             Nam = tg.Year,
                             Thang = tg.Month,
-                            NgayXuLy = DateTime.Now
+                            NgayXuLy = DateTime.Now,
+                            MaBB ="BBGN"
                         };
                         _context.Tbl_ThoiGianKhoa.Add(khoa);
                         _context.SaveChanges();
@@ -2387,7 +2388,7 @@ namespace Data_Product.Controllers
                 else if (monthPicker != null && CheckUnlock == true) // Unlock All
                 {
                     DateTime tg = (DateTime)monthPicker.Value;
-                    var checkTg = _context.Tbl_ThoiGianKhoa.Where(x => x.Thang == tg.Month && x.Nam == tg.Year).FirstOrDefault();
+                    var checkTg = _context.Tbl_ThoiGianKhoa.Where(x => x.Thang == tg.Month && x.Nam == tg.Year && x.MaBB =="BBGN").FirstOrDefault();
                     if (checkTg != null)
                     {
                         _context.Tbl_ThoiGianKhoa.Remove(checkTg);
