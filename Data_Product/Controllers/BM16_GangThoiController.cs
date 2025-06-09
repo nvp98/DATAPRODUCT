@@ -17,6 +17,7 @@ using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Org.BouncyCastle.Asn1.Ocsp;
 using iTextSharp.text;
 using DocumentFormat.OpenXml.Office2016.Excel;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 
 namespace Data_Product.Controllers
@@ -128,37 +129,81 @@ namespace Data_Product.Controllers
 
             return Json(CaKip);
         }
-        public async Task<IActionResult> Danhsachphieu()
+        public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, string ca, int page = 1)
         {
-           var danhSachPhieu = await _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.Ngay)
+            const int pageSize = 20;
+            if (page < 1) page = 1;
+
+            var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.Ngay)
                 .Select(p => new PhieuViewModel
                 {
-                   MaPhieu = p.MaPhieu,
-                   Ngay = p.Ngay,
-                   ThoiGianTao = p.ThoiGianTao.ToString("HH:mm:ss"),
-                   TenNguoiTao = _context.Tbl_TaiKhoan
-                                  .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
-                                  .Select(tk => tk.HoVaTen).FirstOrDefault(),
+                    MaPhieu = p.MaPhieu,
+                    Ngay = p.Ngay,
+                    ThoiGianTao = p.ThoiGianTao.ToString("HH:mm:ss"),
+                    TenNguoiTao = _context.Tbl_TaiKhoan
+                                    .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
+                                    .Select(tk => tk.HoVaTen).FirstOrDefault(),
                     TenCa = _context.Tbl_Kip
-                              .Where(k => k.ID_Kip == p.ID_Kip)
-                              .Select(k => k.TenKip)
-                              .FirstOrDefault(),
-                    TenLoCao =_context.Tbl_LoCao
-                            .Where(lc=>lc.ID == p.ID_Locao)
-                            .Select(lc=>lc.TenLoCao).FirstOrDefault(),
-                })
-                .ToListAsync();
-            return View(danhSachPhieu);
+                                .Where(k => k.ID_Kip == p.ID_Kip)
+                                .Select(k => k.TenKip)
+                                .FirstOrDefault(),
+                    TenLoCao = _context.Tbl_LoCao
+                                .Where(lc => lc.ID == p.ID_Locao)
+                                .Select(lc => lc.TenLoCao)
+                                .FirstOrDefault(),
+                });
+
+            // Lọc theo Mã Phiếu (chuỗi)
+            if (!string.IsNullOrEmpty(maPhieu))
+            {
+                string maPhieuLower = maPhieu.ToLower();
+                query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
+            }
+
+            // Lọc theo ngày
+            if (ngay.HasValue)
+            {
+                query = query.Where(s => s.Ngay.Date == ngay.Value.Date);
+            }
+
+            // Lọc theo Ca (chuỗi)
+            if (!string.IsNullOrEmpty(ca))
+            {
+                string caLower = ca.ToLower();
+                query = query.Where(s => s.TenCa.ToLower() == caLower);
+            }
+
+
+            int resCount = await query.CountAsync();
+
+            var data = await query
+                        .Skip((page - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
+
+            var pager = new Pager(resCount, page, pageSize);
+            ViewBag.Pager = pager;
+
+            // Truyền lại giá trị tìm kiếm cho view
+            ViewBag.MaPhieu = maPhieu;
+            ViewBag.Ngay = ngay?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.Ca = ca;
+
+            return View(data);
         }
+
         [HttpGet]
-        public IActionResult TaoPhieu()
+        public async Task< IActionResult> TaoPhieu()
         {
+            var loCaoList = await _context.Tbl_LoCao.ToListAsync();
+            ViewBag.LoCaoList = loCaoList;
             return View();
         }
         [HttpPost]
        // [ValidateAntiForgeryToken]
         public async Task<IActionResult> TaoPhieu([FromBody] PhieuCreateDto model)
         {
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
@@ -192,7 +237,12 @@ namespace Data_Product.Controllers
                     ID_Kip = model.ID_Kip,
                     ID_NguoiTao = idNhanVienTao
                 };
-               
+                var tenCaStr = await _context.Tbl_Kip
+                   .Where(k => k.ID_Kip == model.ID_Kip)
+                   .Select(k => k.TenCa)   // kiểu string
+                   .FirstOrDefaultAsync();
+
+                int? soCa = int.TryParse(tenCaStr, out int result) ? result : null;
                 await _context.Tbl_BM_16_Phieu.AddAsync(phieu);
                 await _context.SaveChangesAsync();
 
@@ -219,6 +269,7 @@ namespace Data_Product.Controllers
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = model.ID_Locao,
                         G_ID_Kip = model.ID_Kip,
+                        G_Ca = soCa,
                         T_ID_TrangThai = 2,
                         ID_TrangThai = 1,
                         T_copy = false,
@@ -254,7 +305,36 @@ namespace Data_Product.Controllers
             var danhSachThung = await _context.Tbl_BM_16_GangLong
                 .Where(t => t.MaPhieu == id && t.T_copy == false )
                 .ToListAsync();
+            // Lấy danh sách user nhận thùng và join
+            var thungUserList = await _context.Tbl_BM_16_TaiKhoan_Thung
+                .Join(_context.Tbl_TaiKhoan,
+                      thung => thung.ID_taiKhoan,
+                      user => user.ID_TaiKhoan,
+                      (thung, user) => new
+                      {
+                          thung.MaThungGang,
+                          user.HoVaTen,
+                          user.ID_PhongBan
+                      })
+                .Join(_context.Tbl_PhongBan,
+                    temp => temp.ID_PhongBan,
+                    phongban => phongban.ID_PhongBan,
+                    (temp, phongban) => new
+                    {
+                        temp.MaThungGang,
+                        HoVaTen = $"{temp.HoVaTen} - {phongban.TenNgan}"
+                    })
+                .ToListAsync();
 
+            // Gom nhóm theo MaThungGang, nhóm tiếp theo theo tên user đếm số lần nhận
+            var userStats = thungUserList
+                .GroupBy(x => x.MaThungGang)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.GroupBy(u => u.HoVaTen)
+                          .Select(x => $"{x.Key} ({x.Count()})")
+                          .ToList()
+                );
             // Chuyển sang view model nhẹ cho hiển thị
             var viewData = danhSachThung.Select(t => new
             {
@@ -275,6 +355,7 @@ namespace Data_Product.Controllers
                 GhiChu = t.G_GhiChu,
                 DaChuyen = t.G_ID_TrangThai==1, 
                 TrangThai = t.ID_TrangThai,
+                NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>()
             }).ToList();
 
             ViewBag.DanhSachThung = viewData;
@@ -401,8 +482,8 @@ namespace Data_Product.Controllers
                     return Json(new { success = false, message = "Không tìm thấy thùng" });
                 }
 
-            if (thunggang.ID_TrangThai == 2 || thunggang.T_ID_TrangThai == 2 || thunggang.G_ID_TrangThai != 3)
-               
+            if (thunggang.ID_TrangThai == 2 && thunggang.T_ID_TrangThai == 2 && thunggang.G_ID_TrangThai == 1 )
+                {
                     thunggang.G_KLGangLong = thung.G_KLGangLong;
                     thunggang.G_KLThungChua = thung.G_KLThungChua;
                     thunggang.G_KLThungVaGang = thung.G_KLThungVaGang;
@@ -410,8 +491,21 @@ namespace Data_Product.Controllers
                     thunggang.KL_XeGoong = thung.KL_XeGoong;
                     thunggang.ChuyenDen = thung.ChuyenDen;
                     thunggang.Gio_NM = thung.Gio_NM;
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Cập nhật thùng thành công" });
+                }
+            else
+            {
+                return Json(new { success = false, message = "Trạng thái không hợp lệ" });
+            }
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Cập nhật thùng thành công" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi hệ thống: " + ex.Message });
+            }
+
         }
 
         [HttpPost]

@@ -124,11 +124,8 @@
 											<input type="checkbox" id="selectAll" class="form-check-input" style="width: 20px; height: 20px;" title="Chọn tất cả">
 										</th>
 										<th rowspan="2">Tình trạng</th>
-										<th rowspan="2" class="toggle-col">Người nhận 1</th>
-										<th rowspan="2" class="toggle-col">BP nhận 1</th>
-										<th rowspan="2" class="toggle-col">Người nhận 2</th>
-										<th rowspan="2" class="toggle-col">BP nhận 2</th>
-										<th rowspan="2" class="toggle-col">Chốt thùng</th>
+										<th rowspan="2" class="toggle-col">Nơi nhận </th>
+										<th rowspan="2" >Chốt thùng</th>
 									</tr>
 									<tr>
 										<th>NM.HRC1</th>
@@ -188,11 +185,18 @@
 														<button class="btn btn-success btn-sm">Đã chuyển</button>
 													}
 												</td>
-												<td class="toggle-col"> </td>
-												<td class="toggle-col"> </td>
-												<td class="toggle-col"> </td>
-												<td class="toggle-col"> </td>
 												<td class="toggle-col">
+													@if (item.NguoiNhanList != null && item.NguoiNhanList.Count > 0)
+													{
+														<ul style="width : 200px; font-size:13px">
+															@foreach (var nguoiNhan in item.NguoiNhanList)
+															{
+																<li>@nguoiNhan</li>
+															}
+														</ul>
+													}
+												</td>
+												<td>
 													@if (item.TrangThai == 1)
 													{
 														<button class="btn btn-danger btn-sm">Chưa chuyển</button>
@@ -322,7 +326,6 @@
 		</div>
 	</div>
 </div>
-
 <script>
 	$(document).ready(function()
 	{
@@ -493,7 +496,7 @@
 		return maxIndex;
 	}
 
-		function loadThemSoMeMoi() {
+	function loadThemSoMeMoi() {
 		let ngay = $("#ID_Day").val();
 		let idLoCao = $("#ID_Locao").val();
 		let idKip = $("#ID_Kip").val();
@@ -557,10 +560,7 @@
 										<td><textarea name="GhiChu" class="form-control" style="width: 100px;"></textarea></td>
 										<td><input type="checkbox" class="chon-thung-checkbox"/></td>
 										<td></td>
-										<td class="toggle-col"></td>
-										<td class="toggle-col"></td>
-										<td class="toggle-col"></td>
-										<td class="toggle-col"></td>
+										<td></td>
 										<td class="toggle-col"></td>
 									</tr>`;
 								tableBody.append(row);
@@ -587,7 +587,7 @@
 
     $("#dataTable tbody tr[data-new='true']").each(function () {
         let row = $(this);
-			 let vanChuyenHRC1 = row.find("input[name='VanChuyenHRC1']").is(":checked");
+		let vanChuyenHRC1 = row.find("input[name='VanChuyenHRC1']").is(":checked");
 		let vanChuyenHRC2 = row.find("input[name='VanChuyenHRC2']").is(":checked");
 		let vanChuyenDUC1 = row.find("input[name='VanChuyenDUC1']").is(":checked");
 		let vanChuyenDUC2 = row.find("input[name='VanChuyenDUC2']").is(":checked");
@@ -757,15 +757,15 @@
 			data: JSON.stringify(window.thungData),
 			success: function (res) {
 				if (res.success) {
-					alert('✅ ' + res.message);
+					alert('Lưu thành công' + res.message);
 					location.reload();
 				} else {
-					alert('❌ ' + res.message);
+					alert('Lỗi ' + res.message);
 				}
 			},
 			error: function (err) {
 				console.error("Lỗi gọi API EditThung:", err);
-				alert('❌ Lỗi máy chủ khi lưu.');
+				alert('Lỗi máy chủ khi lưu.');
 			}
 		});
 	});
