@@ -3,6 +3,7 @@
 @using Data_Product.Repositorys;
 @using Microsoft.EntityFrameworkCore;
 @inject Data_Product.Repositorys.DataContext _context
+@model IEnumerable<Data_Product.Models.Tbl_BM_16_GangLong>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
@@ -113,11 +114,11 @@
 										<div class="d-flex align-items-center bg-light rounded shadow-sm px-3 py-2">
 											<label for="IDLoCao" class="form-label mb-0 text-dark me-2" style="font-size: 14px; min-width: 90px;">Lò cao:</label>
 											<select class="form-select form-select-sm w-auto" name="LoCao" id="IDLoCao">
-												<option value="null">-- Lò cao --</option>
-												<option value="1">Lò cao 1</option>
-												<option value="2">Lò cao 2</option>
-												<option value="3">Lò cao 3</option>
-												<option value="4">Lò cao 4</option>
+												<option value="">-- Lò cao --</option>
+												@foreach (var locao in ViewBag.LoCaoList)
+												{
+													<option value="@locao.ID">@locao.TenLoCao</option>
+												}
 											</select>
 										</div>
 									</div>
