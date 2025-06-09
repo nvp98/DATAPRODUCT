@@ -19,9 +19,8 @@
         public int? ID_TinhTrang_LG { get; set; }
         public string? MaThungGang { get; set; }
         public string? MaThungThep { get; set; }
-
-
     }
+
     public class SearchLTDto
     {
         public DateTime? NgayLuyenGang { get; set; }

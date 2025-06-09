@@ -248,9 +248,9 @@
                                             <select class="form-select form-select-sm" id="IDChuyenDen" name="ChuyenDen">
                                                 <option value="">-- Chuyển đến --</option>
                                                 <option value="HRC1">HRC 1</option>
-                                                <option value="Duc1">Đúc 1</option>
+                                                <option value="DUC1">Đúc 1</option>
                                                 <option value="HRC2">HRC 2</option>
-                                                <option value="Duc2">Đúc 2</option>
+                                                <option value="DUC2">Đúc 2</option>
                                             </select>
                                         </div>
                                     </div>
@@ -404,7 +404,7 @@
                             <tbody>
                             </tbody>
                             @* hàng cuối để chốt tổng khối lượng thùng *@ 
-                                    <tfoot>
+                             <tfoot>
                                 <tr style="height: 50px;">
                                     <td class="total-space" colspan="8" style="font-weight: 600; text-align: start">Tổng</td>
                                     <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
@@ -483,24 +483,24 @@
                                 <td>${item.iD_Locao}</td>
                                 <td>${item.bkmiS_ThungSo}</td>
                                 <td>
-                                    <input class="table_tbx KhoiLuongThungVaGangLong" type="number" name="KhoiLuongThungVaGangLong" value="${item.t_KLThungVaGang ?? ''}" />
+                                    <input class="table_tbx KhoiLuongThungVaGangLong" type="number" name="KhoiLuongThungVaGangLong" value="${item.t_KLThungVaGang ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td class="KLThung">
-                                    <input class="table_tbx KhoiLuongThung" type="number" name="KhoiLuongThung" value="${item.t_KLThungChua ?? ''}" />
+                                    <input class="table_tbx KhoiLuongThung" type="number" name="KhoiLuongThung" value="${item.t_KLThungChua ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
-                                <td class="KLGangLong">${item.t_KLGangLong ?? '00.0'}</td>
+                                    <td class="KLGangLong">${item.t_KLGangLong ?? '00.0'}</td>
                                 <td>
-                                    <input class="table_tbx" type="number" name="ThungTrungGian" id="IDThungTrungGian" value="${item.thungTrungGian ?? ''}" />
-                                </td>
-                                <td>
-                                    <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" name="KLThungVaGangLongVaoLoThoi" value="${item.t_KLThungVaGang_Thoi ?? ''}" />
+                                    <input class="table_tbx" type="number" name="ThungTrungGian" id="IDThungTrungGian" value="${item.thungTrungGian ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td>
-                                    <input class="table_tbx KLThungVaoLoThoi" type="number" name="KLThungVaoLoThoi"  value="${item.t_KLThungChua_Thoi ?? ''}" />
+                                    <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" name="KLThungVaGangLongVaoLoThoi" value="${item.t_KLThungVaGang_Thoi ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                                </td>
+                                <td>
+                                    <input class="table_tbx KLThungVaoLoThoi" type="number" name="KLThungVaoLoThoi"  value="${item.t_KLThungChua_Thoi ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td id="IDKLVaoLoThoi" class="KLVaoLoThoi">${item.t_KLGangLongThoi ?? '00.0'}</td>
                                 <td class="meThoi">
-                                    <select class="form-control selectMeThoi" style="width:100%;">
+                                <select class="form-control selectMeThoi" style="width:100%;" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}>
                                         <option value="">-- Mẻ thổi --</option>
                                         ${item.iD_MeThoi && !window.meThoiList.some(m => m.id === item.iD_MeThoi)
                                             ? `<option value="${item.iD_MeThoi}" selected>${item.maMeThoi}</option>`
@@ -513,7 +513,7 @@
                                 </select>
                                 </td>
                                 <td>
-                                    <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="${item.t_GhiChu ?? ''}" />
+                                <input class="table_tbx" type="text" name="GhiChu" id="IDGhiChu" value="${item.t_GhiChu ?? '' }" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td>
                                     ${tinhTrangHTML}
@@ -535,32 +535,7 @@
                tbody.append(html);
           }
         }
-
-        function SearchThungDaNhanTheoUser(){
-            // value cac field
-            const NgayNhan = $('#IDNgayNhan').val() || null;
-            const IDCaNhan = $('#IDCaNhan').val() || null;
-            const IDLoThoi = $('#IDLoThoi').val() || null;
-
-            const payload = {
-                NgayLamViec: NgayNhan,
-                ID_LoThoi: IDLoThoi,
-                T_Ca: IDCaNhan
-            };
-            $.ajax({
-                url: '/BM_GangThoi_Thep/TimKiemThungDaNhan',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(payload),
-                success: function (data) {
-                    renderTableXuLySoLieu(data);
-
-                },
-                error: function (err) {
-                    alert("Lỗi khi tìm kiếm dữ liệu");
-                }
-            });
-        }
+        
 
         //render table Khu Vuc Nhan Thung
         function renderTableNhanThung(data) {
@@ -568,7 +543,7 @@
             tbody.empty();
             if(data.length){
                 data.forEach(item => {
-                const tinhTrangHTML = renderStatusCard(item.t_ID_TrangThai);
+                const tinhTrangHTML = renderStatusCard(item.iD_TrangThai == 5 ? item.iD_TrangThai : item.t_ID_TrangThai);
 
                 const nguoiNhanHtml = item.nguoiNhanList.length > 0
                     ? item.nguoiNhanList.join('<br>')
@@ -582,12 +557,12 @@
                     <td>${item.bkmiS_ThungSo}</td>
                     <td>${item.chuyenDen}</td>
                         <td>
-                            <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                            <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                         </td>
                         <td>
-                            <input type="checkbox" class="cbx-nhanThung" name="ChonThung" value="" ${item.iD_TrangThai == 5 ? "disabled" : ""}/>
+                            <input type="checkbox" class="cbx-nhanThung" name="ChonThung" value="" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                         </td>
-                        <td class="status-cell" data-status="${item.t_ID_TrangThai}">
+                        <td class="status-cell" data-status="${item.iD_TrangThai == 5 ? item.iD_TrangThai : item.t_ID_TrangThai}">
                             ${tinhTrangHTML}
                         </td>
                         <td class="nguoi-nhan">
@@ -641,7 +616,31 @@
             });
         }
 
+        function SearchThungDaNhanTheoUser(){
+            // value cac field
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
 
+            const payload = {
+                NgayLamViec: NgayNhan,
+                ID_LoThoi: IDLoThoi,
+                T_Ca: IDCaNhan
+            };
+            $.ajax({
+                url: '/BM_GangThoi_Thep/TimKiemThungDaNhan',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function (data) {
+                    renderTableXuLySoLieu(data);
+
+                },
+                error: function (err) {
+                    alert("Lỗi khi tìm kiếm dữ liệu");
+                }
+            });
+        }
 
          // tinh sum
         function sumPhieu(){

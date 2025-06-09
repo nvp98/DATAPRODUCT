@@ -128,5 +128,11 @@ namespace Data_Product.Models
         public string MaMeThoi { get; set; }
 
         public int? ID_Phieu { get; set; }
+
+        [NotMapped]
+        public string HoVaTen { get; set; }
+
+        [NotMapped]
+        public string TenPhongBan { get; set; }
     }
 }
