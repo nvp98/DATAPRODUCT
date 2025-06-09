@@ -55,7 +55,8 @@ namespace Data_Product.Controllers
                                 TinhTrang = a.TinhTrang,
                                 SoPhieu = a.SoPhieu,
                                 NgayTao = a.NgayTao,
-                                Tbl_TaiKhoan = b
+                                Tbl_TaiKhoan = b,
+                                IsLock = a.IsLock,
                             }).OrderByDescending(x => x.NgayDungSX).ToListAsync();
             if (ID_TrangThai != null) res = res.Where(x => x.TinhTrang == ID_TrangThai).ToList();
             if (begind != null && endd != null) res = res.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay).ToList();
@@ -122,6 +123,7 @@ namespace Data_Product.Controllers
                                  Tbl_TaiKhoan = b,
                                  NhatKy_SanXuat_ChiTiet = c,
                                  ID_PhongBan_SX = a.ID_PhongBan_SX,
+                                 IsLock = a.IsLock,
                                  TinhTrangCheckPhieu = _context.Tbl_PKHXuLyPhieu.FirstOrDefault(x=>x.ID_NKDSX == a.ID && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan) != null?1:0
                              };
             // Áp dụng điều kiện lọc nếu có
@@ -733,6 +735,116 @@ namespace Data_Product.Controllers
             _context.SaveChanges();
 
             return Ok();
+        }
+
+        public async Task<IActionResult> KhoaPhieu()
+        {
+            return PartialView();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult KhoaPhieu(DateTime? monthPicker, bool CheckUnlock)
+        {
+            try
+            {
+                // Xử lý logic tại đây
+                if (monthPicker == null)
+                    return Json(new { success = false, message = "Chưa chọn tháng cần xóa." });
+                if (monthPicker != null && CheckUnlock == false)
+                {
+                    DateTime tg = (DateTime)monthPicker.Value;
+                    var checkTg = _context.Tbl_ThoiGianKhoa.Where(x => x.Thang == tg.Month && x.Nam == tg.Year && x.MaBB == "NKDSX").FirstOrDefault();
+                    if (checkTg == null)
+                    {
+                        Tbl_ThoiGianKhoa khoa = new Tbl_ThoiGianKhoa()
+                        {
+                            Nam = tg.Year,
+                            Thang = tg.Month,
+                            NgayXuLy = DateTime.Now,
+                            MaBB = "NKDSX"
+                        };
+                        _context.Tbl_ThoiGianKhoa.Add(khoa);
+                        _context.SaveChanges();
+                        // khóa tất cả phiếu tháng 11
+                        var listPhieu = _context.Tbl_NhatKy_SanXuat.Where(x => x.NgayDungSX.Month == tg.Month && x.NgayDungSX.Year == tg.Year).ToList();
+                        // Cập nhật giá trị cho các trường
+                        foreach (var entity in listPhieu)
+                        {
+                            entity.IsLock = true;
+                        }
+
+                        // Lưu thay đổi vào database
+                        _context.SaveChanges();
+                        return Json(new { success = true, message = "Khóa phiếu thành công " });
+                    }
+                    else
+                    {
+                        return Json(new { success = true, message = "Thời gian đã được khóa trước đó " });
+                    }
+                }
+                else if (monthPicker != null && CheckUnlock == true) // Unlock All
+                {
+                    DateTime tg = (DateTime)monthPicker.Value;
+                    var checkTg = _context.Tbl_ThoiGianKhoa.Where(x => x.Thang == tg.Month && x.Nam == tg.Year && x.MaBB == "NKDSX").FirstOrDefault();
+                    if (checkTg != null)
+                    {
+                        _context.Tbl_ThoiGianKhoa.Remove(checkTg);
+                        _context.SaveChanges();
+                        // mở khóa tất cả phiếu tháng
+                        var listPhieu = _context.Tbl_NhatKy_SanXuat.Where(x => x.NgayDungSX.Month == tg.Month && x.NgayDungSX.Year == tg.Year).ToList();
+                        // Cập nhật giá trị cho các trường
+                        foreach (var entity in listPhieu)
+                        {
+                            entity.IsLock = false;
+                        }
+                        // Lưu thay đổi vào database
+                        _context.SaveChanges();
+                        return Json(new { success = true, message = "Xử lý mở khóa thành công " });
+                    }
+                    else
+                    {
+                        return Json(new { success = true, message = "Thời gian này chưa được xử lý " });
+                    }
+                }
+                return Json(new { success = true, message = "Thành công! " });
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi nếu cần
+                // _logger.LogError(ex, "Lỗi khi khóa phiếu");
+
+                return Json(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
+            }
+        }
+        [HttpPost]
+        public IActionResult XuLyKhoa(int id)
+        {
+            if (id == 0 )
+                return BadRequest("Không có dữ liệu cần khóa.");
+            // mở khóa tất cả phiếu tháng
+            var Phieu = _context.Tbl_NhatKy_SanXuat.Where(x => x.ID == id).FirstOrDefault();
+            // Cập nhật giá trị cho các trường
+            Phieu.IsLock = true;
+            // Lưu thay đổi vào database
+            _context.SaveChanges();
+            return Json(new { success = true, message = "Khóa phiếu thành công " });
+
+        }
+        [HttpPost]
+        public IActionResult XuLyMoKhoa(int id)
+        {
+            if (id == 0)
+                return BadRequest("Không có dữ liệu cần khóa.");
+
+            // mở khóa tất cả phiếu tháng
+            var Phieu = _context.Tbl_NhatKy_SanXuat.Where(x => x.ID == id).FirstOrDefault();
+            // Cập nhật giá trị cho các trường
+            Phieu.IsLock = false;
+            // Lưu thay đổi vào database
+            _context.SaveChanges();
+            return Json(new { success = true, message = "Mở khóa phiếu thành công " });
+
         }
 
     }
