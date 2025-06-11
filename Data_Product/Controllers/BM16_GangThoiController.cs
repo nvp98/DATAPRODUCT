@@ -191,6 +191,44 @@ namespace Data_Product.Controllers
 
             return View(data);
         }
+        [HttpPost]
+        public async Task<IActionResult> XoaPhieu (string maPhieu)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(maPhieu))
+                {
+                    return BadRequest("Mã phiếu không tồn tại");
+                }
+                var phieu = await _context.Tbl_BM_16_Phieu.FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
+                if (phieu == null)
+                {
+                    return NotFound("Không tìm thấy phiếu cần xóa.");
+
+                }
+                var dsthungphieu = await _context.Tbl_BM_16_GangLong.Where(x => x.MaPhieu == maPhieu).ToListAsync();
+                if (dsthungphieu.Any())
+                {
+                    // Kiểm tra điều kiện G_ID_TrangThai
+                    bool allTrangThai1 = dsthungphieu.All(x => x.G_ID_TrangThai == 1);
+                    if (!allTrangThai1)
+                    {
+                        return BadRequest("Có thùng trong phiếu đang ở trạng thái không được phép xóa.");
+                    }
+                    _context.Tbl_BM_16_GangLong.RemoveRange(dsthungphieu);
+                }
+
+                _context.Tbl_BM_16_Phieu.Remove(phieu);
+                 await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Đã xóa thành công." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
 
         [HttpGet]
         public async Task< IActionResult> TaoPhieu()
@@ -226,7 +264,7 @@ namespace Data_Product.Controllers
 
             try
             {
-                var maPhieu = "PGL" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                var maPhieu = "PGL" + Guid.NewGuid().ToString("N").ToUpper().Substring(0, 8);
 
                 var phieu = new Tbl_BM_16_Phieu
                 {
@@ -243,11 +281,14 @@ namespace Data_Product.Controllers
                    .FirstOrDefaultAsync();
 
                 int? soCa = int.TryParse(tenCaStr, out int result) ? result : null;
+
                 await _context.Tbl_BM_16_Phieu.AddAsync(phieu);
                 await _context.SaveChangesAsync();
-
+                //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
                 foreach (var thung in model.DanhSachThung)
                 {
+                    var chuyenDen = thung.ChuyenDen ?? "";
+
                     var thungGang = new Tbl_BM_16_GangLong
                     {
                         MaPhieu = maPhieu,
@@ -262,16 +303,16 @@ namespace Data_Product.Controllers
                         G_KLThungVaGang = thung.G_KLThungVaGang,
                         G_KLGangLong = thung.G_KLGangLong,
                         ChuyenDen = thung.ChuyenDen ?? "",
-                        Gio_NM = DateTime.Now.ToString("HH:mm"),
+                        Gio_NM = thung.Gio_NM,
                         G_GhiChu = thung.G_GhiChu,
-                        G_ID_TrangThai = 1,
+                        G_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 1,
                         NgayTao = DateTime.Now,
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = model.ID_Locao,
                         G_ID_Kip = model.ID_Kip,
                         G_Ca = soCa,
-                        T_ID_TrangThai = 2,
-                        ID_TrangThai = 1,
+                        T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2,
+                        ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 2 : 1,
                         T_copy = false,
                     };
 
@@ -427,7 +468,7 @@ namespace Data_Product.Controllers
         public async Task<IActionResult>ThuHoiThung([FromBody] List<string> dsthuhoi)
         {
             try
-            {
+            { //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
                 if (dsthuhoi == null || !dsthuhoi.Any())
                 {
                     return Json(new { success = false, message = "Vui lòng chọn ít nhất một thùng" });
@@ -481,8 +522,8 @@ namespace Data_Product.Controllers
                 {
                     return Json(new { success = false, message = "Không tìm thấy thùng" });
                 }
-
-            if (thunggang.ID_TrangThai == 2 && thunggang.T_ID_TrangThai == 2 && thunggang.G_ID_TrangThai == 1 )
+            //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
+            if ( thunggang.T_ID_TrangThai == 2 && thunggang.G_ID_TrangThai == 1 && ( thunggang.ID_TrangThai == 2 || thunggang.ID_TrangThai == 1))
                 {
                     thunggang.G_KLGangLong = thung.G_KLGangLong;
                     thunggang.G_KLThungChua = thung.G_KLThungChua;
@@ -534,8 +575,11 @@ namespace Data_Product.Controllers
                     return NotFound("Không tìm thấy phiếu.");
                 }
                 // Thêm các dòng gang thỏi vào phiếu này
+                //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
                 foreach (var item in req.DanhSachThung)
                 {
+                    var chuyenDen = item.ChuyenDen ?? "";
+
                     var gangThoi = new Tbl_BM_16_GangLong
                     {
                         MaPhieu = req.MaPhieu,
@@ -552,12 +596,13 @@ namespace Data_Product.Controllers
                         ChuyenDen = item.ChuyenDen ?? "",
                         Gio_NM = DateTime.Now.ToString("HH:mm"),
                         G_GhiChu = item.G_GhiChu,
-                        G_ID_TrangThai = 1,
+                        G_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 2 : 1,
                         NgayTao = DateTime.Now,
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = req.ID_Locao,
                         G_ID_Kip = req.ID_Kip,
-                        T_ID_TrangThai = 2,
+                        T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 2,
+                        //T_ID_TrangThai = 2,
                         ID_TrangThai = 1,
                         T_copy = false,
                     };
@@ -571,6 +616,61 @@ namespace Data_Product.Controllers
                 throw;
             }
             return Json(new { success = true, });
+        }
+        [HttpPost]
+        public async Task <IActionResult> CapNhatThungChuaChuyen([FromBody] List<ThungGangDto> danhSach)
+        {
+            if (danhSach == null || !danhSach.Any())
+                return BadRequest("Danh sách cập nhật rỗng.");
+            //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
+            foreach (var item in danhSach)
+            {
+                var thung =  _context.Tbl_BM_16_GangLong
+                    .FirstOrDefault(x => x.MaThungGang == item.MaThungGang && x.BKMIS_SoMe == item.BKMIS_SoMe
+                        && x.G_ID_TrangThai == 1
+                        && (x.ID_TrangThai == 1 || x.ID_TrangThai == 2) ) ;
+
+                if (thung != null)
+                {
+                    thung.BKMIS_PhanLoai = item.BKMIS_PhanLoai;
+                    thung.BKMIS_Gio = item.BKMIS_Gio;
+                    thung.BKMIS_SoMe = item.BKMIS_SoMe;
+                    thung.BKMIS_ThungSo = item.BKMIS_ThungSo;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> XoaNhungSoMeKhongConTrongBK([FromBody] List<string> soMeCanXoa)
+        {
+            if (soMeCanXoa == null || !soMeCanXoa.Any())
+            {
+                return BadRequest("Danh sách số mẻ cần xóa bị trống.");
+            }
+            //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
+            try
+            {
+                var thungCanXoa = await _context.Tbl_BM_16_GangLong
+                    .Where(x => soMeCanXoa.Contains(x.BKMIS_SoMe) && x.G_ID_TrangThai == 1 || x.ID_TrangThai == 1)
+                    .ToListAsync();
+
+                if (thungCanXoa.Any())
+                {
+                    _context.Tbl_BM_16_GangLong.RemoveRange(thungCanXoa);
+                    await _context.SaveChangesAsync();
+                    return Ok(new { success = true, message = "Đã xóa thành công." });
+                }
+
+                return Ok(new { success = true, message = "Không có thùng nào cần xóa." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi khi xóa.", error = ex.Message });
+            }
         }
 
     }

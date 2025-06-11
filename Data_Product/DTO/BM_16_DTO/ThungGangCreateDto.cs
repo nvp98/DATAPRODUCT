@@ -13,7 +13,7 @@
         public decimal? G_KLThungVaGang { get; set; }
         public decimal? G_KLGangLong { get; set; }
         public string? ChuyenDen { get; set; }
-        public DateTime? Gio_NM { get; set; }
+        public string? Gio_NM { get; set; }
         public string G_GhiChu { get; set; }
 
     }

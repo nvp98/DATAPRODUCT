@@ -133,7 +133,7 @@
                                                 <td class="text-center">@item.ThoiGianTao</td>
                                                 <td class="text-center">
                                                     <a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>
-                                                    <a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-warning">Sửa</a>
+                                                    <a href="javascript:void(0);"data-maphieu="@item.MaPhieu" class="btn btn-sm btn-warning btn-xoa-phieu">Xóa</a>
                                                 </td>
                                             </tr>
                                         }
@@ -187,7 +187,34 @@
 	</div>
 </div>
 
+<script>
+ $(document).ready(function() {
+    $(document).on('click', '.btn-xoa-phieu', function () {
+            const maPhieu = $(this).data('maphieu');
+           console.log ('maPhieu',maPhieu)
+            if (!confirm("Bạn có chắc chắn muốn xóa phiếu: " + maPhieu + " ?")) {
+                return;
+            }
+
+            $.ajax({
+                url: '/BM16_GangThoi/XoaPhieu',
+                type: 'POST',
+                data: { maPhieu: maPhieu },
+                success: function (res) {
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert("Lỗi: " + res.message);
+                    }
+                },
+                error: function (xhr) {
+                    alert("Có lỗi xảy ra: " + xhr.responseText);
+                }
+            });
+        });
+   });
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-
 
