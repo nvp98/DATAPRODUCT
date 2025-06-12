@@ -291,12 +291,12 @@
                                     <span>BM.16</span>
                                 </a>
                             </li>*@
-                            @if (TaiKhoan.ID_Quyen == 9 || QuyenTaoYC.Any(value => value =="9"))
+                            @if (TaiKhoan.ID_Quyen == 9 || TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || ListQuyen.Any(x => x == "9"))
                             {
                                 <li>
                                     <a class="nav-link collapsed" href="@Url.Action("Index","BM_NhatKy_SanXuat")">
                                         <i class="bi bi-circle"></i>
-                                        <span>BM.12/QT.05 Nhật ký sản xuất </span>
+                                        <span>BM.12/QT.05 Nhật ký dừng sản xuất </span>
                                     </a>
                                 </li>
                             }
@@ -422,12 +422,12 @@
                                     <span> BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
                                 </a>
                             </li>
-                            @if(TaiKhoan.ID_Quyen ==9 || QuyenQLBBGN.Any(x => x == "9"))
+                            @if (TaiKhoan.ID_Quyen == 9 || TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || ListQuyen.Any(x => x == "9"))
                             {
                                 <li class="nav-item">
                                     <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_NhatKy_SanXuat")">
                                         <i class="bi bi-circle"></i>
-                                        <span> BM.12/QT.05 Nhật ký sản xuất</span>
+                                        <span> BM.12/QT.05 Nhật ký dừng sản xuất</span>
                                     </a>
                                 </li>
                             }
