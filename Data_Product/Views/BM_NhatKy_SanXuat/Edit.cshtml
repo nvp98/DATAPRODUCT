@@ -92,6 +92,7 @@
                                                     });
                                                 </script>
                                             </div>
+                                            @Html.HiddenFor(x=>x.Ca, new {@id="IDCa"})
                                         </div>
 
                                         <div class="col-xxl-3 col-md-6 p-2" style=" background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
@@ -431,24 +432,29 @@
         </div>
     </div>
 }
-
-<script>
+<script type="text/javascript">
     $(document).ready(function () {
+        function normalizeTime(timeStr) {
+            const [h, m] = timeStr.split(':').map(s => s.padStart(2, '0'));
+            return `${h}:${m}`;
+        }
+
         $('#TaoPhieu').on('submit', function (e) {
             let isValid = true; // mặc định là hợp lệ
             let selectedValueCa = $('#IDCa').val();
             const form = document.getElementById("TaoPhieu");
             const inputs = form.querySelectorAll('input[type="time"]');
-            for (const input of inputs) {
-                const value = input.value;
+           
 
+            for (const input of inputs) {
+                const value = normalizeTime(input.value);
                 if (selectedValueCa == "1" && value && (value < "08:00" || value > "20:00")) {
                     isValid = false;
                     alert('Vui lòng điền đúng khoảng thời gian ca Ngày từ 08:00 - 20:00!');
                     input.focus();
                     break; // Thoát vòng lặp
                 }
-                else if (selectedValueCa == "2" && value && (value >= "08:00" && value <= "20:00")) {
+                else if (selectedValueCa == "2" && value && (value > "08:00" && value < "20:00")) {
                     isValid = false;
                     alert('Vui lòng điền đúng khoảng thời gian ca Đêm từ 20:00 - 08:00!');
                     input.focus();
@@ -468,6 +474,7 @@
     });
 
 </script>
+
 
 
 <script type="text/javascript">
