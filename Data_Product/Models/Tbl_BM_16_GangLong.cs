@@ -76,14 +76,11 @@ namespace Data_Product.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLThungChua_Thoi { get; set; }
 
-<<<<<<< Updated upstream
+
         [Column(TypeName = "decimal(10, 2)")]
-=======
-        [Column(TypeName = "decimal(5, 2)")]
         public decimal? T_KL_phe { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
->>>>>>> Stashed changes
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLGangLongThoi { get; set; }
 
         [StringLength(255)]
