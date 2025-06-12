@@ -27,18 +27,18 @@ namespace Data_Product.Models
 
         [StringLength(20)]
         public string? BKMIS_PhanLoai { get; set; }
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? KL_XeGoong { get; set; }
 
         public DateTime? NgayLuyenGang { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? G_KLThungChua { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? G_KLThungVaGang { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? G_KLGangLong { get; set; }
 
         [StringLength(20)]
@@ -59,24 +59,24 @@ namespace Data_Product.Models
         [StringLength(20)]
         public string? MaThungThep { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLThungVaGang { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLThungChua { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLGangLong { get; set; }
 
         public int? ThungTrungGian { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLThungVaGang_Thoi { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLThungChua_Thoi { get; set; }
 
-        [Column(TypeName = "decimal(5, 2)")]
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLGangLongThoi { get; set; }
 
         [StringLength(255)]

@@ -61,11 +61,10 @@
 		<div class="app-main__inner" style="display:block;padding-bottom: 0px;">
 			<div class="tab-content">
 				<div class="row">
-					<div class="card">
-
+					<div class="card-header">
 						<!-- Row 1: Tiêu đề + nút thao tác -->
 						<div class="row w-100">
-							<div style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: absolute; background-color: #F9F9F9; width: 100%; height: 80px;">
+							<div style="display: flex; border-bottom: 0.8px solid #E8E8E8; background-color: #F9F9F9; width: 100%; height: 80px;">
 
 								<!-- Tiêu đề -->
 								<div style="flex: 1; text-align: left; padding: 2% 2% 2% 0%;">
@@ -95,7 +94,7 @@
 						</div>
 
 						<!-- Row 2: Bộ lọc tìm kiếm -->
-						<div class="row w-100 pt-4" style="padding-top: 5.5rem !important;">
+						<div class="row w-100 pt-4">
 							<div class="col-lg-12">
 								<div class="row g-3 align-items-end">
 
@@ -161,16 +160,9 @@
 						<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
 							Ẩn/Hiện
 						</button>
-						<button type="button" class="btn btn-success me-2">
-							<i class="bi bi-arrow-right-circle"></i> Chuyển
-						</button>
-
-						<button type="button" class="btn btn-danger">
-							<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
-						</button>
-						<div class="table-responsive" style="height: auto;">
+						<div class="table-responsive" style="max-height: 700px; overflow-y: auto;">
 							<table class="table table-bordered table-hover align-middle text-center" id="dataTable">
-								<thead class="table-light">
+								<thead class="table-light sticky-top">
 									<tr>
 										<th rowspan="2">Xóa</th>
 										<th rowspan="2">Copy thùng</th>
@@ -311,7 +303,7 @@
 										<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
 										<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input" style="width: 20px; height: 20px;"></td>
 										<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input" style="width: 20px; height: 20px;"></td>
-										<td>${time}</td>
+										<td><input type="time" name="GioNM" class="form-control" min="00:00" max="23:59"></td>
 										<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 180px; resize: none; padding: 4px;"></textarea></td>
 										<td class="toggle-col"></td>
 										<td class="toggle-col"></td>
@@ -512,13 +504,13 @@
 							VanChuyenHRC2: $tr.find("input[name='VanChuyenHRC2']").is(":checked"),
 							VanChuyenDUC1: $tr.find("input[name='VanChuyenDUC1']").is(":checked"),
 							VanChuyenDUC2: $tr.find("input[name='VanChuyenDUC2']").is(":checked"),
-							GioNM: $tr.find("td").eq(15).text().trim(),
+							GioNM: $tr.find('input[name="GioNM"]').val(),
 							GhiChu: $tr.find("textarea[name='GhiChu']").val()
 						};
 
 						phieuData.DanhSachThung.push(thung);
 					});
-
+				
 					// Validate thông tin phiếu
 					if (!phieuData.Ngay || phieuData.LoCao === "null" || phieuData.Ca === "null" || phieuData.Kip === "null") {
 						alert("Vui lòng điền đầy đủ thông tin phiếu!");
@@ -546,6 +538,7 @@
 							G_KLThungVaGang: x.KLThungGangLong,
 							G_KLGangLong: x.KLThungGangLong - x.KhoiLuongThung,
 							ChuyenDen: x.VanChuyenHRC1 ? "HRC1" : x.VanChuyenHRC2 ? "HRC2" : x.VanChuyenDUC1 ? "DUC1" : x.VanChuyenDUC2 ? "DUC2" : "KHONG_XAC_DINH",
+							Gio_NM: x.GioNM,
 							G_GhiChu: x.GhiChu
 						}))
 					};
