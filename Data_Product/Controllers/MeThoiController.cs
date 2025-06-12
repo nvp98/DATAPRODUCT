@@ -23,14 +23,14 @@ namespace Data_Product.Controllers
 
 
         [HttpPost]
-        public async Task<PartialViewResult> FilterMeThoi([FromBody] int id_LoThoi)
+        public async Task<IActionResult> FilterMeThoi([FromBody] int id_LoThoi)
         {
             var currentYear = DateTime.Now.Year;
             var result = await _context.Tbl_MeThoi
                 .Where(x => x.NgayTao.Year == currentYear && x.ID_LoThoi == id_LoThoi && x.ID_TrangThai == (int)TinhTrang.ChoXuLy)
                 .ToListAsync();
 
-            return PartialView("FilterMeThoi", result);
+            return Ok(result);
            
         }
 

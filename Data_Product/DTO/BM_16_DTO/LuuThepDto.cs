@@ -10,6 +10,7 @@
         public decimal? T_KLThungVaGang_Thoi { get; set; }
         public decimal? T_KLThungChua_Thoi { get; set; }
         public decimal? T_KLGangLongThoi { get; set; }
+        public decimal? T_KL_phe { get; set; }
         public int? ID_MeThoi { get; set; }
         public string? GhiChu { get; set; }
     }
