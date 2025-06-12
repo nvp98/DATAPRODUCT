@@ -35,43 +35,34 @@
 }
 
 <style>
-
+    body {
+        overflow: hidden; /* Ngăn cuộn toàn bộ trang */
+    }
     /* Tùy chỉnh thanh cuộn cho WebKit (Chrome, Safari) */
-    .table-responsive::-webkit-scrollbar {
+    .table-content::-webkit-scrollbar {
         width: 2px; /* Chiều rộng thanh cuộn mỏng hơn */
     }
 
-    .table-responsive::-webkit-scrollbar-thumb {
+    .table-content::-webkit-scrollbar-thumb {
         background-color: #888; /* Màu thanh kéo */
         border-radius: 1px; /* Bo góc thanh kéo */
     }
 
-    .table-responsive::-webkit-scrollbar-thumb:hover {
+    .table-content::-webkit-scrollbar-thumb:hover {
         background-color: #555; /* Màu khi hover */
     }
 
-    .table-responsive::-webkit-scrollbar-track {
+    .table-content::-webkit-scrollbar-track {
         background-color: #f1f1f1; /* Màu nền thanh cuộn */
     }
 
     /* Tùy chỉnh thanh cuộn cho Firefox */
-    .table-responsive {
+    .table-content {
         scrollbar-width: thin; /* Thanh cuộn mỏng */
         scrollbar-color: #888 #f1f1f1; /* Màu thanh kéo và nền */
     }
 
-    table {
-        width: 100%;
-        margin: 0;
-    }
 
-    thead th {
-        position: sticky;
-        top: 0;
-        background-color: #f8f9fa !important;
-        z-index: 10;
-
-    }
 
     .status-card {
         height: 35px;
@@ -87,264 +78,279 @@
         padding: 0 !important;
         font-size: 12px;
     }
+
+    .btn-collapse{
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 5px;
+        background: none;
+        border: none;
+    }
+
+    .rotate-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .rotate-icon.rotated {
+        transform: rotate(180deg);
+    }
 </style>
-<div class="app-main__outer">
-    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
-        <div class="tab-content">
-            <div class="row">
-                <div class="card">
-                    <div class="row" style="width:100%; height: 70px;">
-                        <div style="display: flex; align-items: center;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width: -webkit-fill-available; z-index: 11">
-                            <div class="col" style="text-align: left;padding: 1% 2% 1% 0%;">
-                                <span class="text-muted small pt-2 ps-1">
-                                    <b style="color:#06428b;font-size: 15px;">
-                                        DANH SÁCH THÙNG
-                                    </b>
-                                </span>
-                            </div>
-                            <button class="btn btn-primary btn-sm px-4 status-card" style=" font-size: 13px" id="btnReset">Reset</button>
-                        </div>
+
+
+
+
+<div id="main-container" class="d-flex flex-column vh-100">
+    <!-- Collapse Filter -->
+    <div class="p-2">
+        <div class="row">
+            <div class="card" style="margin-bottom: 0;">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between" style="padding: 10px 0 10px 0;">
+                        <span class="text-start small pt-2 ps-1">
+                            <b style="color:#06428b;font-size: 15px;">
+                                DANH SÁCH THÙNG
+                            </b>
+                        </span>
+                        <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
                     </div>
-                    <div class="card-header" style="border-bottom: 0px; padding-bottom:2%; color: black; font-size: 13px">
-                        <div class="row">
-                            <!-- Cột chứa bộ lọc -->
-                            <div class="col-12">
-
-                                <div class="row">
-                                    <!-- Lò Cao -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Lò Cao:</label>
-                                        <select class="form-select form-select-sm" id="LoCao" name="LoCao">
-                                            <option value="">-- Lò cao --</option>
-                                            @foreach (var locao in ViewBag.LoCaoList)
-                                            {
-                                                <option value="@locao.ID">@locao.TenLoCao</option>
-                                            }
-                                        </select>
-                                    </div>
-
-                                    <!-- Lò Thổi -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Lò Thổi:</label>
-                                        <select class="form-select form-select-sm" id="LoThoi" name="LoThoi">
-                                            <option value="">-- Lò Thổi --</option>
-                                            @foreach (var lothoi in ViewBag.LoThoiList)
-                                            {
-                                                <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
-                                            }
-                                        </select>
-                                    </div>
-
-                                    <!-- Từ ngày LG -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label for="TuNgayLG" class="form-label">Từ ngày LG:</label>
-                                        <input type="date" class="form-control form-control-sm" id="TuNgayLG" name="TuNgayLG"
-                                                onkeydown="return false;">
-                                    </div>
-
-                                    <!-- Đến ngày LG -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label for="DenNgayLG" class="form-label">Đến ngày LG:</label>
-                                        <input type="date" class="form-control form-control-sm" id="DenNgayLG" name="DenNgayLG"
-                                               
-                                                onkeydown="return false;">
-                                    </div>
-
-                                    <!-- Từ ngày LT -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label for="TuNgayLT" class="form-label">Từ ngày LT:</label>
-                                        <input type="date" class="form-control form-control-sm" id="TuNgayLT" name="TuNgayLT"
-                                               
-                                                onkeydown="return false;">
-                                    </div>
-
-                                    <!-- Đến ngày LT -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label for="DenNgayLT" class="form-label">Đến ngày LT:</label>
-                                        <input type="date" class="form-control form-control-sm" id="DenNgayLT" name="DenNgayLT"
-                                               
-                                                onkeydown="return false;">
-                                    </div>
-
-                                    <!-- Ca LT -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Ca LT:</label>
-                                        <select class="form-select form-select-sm" id="CaLT" name="CaLT">
-                                            <option value="">-- Ca --</option>
-                                            <option value="1">Ca 1</option>
-                                            <option value="2">Ca 2</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Ca LG -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Ca LG:</label>
-                                        <select class="form-select form-select-sm" id="CaLG" name="CaLG">
-                                            <option value="">-- Ca --</option>
-                                            <option value="1">Ca 1</option>
-                                            <option value="2">Ca 2</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Kíp LT -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Kíp LT:</label>
-                                        <select class="form-select form-select-sm" id="KipLT" name="KipLT">
-                                            <option value="">-- Kíp --</option>
-                                            <option value="A">A</option>
-                                            <option value="B">B</option>
-                                            <option value="C">C</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Kíp LG -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Kíp LG:</label>
-                                        <select class="form-select form-select-sm" id="KipLG" name="KipLG">
-                                            <option value="">-- Kíp --</option>
-                                            <option value="A">A</option>
-                                            <option value="B">B</option>
-                                            <option value="C">C</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Chuyển đến -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Chuyển đến:</label>
-                                        <select class="form-select form-select-sm" id="ChuyenDen" name="ChuyenDen">
-                                            <option value="">-- Chuyển đến --</option>
-                                            <option value="HRC1">HRC 1</option>
-                                            <option value="DUC1">Đúc 1</option>
-                                            <option value="HRC2">HRC 2</option>
-                                            <option value="DUC2">Đúc 2</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Thùng số -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Thùng số:</label>
-                                        <input type="number" class="form-control form-control-sm" id="ThungSo" />
-                                    </div>
-
-                                    <!-- Tình trạng chốt -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Tình trạng chốt:</label>
-                                        <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
-                                            <option value="">-- Tình trạng --</option>
-                                            <option value="1">Chưa chuyển</option>
-                                            <option value="2">Chờ xử lý</option>
-                                            <option value="5">Đã chốt</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Tình trạng LT -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Tình trạng LT:</label>
-                                        <select class="form-select form-select-sm" id="TinhTrangLT" name="TinhTrangLT">
-                                            <option value="">-- Tình trạng --</option>
-                                            <option value="2">Chờ xử lý</option>
-                                            <option value="4">Đã nhận</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Tình trạng LG -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Tình trạng LG:</label>
-                                        <select class="form-select form-select-sm" id="TinhTrangLG" name="TinhTrangLG">
-                                            <option value="">-- Tình trạng --</option>
-                                            <option value="1">Chưa chuyển</option>
-                                            <option value="3">Đã chuyển</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Mã thùng gang -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Mã thùng gang:</label>
-                                        <input type="text" class="form-control form-control-sm" id="MaThungGang" />
-                                    </div>
-
-                                    <!-- Mã thùng thép -->
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <label class="form-label">Mã thùng thép:</label>
-                                        <input type="text" class="form-control form-control-sm" id="MaThungThep" />
-                                    </div>
-                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                                        <div class="d-flex flex-row justify-content-start align-items-end gap-2">
-                                            <button class="btn btn-warning btn-sm px-4 " id="btnTimKiem">Tìm kiếm</button>
-                                            <button class="btn btn-success btn-sm px-4" id="btnXuatExcel">Xuất Excel</button>
-                                            <button class="btn btn-danger btn-sm px-4" id="btnChotThung">Chốt thùng</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="p-2" style="position: relative; font-size: 13px;">
+        <div class="collapse show" id="filterPanel">
+            <div class="card card-body" style="padding:20px">
+                <div class="col-12">
+                    <div class="row">
+                        <!-- Lò Cao -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Lò Cao:</label>
+                            <select class="form-select form-select-sm" id="LoCao" name="LoCao">
+                                <option value="">-- Lò cao --</option>
+                                @foreach (var locao in ViewBag.LoCaoList)
+                                {
+                                    <option value="@locao.ID">@locao.TenLoCao</option>
+                                }
+                            </select>
                         </div>
 
-                    </div>
-                    <div class="card-body" style=" font-size: 13px">
-                        <div class="table-responsive" style="height: 550px;">
-                            <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu">
-                                <thead>
-                                    <tr>
-                                        <th>Ngày LG</th>
-                                        <th>Ca LG</th>
-                                        <th>Kíp LG</th>
-                                        <th>Mã thùng gang</th>
-                                        <th>Lò cao</th>
-                                        <th>Số mẻ</th>
-                                        <th>Thùng số</th>
-                                        <th>Giờ</th>
-                                        <th>Phân loại</th>
-                                        <th>KL xe goong</th>
-                                        <th>KL thùng</th>
-                                        <th>KL thùng và gang</th>
-                                        <th>KL gang lỏng</th>
-                                        <th>Chuyển đến</th>
-                                        <th>KR</th>
-                                        <th>Giờ NM</th>
-                                        <th>Tình trạng LG</th>
-                                        <th>Ngày LT</th>
-                                        <th>Ca LT</th>
-                                        <th>Kíp LT</th>
-                                        <th>Mã thùng thép</th>
-                                        <th>Lò thổi</th>
-                                        <th>Thùng trung gian</th>
-                                        <th>KL thùng & gang lỏng (T)</th>
-                                        <th>KL thùng (T)</th>
-                                        <th>KL vào lò thổi (T)</th>
-                                        <th>Mẻ</th>
-                                        <th>Tình trạng LT</th>
-                                        <th>BP Nhận</th>
-                                        <th>Người nhận</th>
-                                        <th>Chọn thùng</th>
-                                        <th>Tình trạng</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    
-                                </tbody>
-                                @* hàng cuối để chốt tổng khối lượng thùng *@ 
-                                 <tfoot>
-                                        <tr style="height: 50px;">
-                                            <td colspan="12" style="font-weight: 600; text-align: start">Tổng</td>
-                                            <td id="IDTongKLGangLong" style="font-weight: 600">
-                                                0.00
-                                            </td>
-                                            <td colspan="12"></td>
-                                            <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
-                                                0.00
-                                            </td>
-                                            <td colspan="6"></td>
-                                        </tr>
-                                    </tfoot>
-                            </table>
+                        <!-- Lò Thổi -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Lò Thổi:</label>
+                            <select class="form-select form-select-sm" id="LoThoi" name="LoThoi">
+                                <option value="">-- Lò Thổi --</option>
+                                @foreach (var lothoi in ViewBag.LoThoiList)
+                                {
+                                    <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Từ ngày LG -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label for="TuNgayLG" class="form-label">Từ ngày LG:</label>
+                            <input type="date" class="form-control form-control-sm" id="TuNgayLG" name="TuNgayLG"
+                                   onkeydown="return false;">
+                        </div>
+
+                        <!-- Đến ngày LG -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label for="DenNgayLG" class="form-label">Đến ngày LG:</label>
+                            <input type="date" class="form-control form-control-sm" id="DenNgayLG" name="DenNgayLG"
+                                   onkeydown="return false;">
+                        </div>
+
+                        <!-- Từ ngày LT -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label for="TuNgayLT" class="form-label">Từ ngày LT:</label>
+                            <input type="date" class="form-control form-control-sm" id="TuNgayLT" name="TuNgayLT"
+                                   onkeydown="return false;">
+                        </div>
+
+                        <!-- Đến ngày LT -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label for="DenNgayLT" class="form-label">Đến ngày LT:</label>
+                            <input type="date" class="form-control form-control-sm" id="DenNgayLT" name="DenNgayLT"
+                                   onkeydown="return false;">
+                        </div>
+
+                        <!-- Ca LT -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Ca LT:</label>
+                            <select class="form-select form-select-sm" id="CaLT" name="CaLT">
+                                <option value="">-- Ca --</option>
+                                <option value="1">Ca 1</option>
+                                <option value="2">Ca 2</option>
+                            </select>
+                        </div>
+
+                        <!-- Ca LG -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Ca LG:</label>
+                            <select class="form-select form-select-sm" id="CaLG" name="CaLG">
+                                <option value="">-- Ca --</option>
+                                <option value="1">Ca 1</option>
+                                <option value="2">Ca 2</option>
+                            </select>
+                        </div>
+
+                        <!-- Kíp LT -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Kíp LT:</label>
+                            <select class="form-select form-select-sm" id="KipLT" name="KipLT">
+                                <option value="">-- Kíp --</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
+
+                        <!-- Kíp LG -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Kíp LG:</label>
+                            <select class="form-select form-select-sm" id="KipLG" name="KipLG">
+                                <option value="">-- Kíp --</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                            </select>
+                        </div>
+
+                        <!-- Chuyển đến -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Chuyển đến:</label>
+                            <select class="form-select form-select-sm" id="ChuyenDen" name="ChuyenDen">
+                                <option value="">-- Chuyển đến --</option>
+                                <option value="HRC1">HRC 1</option>
+                                <option value="DUC1">Đúc 1</option>
+                                <option value="HRC2">HRC 2</option>
+                                <option value="DUC2">Đúc 2</option>
+                            </select>
+                        </div>
+
+                        <!-- Thùng số -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Thùng số:</label>
+                            <input type="number" class="form-control form-control-sm" id="ThungSo" />
+                        </div>
+
+                        <!-- Tình trạng chốt -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Tình trạng chốt:</label>
+                            <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
+                                <option value="">-- Tình trạng --</option>
+                                <option value="1">Chưa chuyển</option>
+                                <option value="2">Chờ xử lý</option>
+                                <option value="5">Đã chốt</option>
+                            </select>
+                        </div>
+
+                        <!-- Tình trạng LT -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Tình trạng LT:</label>
+                            <select class="form-select form-select-sm" id="TinhTrangLT" name="TinhTrangLT">
+                                <option value="">-- Tình trạng --</option>
+                                <option value="2">Chờ xử lý</option>
+                                <option value="4">Đã nhận</option>
+                            </select>
+                        </div>
+
+                        <!-- Tình trạng LG -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Tình trạng LG:</label>
+                            <select class="form-select form-select-sm" id="TinhTrangLG" name="TinhTrangLG">
+                                <option value="">-- Tình trạng --</option>
+                                <option value="1">Chưa chuyển</option>
+                                <option value="3">Đã chuyển</option>
+                            </select>
+                        </div>
+
+                        <!-- Mã thùng gang -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Mã thùng gang:</label>
+                            <input type="text" class="form-control form-control-sm" id="MaThungGang" />
+                        </div>
+
+                        <!-- Mã thùng thép -->
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <label class="form-label">Mã thùng thép:</label>
+                            <input type="text" class="form-control form-control-sm" id="MaThungThep" />
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
+                            <div class="d-flex flex-row justify-content-center align-items-end gap-2" style="height: 100%">
+                                <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
+                                <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm </button>
+                                <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+        <button class="btn-collapse" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel" aria-expanded="false" aria-controls="filterPanel">
+            <i class="bi bi-caret-down-fill rotate-icon" id="toggleIcon" style="font-size: 25px;"></i>
+        </button>
     </div>
 
+    <!-- Bảng dữ liệu -->
+    <div class="flex-grow-1 px-2" style="min-height: 0; padding-bottom: 50px; margin-bottom: 15px;">
+        <div class="h-100 table-content" style="overflow: auto; font-size: 13px;">
+                <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu" style="min-width: 1500px;">
+                    <thead class="table-light sticky-top bg-white" style="z-index: 2">
+                        <tr>
+                            <th>Ngày LG</th>
+                            <th>Ca LG</th>
+                            <th>Kíp LG</th>
+                            <th>Mã thùng gang</th>
+                            <th>Lò cao</th>
+                            <th>Số mẻ</th>
+                            <th>Thùng số</th>
+                            <th>Giờ</th>
+                            <th>Phân loại</th>
+                            <th>KL xe goong</th>
+                            <th>KL thùng</th>
+                            <th>KL thùng và gang</th>
+                            <th>KL gang lỏng</th>
+                            <th>Chuyển đến</th>
+                            <th>KR</th>
+                            <th>Giờ NM</th>
+                            <th>Tình trạng LG</th>
+                            <th>Ngày LT</th>
+                            <th>Ca LT</th>
+                            <th>Kíp LT</th>
+                            <th>Mã thùng thép</th>
+                            <th>Lò thổi</th>
+                            <th>Thùng trung gian</th>
+                            <th>KL thùng & gang lỏng (T)</th>
+                            <th>KL thùng (T)</th>
+                            <th>KL vào lò thổi (T)</th>
+                            <th>Mẻ</th>
+                            <th>Tình trạng LT</th>
+                            <th>BP Nhận</th>
+                            <th>Người nhận</th>
+                            <th>Chọn thùng</th>
+                            <th>Tình trạng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                     <tfoot>
+                        <tr style="height: 50px;">
+                            <td colspan="12" style="font-weight: 600; text-align: start">Tổng</td>
+                            <td id="IDTongKLGangLong" style="font-weight: 600">
+                                0.00
+                            </td>
+                            <td colspan="12"></td>
+                            <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
+                                0.00
+                            </td>
+                            <td colspan="6"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+    </div>
 </div>
 
 <script>
@@ -458,13 +464,16 @@
         function renderTable(data) {
          const tbody = $('#tblDuLieu tbody');
             tbody.empty();
+            $("#IDTongKLGangLong").text('0.00');
+            $("#IDTongKLVaoLoThoi").text('0.00');
             if(data.length){
                 data.forEach(item => {
-                    const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
+                const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
                     const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
                     const ngayLG = getDayOnly(item.ngayLuyenGang);
                     const ngayLT = getDayOnly(item.ngayLuyenThep);
+                    const isShow = checkCondition(item);
 
                     const html = `
                             <tr data-id="${item.id}">
@@ -506,8 +515,8 @@
                                   <td>${item.tenPhongBan ?? ''}</td>
                                   <td style="min-width: 100px;">${item.hoVaTen ?? ''}</td>
                                   <td>
-                                    ${item.iD_TrangThai == 5 || item.t_ID_TrangThai != 4 ? ''
-                                        : ` <input type="checkbox" class="cbx-chotThung"  ${item.iD_TrangThai == 5 || item.t_ID_TrangThai != 4 ? "disabled" : ""}/>`
+                                    ${ isShow ? `<input type="checkbox" class="cbx-chotThung" />`
+                                        : ''
                                     }
                                   </td>
                                   <td>${tinhTrangHTML}</td>
@@ -517,7 +526,7 @@
 
                     TongKLGangLong();
                     TongKLVaoLoThoi();
-              });
+                });
           } else {
               const html = `
                     <tr>
@@ -530,10 +539,45 @@
           }
         }
 
-         // Search 
-         function Search() {
-             // value cac field
-                const ID_LoCao = $("#LoCao").val() || null;
+        function checkCondition(item){
+            return item.iD_TrangThai == 5 || item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 
+                    ||  item.t_KLThungVaGang === null || item.t_KLThungChua === null 
+                    || item.t_KLGangLong === null || item.thungTrungGian === null 
+                    || item.t_KLThungVaGang_Thoi === null || item.t_KLThungChua_Thoi === null 
+                    || item.t_KL_phe === null || item.t_KLGangLongThoi === null || item.iD_MeThoi === null 
+                    ? false : true;
+        }
+
+
+        // export Excel
+        function exportToExcel(){
+
+            const dto = getSearchPayload();
+
+            fetch('/BM16_GangThoi_PKH/ExportToExcel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            }).then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+                return response.blob();
+            }).then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "QTGN Gang lỏng Gang thỏi - PKH.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }).catch(err => {
+                alert("Lỗi: " + err.message);
+            });
+        }
+
+        function getSearchPayload(){
+            const ID_LoCao = $("#LoCao").val() || null;
                 const ID_LoThoi = $("#LoThoi").val() || null;
                 const TuNgayLG = $("#TuNgayLG").val() || null;
                 const DenNgayLG = $("#DenNgayLG").val() || null;
@@ -551,7 +595,7 @@
                 const MaThungThep = $("#MaThungThep").val() || null;
                 const TinhTrangChot = $("#TinhTrangChot").val() || null;
 
-                 const dto = {
+                return dto = {
                     ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
                     ID_LoThoi: ID_LoThoi ? parseInt(ID_LoThoi) : null,
                     TuNgay_LG: TuNgayLG || null,
@@ -560,16 +604,21 @@
                     DenNgay_LT: DenNgayLT || null,
                     Ca_LT: CaLT ? parseInt(CaLT) : null,
                     Ca_LG: CaLG ? parseInt(CaLG) : null,
-                    ID_Kip_LT: KipLT ? parseInt(KipLT) : null,
-                    ID_Kip_LG: KipLG ? parseInt(KipLG) : null,
+                    ID_Kip_LT: KipLT ? KipLT : null,
+                    ID_Kip_LG: KipLG ? KipLG : null,
                     ChuyenDen: ChuyenDen || null,
                     ThungSo: ThungSo || null,
                     ID_TinhTrang_LT: TinhTrangLT ? parseInt(TinhTrangLT) : null,
                     ID_TinhTrang_LG: TinhTrangLG ? parseInt(TinhTrangLG) : null,
-                    ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null, 
+                    ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null,
                     MaThungGang: MaThungGang || null,
                     MaThungThep: MaThungThep || null
                 };
+        }
+
+         // Search 
+         function Search() {
+              const dto = getSearchPayload();
 
              $.ajax({
               url: '/BM16_GangThoi_PKH/Search',
@@ -577,7 +626,6 @@
                  contentType: 'application/json',
                  data: JSON.stringify(dto),
                  success: function (data) {
-                     console.log(data);
                     renderTable(data);
                  },
                  error: function (err) {
@@ -601,9 +649,6 @@
                   alert("Vui lòng chọn ít nhất 1 dòng.");
                   return;
               }
-
-               console.log(selectedIds)
-
              
               $.ajax({
                   url: "/BM16_GangThoi_PKH/ChotThung",
@@ -612,6 +657,7 @@
                     data: JSON.stringify(selectedIds),
                   processData: false,
                   success: function (res) {
+                      alert("Đã chốt thùng thành công")
                       // render lai
                       Search();
                   },
@@ -630,6 +676,10 @@
             Search();
         })
 
+        $("#btnXuatExcel").click(function() {
+            exportToExcel();
+        })
+
         // xu ly khi load
         $(document).ready(function () {
             // cho luyen gang
@@ -638,4 +688,18 @@
              // cho luyen thep
             setupDateRange('TuNgayLT','DenNgayLT');
         });
+</script>
+
+<script>
+    const collapseEl = document.getElementById('filterPanel');
+    const icon = document.getElementById('toggleIcon');
+
+    collapseEl.addEventListener('shown.bs.collapse', function () {
+      icon.classList.add('rotated');
+      $(".table-responsive").he
+    });
+
+    collapseEl.addEventListener('hidden.bs.collapse', function () {
+      icon.classList.remove('rotated');
+    });
 </script>
