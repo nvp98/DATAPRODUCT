@@ -263,8 +263,8 @@
 
                     </ul>
                 </li>
-                List<string> QuyenTaoYC = new List<string> { "1", "2", "3", "4" };
-                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 4 || QuyenTaoYC.Any(value => ListQuyen.Contains(value)))
+                List<string> QuyenTaoYC = new List<string> { "1", "2", "3", "4","9" };
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 4 || TaiKhoan.ID_Quyen ==9 || QuyenTaoYC.Any(value => ListQuyen.Contains(value)))
                 {
                     <li class="nav-heading" style="margin-top: 25px;">Quy trình thực hiện</li>
                     <li class="nav-item">
@@ -274,19 +274,6 @@
                         </a>
                     </li>
 
-                    <!-- End F.A.Q Page Nav -->
-                    @*  <li class="nav-item">
-                        <a class="nav-link collapsed" href="@Url.Action("Index","BM_11")">
-                            <i class="bi bi-envelope-arrow-down"></i>
-                            <span>Viêc tôi bắt đầu</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link collapsed" href="@Url.Action("Index","BM01_GangLong")">
-                            <i class="bi bi-envelope-arrow-down"></i>
-                            <span>Đang chờ xử lý </span>
-                        </a>
-                    </li> *@
                     <li class="nav-item1">
                         <a class="nav-link collapsed" data-bs-target="#icons-bieumau" data-bs-toggle="collapse" href="#">
                             <i class="bi bi-hospital"></i><span>Việc tôi bắt đầu </span><i class="bi bi-chevron-down ms-auto"></i>
@@ -304,12 +291,16 @@
                                     <span>BM.16</span>
                                 </a>
                             </li>*@
-                            <li>
-                                <a class="nav-link collapsed" href="@Url.Action("Index","BM_NhatKy_SanXuat")">
-                                    <i class="bi bi-circle"></i>
-                                    <span>BM.12/QT.05 Nhật ký sản xuất </span>
-                                </a>
-                            </li>
+                            @if (TaiKhoan.ID_Quyen == 9 || TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || ListQuyen.Any(x => x == "9"))
+                            {
+                                <li>
+                                    <a class="nav-link collapsed" href="@Url.Action("Index","BM_NhatKy_SanXuat")">
+                                        <i class="bi bi-circle"></i>
+                                        <span>BM.12/QT.05 Nhật ký dừng sản xuất </span>
+                                    </a>
+                                </li>
+                            }
+                           
 
 
                         </ul>
@@ -416,8 +407,8 @@
 
                     <!-- End F.A.Q Page Nav -->
                 }
-                List<string> QuyenQLBBGN = new List<string> { "1", "2", "3", "4", "7", "8" };
-                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || TaiKhoan.ID_Quyen == 4 || TaiKhoan.ID_Quyen == 8 || QuyenQLBBGN.Any(value => ListQuyen.Contains(value)))
+                List<string> QuyenQLBBGN = new List<string> { "1", "2", "3", "4", "7", "8","9" };
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || TaiKhoan.ID_Quyen == 4 || TaiKhoan.ID_Quyen == 8 || TaiKhoan.ID_Quyen == 9 || QuyenQLBBGN.Any(value => ListQuyen.Contains(value)))
                 {
 
                     <li class="nav-item1">
@@ -431,12 +422,16 @@
                                     <span> BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_NhatKy_SanXuat")">
-                                    <i class="bi bi-circle"></i>
-                                    <span> BM.12/QT.05 Nhật ký sản xuất</span>
-                                </a>
-                            </li>
+                            @if (TaiKhoan.ID_Quyen == 9 || TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || ListQuyen.Any(x => x == "9"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_NhatKy_SanXuat")">
+                                        <i class="bi bi-circle"></i>
+                                        <span> BM.12/QT.05 Nhật ký dừng sản xuất</span>
+                                    </a>
+                                </li>
+                            }
+                           
                         </ul>
                     </li>
                    

@@ -307,6 +307,11 @@ namespace Data_Product.Controllers
                     ID.Quyen_Them = ListGate;
                     _context.SaveChanges();
                 }
+                else
+                {
+                    ID.Quyen_Them = null;
+                    _context.SaveChanges();
+                }
 
                 TempData["msgSuccess"] = "<script>alert('Chỉnh sửa thành công');</script>";
             }

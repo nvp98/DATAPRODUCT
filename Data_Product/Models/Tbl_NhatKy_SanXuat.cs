@@ -17,7 +17,7 @@ namespace Data_Product.Models
         public int ID_Kip { get; set; }
         public int TinhTrang { get; set; }
         public bool IsDelete { get; set; }
-        public bool? IsLock { get; set; }
+        public bool? IsLock { get; set; } = false;
         [NotMapped]
         public int TinhTrangCheckPhieu { get; set; }
         [NotMapped]

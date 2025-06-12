@@ -106,7 +106,7 @@ namespace Data_Product.Controllers
             ViewBag.noidungDung = noidungDung;
             ViewBag.IDXuong =  new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", IDXuong);
             ViewBag.XuongSelect = IDXuong??0;
-
+            
             // Bắt đầu bằng IQueryable (chưa gọi DB)
             var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x => !x.IsDelete)
                              join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan
@@ -126,6 +126,13 @@ namespace Data_Product.Controllers
                                  IsLock = a.IsLock,
                                  TinhTrangCheckPhieu = _context.Tbl_PKHXuLyPhieu.FirstOrDefault(x=>x.ID_NKDSX == a.ID && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan) != null?1:0
                              };
+            //Set quyền 
+            var quyenHopLe = new[] { "9" };
+            var quyenThemList = TaiKhoan.Quyen_Them?.Split(',') ?? new string[0];
+            if (TaiKhoan.ID_Quyen ==9 || quyenThemList.Any(q => quyenHopLe.Contains(q)))
+            {
+                query = query.Where(x => x.ID_PhongBan_SX == TaiKhoan.ID_PhongBan);
+            }
             // Áp dụng điều kiện lọc nếu có
             if (ID_TrangThai != null) query = query.Where(x => x.TinhTrang == ID_TrangThai);
             if (IDCa != null) query = query.Where(x => x.Ca == IDCa);
@@ -280,7 +287,7 @@ namespace Data_Product.Controllers
                 TempData["msgSuccess"] = "<script>alert('Thêm mới thành công');</script>";
                 if (XacNhan != null)
                     return RedirectToAction("Edit", "BM_NhatKy_SanXuat", new { IDNKSX = NhatKyNew.ID });
-                else return RedirectToAction("View_Details", "BM_NhatKy_SanXuat", new { IDNKSX = NhatKyNew.ID });
+                else return RedirectToAction("Edit", "BM_NhatKy_SanXuat", new { IDNKSX = NhatKyNew.ID });
 
 
             }
@@ -365,17 +372,17 @@ namespace Data_Product.Controllers
                 //var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == Kip).FirstOrDefault();
                 var ID_Kip = _context.Tbl_Kip.Where(x => x.TenCa == ID_ca && x.NgayLamViec == date).FirstOrDefault();
                 // Kiểm tra lại thông tin ca kíp làm việc 
-                if (ID_Kip == null)
-                {
-                    TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra lại ca kíp làm việc');</script>";
-                    return RedirectToAction("Create", "BM_NhatKy_SanXuat");
-                }
+                //if (ID_Kip == null)
+                //{
+                //    TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra lại ca kíp làm việc');</script>";
+                //    return RedirectToAction("Create", "BM_NhatKy_SanXuat");
+                //}
 
                 var NhatKy = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == _DO.ID);
-                NhatKy.NgayDungSX = date;
-                NhatKy.ID_Kip = ID_Kip.ID_Kip;
-                NhatKy.Ca = ID_Kip.TenCa;
-                NhatKy.Kip = ID_Kip.TenKip;
+                //NhatKy.NgayDungSX = date;
+                //NhatKy.ID_Kip = ID_Kip.ID_Kip;
+                //NhatKy.Ca = ID_Kip.TenCa;
+                //NhatKy.Kip = ID_Kip.TenKip;
 
                 if (XacNhan != null)
                 {
