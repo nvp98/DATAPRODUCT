@@ -127,7 +127,9 @@ namespace Data_Product.Controllers
                                  TinhTrangCheckPhieu = _context.Tbl_PKHXuLyPhieu.FirstOrDefault(x=>x.ID_NKDSX == a.ID && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan) != null?1:0
                              };
             //Set quyền 
-            if(TaiKhoan.ID_Quyen ==9 || TaiKhoan.Quyen_Them.Contains("9"))
+            var quyenHopLe = new[] { "9" };
+            var quyenThemList = TaiKhoan.Quyen_Them?.Split(',') ?? new string[0];
+            if (TaiKhoan.ID_Quyen ==9 || quyenThemList.Any(q => quyenHopLe.Contains(q)))
             {
                 query = query.Where(x => x.ID_PhongBan_SX == TaiKhoan.ID_PhongBan);
             }
