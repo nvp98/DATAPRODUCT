@@ -50,6 +50,23 @@
 	.text-nowrap {
 		white-space: nowrap;
 	}
+
+    .custom-button {
+        background-color: #28a745;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .custom-button:hover {
+            background-color: #218838;
+        }
+
 </style>
 <div class="app-main__outer">
 	<div class="app-main__inner" style="display:block; padding-bottom: 0px;">
@@ -66,7 +83,7 @@
 								</span>
 							</div>
 							<div class="col-4" style="text-align: right; padding: 2% 2% 2% 0%;">
-								<button type="button" class="btn btn-success" onclick="window.location.href='@Url.Action("TaoPhieu","BM16_GangThoi")'">
+                                <button type="button" class="custom-button" onclick="window.location.href='@Url.Action("TaoPhieu","BM16_GangThoi")'">
 							 + Thêm mới
 								</button>
 							</div>

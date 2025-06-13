@@ -22,6 +22,10 @@
 	th.toggle-col, td.toggle-col {
 		display: none;
 	}
+
+	/* td.deleteItem {
+		display: none;
+	} */
 </style>
 @if (TempData["msgSuccess"] != null)
 {
@@ -90,25 +94,27 @@
 									<i class="bi bi-arrow-clockwise"></i>
 									<span class="small pt-2 ps-1 text-white">Làm mới</span>
 								</button>
-								<button type="button" class="btn btn-success me-2">
+								<button type="button" class="btn btn-success me-2 btnchuyenthung">
 									<i class="bi bi-arrow-right-circle"></i> Chuyển
 								</button>
-								<button type="button" class="btn btn-danger">
+								<button type="button" class="btn btn-danger btnthuhoi">
 									<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
 								</button>
 								<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
 									Ẩn/Hiện
 								</button>
 
-								<button id="BtnXuatPhieuExcel" type="button">
+								<button type="button" id="BtnXuatPhieuExcel" type="button">
 									Xuất Excel
 								</button>
+								<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
 							</div>
 						</div>
 						<div class="table-responsive" style="max-height: 700px; overflow-y: auto;">
 							<table class="table table-bordered table-hover align-middle text-center" id="dataTable">
 								<thead class="table-light sticky-top">
 									<tr>
+										<th rowspan="2">Xóa</th>
 										<th rowspan="2">Copy</th>
 										<th rowspan="2">Chỉnh sửa</th>
 										<th rowspan="2">Mã thùng</th>
@@ -144,6 +150,11 @@
 										foreach (var item in ViewBag.DanhSachThung)
 										{
 											<tr>
+												<td class='text-center deleteItem'>
+													<a class="btn btn-danger btn-sm" title="Xóa">
+														<i class="bi bi-trash"></i>
+													</a>
+												</td>
 												<td class='text-center copyItem'>
 													<a class="btn btn-secondary btn-sm" title="copy">
 														<i class="bi bi-copy"></i>
@@ -182,11 +193,11 @@
 												<td name="TinhTrang">
 													@if (item.DaChuyen)
 													{
-														<button class="btn btn-danger btn-sm">Chưa chuyển</button>
+														<button type="button" class="btn btn-danger btn-sm">Chưa chuyển</button>
 													}
 													else
 													{
-														<button class="btn btn-success btn-sm">Đã chuyển</button>
+														<button type="button" class="btn btn-success btn-sm">Đã chuyển</button>
 													}
 												</td>
 												<td class="toggle-col">
@@ -203,15 +214,15 @@
 												<td name="ChotThung">
 													@if (item.TrangThai == 1)
 													{
-														<button class="btn btn-danger btn-sm">Chưa chuyển</button>
+														<button type="button" class="btn btn-danger btn-sm">Chưa chuyển</button>
 													}
 													else if (item.TrangThai == 2)
 													{
-														<button class="btn btn-warning btn-sm">Chờ xử lý</button>
+														<button type="button" class="btn btn-warning btn-sm">Chờ xử lý</button>
 													}
 													else
 													{
-														<button class="btn btn-success btn-sm">Đã chốt</button>
+														<button type="button" class="btn btn-success btn-sm">Đã chốt</button>
 													}
 												</td>
 											</tr>
@@ -347,13 +358,13 @@
 			});
 
 			// Nút chuyển thùng
-			$('.btn-success').click(function() {
+			$('.btnchuyenthung').click(function() {
 				const selectedIds = [];
-				console.log("======",selectedIds)
+				//console.log("======",selectedIds)
 				$('.chon-thung-checkbox:checked').each(function() {
 					const row = $(this).closest('tr');
-					const maThung = row.find('td:eq(2)').text();
-					const daChuyen = row.find('td:eq(17)').find('button').hasClass('btn-success');
+					const maThung = row.find('td[name="maThung"]').text().trim();
+					const daChuyen = row.find('td[name="TinhTrang"] button').find('button').hasClass('btn-success');
 
 					if (daChuyen) {
 						alert(`Thùng ${maThung} đã được chuyển trước đó`);
@@ -374,13 +385,14 @@
 			});
 
 			// Nút thu hồi thùng
-			$('.btn-danger').click(function()
+			$('.btnthuhoi').click(function()
 			{
 				const selectedMaThungs = [];
-				console.log("======",selectedMaThungs)
+				//console.log("======",selectedMaThungs)
 				$('.chon-thung-checkbox:checked').each(function () {
 					const row = $(this).closest('tr');
-					const maThung = row.find('td:eq(2)').text(); // Cột chứa mã thùng gang
+					//const maThung = row.find('td:eq(3)').text();
+					const maThung = row.find('td[name="maThung"]').text().trim();
 				selectedMaThungs.push(maThung);
 				});
 
@@ -417,17 +429,44 @@
 				var maPhieu = $("#PhieuID").val();
 				exportExcel(maPhieu);
 			});
-		$(document).on("click", ".deleteItem", function () 
-			{
-				const row = $(this).closest("tr");
+			  $("#BtnXuatPhieuPDF").click(function() {
+				ExportToPDF();
+				})
+		});
+		$(document).on("click", ".deleteItem", function () {
+			const row = $(this).closest("tr");
+			const maThung = row.find('td[name="maThung"]').text().trim();
 
-				if (confirm("Bạn có chắc chắn muốn xoá thùng này?")) 
-				{
+			// Trường hợp 1: Dòng sao chép (data-new="true")
+			if (row.attr("data-new") === "true") {
+				if (confirm("Bạn có chắc muốn xóa dòng sao chép này?")) {
 					row.remove();
 				}
-			});
-
+			}
+			// Trường hợp 2: Dòng không phải copy nhưng không phải thùng gốc (VD: .01, .02,...)
+			else if (!maThung.endsWith(".00")) {
+				if (confirm("Bạn có chắc muốn xóa thùng không phải gốc này?")) {
+					$.ajax({
+						url: '/BM16_GangThoi/Xoathungcopy',
+						method: 'POST',
+						contentType: 'application/json',
+						data: JSON.stringify(maThung),
+						success: function (response) {
+							alert(response.message);
+							row.remove();
+						},
+						error: function (err) {
+							alert("Xóa thất bại: " + (err.responseJSON?.message || "Lỗi không xác định"));
+						}
+					});
+				}
+			}
+			// Trường hợp 3: Là thùng gốc (.00) → không cho xóa
+			else {
+				alert("Không được xóa dòng gốc (.00).");
+			}
 		});
+
 
 		// Hàm gọi API chuyển thùng
 		function chuyenThung(dsthung)
@@ -697,7 +736,7 @@
 			DanhSachThung: danhSachThung
 		};
 
-		console.log("=== data gửi lên ===", dataToSend);
+		//console.log("=== data gửi lên ===", dataToSend);
 
 		$.ajax({
 			url: "/BM16_GangThoi/SaveThung",
@@ -746,7 +785,7 @@
 				</tr>
 			`;
 
-					$('#dataTable tfoot').html(tongRow);
+		$('#dataTable tfoot').html(tongRow);
 			}
 			tinhTongKL();
 				});
@@ -754,16 +793,16 @@
 			const row = $(this).closest('tr');
 
 			const data = {
-				maThung: row.find('td:eq(2)').text().trim(),
-				soMe: row.find('td:eq(3)').text().trim(),
-				gio: row.find('td:eq(5)').text().trim(),
-				phanLoai: row.find('td:eq(6)').text().trim(),
-				klXeGoong: parseFloat(row.find('td:eq(7) input').val()) || 0,
-				klThung: parseFloat(row.find('td:eq(8) input').val()) || 0,
-				klThungVaGang: parseFloat(row.find('td:eq(9) input').val()) || 0,
-				klGangLong: parseFloat(row.find('td:eq(10) input').val()) || 0,
+				maThung: row.find('td:eq(3)').text().trim(),
+				soMe: row.find('td:eq(4)').text().trim(),
+				gio: row.find('td:eq(6)').text().trim(),
+				phanLoai: row.find('td:eq(7)').text().trim(),
+				klXeGoong: parseFloat(row.find('td:eq(8) input').val()) || 0,
+				klThung: parseFloat(row.find('td:eq(9) input').val()) || 0,
+				klThungVaGang: parseFloat(row.find('td:eq(10) input').val()) || 0,
+				klGangLong: parseFloat(row.find('td:eq(11) input').val()) || 0,
 				gioNM: row.find('td[name="GioNM"]').text().trim(),
-				ghiChu: row.find('td:eq(16)').text().trim(),
+				ghiChu: row.find('td:eq(17)').text().trim(),
 
 				chuyenDen: '',
 
@@ -771,10 +810,10 @@
 
 			// Ghép chuyển đến dựa vào checkbox:
 			const den = [];
-			if (row.find('td:eq(11) input').is(':checked')) den.push('HRC1');
-			if (row.find('td:eq(12) input').is(':checked')) den.push('HRC2');
-			if (row.find('td:eq(13) input').is(':checked')) den.push('DUC1');
-			if (row.find('td:eq(14) input').is(':checked')) den.push('DUC2');
+			if (row.find('td:eq(12) input').is(':checked')) den.push('HRC1');
+			if (row.find('td:eq(13) input').is(':checked')) den.push('HRC2');
+			if (row.find('td:eq(14) input').is(':checked')) den.push('DUC1');
+			if (row.find('td:eq(15) input').is(':checked')) den.push('DUC2');
 			data.chuyenDen = den.join(',');
 
 			console.log("DATA:", data);
@@ -845,7 +884,7 @@
 				}
 			});
 		});
-			function exportExcel(maPhieu) {
+	function exportExcel(maPhieu) {
 			if (!maPhieu) {
 				alert("Không có mã phiếu!");
 				return;
@@ -878,11 +917,11 @@
 			});
 		}
 
-			$(document).on("click", ".copyItem", function () {
-			const row = $(this).closest("tr");
-				const trangThai = row.find("td[name='ChotThung']").text().trim().toLowerCase();
+		$(document).on("click", ".copyItem", function () {
+		const row = $(this).closest("tr");
+			const trangThai = row.find("td[name='ChotThung']").text().trim().toLowerCase();
 
-			console.log("trangThai",trangThai)
+			//console.log("trangThai",trangThai)
 			// Kiểm tra nếu thùng đã chốt
 			if (trangThai === "đã chốt") {
 				alert("Thùng này đã được chốt và không thể sao chép.");
@@ -922,15 +961,7 @@
 			clonedRow.find("input[type='checkbox']").prop("checked", false).prop("disabled", false);
 
 
-			const copyCell = clonedRow.find("td.copyItem");
-				copyCell.html(`
-					<a class="btn btn-secondary btn-sm copyItem" title="copy">
-						<i class="bi bi-copy"></i>
-					</a>
-					<a class="btn btn-danger btn-sm deleteItem" title="Xoá">
-						<i class="bi bi-trash"></i>
-					</a>
-				`);
+			
 			// Chèn vào đúng vị trí theo thứ tự tăng dần mã thùng
 			let inserted = false;
 			$("#dataTable tbody tr").each(function () {
@@ -949,4 +980,28 @@
 				$("#dataTable tbody").append(clonedRow);
 			}
 		});
+
+	function ExportToPDF(){
+		// value cac field
+		const MaPhieu = $('#PhieuID').val() || null;
+		console.log('MaPhieu',MaPhieu)
+		 //const MaPhieu = maPhieu;
+
+		fetch('/BM16_GangThoi/ExportToPDF', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(MaPhieu)
+		})
+		.then(res => res.blob())
+		.then(blob => {
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = 'BBGN Gang long - Thep.pdf';
+			a.click();
+			window.URL.revokeObjectURL(url);
+		});
+	}
+
+
 </script>
