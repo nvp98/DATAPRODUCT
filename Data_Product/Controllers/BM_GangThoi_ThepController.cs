@@ -3,13 +3,20 @@ using Data_Product.Common.Enums;
 using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
+using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Humanizer;
+using iText.Html2pdf;
+using iText.Kernel.Events;
+using iText.Layout.Font;
 using iTextSharp.text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 using System.Security.Claims;
+using static Data_Product.Controllers.BM_11Controller;
 
 namespace Data_Product.Controllers
 {
@@ -195,10 +202,13 @@ namespace Data_Product.Controllers
                              select new Tbl_BM_16_GangLong
                              {
                                  ID = x.gangLong.ID,
+                                 BKMIS_SoMe = x.gangLong.BKMIS_SoMe,
+                                 BKMIS_PhanLoai = x.gangLong.BKMIS_PhanLoai,
                                  MaThungThep = x.gangLong.MaThungThep,
                                  BKMIS_ThungSo = x.gangLong.BKMIS_ThungSo,
                                  NgayLuyenThep = x.gangLong.NgayLuyenThep,
                                  ChuyenDen = x.gangLong.ChuyenDen,
+                                 KL_XeGoong = x.gangLong.KL_XeGoong,
                                  KR = x.gangLong.KR,
                                  T_ID_TrangThai = x.gangLong.T_ID_TrangThai,
                                  T_KLThungVaGang = x.gangLong.T_KLThungVaGang,
@@ -322,19 +332,19 @@ namespace Data_Product.Controllers
             if (selectedList == null || selectedList.Count == 0)
                 return BadRequest("Danh sách ID trống.");
 
-            var selectedIds = selectedList
-                                .Select(x => x.id)
+            var selectedMaThungs = selectedList
+                                .Select(x => x.maThungGang)
                                 .ToList();
 
             // Lấy tất cả các thùng cần xử lý
             var thungs = await _context.Tbl_BM_16_GangLong
-                                       .Where(x => selectedIds.Contains(x.ID))
+                                       .Where(x => selectedMaThungs.Contains(x.MaThungGang))
                                        .ToListAsync();
 
             if (thungs.Count == 0) return NotFound("Không tìm thấy thùng nào.");
             foreach (var t in thungs)
             {
-                t.KR = selectedList.Find(x => x.id == t.ID).isChecked;
+                t.KR = selectedList.Find(x => x.maThungGang == t.MaThungGang).isChecked;
             }
 
             await _context.SaveChangesAsync();
@@ -651,6 +661,94 @@ namespace Data_Product.Controllers
                 TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
 
                 return RedirectToAction("Index", "BM_GangThoi_Thep");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportToPDF([FromBody] SearchThungDaNhanDto payload)
+        {
+            try { 
+                var listThungs = await GetThungDaNhan(payload);
+                if (listThungs == null || !listThungs.Any())
+                    return BadRequest("Danh sách trống.");
+
+
+                var data = listThungs.ToList();
+
+               
+                // 1. Render Razor View thành chuỗi HTML
+                string html = await RenderViewToStringAsync("BBGN_thep_pdf", data);
+
+                // 2. Chuyển đổi HTML sang PDF
+                byte[] pdfBytes = ConvertHtmlToPdf(html);
+
+                string filename = $"QTGN Gang long - Thep {DateTime.Now.ToString("yyyyMMddHHmm")}.pdf";
+
+                return File(pdfBytes, "application/pdf", filename);
+            }
+            catch (Exception ex)
+            {
+                TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
+
+                return RedirectToAction("Index", "BM_GangThoi_Thep");
+            }
+        }
+
+        private async Task<string> RenderViewToStringAsync(string viewName, object model)
+        {
+            ViewData.Model = model;
+
+            using (var writer = new StringWriter())
+            {
+                var viewResult = _viewEngine.FindView(ControllerContext, viewName, false);
+                if (!viewResult.Success)
+                {
+                    throw new FileNotFoundException($"View '{viewName}' không tìm thấy.");
+                }
+
+                var viewContext = new ViewContext(
+                    ControllerContext,
+                    viewResult.View,
+                    ViewData,
+                    TempData,
+                    writer,
+                    new Microsoft.AspNetCore.Mvc.ViewFeatures.HtmlHelperOptions()
+                );
+
+                await viewResult.View.RenderAsync(viewContext);
+                return await Task.FromResult(writer.ToString());
+            }
+        }
+
+        private byte[] ConvertHtmlToPdf(string htmlContent)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                // 1. Cấu hình FontProvider để hỗ trợ Times New Roman
+                var fontProvider = new FontProvider();
+                fontProvider.AddFont("C:/Windows/Fonts/times.ttf");     // Regular
+                fontProvider.AddFont("C:/Windows/Fonts/timesbd.ttf");   // Bold
+                fontProvider.AddFont("C:/Windows/Fonts/timesi.ttf");    // Italic
+                fontProvider.AddFont("C:/Windows/Fonts/timesbi.ttf");   // Bold Italic
+
+                // 2. Tạo writer và document
+                var writer = new iText.Kernel.Pdf.PdfWriter(memoryStream);
+                var pdfDocument = new iText.Kernel.Pdf.PdfDocument(writer);
+                pdfDocument.SetDefaultPageSize(iText.Kernel.Geom.PageSize.A4.Rotate()); // Trang ngang
+
+                // 3. Cấu hình Converter
+                var converterProperties = new ConverterProperties();
+                converterProperties.SetFontProvider(fontProvider);
+
+                // 4. Cấu hình baseUri nếu HTML chứa ảnh
+                string baseUri = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                converterProperties.SetBaseUri(baseUri);
+
+                // 5. Chuyển đổi HTML sang PDF
+                HtmlConverter.ConvertToPdf(htmlContent, pdfDocument, converterProperties);
+
+                // 6. Trả về PDF dưới dạng byte[]
+                return memoryStream.ToArray();
             }
         }
     }
