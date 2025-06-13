@@ -77,10 +77,10 @@
 
 								<!-- Nút thao tác -->
 								<div style="display: flex; gap: 10px; align-items: center; padding: 2% 2% 2% 0%; margin-left: auto;">
-									<button type="button" class="btn btn-secondary" onclick="location.reload();">
+									@* <button type="button" class="btn btn-secondary" onclick="location.reload();">
 										<i class="bi bi-arrow-clockwise"></i>
 										<span class="small pt-2 ps-1 text-white">Làm mới</span>
-									</button>
+									</button> *@
 									<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
 										<i class="bi bi-x-lg"></i>
 										<span class="small pt-2 ps-1 text-white">Hủy bỏ</span>
@@ -164,8 +164,8 @@
 							<table class="table table-bordered table-hover align-middle text-center" id="dataTable">
 								<thead class="table-light sticky-top">
 									<tr>
-										<th rowspan="2">Xóa</th>
-										<th rowspan="2">Copy thùng</th>
+										<th rowspan="2" hidden>Xóa</th>
+										<th rowspan="2" hidden>Copy thùng</th>
 										<th rowspan="2">Mã thùng</th>
 										<th rowspan="2">Số mẻ</th>
 										<th rowspan="2">Thùng số</th>
@@ -247,7 +247,7 @@
 					loadTableData(selectedDate, selectedLoCao, selectedKip,selectedCa);
 				});
 
-								function loadTableData(selectedDate, selectedLoCao, selectedKip, selectedCa) {
+	function loadTableData(selectedDate, selectedLoCao, selectedKip, selectedCa) {
 			$.ajax({
 				url: "/BM16_GangThoi/GetSoMeGangBKMis",
 				type: "GET",
@@ -280,12 +280,12 @@
 								let maThung = generateMaThung(selectedDate, selectedLoCao, selectedCa, index + 1);
 								let row = `
 									<tr>
-										<td class='text-center delItem'>
+											<td class='text-center delItem' hidden>
 											<a class="btn btn-danger btn-sm" title="Xóa">
 												<i class="bi bi-trash"></i>
 											</a>
 										</td>
-										<td class='text-center copyItem'>
+											<td class='text-center copyItem' hidden>
 											<a class="btn btn-secondary btn-sm copyRowBtn" title="Copy dòng">
 												<i class="bi bi-copy"></i>
 											</a>
