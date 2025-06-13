@@ -40,7 +40,7 @@
 
     public class LuuKRDto
     {
-        public int id { get; set; }
+        public string maThungGang { get; set; }
         public bool isChecked { get; set; }
     }
 

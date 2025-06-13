@@ -486,23 +486,23 @@
                                 <td>${item.iD_Locao}</td>
                                 <td class="thungSo">${item.bkmiS_ThungSo}</td>
                                 <td>
-                                <input class="table_tbx KhoiLuongThungVaGangLong" type="number" name="KhoiLuongThungVaGangLong"  min="0" max="999" value="${item.t_KLThungVaGang ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                                <input class="table_tbx KhoiLuongThungVaGangLong" type="number" name="KhoiLuongThungVaGangLong"  min="0"  value="${item.t_KLThungVaGang ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td class="KLThung">
-                                <input class="table_tbx KhoiLuongThung" type="number" name="KhoiLuongThung"  min="0" max="999" value="${item.t_KLThungChua ?? '' }" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                                <input class="table_tbx KhoiLuongThung" type="number" name="KhoiLuongThung"  min="0" value="${item.t_KLThungChua ?? '' }" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                     <td class="KLGangLong">${item.t_KLGangLong ?? '00.0'}</td>
                                 <td>
                                     <input class="table_tbx ThungTrungGian" type="number" name="ThungTrungGian" id="IDThungTrungGian" value="${item.thungTrungGian ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td>
-                                <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="number"  min="0" max="999" name="KLThungVaGangLongVaoLoThoi" data-empty="${item.t_KLThungVaGang_Thoi ? false : true}" value="${item.t_KLThungVaGang_Thoi ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                                <input class="table_tbx KLThungVaGangLongVaoLoThoi" type="number"  min="0"  name="KLThungVaGangLongVaoLoThoi" data-empty="${item.t_KLThungVaGang_Thoi ? false : true}" value="${item.t_KLThungVaGang_Thoi ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td>
-                                <input class="table_tbx KLThungVaoLoThoi" type="number" name="KLThungVaoLoThoi"  min="0" max="999" data-empty="${item.t_KLThungChua_Thoi ? false : true}" value="${item.t_KLThungChua_Thoi ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                                <input class="table_tbx KLThungVaoLoThoi" type="number" name="KLThungVaoLoThoi"  min="0"  data-empty="${item.t_KLThungChua_Thoi ? false : true}" value="${item.t_KLThungChua_Thoi ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                  <td>
-                                <input class="table_tbx KLPhe" type="number" name="KLPhe" min="0" max="999" value="${item.t_KL_phe ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                                <input class="table_tbx KLPhe" type="number" name="KLPhe" min="0" value="${item.t_KL_phe ?? ''}" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                                 </td>
                                 <td id="IDKLVaoLoThoi" class="KLVaoLoThoi">
                                     ${item.t_KLGangLongThoi !== undefined && item.t_KLGangLongThoi !== null ? item.t_KLGangLongThoi : '00.0'}
@@ -699,6 +699,44 @@
             });
         }
 
+        function ExportToPDF(){
+            // value cac field
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(!NgayNhan){
+                alert("Vui lòng chọn Ngày Nhận"); return;
+            }
+            if(!IDCaNhan ){
+                alert("Vui lòng chọn Ca"); return;
+            }
+            if(!IDLoThoi){
+                alert("Vui lòng chọn Lò thổi"); return;
+            }
+
+            const payload = {
+                NgayLamViec: NgayNhan,
+                ID_LoThoi: IDLoThoi,
+                T_Ca: IDCaNhan
+            };
+
+            fetch('/BM_GangThoi_Thep/ExportToPDF', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'QTGN Gang long - Thep.pdf';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+        }
+
         function SearchMeThoi(id_LoThoi) {
             $.ajax({
                 url: '/MeThoi/FilterMeThoi',
@@ -843,6 +881,10 @@
             ExportToExcel();
         })
 
+        $("#BtnXuatPhieuPDF").click(function() {
+            ExportToPDF();
+        })
+
         // search Me thoi
         $("#IDLoThoi").on('change',function() {
             const ID_LoThoi = $(this).val();
@@ -886,7 +928,7 @@
 
 
         // Tính khối lượng vào lò thổi khi nhập vào KL Thùng & gang lỏng vào lò thổi
-            $('#IDtbXuLySoLieu').on('input', '.KLThungVaGangLongVaoLoThoi, .KLThungVaoLoThoi, .KLPhe', function () {
+        $('#IDtbXuLySoLieu').on('input', '.KLThungVaGangLongVaoLoThoi, .KLThungVaoLoThoi, .KLPhe', function () {
             const $row = $(this).closest('tr');
             const KLThungVaGangLongVaoLoThoi = parseFloat($row.find('.KLThungVaGangLongVaoLoThoi').val());
             const KLThungVaoLoThoi = parseFloat($row.find('.KLThungVaoLoThoi').val());
@@ -931,13 +973,13 @@
         $('#btnLuuKR').click(function () {
             let selectedList = [];
             $('#IDtbKhuVucNhanThung tbody tr').each(function () {
-                const id = $(this).data('id');
+                const mathung = $(this).data('mathung');
                 const checkbox = $(this).find('.cbx-luuKR');
                 let isChecked = false;
                 if (checkbox.is(':checked')) {
                     isChecked = true;
                 }
-                selectedList.push({id: id, isChecked: isChecked});
+                selectedList.push({maThungGang: mathung, isChecked: isChecked});
             });
 
             if (selectedList.length === 0) {
