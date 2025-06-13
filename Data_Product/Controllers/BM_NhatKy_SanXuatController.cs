@@ -127,11 +127,25 @@ namespace Data_Product.Controllers
                                  TinhTrangCheckPhieu = _context.Tbl_PKHXuLyPhieu.FirstOrDefault(x=>x.ID_NKDSX == a.ID && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan) != null?1:0
                              };
             //Set quyền 
-            var quyenHopLe = new[] { "9" };
-            var quyenThemList = TaiKhoan.Quyen_Them?.Split(',') ?? new string[0];
-            if (TaiKhoan.ID_Quyen ==9 || quyenThemList.Any(q => quyenHopLe.Contains(q)))
+            List<string> ListPB = new List<string>();
+            List<int> ListPBInt = new List<int>();
+            if (TaiKhoan.PhongBan_Them != null)
             {
-                query = query.Where(x => x.ID_PhongBan_SX == TaiKhoan.ID_PhongBan);
+                ListPB = TaiKhoan.PhongBan_Them.Split(',').Select(item => item.Trim()).ToList();
+                foreach (var item in ListPB)
+                {
+                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item).FirstOrDefault();
+                    if (pb != null) ListPBInt.Add(pb.ID_PhongBan);
+                }
+            }
+            // Filter Phòng ban Bổ sung
+            if (TaiKhoan.ID_Quyen > 3)
+            {
+                if (TaiKhoan.ID_Quyen != 8)
+                {
+                    query = query.Where(x => x.ID_PhongBan_SX == TaiKhoan.ID_PhongBan  || ListPBInt.Contains(x.ID_PhongBan_SX));
+                }
+
             }
             // Áp dụng điều kiện lọc nếu có
             if (ID_TrangThai != null) query = query.Where(x => x.TinhTrang == ID_TrangThai);
