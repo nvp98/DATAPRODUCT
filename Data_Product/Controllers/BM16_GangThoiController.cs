@@ -272,7 +272,20 @@ namespace Data_Product.Controllers
 
             try
             {
-                var maPhieu = "PGL" + Guid.NewGuid().ToString("N").ToUpper().Substring(0, 8);
+
+                var cakip = await _context.Tbl_Kip.Where(x => x.ID_Kip == model.ID_Kip)
+                    .Select(x => x.TenCa + x.TenKip).FirstOrDefaultAsync();
+
+
+                var maxIndex = await _context.Tbl_BM_16_Phieu
+                .OrderByDescending(x => x.ID)
+                .Select(x => x.ID)
+                .FirstOrDefaultAsync();
+
+                int nextPhieu = maxIndex + 1;
+
+                var maPhieu = "GL" + "-" + "LG" + "-" + "LC" + model.ID_Locao + DateTime.Today.ToString("yyMMdd") + cakip + nextPhieu.ToString("D4")
+                ;
 
                 var phieu = new Tbl_BM_16_Phieu
                 {
@@ -560,6 +573,10 @@ namespace Data_Product.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveThung([FromBody] SaveThungDto req)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             if (req == null || req.DanhSachThung == null || !req.DanhSachThung.Any())
             {
                 return  BadRequest("Dữ liệu không hợp lệ.");

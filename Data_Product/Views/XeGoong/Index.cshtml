@@ -17,7 +17,7 @@
 
 	Pager pager = new Pager();
 	int pageNo = 0;
-	if (ViewBag.Pager != null)
+	if (ViewBag.Pager != null)	
 	{
 		pager = ViewBag.Pager;
 		pageNo = pager.CurrentPage;
@@ -54,7 +54,7 @@
 					<div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
 						<div class="row">
 							<div class="col-md-5">
-								<input type="text" id="txtsearch" name="" placeholder="Tìm kiếm" class="form-control" value="@ViewBag.search">
+								<input type="text" id="txtsearch" name="searchBox" placeholder="Tìm kiếm" class="form-control" value="">
 							</div>
 							<div class="col-md-2" style="text-align:left;">
 								<button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
@@ -68,7 +68,7 @@
 					</div>
 					<div class="card-body">
 						<div class="table-responsive" style="height: 550px;">
-							<table class="table table-bordered table-hover" id="table" cellpadding="0">
+							<table class="table table-bordered table-hover" id="tableXeGoong" cellpadding="0">
 								<thead style="height: 60px;font-size: 14px;">
 									<tr>
 										<th class="text-center" width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
@@ -86,12 +86,12 @@
 									@foreach (var item in Model)
 									{
 										<tr>
-											<td class="text-center">
+											<td class="text-center" name ="stt">
 												@RowNo@{
 													RowNo++;
 												}
 											</td>
-											<td class="text-center" style="font-size:14px;">@item.ID_LoCao </td>
+											<td class="text-center" name ="idLocao" style="font-size:14px;">@item.ID_LoCao </td>
 											<td class="text-center" style="font-size:14px;">@item.KL_Xe </td>
 											<td class="text-center">
 												<a class="btn btn-danger btn-sm btnDeleteXeGoong" data-id="@item.Id" title="Xóa">
@@ -125,6 +125,54 @@
 				$('#editModal').modal('show');
 			});
 		});
+			$(document).on("submit", "#formEditXeGoong", function (e) {
+			e.preventDefault();
+
+			var form = $(this);
+			$.ajax({
+				url: form.attr("action"),
+				method: form.attr("method"),
+				data: form.serialize(),
+				success: function (res) {
+					if (res.success) {
+						$('#editModal').modal('hide');
+						alert("Cập nhật thành công");
+						location.reload(); // hoặc gọi hàm loadData();
+					} else {
+						$('#modalContainer').html(res);
+						$('#editModal').modal('show');
+					}
+				},
+				error: function () {
+					alert("Có lỗi xảy ra khi lưu dữ liệu.");
+				}
+			});
+		});
+		$(document).ready(function () {
+			function filterTable() {
+				var value = $('#txtsearch').val().toLowerCase();
+				console.log('value',value)
+
+				$('#tableXeGoong  tbody tr').filter(function () {
+					const stt = $(this).find('td[name="stt"]').text().toLowerCase();
+					const loCao = $(this).find('td[name="idLocao"]').text().toLowerCase();
+
+					const isMatch = stt.includes(value) || loCao.includes(value);
+					$(this).toggle(isMatch);
+				});
+			}
+
+			$('#txtsearch').on('keyup', function () {
+				filterTable();
+			});
+
+			$('#btn-search').on('click', function (e) {
+				e.preventDefault();
+				filterTable();
+			});
+		});
+
+
 
 </script>
 	<partial name="_ValidationScriptsPartial" />

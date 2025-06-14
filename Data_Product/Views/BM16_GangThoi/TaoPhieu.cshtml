@@ -230,13 +230,9 @@
 					e.preventDefault(); // Ngăn submit form nếu có
 
 					let selectedDate = $("#ID_Day").val();
-						console.log(selectedDate);
 					let selectedLoCao = $("#IDLoCao").val();
-						console.log("locao",selectedLoCao);
 					let selectedCa = $("#IDCa").val();
-						console.log("calamviec",selectedCa);
 					let selectedKip = $("#CaKip").val();
-						console.log("cakip",selectedKip);
 
 					// Kiểm tra dữ liệu đầu vào
 					if (!selectedDate || selectedLoCao === "null" || !selectedKip || selectedKip === "null") {
@@ -257,7 +253,6 @@
 					IDKip: selectedKip
 				},
 				success: function (data) {
-					console.log(data);
 					maxIndex = data.length;
 					let tableBody = $("#dataTable tbody");
 					tableBody.find("tr").remove();
@@ -268,7 +263,6 @@
 						type: 'GET',
 						data: { idlocao: selectedLoCao },
 						success: function (xeData) {
-							console.log('xe', xeData);
 							let klxe = (xeData.success && xeData.klXe) ? xeData.klXe : "";
 
 							// Now process the table data with the klxe value
@@ -438,7 +432,7 @@
 				$("#btnSave").on("click", function (e) {
 					e.preventDefault();
 
-					let isValid = true; // Dùng để kiểm tra toàn bộ form có hợp lệ không
+					let isValid = true;
 
 					let phieuData = {
 						Ngay: $("#ID_Day").val(),
@@ -451,11 +445,10 @@
 						$("#dataTable tbody tr").each(function () {
 						let $tr = $(this);
 
-						// Reset lỗi
 						$tr.find("input").removeClass("is-invalid");
 						$tr.find("input[type='checkbox']").removeClass("is-invalid");
 
-						// Lấy giá trị
+						
 						let khoiLuongXe = parseFloat($tr.find("input[name='KhoiLuongXeGoong']").val());
 						let khoiLuongThung = parseFloat($tr.find("input[name='KhoiLuongThung']").val());
 						let klThungGangLong = parseFloat($tr.find("input[name='KLThungGangLong']").val());
@@ -553,7 +546,6 @@
 							'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
 						},
 						success: function (response) {
-							console.log('Success', response);
 							alert('Tạo phiếu thành công!');
 						},
 						error: function (xhr, status, error) {
