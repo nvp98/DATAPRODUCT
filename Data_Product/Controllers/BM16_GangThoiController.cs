@@ -142,11 +142,11 @@ namespace Data_Product.Controllers
             const int pageSize = 20;
             if (page < 1) page = 1;
 
-            var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.Ngay)
+            var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayTaoPhieu)
                 .Select(p => new PhieuViewModel
                 {
                     MaPhieu = p.MaPhieu,
-                    Ngay = p.Ngay,
+                    NgayTaoPhieu = p.NgayTaoPhieu,
                     ThoiGianTao = p.ThoiGianTao.ToString("HH:mm:ss"),
                     TenNguoiTao = _context.Tbl_TaiKhoan
                                     .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
@@ -171,7 +171,7 @@ namespace Data_Product.Controllers
             // Lọc theo ngày
             if (ngay.HasValue)
             {
-                query = query.Where(s => s.Ngay.Date == ngay.Value.Date);
+                query = query.Where(s => s.NgayTaoPhieu.Date == ngay.Value.Date);
             }
 
             // Lọc theo Ca (chuỗi)
@@ -236,8 +236,6 @@ namespace Data_Product.Controllers
             }
         }
 
-
-
         [HttpGet]
         public async Task< IActionResult> TaoPhieu()
         {
@@ -284,17 +282,19 @@ namespace Data_Product.Controllers
 
                 int nextPhieu = maxIndex + 1;
 
-                var maPhieu = "GL" + "-" + "LG" + "-" + "LC" + model.ID_Locao + DateTime.Today.ToString("yyMMdd") + cakip + nextPhieu.ToString("D4")
+                var maPhieu = "GL" + "-" + "LG" + "-" + "LC" + model.ID_Locao + cakip + DateTime.Today.ToString("yyMMdd") + nextPhieu.ToString("D4")
                 ;
 
                 var phieu = new Tbl_BM_16_Phieu
                 {
                     MaPhieu = maPhieu,
-                    Ngay = DateTime.Today,
+                    NgayTaoPhieu = DateTime.Today,
                     ThoiGianTao = DateTime.Now,
                     ID_Locao = model.ID_Locao,
                     ID_Kip = model.ID_Kip,
-                    ID_NguoiTao = idNhanVienTao
+                    ID_NguoiTao = idNhanVienTao,
+                    NgayPhieuGang = model.NgayPhieuGang
+
                 };
                 var tenCaStr = await _context.Tbl_Kip
                    .Where(k => k.ID_Kip == model.ID_Kip)
@@ -423,7 +423,8 @@ namespace Data_Product.Controllers
             ViewBag.DanhSachThung = viewData;
 
             ViewBag.MaPhieu = phieu.MaPhieu;
-            ViewBag.Ngay = phieu.Ngay.ToString("yyyy-MM-dd");
+            ViewBag.Ngay = phieu.NgayTaoPhieu.ToString("yyyy-MM-dd");
+            ViewBag.NgayPhieuGang = phieu.NgayPhieuGang.ToString("yyyy-MM-dd");
             ViewBag.ID_Kip = phieu.ID_Kip;
             ViewBag.ID_Locao = phieu.ID_Locao;
             ViewBag.ThoiGianTao = phieu.ThoiGianTao;
