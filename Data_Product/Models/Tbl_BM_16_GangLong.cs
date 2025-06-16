@@ -112,7 +112,6 @@ namespace Data_Product.Models
         public int? G_ID_Kip { get; set; }
         [NotMapped]
         public string G_TenKip { get; set; }
-
         public int? T_ID_Kip { get; set; }
         [NotMapped]
         public string T_TenKip { get; set; }
@@ -137,6 +136,12 @@ namespace Data_Product.Models
         public string HoVaTen { get; set; }
 
         [NotMapped]
+        public string ChuKy { get; set; }
+
+        [NotMapped]
         public string TenPhongBan { get; set; }
+
+        [NotMapped]
+        public string TenViTri { get; set; }
     }
 }

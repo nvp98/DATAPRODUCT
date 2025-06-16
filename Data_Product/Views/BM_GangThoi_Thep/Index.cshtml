@@ -349,7 +349,7 @@
                             <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnLuu">Lưu</button>
                             <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel">Xuất Excel</button>
-                            <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
+                            <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF" style="display:none">Xuất PDF</button>
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTaoMeThoi" onclick="loadModalTaoMe()">Tạo Mẻ thổi</button>
                         </div>
                     </div>
@@ -369,6 +369,7 @@
                                     <th>Mã thùng gang</th>
                                     <th>Lò cao</th>
                                     <th>Thùng số</th>
+                                    <th>KL Gang lỏng</th>
                                     <th>Chuyển đến</th>
                                     <th>KR</th>
                                     <th>Chọn thùng</th>
@@ -557,6 +558,7 @@
                         <td>${item.maThungGang ?? ''}</td>
                         <td>${item.iD_Locao ?? ''}</td>
                         <td>${item.bkmiS_ThungSo ?? ''}</td>
+                        <td>${item.g_KLGangLong ?? ''}</td>
                         <td>${item.chuyenDen ?? ''}</td>
                         <td>
                             <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
@@ -646,6 +648,9 @@
                 contentType: 'application/json',
                 data: JSON.stringify(payload),
                 success: function (data) {
+                    // set css cho btn PDF
+                    $("#BtnXuatPhieuPDF").css("display", data.some(item => item.iD_TrangThai === 5) ? "block" : "none");
+
                     renderTableXuLySoLieu(data);
                     SearchMeThoi(IDLoThoi)
                 },
