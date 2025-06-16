@@ -12,20 +12,24 @@
 @{
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+    var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
 }
 @{
     var total = Model.Sum(x => x.G_KLGangLong);
 
-    // var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == x.ID_NhanVien_BG).FirstOrDefault();
-    // var PhongBan_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
-    // var PhanXuong_BG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BG).FirstOrDefault();
-    // var ViTri_BG = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BG.ID_ChucVu).FirstOrDefault();
+    var firstItem = Model.FirstOrDefault();
+    var phongBan = firstItem.ChuyenDen;
 
-    // //Thông tin bên nhận
-    // var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == ID_BBGN.ID_NhanVien_BN).FirstOrDefault();
-    // var PhongBan_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BN).FirstOrDefault();
-    // var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BN).FirstOrDefault();
-    // var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
+    var taiKhoanList = Model.DistinctBy(x => x.TenTaiKhoan)
+    .Select(x => new
+    {
+        x.TenTaiKhoan,
+        x.HoVaTen,
+        x.TenViTri,
+        x.TenPhongBan,
+        x.ChuKy
+    }).ToList();
 
 }
 
@@ -53,9 +57,9 @@
             Chúng tôi gồm:
         </div>
         <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-            <div style="width:37%"> 1. Đại diện bên giao: Ông/bà: ...</div>
-            <div style="width:38%">Chức vụ:  ... </div>
-            <div style="width:25%">BP: ...</div>
+            <div style="width:37%"> 1. Đại diện bên giao: Ông/bà:@TaiKhoan.HoVaTen</div>
+            <div style="width:38%">Chức vụ:@ViTri.TenViTri </div>
+            <div style="width:25%">BP: @PhongBan.TenPhongBan</div>
         </div>
 
         <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
@@ -63,11 +67,14 @@
             <div style="width:38%">Chức vụ:  ... </div>
             <div style="width:25%">BP: ...</div>
         </div>
-        <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-            <div style="width:37%"> 3. Đại diện bên nhận: Ông/bà: ...</div>
-            <div style="width:38%">Chức vụ:  ... </div>
-            <div style="width:25%">BP: ...</div>
-        </div>
+        @foreach (var item in taiKhoanList)
+        {
+            <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+            <div style="width:37%"> 3. Đại diện bên nhận: Ông/bà:@TaiKhoan.HoVaTen</div>
+            <div style="width:38%">Chức vụ:@ViTri.TenViTri </div>
+            <div style="width:25%">BP: @PhongBan.TenPhongBan</div>
+            </div>
+        }
         <div class="col-md-12 float-left" style="margin-bottom:8px;">
             Cùng nhau thống nhất lập "Biên bản gang lỏng - gang thỏi" chi tiết như sau:
         </div>

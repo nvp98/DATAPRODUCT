@@ -282,7 +282,7 @@ namespace Data_Product.Controllers
 
                 int nextPhieu = maxIndex + 1;
 
-                var maPhieu = "GL" + "-" + "LG" + "-" + "LC" + model.ID_Locao + cakip + DateTime.Today.ToString("yyMMdd") + nextPhieu.ToString("D4")
+                var maPhieu = "GL" + "-" + "LG" + "-" + "L" + model.ID_Locao + cakip + DateTime.Today.ToString("yyMMdd") + nextPhieu.ToString("D4")
                 ;
 
                 var phieu = new Tbl_BM_16_Phieu
@@ -417,8 +417,35 @@ namespace Data_Product.Controllers
                 GhiChu = t.G_GhiChu,
                 DaChuyen = t.G_ID_TrangThai==1, 
                 TrangThai = t.ID_TrangThai,
-                NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>()
-            }).ToList();
+                NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>(),
+
+                   // Dùng để sort:
+                MaThungPrefix = t.MaThungGang.Split('.')[0],
+                MaThungSuffix = int.Parse(t.MaThungGang.Split('.')[1])
+            }).OrderBy(x => x.MaThungPrefix)
+                .ThenBy(x => x.MaThungSuffix)
+                .Select(x => new
+                {
+                    x.MaThung,
+                    x.SoMe,
+                    x.ThuTuThung,
+                    x.GioNhaMay,
+                    x.PhanLoai,
+                    x.KL_XeGoong,
+                    x.KL_Thung,
+                    x.KL_Thung_GangLong,
+                    x.KL_GangLong_CanRay,
+                    x.DenHRC1,
+                    x.DenHRC2,
+                    x.DenDuc1,
+                    x.DenDuc2,
+                    x.GioNM,
+                    x.GhiChu,
+                    x.DaChuyen,
+                    x.TrangThai,
+                    x.NguoiNhanList
+                })
+                .ToList();
 
             ViewBag.DanhSachThung = viewData;
 
@@ -434,15 +461,20 @@ namespace Data_Product.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Chuyenthung([FromBody] List<string> dsthung)
+        public async Task<IActionResult> Chuyenthung([FromBody] ChuyenThungReq req)
         {
             try 
-            { 
-                if (dsthung == null || !dsthung.Any())
+            {
+                if (req == null || string.IsNullOrEmpty(req.MaPhieu) || req.DsMaThung == null || !req.DsMaThung.Any())
                 {
-                   return Json(new { success = false, message = "Vui lòng chọn ít nhất một thùng" });
+                    return Json(new { success = false, message = "Thiếu thông tin mã phiếu hoặc danh sách thùng." });
                 }
-                var thungs = await _context.Tbl_BM_16_GangLong.Where(t=> dsthung.Contains(t.MaThungGang)).ToListAsync();
+                //var thungs = await _context.Tbl_BM_16_GangLong.Where(t=> dsthung.Contains(t.MaThungGang)).ToListAsync();
+               // var thungs = await _context.Tbl_BM_16_GangLong.Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang));
+                var thungs = await _context.Tbl_BM_16_GangLong
+                 .Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang))
+                 .ToListAsync();
+
                 if (!thungs.Any())
                 {
                     return Json(new { success = false, message = "Không tìm thấy thùng nào" });
@@ -620,7 +652,7 @@ namespace Data_Product.Controllers
                         G_KLThungVaGang = item.G_KLThungVaGang,
                         G_KLGangLong = item.G_KLGangLong,
                         ChuyenDen = item.ChuyenDen ?? "",
-                        Gio_NM = DateTime.Now.ToString("HH:mm"),
+                        Gio_NM =    item.Gio_NM,
                         G_GhiChu = item.G_GhiChu,
                         G_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 2 : 1,
                         NgayTao = DateTime.Now,
@@ -931,10 +963,59 @@ namespace Data_Product.Controllers
         {
             try
             {
+                var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+                if (TaiKhoan == null) return BadRequest("Tài khoản không tồn tại.");
+
+                var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault().TenNgan.Split('.').Last();
+
+                if (PhongBan == null) return BadRequest("Không có phòng ban.");
+
                 var data = await _context.Tbl_BM_16_GangLong.Where(x=> x.MaPhieu == MaPhieu && x.ID_TrangThai == 5 ).ToListAsync();
 
                 if (data == null || !data.Any())
                     return BadRequest("Danh sách trống.");
+                var chiTietGangLong = (from thung in data
+                                       join user in _context.Tbl_TaiKhoan on thung.G_ID_NguoiChuyen equals user.ID_TaiKhoan into g_user
+                                       from user in g_user.DefaultIfEmpty()
+                                       join phongBan in _context.Tbl_PhongBan on user.ID_PhongBan equals phongBan.ID_PhongBan into g_phongBan
+                                       from phongBan in g_phongBan.DefaultIfEmpty()
+                                       join vitri in _context.Tbl_ViTri on user.ID_ChucVu equals vitri.ID_ViTri into g_vitri
+                                       from vitri in g_vitri.DefaultIfEmpty()
+                                       select new Tbl_BM_16_GangLong
+                                       {
+                                           HoVaTen = user?.HoVaTen ?? "",
+                                           TenTaiKhoan = user?.TenTaiKhoan ?? "",
+                                           TenPhongBan = phongBan?.TenNgan ?? "",
+                                           ChuKy = user?.ChuKy ?? "",
+                                           TenViTri = vitri?.TenViTri ?? "",
+                                           ID = thung.ID,
+                                           BKMIS_SoMe = thung.BKMIS_SoMe,
+                                           BKMIS_Gio = thung.BKMIS_Gio,
+                                           BKMIS_PhanLoai = thung.BKMIS_PhanLoai,
+                                           MaThungThep = thung.MaThungThep,
+                                           BKMIS_ThungSo = thung.BKMIS_ThungSo,
+                                           NgayLuyenThep = thung.NgayLuyenThep,
+                                           ChuyenDen = thung.ChuyenDen,
+                                           KL_XeGoong = thung.KL_XeGoong,
+                                           T_ID_TrangThai = thung.T_ID_TrangThai,
+                                           T_KLThungVaGang = thung.T_KLThungVaGang,
+                                           T_KLThungChua = thung.T_KLThungChua,
+                                           T_KLGangLong = thung.T_KLGangLong,
+                                           ThungTrungGian = thung.ThungTrungGian,
+                                           T_KLThungVaGang_Thoi = thung.T_KLThungVaGang_Thoi,
+                                           T_KLThungChua_Thoi = thung.T_KLThungChua_Thoi,
+                                           T_KLGangLongThoi = thung.T_KLGangLongThoi,
+                                           T_GhiChu = thung.T_GhiChu,
+                                           ID_Locao = thung.ID_Locao,
+                                           ID_TrangThai = thung.ID_TrangThai,
+                                           TrangThai = thung.TrangThai,
+                                           MaMeThoi = thung.MaMeThoi,
+                                           T_KL_phe = thung.T_KL_phe,
+                                           Gio_NM = thung.Gio_NM,
+                                           T_Ca = thung.T_Ca,
+                                           T_TenKip = thung.T_TenKip
+                                       }).ToList();
 
 
                 // 1. Render Razor View thành chuỗi HTML

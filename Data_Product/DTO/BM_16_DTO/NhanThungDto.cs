@@ -19,4 +19,12 @@
         public int? T_ID_TrangThai { get; set; }
         public int? ID_LoCao { get; set; }
     }
+
+
+    public class ChuyenThungReq
+    {
+        public string? MaPhieu { get; set; }
+        public List<string>? DsMaThung { get; set; } 
+    }
+    
 }
