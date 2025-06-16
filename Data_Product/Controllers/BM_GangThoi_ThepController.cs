@@ -98,6 +98,7 @@ namespace Data_Product.Controllers
                                  NgayLuyenGang = a.NgayLuyenGang,
                                  ChuyenDen = a.ChuyenDen,
                                  Gio_NM = a.Gio_NM,
+                                 G_KLGangLong = a.G_KLGangLong,
                                  KR = a.KR,
                                  ID_TrangThai = a.ID_TrangThai,
                                  T_ID_TrangThai = a.T_ID_TrangThai,
@@ -145,6 +146,7 @@ namespace Data_Product.Controllers
                 x.BKMIS_ThungSo,
                 x.NgayLuyenGang,
                 x.ChuyenDen,
+                x.G_KLGangLong,
                 x.Gio_NM,
                 x.KR,
                 x.ID_TrangThai,
@@ -199,10 +201,12 @@ namespace Data_Product.Controllers
                              join meThoi in _context.Tbl_MeThoi on x.gangLong.ID_MeThoi equals meThoi.ID into meThoiJoin
                              from meThoi in meThoiJoin.DefaultIfEmpty()
                              join trangThai in _context.Tbl_BM_16_TrangThai on x.gangLong.ID_TrangThai equals trangThai.ID
+                             join kipT in _context.Tbl_Kip on x.gangLong.T_ID_Kip equals kipT.ID_Kip
                              select new Tbl_BM_16_GangLong
                              {
                                  ID = x.gangLong.ID,
                                  BKMIS_SoMe = x.gangLong.BKMIS_SoMe,
+                                 BKMIS_Gio = x.gangLong.BKMIS_Gio,
                                  BKMIS_PhanLoai = x.gangLong.BKMIS_PhanLoai,
                                  MaThungThep = x.gangLong.MaThungThep,
                                  BKMIS_ThungSo = x.gangLong.BKMIS_ThungSo,
@@ -224,7 +228,11 @@ namespace Data_Product.Controllers
                                  TrangThai = trangThai.TenTrangThai,
                                  ID_MeThoi = x.gangLong.ID_MeThoi,
                                  MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
-                                 T_KL_phe = x.gangLong.T_KL_phe
+                                 T_KL_phe = x.gangLong.T_KL_phe,
+                                 Gio_NM = x.gangLong.Gio_NM,
+                                 T_Ca = x.gangLong.T_Ca,
+                                 T_TenKip = kipT != null ? kipT.TenKip : null,
+                                 G_ID_NguoiChuyen = x.gangLong.G_ID_NguoiChuyen
                              }).ToListAsync();
 
             return res;
@@ -668,14 +676,70 @@ namespace Data_Product.Controllers
         public async Task<IActionResult> ExportToPDF([FromBody] SearchThungDaNhanDto payload)
         {
             try { 
+                
+
                 var listThungs = await GetThungDaNhan(payload);
                 if (listThungs == null || !listThungs.Any())
                     return BadRequest("Danh sách trống.");
 
+                var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+                if (TaiKhoan == null) return BadRequest("Tài khoản không tồn tại.");
 
-                var data = listThungs.ToList();
+                var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault().TenNgan.Split('.').Last();
 
-               
+                if (PhongBan == null) return BadRequest("Không có phòng ban.");
+
+                //var data = listThungs.Where(x => x.ChuyenDen == PhongBan && x.ID_TrangThai == (int)TinhTrang.DaChot).ToList();
+                var dataListThung = listThungs.Where(x => x.ChuyenDen == "HRC2" && x.ID_TrangThai == (int)TinhTrang.DaChot).ToList();
+
+
+                var data = (from thung in dataListThung
+                            join user in _context.Tbl_TaiKhoan
+                                on thung.G_ID_NguoiChuyen equals user.ID_TaiKhoan into g_user
+                            from user in g_user.DefaultIfEmpty()
+                            join phongBan in _context.Tbl_PhongBan
+                                on user.ID_PhongBan equals phongBan.ID_PhongBan into g_phongBan
+                            from phongBan in g_phongBan.DefaultIfEmpty()
+                            join vitri in _context.Tbl_ViTri
+                                on user.ID_ChucVu equals vitri.ID_ViTri into g_vitri
+                            from vitri in g_vitri.DefaultIfEmpty()
+                            select new Tbl_BM_16_GangLong
+                              {
+                                  HoVaTen = user != null ? user.HoVaTen : "",
+                                  TenPhongBan = phongBan != null ? phongBan.TenNgan : "",
+                                  ChuKy = user != null ? user.ChuKy : "",
+                                  TenViTri = vitri != null ? vitri.TenViTri : "",
+                                  ID = thung.ID,
+                                  BKMIS_SoMe = thung.BKMIS_SoMe,
+                                  BKMIS_Gio = thung.BKMIS_Gio,
+                                  BKMIS_PhanLoai = thung.BKMIS_PhanLoai,
+                                  MaThungThep = thung.MaThungThep,
+                                  BKMIS_ThungSo = thung.BKMIS_ThungSo,
+                                  NgayLuyenThep = thung.NgayLuyenThep,
+                                  ChuyenDen = thung.ChuyenDen,
+                                  KL_XeGoong = thung.KL_XeGoong,
+                                  T_ID_TrangThai = thung.T_ID_TrangThai,
+                                  T_KLThungVaGang = thung.T_KLThungVaGang,
+                                  T_KLThungChua = thung.T_KLThungChua,
+                                  T_KLGangLong = thung.T_KLGangLong,
+                                  ThungTrungGian = thung.ThungTrungGian,
+                                  T_KLThungVaGang_Thoi = thung.T_KLThungVaGang_Thoi,
+                                  T_KLThungChua_Thoi = thung.T_KLThungChua_Thoi,
+                                  T_KLGangLongThoi = thung.T_KLGangLongThoi,
+                                  T_GhiChu = thung.T_GhiChu,
+                                  ID_Locao = thung.ID_Locao,
+                                  ID_TrangThai = thung.ID_TrangThai,
+                                  TrangThai = thung.TrangThai != null ? thung.TrangThai : null,
+                                  MaMeThoi = thung.MaMeThoi != null ? thung.MaMeThoi : null,
+                                  T_KL_phe = thung.T_KL_phe,
+                                  Gio_NM = thung.Gio_NM,
+                                  T_Ca = thung.T_Ca,
+                                  T_TenKip = thung.T_TenKip != null ? thung.T_TenKip : null 
+                              }).ToList();
+
+                if (data == null) return BadRequest("Danh sách trống với phòng ban.");
+
                 // 1. Render Razor View thành chuỗi HTML
                 string html = await RenderViewToStringAsync("BBGN_thep_pdf", data);
 
