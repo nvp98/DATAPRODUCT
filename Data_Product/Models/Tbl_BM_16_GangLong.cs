@@ -136,6 +136,9 @@ namespace Data_Product.Models
         public string HoVaTen { get; set; }
 
         [NotMapped]
+        public string TenTaiKhoan { get; set; }
+
+        [NotMapped]
         public string ChuKy { get; set; }
 
         [NotMapped]
