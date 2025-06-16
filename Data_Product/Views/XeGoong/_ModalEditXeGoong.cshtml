@@ -13,7 +13,7 @@
 
                     <div class="mb-3">
                         <label asp-for="ID_LoCao" class="form-label">Chọn Lò Cao</label>
-                        <select asp-for="ID_LoCao" class="form-select" asp-items="ViewBag.LoCaoList" disabled>
+                        <select asp-for="ID_LoCao" class="form-select" asp-items="ViewBag.LoCaoList">
                             <option value="">-- Chọn Lò Cao --</option>
                         </select>
                         <span asp-validation-for="ID_LoCao" class="text-danger" type="hidden"></span>
@@ -35,5 +35,9 @@
 </div>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
 }
+

@@ -12,7 +12,7 @@ namespace Data_Product.Models
         public string MaPhieu { get; set; } = string.Empty;
 
         [Required]
-        public DateTime Ngay { get; set; }
+        public DateTime NgayTaoPhieu { get; set; }
 
         [Required]
         public DateTime ThoiGianTao { get; set; }
@@ -25,6 +25,8 @@ namespace Data_Product.Models
 
         [Required]
         public int ID_NguoiTao { get; set; }
+        [Required]
+        public DateTime NgayPhieuGang { get; set; }
 
     } 
 }

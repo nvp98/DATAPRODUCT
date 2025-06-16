@@ -25,6 +25,7 @@ using iText.Html2pdf;
 using iText.Kernel.Events;
 using iText.Layout.Font;
 using static Data_Product.Controllers.BM_11Controller;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
 
 namespace Data_Product.Controllers
@@ -141,11 +142,11 @@ namespace Data_Product.Controllers
             const int pageSize = 20;
             if (page < 1) page = 1;
 
-            var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.Ngay)
+            var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayTaoPhieu)
                 .Select(p => new PhieuViewModel
                 {
                     MaPhieu = p.MaPhieu,
-                    Ngay = p.Ngay,
+                    NgayTaoPhieu = p.NgayTaoPhieu,
                     ThoiGianTao = p.ThoiGianTao.ToString("HH:mm:ss"),
                     TenNguoiTao = _context.Tbl_TaiKhoan
                                     .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
@@ -170,7 +171,7 @@ namespace Data_Product.Controllers
             // Lọc theo ngày
             if (ngay.HasValue)
             {
-                query = query.Where(s => s.Ngay.Date == ngay.Value.Date);
+                query = query.Where(s => s.NgayTaoPhieu.Date == ngay.Value.Date);
             }
 
             // Lọc theo Ca (chuỗi)
@@ -235,8 +236,6 @@ namespace Data_Product.Controllers
             }
         }
 
-
-
         [HttpGet]
         public async Task< IActionResult> TaoPhieu()
         {
@@ -271,16 +270,31 @@ namespace Data_Product.Controllers
 
             try
             {
-                var maPhieu = "PGL" + Guid.NewGuid().ToString("N").ToUpper().Substring(0, 8);
+
+                var cakip = await _context.Tbl_Kip.Where(x => x.ID_Kip == model.ID_Kip)
+                    .Select(x => x.TenCa + x.TenKip).FirstOrDefaultAsync();
+
+
+                var maxIndex = await _context.Tbl_BM_16_Phieu
+                .OrderByDescending(x => x.ID)
+                .Select(x => x.ID)
+                .FirstOrDefaultAsync();
+
+                int nextPhieu = maxIndex + 1;
+
+                var maPhieu = "GL" + "-" + "LG" + "-" + "LC" + model.ID_Locao + cakip + DateTime.Today.ToString("yyMMdd") + nextPhieu.ToString("D4")
+                ;
 
                 var phieu = new Tbl_BM_16_Phieu
                 {
                     MaPhieu = maPhieu,
-                    Ngay = DateTime.Today,
+                    NgayTaoPhieu = DateTime.Today,
                     ThoiGianTao = DateTime.Now,
                     ID_Locao = model.ID_Locao,
                     ID_Kip = model.ID_Kip,
-                    ID_NguoiTao = idNhanVienTao
+                    ID_NguoiTao = idNhanVienTao,
+                    NgayPhieuGang = model.NgayPhieuGang
+
                 };
                 var tenCaStr = await _context.Tbl_Kip
                    .Where(k => k.ID_Kip == model.ID_Kip)
@@ -409,7 +423,8 @@ namespace Data_Product.Controllers
             ViewBag.DanhSachThung = viewData;
 
             ViewBag.MaPhieu = phieu.MaPhieu;
-            ViewBag.Ngay = phieu.Ngay.ToString("yyyy-MM-dd");
+            ViewBag.Ngay = phieu.NgayTaoPhieu.ToString("yyyy-MM-dd");
+            ViewBag.NgayPhieuGang = phieu.NgayPhieuGang.ToString("yyyy-MM-dd");
             ViewBag.ID_Kip = phieu.ID_Kip;
             ViewBag.ID_Locao = phieu.ID_Locao;
             ViewBag.ThoiGianTao = phieu.ThoiGianTao;
@@ -559,6 +574,10 @@ namespace Data_Product.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveThung([FromBody] SaveThungDto req)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             if (req == null || req.DanhSachThung == null || !req.DanhSachThung.Any())
             {
                 return  BadRequest("Dữ liệu không hợp lệ.");
@@ -678,6 +697,31 @@ namespace Data_Product.Controllers
             {
                 return StatusCode(500, new { success = false, message = "Lỗi khi xóa.", error = ex.Message });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Xoathungcopy([FromBody] string maThungcp)
+        {
+            try
+                {
+                var thung = await _context.Tbl_BM_16_GangLong.FirstOrDefaultAsync(x => x.MaThungGang == maThungcp);
+
+                if (thung == null)
+                {
+                    return NotFound(new { success = false, message = "Không tìm thấy thùng cần xóa." });
+                }
+                if (maThungcp.EndsWith(".00"))
+                {
+                    return BadRequest(new { success = false, message = "Không được xóa thùng gốc (.00)." });
+                }
+                _context.Tbl_BM_16_GangLong.Remove(thung);
+                await _context.SaveChangesAsync();
+                return Ok(new { success = true, message = "Đã xóa thành công." });
+                 }
+            catch (Exception ex)
+                {
+                return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
+                 }
         }
        
         public async Task<IActionResult> ExportToExcel(string MaPhieu)
@@ -882,24 +926,36 @@ namespace Data_Product.Controllers
         {
             return View();
         }
-        //public async Task<IActionResult> GeneratePdf(int id)
-        //{
-        //    var bbgn = _context.Tbl_BienBanGiaoNhan
-        //        .Include(x => x.ChiTietGiaoNhan)
-        //        .FirstOrDefault(x => x.ID_BBGN == id);
+        [HttpPost]
+        public async Task<IActionResult> ExportToPDF([FromBody]string MaPhieu)
+        {
+            try
+            {
+                var data = await _context.Tbl_BM_16_GangLong.Where(x=> x.MaPhieu == MaPhieu && x.ID_TrangThai == 5 ).ToListAsync();
 
-        //    if (bbgn == null)
-        //    {
-        //        return NotFound();
-        //    }
+                if (data == null || !data.Any())
+                    return BadRequest("Danh sách trống.");
 
-        //    string htmlContent = await RenderViewToStringAsync("ExportPdfView", bbgn); // truyền object model
 
-        //    byte[] pdfBytes = ConvertHtmlToPdf(htmlContent);
-        //    string filename = bbgn.SoPhieu + DateTime.Now.ToString("yyyyMMddHHmm");
+                // 1. Render Razor View thành chuỗi HTML
+                string html = await RenderViewToStringAsync("BBGN_Gang_PDF", data);
 
-        //    return File(pdfBytes, "application/pdf", filename + ".pdf");
-        //}
+
+                // 2. Chuyển đổi HTML sang PDF
+                byte[] pdfBytes = ConvertHtmlToPdf(html);
+
+                string filename = $"BBGN Gang long - Thep {DateTime.Now.ToString("yyyyMMddHHmm")}.pdf";
+
+                return File(pdfBytes, "application/pdf", filename);
+            }
+            catch (Exception ex)
+            {
+                TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
+
+                return RedirectToAction("DetailPhieu", "BM16_GangThoi");
+            }
+        }
+
         private async Task<string> RenderViewToStringAsync(string viewName, object model)
         {
             ViewData.Model = model;
@@ -909,7 +965,7 @@ namespace Data_Product.Controllers
                 var viewResult = _viewEngine.FindView(ControllerContext, viewName, false);
                 if (!viewResult.Success)
                 {
-                    throw new FileNotFoundException($"Không tìm thấy view '{viewName}'.");
+                    throw new FileNotFoundException($"View '{viewName}' không tìm thấy.");
                 }
 
                 var viewContext = new ViewContext(
@@ -922,44 +978,42 @@ namespace Data_Product.Controllers
                 );
 
                 await viewResult.View.RenderAsync(viewContext);
-                return writer.ToString();
+                return await Task.FromResult(writer.ToString());
             }
         }
+
         private byte[] ConvertHtmlToPdf(string htmlContent)
         {
             using (var memoryStream = new MemoryStream())
             {
-                // Tạo FontProvider và quét thư mục hệ thống
+                // 1. Cấu hình FontProvider để hỗ trợ Times New Roman
                 var fontProvider = new FontProvider();
-                fontProvider.AddFont("C:/Windows/Fonts/times.ttf"); // Times New Roman Regular
-                fontProvider.AddFont("C:/Windows/Fonts/timesbd.ttf"); // Times New Roman Bold
-                fontProvider.AddFont("C:/Windows/Fonts/timesi.ttf"); // Times New Roman Italic
-                fontProvider.AddFont("C:/Windows/Fonts/timesbi.ttf"); // Times New Roman Bold Italic
+                fontProvider.AddFont("C:/Windows/Fonts/times.ttf");     // Regular
+                fontProvider.AddFont("C:/Windows/Fonts/timesbd.ttf");   // Bold
+                fontProvider.AddFont("C:/Windows/Fonts/timesi.ttf");    // Italic
+                fontProvider.AddFont("C:/Windows/Fonts/timesbi.ttf");   // Bold Italic
 
-                // Khởi tạo PdfWriter và PdfDocument
+                // 2. Tạo writer và document
                 var writer = new iText.Kernel.Pdf.PdfWriter(memoryStream);
                 var pdfDocument = new iText.Kernel.Pdf.PdfDocument(writer);
-                // Đặt kích thước trang mặc định là A4 ngang
-                pdfDocument.SetDefaultPageSize(iText.Kernel.Geom.PageSize.A4.Rotate());
-                pdfDocument.AddEventHandler(PdfDocumentEvent.END_PAGE, new FooterHandler(_context));
+                pdfDocument.SetDefaultPageSize(iText.Kernel.Geom.PageSize.A4.Rotate()); // Trang ngang
 
-                // Tạo các thuộc tính chuyển đổi
-                ConverterProperties converterProperties = new ConverterProperties();
-                // Thiết lập FontProvider cho ConverterProperties
+                // 3. Cấu hình Converter
+                var converterProperties = new ConverterProperties();
                 converterProperties.SetFontProvider(fontProvider);
-                // Đảm bảo thư mục chứa hình ảnh có thể truy cập được
-                converterProperties.SetBaseUri("./img/");
 
+                // 4. Cấu hình baseUri nếu HTML chứa ảnh
+                string baseUri = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                converterProperties.SetBaseUri(baseUri);
 
-
-                // Chuyển đổi HTML thành PDF
+                // 5. Chuyển đổi HTML sang PDF
                 HtmlConverter.ConvertToPdf(htmlContent, pdfDocument, converterProperties);
 
-                // Chuyển HTML thành PDF
-                //HtmlConverter.ConvertToPdf(htmlContent, memoryStream, converterProperties);
+                // 6. Trả về PDF dưới dạng byte[]
                 return memoryStream.ToArray();
             }
         }
+
 
     }
 }
