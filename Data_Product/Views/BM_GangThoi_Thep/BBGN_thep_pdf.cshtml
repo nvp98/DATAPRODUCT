@@ -25,6 +25,16 @@
 
     var firstItem = Model.FirstOrDefault();
     var phongBan = firstItem.ChuyenDen;
+
+    var taiKhoanList = Model.DistinctBy(x => x.TenTaiKhoan)
+    .Select(x => new
+    {
+        x.TenTaiKhoan,
+        x.HoVaTen,
+        x.TenViTri,
+        x.TenPhongBan,
+        x.ChuKy
+    }).ToList();
 }
 
 <div style="padding:0px 30px 0px 50px">
@@ -68,7 +78,7 @@
             <div style="width:38%">Chức vụ:  @ViTri.TenViTri </div>
             <div style="width:25%">BP: @PhongBan.TenPhongBan</div>
         </div>
-        @foreach(var item in Model)
+        @foreach (var item in taiKhoanList)
         {
             <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
                 <div style="width:37%"> 2. Đại diện bên nhận: Ông/bà: @item.HoVaTen</div>
@@ -278,7 +288,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="row g-2">
-                            @foreach(var item in Model)
+                            @foreach (var item in taiKhoanList)
                             {
                                 <div class="col-md-4 col-sm-6 col-12">
                                     <div style="text-align: center;  padding:2%;">

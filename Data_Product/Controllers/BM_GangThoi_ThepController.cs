@@ -707,7 +707,8 @@ namespace Data_Product.Controllers
                             select new Tbl_BM_16_GangLong
                               {
                                   HoVaTen = user != null ? user.HoVaTen : "",
-                                  TenPhongBan = phongBan != null ? phongBan.TenNgan : "",
+                                TenTaiKhoan = user != null ? user.TenTaiKhoan : "",
+                                TenPhongBan = phongBan != null ? phongBan.TenNgan : "",
                                   ChuKy = user != null ? user.ChuKy : "",
                                   TenViTri = vitri != null ? vitri.TenViTri : "",
                                   ID = thung.ID,
