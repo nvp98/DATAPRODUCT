@@ -12,19 +12,19 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <style>
 	table th {
-		text-align: center;
+	text-align: center;
 	}
 
 	#dataTable input {
-		border-radius: 0px !important;
+	border-radius: 0px !important;
 	}
 
 	th.toggle-col, td.toggle-col {
-		display: none;
+	display: none;
 	}
 
 	/* td.deleteItem {
-		display: none;
+	display: none;
 	} */
 </style>
 @if (TempData["msgSuccess"] != null)
@@ -149,9 +149,12 @@
 										{
 											<tr>
 												<td class='text-center deleteItem'>
-													<a class="btn btn-danger btn-sm" title="Xóa">
-														<i class="bi bi-trash"></i>
-													</a>
+													@* @if (!item.MaThungGang.EndsWith(".00"))
+													{ *@
+														<a class="btn btn-danger btn-sm" title="Xóa">
+															<i class="bi bi-trash"></i>
+														</a>
+												@* 	} *@
 												</td>
 												<td class='text-center copyItem'>
 													<a class="btn btn-secondary btn-sm" title="copy">
@@ -160,7 +163,7 @@
 												</td>
 												<td class='text-center editItem'>
 													<a class="btn btn-primary btn-sm btn-edit-thung" title="Chỉnh sửa thùng"
-													   data-bs-toggle="modal" data-bs-target="#editThungModal">
+													   @* data-bs-toggle="modal" *@ data-bs-target="#editThungModal">
 														<i class="bi bi-pen"></i>
 													</a>
 												</td>
@@ -377,7 +380,7 @@
 						// 		maPhieu: maPhieu,
 						// 		maThung: dsmaThung
 						// 	});
-					console.log('dsMaThung',dsMaThung)
+					//console.log('dsMaThung',dsMaThung)
 				});
 				
 				if (dsMaThung.length === 0)
@@ -392,7 +395,7 @@
 						maPhieu: maPhieu,
 						dsMaThung: dsMaThung
 					};
-					console.log('requestData',requestData)
+					//console.log('requestData',requestData)
 					chuyenThung(requestData);
 				}
 				});
@@ -420,7 +423,7 @@
 						maPhieu: maPhieu,
 						dsMaThung: selectedMaThungs
 					};
-					console.log('====thu hoi===',requestData)
+					//console.log('====thu hoi===',requestData)
 					thuHoiThung(requestData);
 					
 				}
@@ -457,16 +460,21 @@
 			$(document).on("click", ".deleteItem", function () {
 				const row = $(this).closest("tr");
 				const maThung = row.find('td[name="maThung"]').text().trim();
+				const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
 
+				if (tinhTrang == 'Đã chốt') {
+					alert("Thùng đã được chốt không thể xóa");
+					return;
+				}
 				// Trường hợp 1: Dòng sao chép (data-new="true")
 				if (row.attr("data-new") === "true") {
-					if (confirm("Bạn có chắc muốn xóa dòng sao chép này?")) {
+					if (confirm("Có muốn xóa thùng này")) {
 						row.remove();
 					}
 				}
 				// Trường hợp 2: Dòng không phải copy nhưng không phải thùng gốc (VD: .01, .02,...)
 				else if (!maThung.endsWith(".00")) {
-					if (confirm("Bạn có chắc muốn xóa thùng không phải gốc này?")) {
+					if (confirm("Có chắc muốn xóa thùng copy này?")) {
 						$.ajax({
 							url: '/BM16_GangThoi/Xoathungcopy',
 							method: 'POST',
@@ -484,7 +492,7 @@
 				}
 				// Trường hợp 3: Là thùng gốc (.00) → không cho xóa
 				else {
-					alert("Không được xóa dòng gốc.");
+					alert("Không được xóa thùng gốc.");
 				}
 				});
 				// ===== Function==========
@@ -816,7 +824,11 @@
 				});
 		$(document).on('click', '.btn-edit-thung', function () {
 			const row = $(this).closest('tr');
-
+			const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
+			if (tinhTrang == "Đã chốt"){
+				alert ("Không được chỉnh sửa")
+				return;
+			}
 			const data = {
 				maThung: row.find('td:eq(3)').text().trim(),
 				soMe: row.find('td:eq(4)').text().trim(),

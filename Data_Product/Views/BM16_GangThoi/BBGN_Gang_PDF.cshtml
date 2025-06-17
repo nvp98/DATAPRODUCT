@@ -7,14 +7,17 @@
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-@model List<Data_Product.Models.Tbl_BM_16_GangLong>
+@* @model List<Data_Product.Models.Tbl_BM_16_GangLong> *@
 
+@model Data_Product.DTO.BM_16_DTO.BBGN_GangLong_ViewModel
+@* 
 @{
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
     var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
     var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
 }
+
 @{
     var total = Model.Sum(x => x.G_KLGangLong);
 
@@ -31,8 +34,15 @@
         x.ChuKy
     }).ToList();
 
+}  *@
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+    var PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
+    var ViTri = _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == TaiKhoan.ID_ChucVu);
+    var DanhSachThung = Model.DanhSachGangLong ?? new List<Tbl_BM_16_GangLong>();
+    var total = DanhSachThung.Sum(x => x.G_KLGangLong);
 }
-
 <div style="padding:0px 30px 0px 50px">
     <div>
         <div class="" style="text-align: left;display: flex;margin-bottom:0">
@@ -62,18 +72,22 @@
             <div style="width:25%">BP: @PhongBan.TenPhongBan</div>
         </div>
 
-        <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+    @*     <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
             <div style="width:37%"> 2. Đại diện bên nhận: Ông/bà: ...</div>
             <div style="width:38%">Chức vụ:  ... </div>
             <div style="width:25%">BP: ...</div>
-        </div>
-        @foreach (var item in taiKhoanList)
+        </div> *@
+        @{
+            int stt = 3;
+        }
+        @foreach (var item in Model.NguoiNhan)
         {
             <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-            <div style="width:37%"> 3. Đại diện bên nhận: Ông/bà:@TaiKhoan.HoVaTen</div>
-            <div style="width:38%">Chức vụ:@ViTri.TenViTri </div>
-            <div style="width:25%">BP: @PhongBan.TenPhongBan</div>
+                <div style="width:37%"> @stt. Đại diện bên nhận: Ông/bà: @item.HoVaTen</div>
+                <div style="width:38%">Chức vụ: @item.TenViTri</div>
+                <div style="width:25%">BP: @item.TenPhongBan</div>
             </div>
+            stt++;
         }
         <div class="col-md-12 float-left" style="margin-bottom:8px;">
             Cùng nhau thống nhất lập "Biên bản gang lỏng - gang thỏi" chi tiết như sau:
@@ -107,7 +121,7 @@
 
                         int RowNo = 1;
                     }
-                    @foreach (var item in Model)
+                    @foreach (var item in DanhSachThung)
                     {
                         <tr>
                             <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; padding: 7px 0;">
@@ -208,14 +222,14 @@
                 P.QLCL
             </div>
             <div style="text-align: center;  padding:2%;">
-                @*  @if(ThongTin_BN.ChuKy != null)
+                @*  @if(thongtin_bn.chuky != null)
                                     {
-                        var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BN.ChuKy;
+                        var lin = "https://report.hoaphatdungquat.vn" + @thongtin_bn.chuky;
                         <img src="@lin" alt="" height="50">
                                     }
                                     else
                                     {
-                                        <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">
+                                        <img src="https://report.hoaphatdungquat.vn/img/logohp.png" alt="">
                                     } *@
                 @*<img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">*@
             </div>
@@ -223,27 +237,39 @@
                 @* @ThongTin_BN.HoVaTen *@
             </div>
         </div>
-        <div class="col-xxl-4 col-md-4" style="width: 50%;font-weight:bold;font-size:20px">
-
+        <div class="col-xxl-4 col-md-4" style="width: 100%; font-weight:bold; font-size:20px">
             <div style="text-align: center; padding-top:8px;">
                 NM.LT
             </div>
-            <div style="text-align: center;  padding:2%;">
-                @* @if(ThongTin_BG.ChuKy != null)
-                                    {
-                        var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BG.ChuKy;
-                        <img src="@lin" alt="" height="50">
-                                    }
-                                    else
-                                    {
-                                        <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">
-                                    } *@
-                @*<img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">*@
-            </div>
-            <div style="text-align: center; margin-top:8px">
-                @* @ThongTin_BG.HoVaTen *@
-            </div>
+
+            @for (int i = 0; i < Model.NguoiNhan.Count; i += 2)
+            {
+                <div style="display: flex; width: 100%;">
+                    @for (int j = i; j < i + 2 && j < Model.NguoiNhan.Count; j++)
+                    {
+                        var nguoi = Model.NguoiNhan[j];
+                        <div style="width: 50%; text-align: center; padding: 10px;">
+                            <div style="padding-bottom: 6px;">
+                                @if (!string.IsNullOrEmpty(nguoi.ChuKy))
+                                {
+                                    var urlChuKy = "https://report.hoaphatdungquat.vn" + nguoi.ChuKy;
+                                    <img src="@urlChuKy" alt="Chữ ký" height="50" />
+                                }
+                                else
+                                {
+                                    <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="Logo" height="50" />
+                                }
+                            </div>
+                            <div style="font-weight: bold;">
+                                @nguoi.HoVaTen
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
+
+        
         <div class="col-xxl-4 col-md-4" style="width: 50%;font-weight:bold;font-size:20px">
 
             <div style="text-align: center; padding-top:8px;">
