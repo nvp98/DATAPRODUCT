@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using Data_Product.Models;
 using Newtonsoft.Json;
 
 namespace Data_Product.DTO.BM_16_DTO
@@ -20,6 +21,20 @@ namespace Data_Product.DTO.BM_16_DTO
         public string? TenCa { get; set; }
         public string? TenLoCao { get; set; } 
         public String? ThoiGianTao { get; set; }
+    }
+    public class BBGN_GangLong_ViewModel
+    {
+        public List<Tbl_BM_16_GangLong> DanhSachGangLong { get; set; }
+        public List<NguoiInfo> NguoiChuyen { get; set; }
+        public List<NguoiInfo> NguoiNhan { get; set; }
+    }
+
+    public class NguoiInfo
+    {
+        public string HoVaTen { get; set; }
+        public string TenViTri { get; set; }
+        public string TenPhongBan { get; set; }
+        public string ChuKy { get; set; }
     }
 
 

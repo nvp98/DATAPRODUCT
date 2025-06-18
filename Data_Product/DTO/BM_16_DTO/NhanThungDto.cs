@@ -19,4 +19,21 @@
         public int? T_ID_TrangThai { get; set; }
         public int? ID_LoCao { get; set; }
     }
+
+
+    public class ChuyenThungReq
+    {
+        public string? MaPhieu { get; set; }
+        public List<ThungGangDto>? DsMaThung { get; set; } 
+    }
+    public class XoaSoMeRequest
+    {
+        public string MaPhieu { get; set; }
+        public List<string> SoMes { get; set; }
+    }
+    public class CapNhatRequest
+    {
+        public string MaPhieu { get; set; }
+        public List<ThungGangDto> DsMaThung { get; set; }
+    }
 }

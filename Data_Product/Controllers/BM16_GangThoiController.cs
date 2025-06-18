@@ -282,7 +282,7 @@ namespace Data_Product.Controllers
 
                 int nextPhieu = maxIndex + 1;
 
-                var maPhieu = "GL" + "-" + "LG" + "-" + "LC" + model.ID_Locao + cakip + DateTime.Today.ToString("yyMMdd") + nextPhieu.ToString("D4")
+                var maPhieu = "GL" + "-" + "LG" + "-" + "L" + model.ID_Locao + cakip + DateTime.Today.ToString("yyMMdd") + nextPhieu.ToString("D4")
                 ;
 
                 var phieu = new Tbl_BM_16_Phieu
@@ -326,14 +326,14 @@ namespace Data_Product.Controllers
                         ChuyenDen = thung.ChuyenDen ?? "",
                         Gio_NM = thung.Gio_NM,
                         G_GhiChu = thung.G_GhiChu,
-                        G_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 1,
+                        G_ID_TrangThai = 1/* (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 1*/,
                         NgayTao = DateTime.Now,
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = model.ID_Locao,
                         G_ID_Kip = model.ID_Kip,
                         G_Ca = soCa,
-                        T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2,
-                        ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 2 : 1,
+                        T_ID_TrangThai = 2 /*(chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2*/,
+                        ID_TrangThai = 1/* (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 2 : 1*/,
                         T_copy = false,
                     };
 
@@ -369,24 +369,26 @@ namespace Data_Product.Controllers
                 .ToListAsync();
             // Lấy danh sách user nhận thùng và join
             var thungUserList = await _context.Tbl_BM_16_TaiKhoan_Thung
+                .Where(tk => tk.MaPhieu == id) // Lọc trước theo phiếu đang xử lý
                 .Join(_context.Tbl_TaiKhoan,
-                      thung => thung.ID_taiKhoan,
+                      tk => tk.ID_taiKhoan,
                       user => user.ID_TaiKhoan,
-                      (thung, user) => new
+                      (tk, user) => new
                       {
-                          thung.MaThungGang,
+                          tk.MaThungGang,
                           user.HoVaTen,
                           user.ID_PhongBan
                       })
                 .Join(_context.Tbl_PhongBan,
-                    temp => temp.ID_PhongBan,
-                    phongban => phongban.ID_PhongBan,
-                    (temp, phongban) => new
-                    {
-                        temp.MaThungGang,
-                        HoVaTen = $"{temp.HoVaTen} - {phongban.TenNgan}"
-                    })
+                      temp => temp.ID_PhongBan,
+                      pb => pb.ID_PhongBan,
+                      (temp, pb) => new
+                      {
+                          temp.MaThungGang,
+                          HoVaTen = $"{temp.HoVaTen} - {pb.TenNgan}"
+                      })
                 .ToListAsync();
+
 
             // Gom nhóm theo MaThungGang, nhóm tiếp theo theo tên user đếm số lần nhận
             var userStats = thungUserList
@@ -417,8 +419,35 @@ namespace Data_Product.Controllers
                 GhiChu = t.G_GhiChu,
                 DaChuyen = t.G_ID_TrangThai==1, 
                 TrangThai = t.ID_TrangThai,
-                NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>()
-            }).ToList();
+                NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>(),
+
+                   // Dùng để sort:
+                MaThungPrefix = t.MaThungGang.Split('.')[0],
+                MaThungSuffix = int.Parse(t.MaThungGang.Split('.')[1])
+            }).OrderBy(x => x.MaThungPrefix)
+                .ThenBy(x => x.MaThungSuffix)
+                .Select(x => new
+                {
+                    x.MaThung,
+                    x.SoMe,
+                    x.ThuTuThung,
+                    x.GioNhaMay,
+                    x.PhanLoai,
+                    x.KL_XeGoong,
+                    x.KL_Thung,
+                    x.KL_Thung_GangLong,
+                    x.KL_GangLong_CanRay,
+                    x.DenHRC1,
+                    x.DenHRC2,
+                    x.DenDuc1,
+                    x.DenDuc2,
+                    x.GioNM,
+                    x.GhiChu,
+                    x.DaChuyen,
+                    x.TrangThai,
+                    x.NguoiNhanList
+                })
+                .ToList();
 
             ViewBag.DanhSachThung = viewData;
 
@@ -434,15 +463,25 @@ namespace Data_Product.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Chuyenthung([FromBody] List<string> dsthung)
+        public async Task<IActionResult> Chuyenthung([FromBody] ChuyenThungReq req)
         {
             try 
-            { 
-                if (dsthung == null || !dsthung.Any())
+            {
+                if (req == null || string.IsNullOrEmpty(req.MaPhieu) || req.DsMaThung == null || !req.DsMaThung.Any())
                 {
-                   return Json(new { success = false, message = "Vui lòng chọn ít nhất một thùng" });
+                    return Json(new { success = false, message = "Thiếu thông tin mã phiếu hoặc danh sách thùng." });
                 }
-                var thungs = await _context.Tbl_BM_16_GangLong.Where(t=> dsthung.Contains(t.MaThungGang)).ToListAsync();
+                //var thungs = await _context.Tbl_BM_16_GangLong.Where(t=> dsthung.Contains(t.MaThungGang)).ToListAsync();
+                // var thungs = await _context.Tbl_BM_16_GangLong.Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang));
+                //var thungs = await _context.Tbl_BM_16_GangLong
+                // .Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang))
+                // .ToListAsync();
+                var maThungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
+
+                var thungs = await _context.Tbl_BM_16_GangLong
+                    .Where(t => t.MaPhieu == req.MaPhieu && maThungList.Contains(t.MaThungGang))
+                    .ToListAsync();
+
                 if (!thungs.Any())
                 {
                     return Json(new { success = false, message = "Không tìm thấy thùng nào" });
@@ -466,9 +505,15 @@ namespace Data_Product.Controllers
 
                 foreach (var thung in thungs)
                 {
+                    var dto = req.DsMaThung.FirstOrDefault(x => x.MaThungGang == thung.MaThungGang);
+                    var chuyenDen = dto?.ChuyenDen ?? "";
+
+                    bool isDuc = chuyenDen.Contains("DUC1") || chuyenDen.Contains("DUC2");
+
                     thung.G_ID_TrangThai = 3; // Đã chuyển
                     thung.G_ID_NguoiChuyen = idNhanVienChuyen;
                     thung.ID_TrangThai = 2;
+                    thung.T_ID_TrangThai = isDuc ? 4 : 2;
                     //thung.Gio_NM = DateTime.Now.ToString("HH:mm");
                     //thung.NgayTao = DateTime.Now;
                 }
@@ -487,18 +532,21 @@ namespace Data_Product.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult>ThuHoiThung([FromBody] List<string> dsthuhoi)
+        public async Task<IActionResult>ThuHoiThung([FromBody] ChuyenThungReq req)
         {
             try
             { //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
-                if (dsthuhoi == null || !dsthuhoi.Any())
+                if (req == null || string.IsNullOrEmpty(req.MaPhieu) || req.DsMaThung == null || !req.DsMaThung.Any())
                 {
-                    return Json(new { success = false, message = "Vui lòng chọn ít nhất một thùng" });
+                    return Json(new { success = false, message = "Thiếu thông tin mã phiếu hoặc danh sách thùng." });
                 }
-                var thungs = await _context.Tbl_BM_16_GangLong.Where( t => dsthuhoi.Contains(t.MaThungGang) 
-                && t.G_ID_TrangThai == 3 
-                && t.T_ID_TrangThai == 2 
-                && t.ID_TrangThai == 2).ToListAsync();
+                var mathungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
+
+                var thungs = await _context.Tbl_BM_16_GangLong.Where(x=> x.MaPhieu == req.MaPhieu 
+                && mathungList.Contains(x.MaThungGang)
+                && x.G_ID_TrangThai == 3 
+                && (x.T_ID_TrangThai == 2 || x.T_ID_TrangThai==4 )
+                && x.ID_TrangThai == 2).ToListAsync();
 
                 if (!thungs.Any())
                 {
@@ -605,7 +653,12 @@ namespace Data_Product.Controllers
                 foreach (var item in req.DanhSachThung)
                 {
                     var chuyenDen = item.ChuyenDen ?? "";
+                    var tenCaStr = await _context.Tbl_Kip
+                   .Where(k => k.ID_Kip == req.ID_Kip)
+                   .Select(k => k.TenCa)   // kiểu string
+                   .FirstOrDefaultAsync();
 
+                    int? soCa = int.TryParse(tenCaStr, out int result) ? result : null;
                     var gangThoi = new Tbl_BM_16_GangLong
                     {
                         MaPhieu = req.MaPhieu,
@@ -620,15 +673,16 @@ namespace Data_Product.Controllers
                         G_KLThungVaGang = item.G_KLThungVaGang,
                         G_KLGangLong = item.G_KLGangLong,
                         ChuyenDen = item.ChuyenDen ?? "",
-                        Gio_NM = DateTime.Now.ToString("HH:mm"),
+                        Gio_NM =    item.Gio_NM,
                         G_GhiChu = item.G_GhiChu,
-                        G_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 2 : 1,
+                        G_ID_TrangThai = 1,
                         NgayTao = DateTime.Now,
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = req.ID_Locao,
                         G_ID_Kip = req.ID_Kip,
                         T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 2,
                         //T_ID_TrangThai = 2,
+                        G_Ca = soCa,
                         ID_TrangThai = 1,
                         T_copy = false,
                     };
@@ -644,24 +698,29 @@ namespace Data_Product.Controllers
             return Json(new { success = true, });
         }
         [HttpPost]
-        public async Task <IActionResult> CapNhatThungChuaChuyen([FromBody] List<ThungGangDto> danhSach)
+        public async Task <IActionResult> CapNhatThungChuaChuyen([FromBody] CapNhatRequest req)
         {
-            if (danhSach == null || !danhSach.Any())
+            if (req == null || string.IsNullOrEmpty(req.MaPhieu) || req.DsMaThung == null || !req.DsMaThung.Any())
+            {
                 return BadRequest("Danh sách cập nhật rỗng.");
+            }
             //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
-            foreach (var item in danhSach)
+            foreach (var item in req.DsMaThung)
             {
                 var thung =  _context.Tbl_BM_16_GangLong
-                    .FirstOrDefault(x => x.MaThungGang == item.MaThungGang && x.BKMIS_SoMe == item.BKMIS_SoMe
+                    .FirstOrDefault(x => x.MaPhieu == req.MaPhieu 
+                        && x.MaThungGang == item.MaThungGang 
+                        && x.BKMIS_SoMe == item.BKMIS_SoMe
                         && x.G_ID_TrangThai == 1
                         && (x.ID_TrangThai == 1 || x.ID_TrangThai == 2) ) ;
 
                 if (thung != null)
                 {
                     thung.BKMIS_PhanLoai = item.BKMIS_PhanLoai;
-                    thung.BKMIS_Gio = item.BKMIS_Gio;
+                    thung.BKMIS_Gio = item.BKMIS_Gio?.Replace("H", ":");
                     thung.BKMIS_SoMe = item.BKMIS_SoMe;
-                    thung.BKMIS_ThungSo = item.BKMIS_ThungSo;
+                    thung.BKMIS_ThungSo = !string.IsNullOrEmpty(item.BKMIS_SoMe) && item.BKMIS_SoMe.Length >= 2
+                    ? item.BKMIS_SoMe.Substring(item.BKMIS_SoMe.Length - 2): null;
                 }
             }
 
@@ -671,9 +730,9 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> XoaNhungSoMeKhongConTrongBK([FromBody] List<string> soMeCanXoa)
+        public async Task<IActionResult> XoaNhungSoMeKhongConTrongBK([FromBody] XoaSoMeRequest req)
         {
-            if (soMeCanXoa == null || !soMeCanXoa.Any())
+            if (req == null || string.IsNullOrEmpty(req.MaPhieu) ||req.SoMes == null || !req.SoMes.Any())
             {
                 return BadRequest("Danh sách số mẻ cần xóa bị trống.");
             }
@@ -681,9 +740,10 @@ namespace Data_Product.Controllers
             try
             {
                 var thungCanXoa = await _context.Tbl_BM_16_GangLong
-                    .Where(x => soMeCanXoa.Contains(x.BKMIS_SoMe) && x.G_ID_TrangThai == 1 || x.ID_TrangThai == 1)
-                    .ToListAsync();
-
+                     .Where(x => x.MaPhieu == req.MaPhieu &&
+                                 req.SoMes.Contains(x.BKMIS_SoMe) &&
+                                 (x.G_ID_TrangThai == 1 || x.ID_TrangThai == 1))
+                     .ToListAsync();
                 if (thungCanXoa.Any())
                 {
                     _context.Tbl_BM_16_GangLong.RemoveRange(thungCanXoa);
@@ -728,7 +788,22 @@ namespace Data_Product.Controllers
         {
             try
             {
-                var dsachthung = await _context.Tbl_BM_16_GangLong.Where(g => g.MaPhieu == MaPhieu && g.T_copy == false).ToListAsync();
+                var danhSachRaw = await _context.Tbl_BM_16_GangLong
+                .Where(g => g.MaPhieu == MaPhieu && g.T_copy == false)
+                .ToListAsync();
+
+                var dsachthung = danhSachRaw
+                    .Select(t => new
+                    {
+                        Thung = t,
+                        MaThungPrefix = t.MaThungGang.Split('.')[0],
+                        MaThungSuffix = int.Parse(t.MaThungGang.Split('.')[1])
+                    })
+                    .OrderBy(x => x.MaThungPrefix)
+                    .ThenBy(x => x.MaThungSuffix)
+                    .Select(x => x.Thung)
+                    .ToList();
+
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "template_QTGNGL.xlsx");
                 using (var ms = new MemoryStream())
                 {
@@ -931,14 +1006,104 @@ namespace Data_Product.Controllers
         {
             try
             {
-                var data = await _context.Tbl_BM_16_GangLong.Where(x=> x.MaPhieu == MaPhieu && x.ID_TrangThai == 5 ).ToListAsync();
+                var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                var TaiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == TenTaiKhoan);
+                if (TaiKhoan == null) return BadRequest("Tài khoản không tồn tại.");
+
+                var PhongBan = await _context.Tbl_PhongBan
+                    .Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan)
+                    .Select(x => x.TenNgan)
+                    .FirstOrDefaultAsync();
+
+                if (string.IsNullOrEmpty(PhongBan)) return BadRequest("Không có phòng ban.");
+
+                var data = await _context.Tbl_BM_16_GangLong
+                    .Where(x => x.MaPhieu == MaPhieu && x.ID_TrangThai == 5)
+                    .ToListAsync();
 
                 if (data == null || !data.Any())
                     return BadRequest("Danh sách trống.");
 
+                // Join dữ liệu người chuyển
+                var chiTietGangLong = (from thung in data
+                                       join user in _context.Tbl_TaiKhoan on thung.G_ID_NguoiChuyen equals user.ID_TaiKhoan into g_user
+                                       from user in g_user.DefaultIfEmpty()
+                                       join phongBan in _context.Tbl_PhongBan on user.ID_PhongBan equals phongBan.ID_PhongBan into g_phongBan
+                                       from phongBan in g_phongBan.DefaultIfEmpty()
+                                       join vitri in _context.Tbl_ViTri on user.ID_ChucVu equals vitri.ID_ViTri into g_vitri
+                                       from vitri in g_vitri.DefaultIfEmpty()
+                                       select new Tbl_BM_16_GangLong
+                                       {
+                                           ID = thung.ID,
+                                           BKMIS_SoMe = thung.BKMIS_SoMe,
+                                           BKMIS_Gio = thung.BKMIS_Gio,
+                                           BKMIS_PhanLoai = thung.BKMIS_PhanLoai,
+                                           MaThungThep = thung.MaThungThep,
+                                           BKMIS_ThungSo = thung.BKMIS_ThungSo,
+                                           NgayLuyenThep = thung.NgayLuyenThep,
+                                           ChuyenDen = thung.ChuyenDen,
+                                           KL_XeGoong = thung.KL_XeGoong,
+                                           T_ID_TrangThai = thung.T_ID_TrangThai,
+                                           T_KLThungVaGang = thung.T_KLThungVaGang,
+                                           T_KLThungChua = thung.T_KLThungChua,
+                                           T_KLGangLong = thung.T_KLGangLong,
+                                           ThungTrungGian = thung.ThungTrungGian,
+                                           T_KLThungVaGang_Thoi = thung.T_KLThungVaGang_Thoi,
+                                           T_KLThungChua_Thoi = thung.T_KLThungChua_Thoi,
+                                           T_KLGangLongThoi = thung.T_KLGangLongThoi,
+                                           T_GhiChu = thung.T_GhiChu,
+                                           ID_Locao = thung.ID_Locao,
+                                           ID_TrangThai = thung.ID_TrangThai,
+                                           TrangThai = thung.TrangThai,
+                                           MaMeThoi = thung.MaMeThoi,
+                                           T_KL_phe = thung.T_KL_phe,
+                                           Gio_NM = thung.Gio_NM,
+                                           T_Ca = thung.T_Ca,
+                                           T_TenKip = thung.T_TenKip,
 
-                // 1. Render Razor View thành chuỗi HTML
-                string html = await RenderViewToStringAsync("BBGN_Gang_PDF", data);
+                                           // Thông tin người chuyển
+                                           HoVaTen = user?.HoVaTen ?? "",
+                                           TenTaiKhoan = user?.TenTaiKhoan ?? "",
+                                           TenPhongBan = phongBan?.TenNgan ?? "",
+                                           ChuKy = user?.ChuKy ?? "",
+                                           TenViTri = vitri?.TenViTri ?? ""
+                                       }).ToList();
+
+                // Người nhận (dạng group)
+                var nguoiNhanList = (from tkThung in _context.Tbl_BM_16_TaiKhoan_Thung
+                                     join user in _context.Tbl_TaiKhoan on tkThung.ID_taiKhoan equals user.ID_TaiKhoan
+                                     join pb in _context.Tbl_PhongBan on user.ID_PhongBan equals pb.ID_PhongBan into g_pb
+                                     from pb in g_pb.DefaultIfEmpty()
+                                     join vt in _context.Tbl_ViTri on user.ID_ChucVu equals vt.ID_ViTri into g_vt
+                                     from vt in g_vt.DefaultIfEmpty()
+                                     where tkThung.MaPhieu == MaPhieu //&& tkThung.MaThungGang
+                                     select new NguoiInfo
+                                     {
+                                         HoVaTen = user.HoVaTen,
+                                         TenPhongBan = pb != null ? pb.TenNgan : "",
+                                         TenViTri = vt != null ? vt.TenViTri : "",
+                                         ChuKy = user.ChuKy
+                                     }).Distinct().ToList();
+
+
+                // Chuẩn bị ViewModel
+                var viewModel = new BBGN_GangLong_ViewModel
+                {
+                    DanhSachGangLong = chiTietGangLong,
+                    NguoiChuyen = chiTietGangLong
+                    .Select(x => new NguoiInfo
+                    {
+                        HoVaTen = x.HoVaTen,
+                        TenPhongBan = x.TenPhongBan,
+                        TenViTri = x.TenViTri,
+                        ChuKy = x.ChuKy
+                    }).Distinct().ToList(),
+
+                    NguoiNhan = nguoiNhanList
+                };
+
+                // Render View -> HTML
+                string html = await RenderViewToStringAsync("BBGN_Gang_PDF", viewModel);
 
 
                 // 2. Chuyển đổi HTML sang PDF
