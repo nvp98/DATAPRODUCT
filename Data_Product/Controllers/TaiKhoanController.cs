@@ -660,10 +660,11 @@ namespace Data_Product.Controllers
                 var worksheet = workbook.Worksheets.Add("TaiKhoan");
                 //Header
                 worksheet.Cell(1, 1).Value = "STT";
-                worksheet.Cell(1, 2).Value = "Họ và tên";
-                worksheet.Cell(1, 3).Value = "Phòng Ban";
-                worksheet.Cell(1, 4).Value = "Chức vụ";
-                worksheet.Cell(1, 5).Value = "Quyền đăng nhập";
+                worksheet.Cell(1, 2).Value = "Mã nhân viên";
+                worksheet.Cell(1, 3).Value = "Họ và tên";
+                worksheet.Cell(1, 4).Value = "Phòng Ban";
+                worksheet.Cell(1, 5).Value = "Chức vụ";
+                worksheet.Cell(1, 6).Value = "Quyền đăng nhập";
                 //value
                 //worksheet.Cell(2, 1).Value = 1;
                 //worksheet.Cell(2, 2).Value = "John Doe";
@@ -672,10 +673,11 @@ namespace Data_Product.Controllers
                 foreach (var item in TaiKhoan)
                 {
                     worksheet.Cell(row, 1).Value = stt;
-                    worksheet.Cell(row, 2).Value = item.HoVaTen;
-                    worksheet.Cell(row, 3).Value = item.TenPhongBan;
-                    worksheet.Cell(row, 4).Value = item.TenChucVu;
-                    worksheet.Cell(row, 5).Value = item.TenQuyen;
+                    worksheet.Cell(row, 2).Value = item.TenTaiKhoan;
+                    worksheet.Cell(row, 3).Value = item.HoVaTen;
+                    worksheet.Cell(row, 4).Value = item.TenPhongBan;
+                    worksheet.Cell(row, 5).Value = item.TenChucVu;
+                    worksheet.Cell(row, 6).Value = item.TenQuyen;
                     row++;stt++;
                 }
 
