@@ -146,5 +146,7 @@ namespace Data_Product.Models
 
         [NotMapped]
         public string TenViTri { get; set; }
+
+        public int? ID_TTG { get; set; }
     }
 }

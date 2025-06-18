@@ -189,7 +189,7 @@ namespace Data_Product.Controllers
                              join phongban in _context.Tbl_PhongBan on user.ID_PhongBan equals phongban.ID_PhongBan into g_phongban
                              from phongban in g_phongban.DefaultIfEmpty()
 
-                             orderby a.MaThungGang, a.MaThungThep
+                             orderby a.NgayTao descending, a.MaThungGang, a.MaThungThep
                              select new Tbl_BM_16_GangLong
                              {
                                  ID = a.ID,

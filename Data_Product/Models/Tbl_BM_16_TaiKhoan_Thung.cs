@@ -6,5 +6,6 @@
         public int ID_taiKhoan { get; set; }
         public string MaThungGang { get; set; }
         public string MaThungThep { get; set; }
+        public string MaPhieu { get; set; }
     }
 }
