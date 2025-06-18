@@ -7,6 +7,7 @@
         public int idCa { get; set; }
         public int idLoThoi { get; set; }
         public int idNguoiNhan { get; set; }
+        public string thungTrungGian { get; set; }
     }
 
     public class ThungNhanResultDto

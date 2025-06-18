@@ -41,5 +41,6 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_BM_16_TaiKhoan_Thung> Tbl_BM_16_TaiKhoan_Thung { get; set; }
         public DbSet<Tbl_Counter_MeThoi> Tbl_Counter_MeThoi { get; set; }
         public DbSet<Tbl_XeGoong> Tbl_XeGoong { get; set; } 
+        public DbSet<Tbl_BM_16_ThungTrungGian> Tbl_BM_16_ThungTrungGian { get; set; }
     }
 }
