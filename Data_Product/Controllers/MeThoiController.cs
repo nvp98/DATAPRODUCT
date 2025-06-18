@@ -27,7 +27,7 @@ namespace Data_Product.Controllers
         {
             var currentYear = DateTime.Now.Year;
             var result = await _context.Tbl_MeThoi
-                .Where(x => x.NgayTao.Year == currentYear && x.ID_LoThoi == id_LoThoi && x.ID_TrangThai == (int)TinhTrang.ChoXuLy)
+                .Where(x => x.NgayTao.Year == currentYear && x.ID_LoThoi == id_LoThoi && x.ID_TrangThai == (int)TinhTrang.ChoXuLy && x.Is_Delete == false)
                 .ToListAsync();
 
             return Ok(result);
