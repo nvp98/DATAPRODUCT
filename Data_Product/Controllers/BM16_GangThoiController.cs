@@ -472,10 +472,15 @@ namespace Data_Product.Controllers
                     return Json(new { success = false, message = "Thiếu thông tin mã phiếu hoặc danh sách thùng." });
                 }
                 //var thungs = await _context.Tbl_BM_16_GangLong.Where(t=> dsthung.Contains(t.MaThungGang)).ToListAsync();
-               // var thungs = await _context.Tbl_BM_16_GangLong.Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang));
+                // var thungs = await _context.Tbl_BM_16_GangLong.Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang));
+                //var thungs = await _context.Tbl_BM_16_GangLong
+                // .Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang))
+                // .ToListAsync();
+                var maThungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
+
                 var thungs = await _context.Tbl_BM_16_GangLong
-                 .Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang))
-                 .ToListAsync();
+                    .Where(t => t.MaPhieu == req.MaPhieu && maThungList.Contains(t.MaThungGang))
+                    .ToListAsync();
 
                 if (!thungs.Any())
                 {
@@ -500,9 +505,15 @@ namespace Data_Product.Controllers
 
                 foreach (var thung in thungs)
                 {
+                    var dto = req.DsMaThung.FirstOrDefault(x => x.MaThungGang == thung.MaThungGang);
+                    var chuyenDen = dto?.ChuyenDen ?? "";
+
+                    bool isDuc = chuyenDen.Contains("DUC1") || chuyenDen.Contains("DUC2");
+
                     thung.G_ID_TrangThai = 3; // Đã chuyển
                     thung.G_ID_NguoiChuyen = idNhanVienChuyen;
                     thung.ID_TrangThai = 2;
+                    thung.T_ID_TrangThai = isDuc ? 4 : 2;
                     //thung.Gio_NM = DateTime.Now.ToString("HH:mm");
                     //thung.NgayTao = DateTime.Now;
                 }
@@ -529,10 +540,12 @@ namespace Data_Product.Controllers
                 {
                     return Json(new { success = false, message = "Thiếu thông tin mã phiếu hoặc danh sách thùng." });
                 }
+                var mathungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
+
                 var thungs = await _context.Tbl_BM_16_GangLong.Where(x=> x.MaPhieu == req.MaPhieu 
-                && req.DsMaThung.Contains(x.MaThungGang)
+                && mathungList.Contains(x.MaThungGang)
                 && x.G_ID_TrangThai == 3 
-                && x.T_ID_TrangThai == 2 
+                && (x.T_ID_TrangThai == 2 || x.T_ID_TrangThai==4 )
                 && x.ID_TrangThai == 2).ToListAsync();
 
                 if (!thungs.Any())
@@ -685,24 +698,29 @@ namespace Data_Product.Controllers
             return Json(new { success = true, });
         }
         [HttpPost]
-        public async Task <IActionResult> CapNhatThungChuaChuyen([FromBody] List<ThungGangDto> danhSach)
+        public async Task <IActionResult> CapNhatThungChuaChuyen([FromBody] CapNhatRequest req)
         {
-            if (danhSach == null || !danhSach.Any())
+            if (req == null || string.IsNullOrEmpty(req.MaPhieu) || req.DsMaThung == null || !req.DsMaThung.Any())
+            {
                 return BadRequest("Danh sách cập nhật rỗng.");
+            }
             //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
-            foreach (var item in danhSach)
+            foreach (var item in req.DsMaThung)
             {
                 var thung =  _context.Tbl_BM_16_GangLong
-                    .FirstOrDefault(x => x.MaThungGang == item.MaThungGang && x.BKMIS_SoMe == item.BKMIS_SoMe
+                    .FirstOrDefault(x => x.MaPhieu == req.MaPhieu 
+                        && x.MaThungGang == item.MaThungGang 
+                        && x.BKMIS_SoMe == item.BKMIS_SoMe
                         && x.G_ID_TrangThai == 1
                         && (x.ID_TrangThai == 1 || x.ID_TrangThai == 2) ) ;
 
                 if (thung != null)
                 {
                     thung.BKMIS_PhanLoai = item.BKMIS_PhanLoai;
-                    thung.BKMIS_Gio = item.BKMIS_Gio;
+                    thung.BKMIS_Gio = item.BKMIS_Gio?.Replace("H", ":");
                     thung.BKMIS_SoMe = item.BKMIS_SoMe;
-                    thung.BKMIS_ThungSo = item.BKMIS_ThungSo;
+                    thung.BKMIS_ThungSo = !string.IsNullOrEmpty(item.BKMIS_SoMe) && item.BKMIS_SoMe.Length >= 2
+                    ? item.BKMIS_SoMe.Substring(item.BKMIS_SoMe.Length - 2): null;
                 }
             }
 
@@ -712,9 +730,9 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> XoaNhungSoMeKhongConTrongBK([FromBody] List<string> soMeCanXoa)
+        public async Task<IActionResult> XoaNhungSoMeKhongConTrongBK([FromBody] XoaSoMeRequest req)
         {
-            if (soMeCanXoa == null || !soMeCanXoa.Any())
+            if (req == null || string.IsNullOrEmpty(req.MaPhieu) ||req.SoMes == null || !req.SoMes.Any())
             {
                 return BadRequest("Danh sách số mẻ cần xóa bị trống.");
             }
@@ -722,9 +740,10 @@ namespace Data_Product.Controllers
             try
             {
                 var thungCanXoa = await _context.Tbl_BM_16_GangLong
-                    .Where(x => soMeCanXoa.Contains(x.BKMIS_SoMe) && x.G_ID_TrangThai == 1 || x.ID_TrangThai == 1)
-                    .ToListAsync();
-
+                     .Where(x => x.MaPhieu == req.MaPhieu &&
+                                 req.SoMes.Contains(x.BKMIS_SoMe) &&
+                                 (x.G_ID_TrangThai == 1 || x.ID_TrangThai == 1))
+                     .ToListAsync();
                 if (thungCanXoa.Any())
                 {
                     _context.Tbl_BM_16_GangLong.RemoveRange(thungCanXoa);

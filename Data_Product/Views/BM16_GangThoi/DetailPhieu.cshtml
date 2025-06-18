@@ -374,7 +374,16 @@
 							return false;
 						}
 
-					dsMaThung.push(maThung);
+					if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
+					else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
+					else if (row.find('input[name="VanChuyenDUC1"]').is(':checked')) chuyenDen = "DUC1";
+					else if (row.find('input[name="VanChuyenDUC2"]').is(':checked')) chuyenDen = "DUC2";
+
+
+					dsMaThung.push({
+						MaThungGang:maThung,
+						ChuyenDen:chuyenDen
+					});
 					//selectedIds.push(maThung);
 						// selectedIds.push({
 						// 		maPhieu: maPhieu,
@@ -392,10 +401,10 @@
 				if (confirm(`Bạn có chắc chắn muốn chuyển ${dsMaThung.length} thùng đã chọn?`))
 				{
 					const requestData = {
-						maPhieu: maPhieu,
-						dsMaThung: dsMaThung
+						MaPhieu: maPhieu,
+						DsMaThung: dsMaThung
 					};
-					//console.log('requestData',requestData)
+					console.log('requestData',requestData)
 					chuyenThung(requestData);
 				}
 				});
@@ -408,7 +417,16 @@
 				$('.chon-thung-checkbox:checked').each(function () {
 					const row = $(this).closest('tr');
 					const maThung = row.find('td[name="maThung"]').text().trim();
-				selectedMaThungs.push(maThung);
+
+					if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
+					else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
+					else if (row.find('input[name="VanChuyenDUC1"]').is(':checked')) chuyenDen = "DUC1";
+					else if (row.find('input[name="VanChuyenDUC2"]').is(':checked')) chuyenDen = "DUC2";
+
+				  selectedMaThungs.push({
+						MaThungGang: maThung,
+						ChuyenDen: chuyenDen
+					});
 				});
 
 				if (selectedMaThungs.length === 0)
@@ -420,8 +438,8 @@
 				if (confirm(`Bạn có chắc chắn muốn thu hồi ${selectedMaThungs.length} thùng đã chọn?`))
 				{
 					const requestData = {
-						maPhieu: maPhieu,
-						dsMaThung: selectedMaThungs
+						MaPhieu: maPhieu,
+						DsMaThung: selectedMaThungs
 					};
 					//console.log('====thu hoi===',requestData)
 					thuHoiThung(requestData);
@@ -610,7 +628,7 @@
 				let lastIndex = getLastThungIndex();
 				let updateList = [];
 				let listSoMeHienTai = soMeHienTai.map(x => x.soMe);
-
+				console.log('soMeHienTai',soMeHienTai)
 			$.ajax({
 				url: "/BM16_GangThoi/GetSoMeGangBKMis",
 				type: "GET",
@@ -618,7 +636,8 @@
 				success: function (data) {
 					let soMeMoi = data.map(item => item.testPatternCode || "");
 					let soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
-
+					console.log('soMeMoi',soMeMoi)
+					console.log('soMeCanXoa',soMeCanXoa)
 					// Xử lý khối lượng xe goòng trước khi thêm mẻ mới
 					$.ajax({
 						url: "/XeGoong/KLXeLoCao",
@@ -629,9 +648,10 @@
 
 							data.forEach(item => {
 								let soMe = item.testPatternCode || "";
-								let matched = soMeHienTai.find(x => x.soMe === soMe);
-
-								if (!matched) {
+								//let matched = soMeHienTai.find(x => x.soMe === soMe);
+								let allMatched = soMeHienTai.filter(x => x.soMe === soMe);
+								//console.log('matched:', matched);
+								if (allMatched.length === 0) {
 									lastIndex++;
 									let maThung = generateMaThung(ngay, idLoCao, idKip, lastIndex);
 									let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
@@ -666,25 +686,34 @@
 									tableBody.append(row);
 								} else {
 
-									if (matched.tinhTrang === "Chưa chuyển" && (matched.chotThung === "Chưa chuyển"|| matched.chotThung === "Chờ xử lý"))
-									{
+									allMatched.forEach(matched => {
+									if (matched.tinhTrang === "Chưa chuyển" &&
+										(matched.chotThung === "Chưa chuyển" || matched.chotThung === "Chờ xử lý")) {
+
 										updateList.push({
-												MaThungGang: matched.maThung,
-												BKMIS_SoMe: soMe,
-												BKMIS_PhanLoai: item.classifyName || "",
-												BKMIS_Gio: item.patterntime || ""
+											MaThungGang: matched.maThung,
+											BKMIS_SoMe: soMe,
+											BKMIS_PhanLoai: item.classifyName || "",
+											BKMIS_Gio: item.patterntime || ""
 										});
 									}
+								});
 								}
 							});
 
 								// Gửi mẻ cần cập nhật
 							if (updateList.length > 0) {
+								const maPhieu = $('#PhieuID').val()?.trim();
+									const requestData = {
+										maPhieu: maPhieu,
+										DsMaThung: updateList
+									};
+									console.log('requestDataupdate',requestData)
 								$.ajax({
 									url: "/BM16_GangThoi/CapNhatThungChuaChuyen",
 									type: "POST",
 									contentType: "application/json",
-									data: JSON.stringify(updateList),
+									data: JSON.stringify(requestData),
 									success: function () {
 										alert("Đã cập nhật thùng chưa chuyển & chưa chốt.");
 									},
@@ -696,11 +725,17 @@
 
 							// Gửi mẻ cần xóa
 							if (soMeCanXoa.length > 0) {
+								const maPhieu = $('#PhieuID').val()?.trim();
+									const requestData = {
+										maPhieu: maPhieu,
+										soMes: soMeCanXoa
+									};
+						console.log('requestData',requestData)
 								$.ajax({
 									url: "/BM16_GangThoi/XoaNhungSoMeKhongConTrongBK",
 									type: "POST",
 									contentType: "application/json",
-									data: JSON.stringify(soMeCanXoa),
+									data: JSON.stringify(requestData),
 									success: function () {
 										alert(" Đã xóa các số mẻ không còn trong danh sách mới.");
 										// Xóa dòng tương ứng trên UI

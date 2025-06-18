@@ -24,7 +24,16 @@
     public class ChuyenThungReq
     {
         public string? MaPhieu { get; set; }
-        public List<string>? DsMaThung { get; set; } 
+        public List<ThungGangDto>? DsMaThung { get; set; } 
     }
-    
+    public class XoaSoMeRequest
+    {
+        public string MaPhieu { get; set; }
+        public List<string> SoMes { get; set; }
+    }
+    public class CapNhatRequest
+    {
+        public string MaPhieu { get; set; }
+        public List<ThungGangDto> DsMaThung { get; set; }
+    }
 }
