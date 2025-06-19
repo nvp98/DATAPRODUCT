@@ -67,9 +67,9 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive" style="height: 550px;">
-                            <table class="table table-bordered table-hover" id="table" cellpadding="0">
-                                <thead style="height: 60px;font-size: 14px;">
+                        <div class="table-responsive" style="height: 600px;">
+                            <table class="table table-bordered table-hover table-sm" id="table" cellpadding="0">
+                                <thead style="font-size: 14px;">
                                     <tr>
                                         <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
                                         @if (@ViewBag.TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || @ViewBag.TaiKhoan.ID_Quyen == 1)
@@ -173,19 +173,49 @@
                                             @if (item.TinhTrang == 0)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-warning" style="width: 150px;">
+                                                    <button type="button" class="btn btn-sm btn-warning" style="width: 150px;">
                                                         <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đang lưu
+                                                            Đã gửi
                                                         </span>
                                                     </button>
                                                 </td>
                                             }
-                                            else
+                                            else if (item.TinhTrang == 1)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-sm btn-success" style="width: 150px;">
                                                         <span class="small pt-2 ps-1" style="color: white;">
                                                             Hoàn tất
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.TinhTrang == -1)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-sm btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Không xác nhận
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.TinhTrang == 2)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-sm btn-primary" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Đang xóa phiếu
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.TinhTrang == 3)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-sm btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Đã xóa phiếu
                                                         </span>
                                                     </button>
                                                 </td>

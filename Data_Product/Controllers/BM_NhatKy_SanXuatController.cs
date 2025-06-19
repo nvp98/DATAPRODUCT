@@ -39,10 +39,12 @@ namespace Data_Product.Controllers
             int ID_NhanVien_BG = TaiKhoan.ID_TaiKhoan;
             var trangThaiList = new List<SelectListItem>
             {
-                new SelectListItem { Value = "0", Text = "Đang lưu" },
-                new SelectListItem { Value = "1", Text = "Hoàn thành" }
+                new SelectListItem { Value = "-1", Text = "Không xác nhận" },
+                new SelectListItem { Value = "0", Text = "Đã gửi" },
+                new SelectListItem { Value = "1", Text = "Hoàn thành" },
+                new SelectListItem { Value = "2", Text = "Đang xóa phiếu" },
+                new SelectListItem { Value = "3", Text = "Đã xóa phiếu" }
             };
-
             ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
             var res = await(from a in _context.Tbl_NhatKy_SanXuat.Where(x => x.ID_NhanVien_SX == ID_NhanVien_BG && !x.IsDelete)
                             join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan
@@ -74,6 +76,70 @@ namespace Data_Product.Controllers
             return View(data);
         }
 
+        public async Task<IActionResult> Index_BTBD(DateTime? begind, DateTime? endd, int? ID_TrangThai, int page = 1)
+        {
+            DateTime now = DateTime.Now;
+            DateTime startDay = begind ?? new DateTime(now.Year, now.Month, 1);
+            DateTime endDay = endd ?? now;
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+            int ID_NhanVien = TaiKhoan?.ID_TaiKhoan ?? 0;
+
+            var trangThaiList = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "-1", Text = "Không xác nhận" },
+                new SelectListItem { Value = "0", Text = "Đã gửi" },
+                new SelectListItem { Value = "1", Text = "Hoàn thành" },
+                new SelectListItem { Value = "2", Text = "Đang xóa phiếu" },
+                new SelectListItem { Value = "3", Text = "Đã xóa phiếu" }
+            };
+            ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
+
+            // Query gốc, chưa gọi ToListAsync
+            var query = from a in _context.Tbl_NhatKy_SanXuat
+                        join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan
+                        where !a.IsDelete
+                        select new Tbl_NhatKy_SanXuat
+                        {
+                            ID = a.ID,
+                            Ca = a.Ca,
+                            Kip = a.Kip,
+                            NgayDungSX = a.NgayDungSX,
+                            TinhTrang = a.TinhTrang,
+                            SoPhieu = a.SoPhieu,
+                            NgayTao = a.NgayTao,
+                            Tbl_TaiKhoan = b,
+                            IsLock = a.IsLock
+                        };
+
+            // Áp dụng lọc trang thái
+            if (ID_TrangThai != null)
+            {
+                query = query.Where(x => x.TinhTrang == ID_TrangThai);
+            }
+
+            // Lọc theo ngày (nếu có cả 2)
+            query = query.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay);
+
+            // Tổng số dòng
+            int resCount = await query.CountAsync();
+
+            // Phân trang
+            const int pageSize = 20;
+            page = page < 1 ? 1 : page;
+            int recSkip = (page - 1) * pageSize;
+            var pager = new Pager(resCount, page, pageSize);
+
+            var data = await query.OrderBy(x => x.TinhTrang)
+                                  .Skip(recSkip)
+                                  .Take(pager.PageSize)
+                                  .ToListAsync();
+
+            ViewBag.Pager = pager;
+            return View(data);
+        }
+
         public async Task<IActionResult> Index_All(DateTime? begind, DateTime? endd, int? ID_TrangThai, string noidungDung,int? IDPhongBan, int? IDXuong, int? LyDoDung, string? IDCa, int page = 1)
         {
             DateTime Now = DateTime.Now;
@@ -88,10 +154,12 @@ namespace Data_Product.Controllers
             ViewBag.TaiKhoan = TaiKhoan;
             var trangThaiList = new List<SelectListItem>
             {
-                new SelectListItem { Value = "0", Text = "Đang lưu" },
-                new SelectListItem { Value = "1", Text = "Hoàn thành" }
+                new SelectListItem { Value = "-1", Text = "Không xác nhận" },
+                new SelectListItem { Value = "0", Text = "Đã gửi" },
+                new SelectListItem { Value = "1", Text = "Hoàn thành" },
+                new SelectListItem { Value = "2", Text = "Đang xóa phiếu" },
+                new SelectListItem { Value = "3", Text = "Đã xóa phiếu" }
             };
-
             ViewBag.ID_TrangThai = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
 
             var ca = new List<SelectListItem>
@@ -264,11 +332,12 @@ namespace Data_Product.Controllers
                     SoPhieu = soPhieu,
                     IsDelete = false,
                 };
-                if(XacNhan != null)
-                {
-                    NhatKyNew.TinhTrang = 0; // lưu
-                }
-                else NhatKyNew.TinhTrang = 1; // gửi
+                //if(XacNhan != null)
+                //{
+                //    NhatKyNew.TinhTrang = 0; // lưu
+                //}
+                //else NhatKyNew.TinhTrang = 1; // gửi
+                NhatKyNew.TinhTrang = 0; // gửi dữ liệu
                 _context.Tbl_NhatKy_SanXuat.Add(NhatKyNew);
                 _context.SaveChanges();
                 // Danh sach Tbl_NhatKy_SanXuat_ChiTiet
@@ -398,11 +467,12 @@ namespace Data_Product.Controllers
                 //NhatKy.Ca = ID_Kip.TenCa;
                 //NhatKy.Kip = ID_Kip.TenKip;
 
-                if (XacNhan != null)
-                {
-                    NhatKy.TinhTrang = 0; // lưu
-                }
-                else NhatKy.TinhTrang = 1; // gửi
+                //if (XacNhan != null)
+                //{
+                //    NhatKy.TinhTrang = 0; // lưu
+                //}
+                //else NhatKy.TinhTrang = 1; // gửi
+                NhatKy.TinhTrang = 0; // Gửi dữ liệu
                 _context.SaveChanges(); // update Nhật ký
                 // xóa danh sách chitiet cũ 
                 var listchitiet = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == _DO.ID).ToList();
@@ -436,9 +506,7 @@ namespace Data_Product.Controllers
                     _context.SaveChanges();
                 }
                 TempData["msgSuccess"] = "<script>alert('Thêm mới thành công');</script>";
-                if (XacNhan != null)
-                    return RedirectToAction("Edit", "BM_NhatKy_SanXuat", new { IDNKSX = _DO.ID });
-                else return RedirectToAction("View_Details", "BM_NhatKy_SanXuat", new { IDNKSX = _DO.ID });
+                return RedirectToAction("Edit", "BM_NhatKy_SanXuat", new { IDNKSX = _DO.ID });
 
 
             }
@@ -489,7 +557,10 @@ namespace Data_Product.Controllers
             ViewBag.TenKip = res.Kip;
             ViewBag.ID_Day = res.NgayDungSX.ToString("yyyy-MM-dd");
 
-            ViewBag.taikhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x=>x.ID_TaiKhoan == res.ID_NhanVien_SX)?.HoVaTen;
+
+            // Người tạo và phòng ban ghi nhận
+            ViewBag.taikhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.ID_TaiKhoan == res.ID_NhanVien_SX);
+            ViewBag.taikhoanBTBD = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.ID_TaiKhoan == res.ID_NhanVien_BTBD);
             ViewBag.ID_PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x=>x.ID_PhongBan == res.ID_PhongBan_SX)?.TenPhongBan;
 
             TimeSpan tgdungThietbi = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 1).Sum(x => x.ThoiGianDung)??0);
@@ -507,6 +578,73 @@ namespace Data_Product.Controllers
 
             return PartialView(res);
         }
+
+        public async Task<IActionResult> View_BTBD(int IDNKSX)
+        {
+
+            DateTime ngayHienTai = DateTime.Today;
+
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+            var phongBan = await _context.Tbl_PhongBan.FindAsync(taiKhoan?.ID_PhongBan);
+            ViewBag.TenPhongBan = phongBan?.TenNgan ?? "Không xác định";
+
+            // Danh sách phòng ban nếu cần
+            List<Tbl_PhongBan> pb = await _context.Tbl_PhongBan.ToListAsync();
+
+            // Danh sách nhân viên (chỉ ID + Tên hiển thị)
+            var nhanVienList = await _context.Tbl_TaiKhoan
+                .Select(x => new
+                {
+                    x.ID_TaiKhoan,
+                    HoVaTen = x.TenTaiKhoan + " - " + x.HoVaTen
+                }).ToListAsync();
+            ViewBag.IDTaiKhoan = new SelectList(nhanVienList, "ID_TaiKhoan", "HoVaTen");
+
+            // Lấy nhật ký và chi tiết
+            var res = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == IDNKSX);
+            res.NhatKy_SanXuat_ChiTiet = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == IDNKSX).ToList();
+
+            // Ca/kíp trong ngày
+            var caKip = await _context.Tbl_Kip
+                .Where(x => x.NgayLamViec == ngayHienTai)
+                .Select(x => new { x.ID_Kip, x.TenCa })
+                .ToListAsync();
+            ViewBag.TenKip = res?.Kip;
+            ViewBag.ID_Day = res?.NgayDungSX.ToString("yyyy-MM-dd");
+
+            // Người tạo và phòng ban ghi nhận
+            ViewBag.taikhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.ID_TaiKhoan == res.ID_NhanVien_SX);
+            ViewBag.taikhoanBTBD = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.ID_TaiKhoan == res.ID_NhanVien_BTBD);
+
+            ViewBag.ID_PhongBan = await _context.Tbl_PhongBan
+                .Where(x => x.ID_PhongBan == res.ID_PhongBan_SX)
+                .Select(x => x.TenPhongBan)
+                .FirstOrDefaultAsync();
+
+            // Tính thời gian dừng theo từng lý do
+            double SumMinutes(int lyDo) =>
+                res.NhatKy_SanXuat_ChiTiet
+                    .Where(x => x.LyDo_DungThietBi == lyDo)
+                    .Sum(x => (double?)x.ThoiGianDung) ?? 0;
+
+            TimeSpan tgdungThietbi = TimeSpan.FromMinutes(SumMinutes(1));
+            TimeSpan tgdungCongNge = TimeSpan.FromMinutes(SumMinutes(2));
+            TimeSpan DungSuCoCN = TimeSpan.FromMinutes(SumMinutes(3));
+            TimeSpan DungKhachQuan = TimeSpan.FromMinutes(SumMinutes(4));
+            TimeSpan TongTgianDung = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Sum(x => (double?)x.ThoiGianDung) ?? 0);
+
+            // Gán ViewBag theo giờ (2 chữ số sau dấu phẩy)
+            ViewBag.DungThietBi = tgdungThietbi.TotalHours.ToString("F2");
+            ViewBag.DungCongNghe = tgdungCongNge.TotalHours.ToString("F2");
+            ViewBag.DungSuCoCN = DungSuCoCN.TotalHours.ToString("F2");
+            ViewBag.DungKhachQuan = DungKhachQuan.TotalHours.ToString("F2");
+            ViewBag.TongTgianDung = TongTgianDung.TotalHours.ToString("F2");
+
+            return PartialView(res);
+        }
+
         public async Task<IActionResult> ExportToExcel(DateTime? begind, DateTime? endd, string noidungDung, int? ID_TrangThai, int? IDXuong, int? IDPhongBan, int? LyDoDung, string? IDCa)
         {
             try
@@ -676,7 +814,28 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
                         icol++;
-                        Worksheet.Cell(row, icol).Value = item.TinhTrang ==0?"Đang lưu":"Hoàn tất";
+                        string tinhtrang="";
+                        if(item.TinhTrang == -1)
+                        {
+                            tinhtrang = "Không xác nhận";
+                        }
+                        else if (item.TinhTrang == 1)
+                        {
+                            tinhtrang = "Hoàn tất";
+                        }
+                        else if (item.TinhTrang == 0)
+                        {
+                            tinhtrang = "Đã gửi";
+                        }
+                        else if (item.TinhTrang == 2)
+                        {
+                            tinhtrang = "Yêu cầu xóa";
+                        }
+                        else if (item.TinhTrang == 3)
+                        {
+                            tinhtrang = "Đã xóa phiếu";
+                        }
+                        Worksheet.Cell(row, icol).Value = tinhtrang;
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -867,6 +1026,89 @@ namespace Data_Product.Controllers
             return Json(new { success = true, message = "Mở khóa phiếu thành công " });
 
         }
+
+        [HttpPost]
+        public JsonResult XacNhanPhieu(int id)
+        {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var phieu = _context.Tbl_NhatKy_SanXuat.Find(id);
+            if (phieu == null)
+                return Json(new { success = false, message = "Phiếu không tồn tại" });
+
+            phieu.TinhTrang = 1; // Hoặc trạng thái 'Đã xác nhận'
+            phieu.ID_NhanVien_BTBD = TaiKhoan.ID_TaiKhoan;
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Xác nhận thành công!" });
+        }
+
+        [HttpPost]
+        public JsonResult TuChoiPhieu(int id)
+        {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var phieu = _context.Tbl_NhatKy_SanXuat.Find(id);
+            if (phieu == null)
+                return Json(new { success = false, message = "Phiếu không tồn tại" });
+
+            phieu.TinhTrang = -1; // Hoặc trạng thái 'Không xác nhận'
+            phieu.ID_NhanVien_BTBD = TaiKhoan.ID_TaiKhoan;
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Đã từ chối xác nhận!" });
+        }
+
+        [HttpPost]
+        public JsonResult XacNhanXoaPhieu(int id)
+        {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var phieu = _context.Tbl_NhatKy_SanXuat.Find(id);
+            if (phieu == null)
+                return Json(new { success = false, message = "Phiếu không tồn tại" });
+
+            phieu.TinhTrang = 3; // Hoặc trạng thái 'Đã xóa'
+            phieu.ID_NhanVien_BTBD = TaiKhoan.ID_TaiKhoan;
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Xác nhận thành công!" });
+        }
+
+        [HttpPost]
+        public JsonResult TuChoiXoaPhieu(int id)
+        {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var phieu = _context.Tbl_NhatKy_SanXuat.Find(id);
+            if (phieu == null)
+                return Json(new { success = false, message = "Phiếu không tồn tại" });
+
+            phieu.TinhTrang = 1; // quay về hoàn thành
+            phieu.ID_NhanVien_BTBD = TaiKhoan.ID_TaiKhoan;
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Đã từ chối xác nhận!" });
+        }
+
+        [HttpPost]
+        public IActionResult DeleteRequest(int id)
+        {
+            // Xử lý logic gửi yêu cầu xóa:
+            // Ví dụ: Ghi nhận yêu cầu vào bảng log hoặc chuyển trạng thái phiếu
+
+            var phieu = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == id);
+            if (phieu == null)
+            {
+                return NotFound();
+            }
+
+            phieu.TinhTrang = 2; // Ví dụ: cập nhật trạng thái chờ xóa phiếu
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
     }
 }

@@ -9,7 +9,9 @@ using ExcelDataReader;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.DotNet.MSIdentity.Shared;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System.Data;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -55,7 +57,9 @@ namespace Data_Product.Controllers
                                  ChuKy = a.ChuKy,
                                  ID_TrangThai = (int)a.ID_TrangThai,
                                  PhongBan_Them = a.PhongBan_Them,
-                                 Quyen_Them = a.Quyen_Them
+                                 Quyen_Them = a.Quyen_Them,
+                                 PhongBan_API = a.PhongBan_API,
+                                 Xuong_API = a.Xuong_API
                              }).OrderBy(x=>x.TenTaiKhoan).ToListAsync();
 
             if (search != null)
@@ -688,6 +692,71 @@ namespace Data_Product.Controllers
                 return File(stream, System.Net.Mime.MediaTypeNames.Application.Octet, "DanhSachTaiKhoan.xlsx");
             }
 
+        }
+        public async Task<string> CallApiWithTokenAsync(string apiUrl, string token)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                // Gắn token vào header Authorization
+                httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                try
+                {
+                    // Gửi GET request
+                    HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Đọc kết quả trả về dưới dạng chuỗi JSON
+                        string result = await response.Content.ReadAsStringAsync();
+                        return result;
+                    }
+                    else
+                    {
+                        // Xử lý lỗi HTTP
+                        return $"Lỗi: {(int)response.StatusCode} - {response.ReasonPhrase}";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return $"Lỗi Exception: {ex.Message}";
+                }
+            }
+        }
+        public async Task<IActionResult> GoiApi()
+        {
+            try {
+                var danhSachNhanVien = _context.Tbl_TaiKhoan.ToList(); // Entity từ database
+                string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXNfdXNlcl9wayI6IjExNDIzIiwidXNlcm5hbWUiOiJIUERRMTg0NjEiLCJDbGllbnROYW1lIjoiaHBkcSIsIkNsaWVudFBhc3MiOiJIUERRMiIsInJvbGUiOiJBZG1pbmlzdHJhdG9yIiwianRpIjoiYTlkNjI3NzYtN2M1ZC00OGFlLWEzN2QtYjI4MjUxNzJkZjQwIiwibmJmIjoxNzQ4Mzk1NDA1LCJleHAiOjE3NDg0MDk4MDUsImlhdCI6MTc0ODM5NTQwNSwiaXNzIjoiYWRtaW50dnMiLCJhdWQiOiJyZWFkZXJzIn0.b0nNOATMyNOoxQxKFd71qA86KBq0encfN4_GbaR-hPU"; // JWT Token từ login
+                string apiUrl = "https://hr.hoaphatdungquat.vn/hpdq_api/api/HPDQ/GetEmployeeInfo";
+                string result = await CallApiWithTokenAsync(apiUrl, token);
+
+                NhanVienAPI listFromApi = JsonConvert.DeserializeObject<NhanVienAPI>(result);
+                foreach (var nvApi in listFromApi.data)
+                {
+                    var nvDb = danhSachNhanVien.FirstOrDefault(nv => nv.TenTaiKhoan == nvApi.manv);
+                    if (nvDb != null)
+                    {
+                        // Nếu tồn tại thì cập nhật dữ liệu
+                        nvDb.PhongBan_API = nvApi.phongban;
+                        nvDb.Xuong_API = nvApi.phanxuong;
+                        if(nvApi.tinhtranglamviec == 0)
+                        {
+                            nvDb.ID_TrangThai = 0;
+                        }
+                        _context.SaveChanges();
+                    }
+                }
+
+                // Gửi ra View hoặc JSON
+                return Json(new { success = true, message = "Đồng bộ dữ liệu thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi khi đồng bộ dữ liệu! " + ex });
+            }
+           
         }
     }
 }

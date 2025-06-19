@@ -2,6 +2,7 @@
 @*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@using System.Security.Claims;
 @inject Data_Product.Repositorys.DataContext _context
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -29,6 +30,9 @@
         pager = ViewBag.Pager;
         pageNo = pager.CurrentPage;
     }
+
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
 
 }
 <div class="app-main__outer">
@@ -59,6 +63,11 @@
                                         <i></i><span style="color: white;">Import Excel</span>
                                     </span>
                                 </button>
+                                @if (TaiKhoan?.ID_Quyen == 1)
+                                {
+                                    <button class="btn btn-primary" onclick="dongBoDuLieu()">Đồng bộ</button>
+                                }
+                                
                                
                             </div>
                             <div class="col-2" style="text-align: right;padding: 2%  2%  2% 0%; ">
@@ -130,7 +139,10 @@
                                         <th width="30px"    style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên đăng nhập</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Họ và tên</th>
-                                        <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Phòng ban</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Phòng ban</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Phân xưởng</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Phòng ban NS</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Phân xưởng NS</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Chức vụ</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Quyền đăng nhập</th>
                                         <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Phòng ban bổ sung</th>
@@ -157,6 +169,9 @@
                                             <td style="font-size:14px;">@item.TenTaiKhoan </td>
                                             <td style="font-size:14px;">@item.HoVaTen</td>
                                             <td style="font-size:14px;">@item.TenPhongBan</td>
+                                            <td style="font-size:14px;">@item.TenXuong</td>
+                                            <td style="font-size:14px;">@item.PhongBan_API</td>
+                                            <td style="font-size:14px;">@item.Xuong_API</td>
                                             <td style="font-size:14px;">@item.TenChucVu</td>
                                             <td style="font-size:14px;">@item.TenQuyen</td>
                                             <td style="font-size:14px;">@item.PhongBan_Them</td>
@@ -326,4 +341,23 @@
             //paging: false // Tắt phân trang nếu cần
         });
     });
+</script>
+
+<script>
+    function dongBoDuLieu() {
+        if (confirm("Bạn có chắc chắn muốn đồng bộ dữ liệu?")) {
+            $.ajax({
+                url: '/TaiKhoan/GoiApi', // controller/action
+                type: 'POST',
+                data: {}, // nếu cần truyền thêm tham số, thêm ở đây
+                success: function (res) {
+                    alert("Đồng bộ thành công: " + res.message);
+                    location.reload(); // hoặc cập nhật lại giao diện
+                },
+                error: function (err) {
+                    alert("Lỗi đồng bộ: " + err.responseText);
+                }
+            });
+        }
+    }
 </script>

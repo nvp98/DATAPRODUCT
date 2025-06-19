@@ -28,7 +28,7 @@ namespace Data_Product.Controllers
             if (u.TenTaiKhoan != "" && u.MatKhau != "" && u.TenTaiKhoan != null && u.MatKhau != null)
             {
                 string mk = Common.Encryptor.MD5Hash(u.MatKhau);
-                Tbl_TaiKhoan? user = _context.Tbl_TaiKhoan?.Where(x => x.TenTaiKhoan == u.TenTaiKhoan && x.MatKhau == mk)?.FirstOrDefault();
+                Tbl_TaiKhoan? user = _context.Tbl_TaiKhoan?.Where(x => x.TenTaiKhoan == u.TenTaiKhoan && x.MatKhau == mk && x.ID_TrangThai ==1)?.FirstOrDefault();
                 if (user != null)
                 {
                     var identity = new ClaimsIdentity(new[] {

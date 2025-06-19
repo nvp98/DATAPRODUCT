@@ -34,10 +34,6 @@
         pageNo = pager.CurrentPage;
     }
 }
-@{
-    var taiKhoan = ViewBag.taikhoan as Tbl_TaiKhoan;
-    var taiKhoanBTBD = ViewBag.taikhoanBTBD as Tbl_TaiKhoan;
-}
 <style>
     .radio-square {
         -webkit-appearance: none;
@@ -68,17 +64,30 @@
             <div class="row">
                 <div class="card">
                     <div class="row">
-                        <!-- Button gửi yêu cầu xóa phiếu -->
-                        @if (Model.TinhTrang == 1 && Model.ID_NhanVien_SX == taiKhoan.ID_TaiKhoan && Model.IsLock == false)
-                        {
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-danger"
-                                        onclick="requestDelete(@Model.ID)">
-                                    Yêu cầu xóa phiếu
+                        <div class="d-flex gap-2">
+                            @if(Model.TinhTrang == 0)
+                            {
+                                <button class="btn btn-success btn-sm btn-xacnhan" data-id="@Model.ID">
+                                    ✅ Xác nhận
                                 </button>
-                            </div>
-                        }
-                       
+                                <button class="btn btn-danger btn-sm btn-khongxacnhan" data-id="@Model.ID">
+                                    ❌ Không xác nhận
+                                </button>
+                            }
+                            else if(Model.TinhTrang == 2)
+                            {
+                                <button class="btn btn-success btn-sm btn-xacnhanxoa" data-id="@Model.ID">
+                                    ✅ Xác nhận xóa
+                                </button>
+                                <button class="btn btn-danger btn-sm btn-khongxacnhanxoa" data-id="@Model.ID">
+                                    ❌ Không xác nhận xóa
+                                </button>
+                            }
+
+
+                           
+                            
+                        </div>
                     </div>
 
                     <div class="row">
@@ -230,8 +239,10 @@
                                         ĐƠN VỊ BTBD
                                     </b>
                                 </div>
-                              
-                                @if (taiKhoanBTBD != null && Model.TinhTrang == 1)
+                                @{
+                                    var taiKhoanBTBD = ViewBag.taikhoanBTBD as Tbl_TaiKhoan;
+                                }
+                                @if (taiKhoanBTBD != null && Model.TinhTrang ==1)
                                 {
                                     <div style="text-align: center; font-size: 14px; padding:2%;">
                                         @if (taiKhoanBTBD.ChuKy != null)
@@ -270,8 +281,9 @@
                                 else
                                 {
                                     <div style="text-align: center; font-size: 14px;">
+                                       
                                     </div>
-
+                                    
                                 }
                             </div>
                             <div class="col-xxl-6 col-md-6">
@@ -281,18 +293,20 @@
                                         NM.SX
                                     </b>
                                 </div>
-                               
+                                @{
+                                    var taiKhoan = ViewBag.taikhoan as Tbl_TaiKhoan;
+                                }
                                 @if (taiKhoan != null)
                                 {
                                     <div style="text-align: center; font-size: 14px; padding:2%;">
-                                        @if (taiKhoan.ChuKy != null)
-                                        {
-                                            <img src="@taiKhoan.ChuKy" alt="" height="50px">
-                                        }
-                                        else
-                                        {
-                                            <div style="height:50px" class="text-danger">Đã ký<br /> (Chưa có chữ ký)</div>
-                                        }
+                                         @if (taiKhoan.ChuKy != null)
+                                    {
+                                    <img src="@taiKhoan.ChuKy" alt="" height="50px">
+                                    }
+                                    else
+                                    {
+                                    <div style="height:50px" class="text-danger">Đã ký<br /> (Chưa có chữ ký)</div>
+                                    }
                                     </div>
                                     <div style="text-align: center; font-size: 14px;">
                                         <b>
@@ -300,6 +314,7 @@
                                         </b>
                                     </div>
                                 }
+                                
                             </div>
 
                         </div>
@@ -311,21 +326,81 @@
     </div>
 </div>
 <script>
-    function requestDelete(phieuId) {
-        if (confirm("Bạn có chắc chắn muốn gửi yêu cầu xóa phiếu này không?")) {
+    $(document).ready(function () {
+        // Xác nhận
+        $(".btn-xacnhan").click(function () {
+            const id = $(this).data("id");
+            if (confirm("Bạn chắc chắn muốn xác nhận phiếu này?")) {
+                $.ajax({
+                    url: '@Url.Action("XacNhanPhieu", "BM_NhatKy_SanXuat")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (result) {
+                        alert(result.message);
+                        location.reload(); // hoặc cập nhật vùng dữ liệu nếu cần
+                    },
+                    error: function () {
+                        alert("Đã xảy ra lỗi khi xác nhận phiếu.");
+                    }
+                });
+            }
+        });
+
+        // Không xác nhận
+        $(".btn-khongxacnhan").click(function () {
+            const id = $(this).data("id");
+            if (confirm("Bạn muốn từ chối xác nhận phiếu này?")) {
+                $.ajax({
+                    url: '@Url.Action("TuChoiPhieu", "BM_NhatKy_SanXuat")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (result) {
+                        alert(result.message);
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Đã xảy ra lỗi khi từ chối phiếu.");
+                    }
+                });
+            }
+        });
+    });
+    // Xác nhận
+    $(".btn-xacnhanxoa").click(function () {
+        const id = $(this).data("id");
+        if (confirm("Bạn chắc chắn muốn xác nhận xóa phiếu này?")) {
             $.ajax({
-                url: '/BM_NhatKy_SanXuat/DeleteRequest', // Đường dẫn đến action xử lý
+                url: '@Url.Action("XacNhanXoaPhieu", "BM_NhatKy_SanXuat")',
                 type: 'POST',
-                data: { id: phieuId },
+                data: { id: id },
                 success: function (result) {
-                    alert("Đã gửi yêu cầu xóa thành công.");
-                    // Có thể reload trang hoặc ẩn nút đi
-                    location.reload();
+                    alert(result.message);
+                    location.reload(); // hoặc cập nhật vùng dữ liệu nếu cần
                 },
                 error: function () {
-                    alert("Có lỗi xảy ra khi gửi yêu cầu xóa.");
+                    alert("Đã xảy ra lỗi khi xác nhận phiếu.");
                 }
             });
         }
-    }
+    });
+
+    // Không xác nhận
+    $(".btn-khongxacnhanxoa").click(function () {
+        const id = $(this).data("id");
+        if (confirm("Bạn muốn từ chối xóa phiếu này?")) {
+            $.ajax({
+                url: '@Url.Action("TuChoiXoaPhieu", "BM_NhatKy_SanXuat")',
+                type: 'POST',
+                data: { id: id },
+                success: function (result) {
+                    alert(result.message);
+                    location.reload();
+                },
+                error: function () {
+                    alert("Đã xảy ra lỗi khi từ chối phiếu.");
+                }
+            });
+        }
+    });
+ 
 </script>
