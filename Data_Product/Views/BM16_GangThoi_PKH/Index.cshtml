@@ -320,10 +320,12 @@
                             <th>Ca LT</th>
                             <th>Kíp LT</th>
                             <th>Mã thùng thép</th>
+                            <th>KL Gang nhận (T)</th>
                             <th>Lò thổi</th>
                             <th>Thùng trung gian</th>
                             <th>KL thùng & gang lỏng (T)</th>
                             <th>KL thùng (T)</th>
+                            <th>KL phế (T)</th>
                             <th>KL vào lò thổi (T)</th>
                             <th>Mẻ</th>
                             <th>Tình trạng LT</th>
@@ -341,7 +343,11 @@
                             <td id="IDTongKLGangLong" style="font-weight: 600">
                                 0.00
                             </td>
-                            <td colspan="12"></td>
+                            <td colspan="8"></td>
+                            <td id="IDTongKLGangNhan" style="font-weight: 600">
+                                0.00
+                            </td>
+                            <td colspan="5"></td>
                             <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                                 0.00
                             </td>
@@ -428,6 +434,17 @@
           $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
        }
 
+       function TongKLGangNhan(){
+           let total = 0;
+           $("#tblDuLieu .Tong_KLGangNhan").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLGangNhan").text(total.toFixed(2));
+       }
+
         // render card trạng thái
          function renderStatusCard(tinhTrang) {
              const statusMap = {
@@ -464,87 +481,115 @@
         function renderTable(data) {
          const tbody = $('#tblDuLieu tbody');
             tbody.empty();
+
+            if (!data || data.length === 0) {
+                tbody.append(`<tr><td colspan="34" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                         </td></tr>`);
+                return;
+            }
+
+            const groupByTTG = {};      // chứa các group theo ID_TTG
+            const groupedResult = [];   // mảng các group (dạng array)
+
+            data.forEach(item => {
+                if (item.iD_TTG != null) {
+                    const key = item.iD_TTG;
+                    if (!groupByTTG[key]) groupByTTG[key] = [];
+                    groupByTTG[key].push(item);
+                } else {
+                    // nếu không có iD_TTG, coi mỗi thùng là 1 group riêng
+                    groupedResult.push([item]);
+                }
+            });
+
+            // Thêm các group có iD_TTG khác null vào mảng kết quả
+            for (const key in groupByTTG) {
+                groupedResult.push(groupByTTG[key]);
+            }
+            for (const key in groupedResult) {
+                groupedResult[key].sort((a, b) => new Date(a.ngayTao) - new Date(b.ngayTao));
+            }
+
             $("#IDTongKLGangLong").text('0.00');
             $("#IDTongKLVaoLoThoi").text('0.00');
-            if(data.length){
-                data.forEach(item => {
-                const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
+            $("#IDTongKLGangNhan").text('0.00');
+
+            groupedResult.forEach(group => {
+                const rowspan = group.length;
+                let isFirstRow = true;
+
+                group.forEach(item => {
+                   const row = $(`<tr data-id="${item.id}"></tr>`);
+                    const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
                     const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
                     const ngayLG = getDayOnly(item.ngayLuyenGang);
                     const ngayLT = getDayOnly(item.ngayLuyenThep);
                     const isShow = checkCondition(item);
 
-                    const html = `
-                            <tr data-id="${item.id}">
-                                  <td>${ngayLG ?? ''}</td>
-                                  <td>${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>
-                                  <td>${item.g_TenKip ?? ''}</td>
-                                  <td>${item.maThungGang ?? ''}</td>
-                                  <td>${item.iD_Locao ?? ''}</td>
-                                  <td>${item.bkmiS_SoMe ?? ''}</td>
-                                  <td>${item.bkmiS_ThungSo ?? ''}</td>
-                                  <td>${item.bkmiS_Gio ?? ''}</td>
-                                  <td>${item.bkmiS_PhanLoai ?? ''}</td>
-                                  <td>${item.kL_XeGoong ?? ''}</td>
-                                  <td>${item.g_KLThungVaGang ?? ''}</td>
-                                  <td>${item.g_KLThungChua ?? ''}</td>
-                                  <td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>
-                                  <td>${item.chuyenDen ?? ''}</td>
-                                  <td>
+                    row.append(`<td>${ngayLG ?? ''}</td>`);
+                    row.append(`<td>${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>`);
+                    row.append(`<td>${item.g_TenKip ?? ''}</td>`);
+                    row.append(`<td>${item.maThungGang ?? ''}</td>`);
+                    row.append(`<td>${item.iD_Locao ?? ''}</td>`);
+                    row.append(`<td>${item.bkmiS_SoMe ?? ''}</td>`);
+                    row.append(`<td>${item.bkmiS_ThungSo ?? ''}</td>`);
+                    row.append(`<td>${item.bkmiS_Gio ?? ''}</td>`);
+                    row.append(`<td>${item.bkmiS_PhanLoai ?? ''}</td>`);
+                    row.append(`<td>${item.kL_XeGoong ?? ''}</td>`);
+                    row.append(`<td>${item.g_KLThungVaGang ?? ''}</td>`);
+                    row.append(`<td>${item.g_KLThungChua ?? ''}</td>`);
+                    row.append(`<td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>`);
+                    row.append(`<td>${item.chuyenDen ?? ''}</td>`);
+                    row.append(`<td>
                                     ${item.kr === true ?
-                                         `<input type="checkbox" ${item.kr ? "checked" : ""} onclick="return false;" style="pointer-events: none;"/>`
-                                         : ''
-                                     }
-                                  </td>
-                                  <td>${item.gio_NM ?? ''}</td>
-                                  <td>${tinhTrangLGHTML ?? ''}</td>
-                                  <td>${ngayLT ?? ''}</td>
-                                  <td>${item.t_Ca == null ? '' : (item.t_Ca === 1 ? 'N' : 'Đ')}</td>
-                                  <td>${item.t_TenKip ?? ''}</td>
-                                  <td>${item.maThungThep ?? ''}</td>
-                                  <td>${item.iD_LoThoi ?? ''}</td>
-                                  <td>${item.thungTrungGian ?? ''}</td>
-                                  <td>${item.t_KLThungVaGang_Thoi ?? ''}</td>
-                                  <td>${item.t_KLThungChua_Thoi ?? ''}</td>
-                                  <td class="KL_GangVaoLoThoi">
-                                   ${item.t_KLGangLongThoi ?? ''}
-                                  </td>
-                                  <td>${item.maMeThoi ?? ''}</td>
-                                  <td>${tinhTrangLTHTML}</td>
-                                  <td>${item.tenPhongBan ?? ''}</td>
-                                  <td style="min-width: 100px;">${item.hoVaTen ?? ''}</td>
-                                  <td>
+                                        `<input type="checkbox" ${item.kr ? "checked" : ""} onclick="return false;" style="pointer-events: none;"/>`
+                                        : ''
+                                    }
+                                </td>`);
+                    row.append(`<td>${item.gio_NM ?? ''}</td>`);
+                    row.append(`<td>${tinhTrangLGHTML ?? ''}</td>`);
+                    row.append(`<td>${ngayLT ?? ''}</td>`);
+                    row.append(`<td>${item.t_Ca == null ? '' : (item.t_Ca === 1 ? 'N' : 'Đ')}</td>`);
+                    row.append(`<td>${item.t_TenKip ?? ''}</td>`);
+                    row.append(`<td>${item.maThungThep ?? ''}</td>`);
+
+                    if (isFirstRow) {
+                        row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.soThungTG || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.klThungVaGang_Thoi?.toFixed(2) || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.klThung_Thoi?.toFixed(2) || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.kL_phe?.toFixed(2) || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}" class="KL_GangVaoLoThoi">${item.klGang_Thoi?.toFixed(2) || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.maMeThoi || ''}</td>`);
+                        isFirstRow = false;
+                    }
+
+                    row.append(`<td>${tinhTrangLTHTML}</td>`);
+                    row.append(`<td>${item.tenPhongBan ?? ''}</td>`);
+                    row.append(`<td>${item.hoVaTen ?? ''}</td>`);
+                    row.append(`<td>
                                     ${ isShow ? `<input type="checkbox" class="cbx-chotThung" />`
                                         : ''
                                     }
-                                  </td>
-                                  <td>${tinhTrangHTML}</td>
-                            </tr>
-                      `;
-                    tbody.append(html);
-
-                    TongKLGangLong();
-                    TongKLVaoLoThoi();
+                                  </td>`);
+                     row.append(`<td>${tinhTrangHTML}</td>`);
+                     tbody.append(row);
                 });
-          } else {
-              const html = `
-                    <tr>
-                        <td colspan="31" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
-                            Không tìm thấy dữ liệu
-                        </td>
-                    </tr>
-                `;
-               tbody.append(html);
-          }
+                TongKLGangLong();
+                TongKLVaoLoThoi();
+                TongKLGangNhan();
+            });
         }
 
         function checkCondition(item){
             return item.iD_TrangThai == 5 || item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 
                     ||  item.t_KLThungVaGang === null || item.t_KLThungChua === null 
-                    || item.t_KLGangLong === null || item.thungTrungGian === null 
-                    || item.t_KLThungVaGang_Thoi === null || item.t_KLThungChua_Thoi === null 
-                    || item.t_KL_phe === null || item.t_KLGangLongThoi === null || item.iD_MeThoi === null 
+                    || item.t_KLGangLong === null || item.iD_TTG === null || item.soThungTG === null 
+                    || item.klThungVaGang_Thoi === null || item.klThung_Thoi === null
+                    || item.klGang_Thoi === null || item.kL_phe === null || item.iD_MeThoi === null
                     ? false : true;
         }
 
@@ -649,7 +694,7 @@
                   alert("Vui lòng chọn ít nhất 1 dòng.");
                   return;
               }
-             
+             console.log(selectedIds)
               $.ajax({
                   url: "/BM16_GangThoi_PKH/ChotThung",
                   type: "POST",

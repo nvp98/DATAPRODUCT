@@ -148,5 +148,21 @@ namespace Data_Product.Models
         public string TenViTri { get; set; }
 
         public int? ID_TTG { get; set; }
+
+
+        [NotMapped]
+        public string? SoThungTG { get; set; }
+        [NotMapped]
+        public string? MaThungTG { get; set; }
+        [NotMapped]
+        public decimal? KLThungVaGang_Thoi { get; set; }
+        [NotMapped]
+        public decimal? KLThung_Thoi { get; set; }
+        [NotMapped]
+        public decimal? KLGang_Thoi { get; set; }
+        [NotMapped]
+        public decimal? KL_phe { get; set; }
+        [NotMapped]
+        public decimal? Tong_KLGangNhan { get; set; }
     }
 }

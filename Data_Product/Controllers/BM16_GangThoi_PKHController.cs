@@ -89,13 +89,17 @@ namespace Data_Product.Controllers
 
             if (dto.TuNgay_LG.HasValue && dto.DenNgay_LG.HasValue)
             {
-                query = query.Where(x => x.NgayLuyenGang >= dto.TuNgay_LG.Value && x.NgayLuyenGang <= dto.DenNgay_LG.Value);
+                var tuNgay = dto.TuNgay_LG.Value.Date;
+                var denNgay = dto.DenNgay_LG.Value.Date.AddDays(1); 
+                query = query.Where(x => x.NgayLuyenGang >= tuNgay && x.NgayLuyenGang < denNgay);
 
             }
 
             if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
             {
-                query = query.Where(x => x.NgayLuyenThep >= dto.TuNgay_LT.Value && x.NgayLuyenThep <= dto.DenNgay_LT.Value);
+                var tuNgay = dto.TuNgay_LT.Value.Date;
+                var denNgay = dto.DenNgay_LT.Value.Date.AddDays(1);
+                query = query.Where(x => x.NgayLuyenThep >= tuNgay && x.NgayLuyenThep < denNgay);
 
             }
             if (dto.Ca_LT.HasValue)
@@ -171,9 +175,6 @@ namespace Data_Product.Controllers
                              join loCao in _context.Tbl_LoCao on a.ID_Locao equals loCao.ID into g_lc
                              from loCao in g_lc.DefaultIfEmpty()
 
-                             join methoi in _context.Tbl_MeThoi on a.ID_MeThoi equals methoi.ID into g_mt
-                             from methoi in g_mt.DefaultIfEmpty()
-
                              join kipG in _context.Tbl_Kip on a.G_ID_Kip equals kipG.ID_Kip into g_kipG
                              from kipG in g_kipG.DefaultIfEmpty()
 
@@ -189,10 +190,17 @@ namespace Data_Product.Controllers
                              join phongban in _context.Tbl_PhongBan on user.ID_PhongBan equals phongban.ID_PhongBan into g_phongban
                              from phongban in g_phongban.DefaultIfEmpty()
 
+                             join ttg in _context.Tbl_BM_16_ThungTrungGian on a.ID_TTG equals ttg.ID into t_ttg
+                             from ttg in t_ttg.DefaultIfEmpty()
+
+                             join methoi in _context.Tbl_MeThoi on ttg.ID_MeThoi equals methoi.ID into g_mt
+                             from methoi in g_mt.DefaultIfEmpty()
+
                              orderby a.NgayTao descending, a.MaThungGang, a.MaThungThep
                              select new Tbl_BM_16_GangLong
                              {
                                  ID = a.ID,
+                                 NgayTao = a.NgayTao,
                                  NgayLuyenGang = a.NgayLuyenGang,
                                  G_Ca = a.G_Ca,
                                  G_TenKip = kipG != null ? kipG.TenKip : null,
@@ -213,17 +221,10 @@ namespace Data_Product.Controllers
                                  T_Ca = a.T_Ca,
                                  T_TenKip = kipT != null ? kipT.TenKip : null,
                                  MaThungThep = a.MaThungThep != null ? a.MaThungThep : null,
-                                 ID_LoThoi = a.ID_LoThoi,
                                  KR = a.KR,
                                  T_KLThungVaGang = a.T_KLThungVaGang,
                                  T_KLThungChua = a.T_KLThungChua,
                                  T_KLGangLong = a.T_KLGangLong,
-                                 ThungTrungGian = a.ThungTrungGian,
-                                 T_KLThungVaGang_Thoi = a.T_KLThungVaGang_Thoi,
-                                 T_KLThungChua_Thoi = a.T_KLThungChua_Thoi,
-                                 T_KLGangLongThoi = a.T_KLGangLongThoi,
-                                 ID_MeThoi = a.ID_MeThoi,
-                                 MaMeThoi = methoi.MaMeThoi,
                                  T_ID_TrangThai = a.T_ID_TrangThai,
                                  ID_TrangThai = a.ID_TrangThai,
                                  TenLoCao = loCao.TenLoCao,
@@ -233,7 +234,19 @@ namespace Data_Product.Controllers
                                  TrangThaiLT = trangThaiLT.TenTrangThai,
 
                                  HoVaTen = user.HoVaTen,
-                                 TenPhongBan = phongban.TenNgan
+                                 TenPhongBan = phongban.TenNgan,
+
+                                 ID_TTG = a.ID_TTG,
+                                 MaThungTG = ttg.MaThungTG,
+                                 ID_MeThoi = ttg.ID_MeThoi,
+                                 MaMeThoi = methoi.MaMeThoi,
+                                 ID_LoThoi = ttg.ID_LoThoi,
+                                 SoThungTG = ttg.SoThungTG,
+                                 KLThungVaGang_Thoi = ttg.KLThungVaGang_Thoi,
+                                 KLThung_Thoi = ttg.KLThung_Thoi,
+                                 KLGang_Thoi = ttg.KLGang_Thoi,
+                                 KL_phe = ttg.KL_phe,
+                                 Tong_KLGangNhan = ttg.Tong_KLGangNhan,
                              }).ToListAsync();
             return res;
         }
@@ -247,6 +260,11 @@ namespace Data_Product.Controllers
                 if (thungList == null || !thungList.Any())
                     return BadRequest("Danh sách trống.");
 
+                //var groupByTTG = thungList.GroupBy(x => x.ID_TTG).ToList();
+                var groupByTTG = thungList
+                                .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
+                                .OrderByDescending(g => g.Max(x => x.NgayTao)) // Sort theo ngày tạo mới nhất
+                                .ToList();
                 // Đường dẫn đến template
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "QTGN_Gang_Long_PKH.xlsx");
                 using (var ms = new MemoryStream())
@@ -264,79 +282,112 @@ namespace Data_Product.Controllers
                         }
 
                         int row = 8, stt = 1;
-
-                        foreach (var item in thungList)
+                        foreach (var group in groupByTTG)
                         {
-                            int icol = 1;
+                            int rowspan = group.Count();
+                            bool isFirst = true;
 
-                            worksheet.Cell(row, icol++).Value = stt++;
-                            worksheet.Cell(row, icol++).Value = item.NgayLuyenGang?.Day.ToString();
-                            worksheet.Cell(row, icol++).Value = item.G_Ca != null && item.G_Ca == 1 ? "N" : "Đ";
-                            worksheet.Cell(row, icol++).Value = item.G_TenKip;
-                            worksheet.Cell(row, icol++).Value = item.MaThungGang;
-                            worksheet.Cell(row, icol++).Value = item.ID_Locao;
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_SoMe;
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_ThungSo;
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_Gio;
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_PhanLoai;
-                            worksheet.Cell(row, icol++).Value = item.KL_XeGoong;
-                            worksheet.Cell(row, icol++).Value = item.G_KLThungChua;
-                            worksheet.Cell(row, icol++).Value = item.G_KLThungVaGang;
-                            // Cột 13: T_KLGangLong
-                            var cell13 = worksheet.Cell(row, icol++);
-                            if (item.G_KLGangLong.HasValue)
+                            foreach (var item in group)
                             {
-                                cell13.Value = item.G_KLGangLong.Value;
-                                cell13.Style.NumberFormat.Format = "0.00";
-                                cell13.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cell13.Style.Font.Bold = true;
+                                int colIndex = 1;
+                                worksheet.Cell(row, colIndex++).Value = stt;
+                                worksheet.Cell(row, colIndex++).Value = item.NgayLuyenGang?.Day.ToString();
+                                worksheet.Cell(row, colIndex++).Value = item.G_Ca == 1 ? "N" : item.G_Ca == 2 ? "Đ" : "";
+                                worksheet.Cell(row, colIndex++).Value = item.G_TenKip;
+                                worksheet.Cell(row, colIndex++).Value = item.MaThungGang;
+                                worksheet.Cell(row, colIndex++).Value = item.ID_Locao;
+                                worksheet.Cell(row, colIndex++).Value = item.BKMIS_SoMe;
+                                worksheet.Cell(row, colIndex++).Value = item.BKMIS_ThungSo;
+                                worksheet.Cell(row, colIndex++).Value = item.BKMIS_Gio;
+                                worksheet.Cell(row, colIndex++).Value = item.BKMIS_PhanLoai;
+                                worksheet.Cell(row, colIndex++).Value = item.KL_XeGoong;
+                                worksheet.Cell(row, colIndex++).Value = item.G_KLThungVaGang;
+                                worksheet.Cell(row, colIndex++).Value = item.G_KLThungChua;
+                                
+                                var cellKLGangLong = worksheet.Cell(row, colIndex++);
+                                if (item.G_KLGangLong.HasValue)
+                                {
+                                    cellKLGangLong.Value = item.G_KLGangLong.Value;
+                                    cellKLGangLong.Style.NumberFormat.Format = "0.00";
+                                    cellKLGangLong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                    cellKLGangLong.Style.Font.Bold = true;
+                                }
+
+                                worksheet.Cell(row, colIndex++).Value = item.ChuyenDen;
+                                //worksheet.Cell(row, colIndex++).Value = item.KR == true ? "✓" : "";
+                                worksheet.Cell(row, colIndex++).Value = item.Gio_NM;
+
+                                var tinhTrangG_cell = worksheet.Cell(row, colIndex++);
+                                RenderTrangThaiCell(tinhTrangG_cell, item.TrangThaiLG, item.G_ID_TrangThai);
+
+                                worksheet.Cell(row, colIndex++).Value = item.NgayLuyenThep?.Day.ToString();
+                                worksheet.Cell(row, colIndex++).Value = item.T_Ca == 1 ? "N" : item.T_Ca == 2 ? "Đ" : "";
+                                worksheet.Cell(row, colIndex++).Value = item.T_TenKip;
+                                worksheet.Cell(row, colIndex++).Value = item.MaThungThep;
+
+                                if (isFirst)
+                                {
+                                    var cellTongKLGang = worksheet.Cell(row, colIndex);
+                                    if (item.Tong_KLGangNhan.HasValue)
+                                    {
+                                        cellTongKLGang.Value = item.Tong_KLGangNhan.Value;
+                                        cellTongKLGang.Style.NumberFormat.Format = "0.00";
+                                        cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                        cellTongKLGang.Style.Font.Bold = true;
+                                    }
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge();
+                                    colIndex++;
+
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.ID_LoThoi;
+                                    colIndex++;
+
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.SoThungTG;
+                                    colIndex++;
+
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.KLThungVaGang_Thoi;
+                                    colIndex++;
+
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.KLThung_Thoi;
+                                    colIndex++;
+
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.KL_phe;
+                                    colIndex++;
+
+                                    var cellKLGang_Thoi = worksheet.Cell(row, colIndex);
+                                    if (item.KLGang_Thoi.HasValue)
+                                    {
+                                        cellKLGang_Thoi.Value = item.KLGang_Thoi.Value;
+                                        cellKLGang_Thoi.Style.NumberFormat.Format = "0.00";
+                                        cellKLGang_Thoi.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                        cellKLGang_Thoi.Style.Font.Bold = true;
+                                    }
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge();
+                                    colIndex++;
+
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.MaMeThoi;
+                                    colIndex++;
+
+                                    isFirst = false;
+                                }
+                                else
+                                {
+                                    colIndex += 8; // Skip các cột merge
+                                }
+
+                                var tinhTrangT_cell = worksheet.Cell(row, colIndex++);
+                                RenderTrangThaiCell(tinhTrangT_cell, item.TrangThaiLT, item.T_ID_TrangThai);
+
+                                worksheet.Cell(row, colIndex++).Value = item.TenPhongBan;
+                                worksheet.Cell(row, colIndex++).Value = item.HoVaTen;
+
+                                var tinhTrang_cell = worksheet.Cell(row, colIndex++);
+                                RenderTrangThaiCell(tinhTrang_cell, item.TrangThai, item.ID_TrangThai);
+
+                                row++;
+                                stt++;
                             }
-                            worksheet.Cell(row, icol++).Value = item.ChuyenDen;
-                            worksheet.Cell(row, icol++).Value = item.Gio_NM;
-
-                            var tinhTrangG_cell= worksheet.Cell(row, icol++);
-                            RenderTrangThaiCell(tinhTrangG_cell, item.TrangThaiLG, item.G_ID_TrangThai);
-
-                            worksheet.Cell(row, icol++).Value = item.NgayLuyenThep?.Day.ToString();
-                            worksheet.Cell(row, icol++).Value = item.T_Ca != null && item.T_Ca == 1 ? "N" : "Đ";
-                            worksheet.Cell(row, icol++).Value = item.T_TenKip;
-                            worksheet.Cell(row, icol++).Value = item.MaThungThep;
-                            worksheet.Cell(row, icol++).Value = item.ID_LoThoi;
-                            worksheet.Cell(row, icol++).Value = item.ThungTrungGian;
-                            worksheet.Cell(row, icol++).Value = item.T_KLThungVaGang_Thoi;
-                            worksheet.Cell(row, icol++).Value = item.T_KLThungChua_Thoi;
-
-                            // Cột 25: T_KLGangLongThoi
-                            var cell25 = worksheet.Cell(row, icol++);
-                            if (item.T_KLGangLongThoi.HasValue)
-                            {
-                                cell25.Value = item.T_KLGangLongThoi.Value;
-                                cell25.Style.NumberFormat.Format = "0.00";
-                                cell25.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cell25.Style.Font.Bold = true;
-                            }
-
-                            worksheet.Cell(row, icol++).Value = item.MaMeThoi;
-
-                            var tinhTrangT_cell = worksheet.Cell(row, icol++);
-                            RenderTrangThaiCell(tinhTrangT_cell, item.TrangThaiLT, item.T_ID_TrangThai);
-
-                            worksheet.Cell(row, icol++).Value = item.TenPhongBan;
-                            worksheet.Cell(row, icol++).Value = item.HoVaTen;
-
-                            var tinhTrang_cell = worksheet.Cell(row, icol++);
-                            RenderTrangThaiCell(tinhTrang_cell, item.TrangThai, item.ID_TrangThai);
-
-                            worksheet.Row(row).Height = 25;
-                            for (int col = 1; col <= 31; col++)
-                            {
-                                if (col != 14 && col != 26)
-                                    worksheet.Cell(row, col).Style.NumberFormat.SetNumberFormatId(0); // General
-                            }
-
-                            row++;
                         }
-
+                       
                         // Dòng tổng
                         int sumRow = row;
                         var totalLabel = worksheet.Range($"A{sumRow}:M{sumRow}");
@@ -351,26 +402,38 @@ namespace Data_Product.Controllers
                         worksheet.Cell(sumRow, 14).Style.Font.SetBold();
                         worksheet.Cell(sumRow, 14).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Merge các cột O -> Y (15 -> 25)
-                        var mergeRange1 = worksheet.Range(sumRow, 15, sumRow, 25);
+                        // Merge các cột O -> U (15 -> 21)
+                        var mergeRange1 = worksheet.Range(sumRow, 15, sumRow, 21);
                         mergeRange1.Merge();
                         mergeRange1.Value = ""; 
                         mergeRange1.Style.Fill.BackgroundColor = XLColor.White; 
 
-                        // Tổng cột 26
-                        worksheet.Cell(sumRow, 26).FormulaA1 = $"=SUM(Z8:Z{row - 1})";
-                        worksheet.Cell(sumRow, 26).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 26).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 26).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột 22
+                        worksheet.Cell(sumRow, 22).FormulaA1 = $"=SUM(V8:V{row - 1})";
+                        worksheet.Cell(sumRow, 22).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 22).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Merge các cột AA -> AE (27 -> 31)
-                        var mergeRange2 = worksheet.Range(sumRow, 27, sumRow, 31);
+                        // Merge các cột W -> AA (23 -> 27)
+                        var mergeRange2 = worksheet.Range(sumRow, 23, sumRow, 27);
                         mergeRange2.Merge();
-                        mergeRange2.Value = ""; 
+                        mergeRange2.Value = "";
                         mergeRange2.Style.Fill.BackgroundColor = XLColor.White;
 
+                        // Tổng cột 28
+                        worksheet.Cell(sumRow, 28).FormulaA1 = $"=SUM(AB8:AB{row - 1})";
+                        worksheet.Cell(sumRow, 28).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 28).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 28).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                        // Merge các cột AA -> AE (27 -> 31)
+                        var mergeRange3 = worksheet.Range(sumRow, 29, sumRow, 33);
+                        mergeRange3.Merge();
+                        mergeRange3.Value = "";
+                        mergeRange3.Style.Fill.BackgroundColor = XLColor.White;
+
                         // Format toàn bảng
-                        var usedRange = worksheet.Range($"A7:AE{sumRow}");
+                        var usedRange = worksheet.Range($"A7:AG{sumRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
