@@ -112,5 +112,44 @@ namespace Data_Product.Controllers
 
 
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> DsMeThoi([FromBody] int id)
+        {
+            var currentYear = DateTime.Now.Year;
+            var result = await _context.Tbl_MeThoi
+                .Where(x => x.NgayTao.Year == currentYear && x.ID_LoThoi == id && x.Is_Delete == false)
+                .ToListAsync();
+
+            return Ok(result);
+
+        }
+        [HttpPost]
+        public async Task<IActionResult> XoaMeThoi([FromBody] int id)
+        {
+            var meThoi = await _context.Tbl_MeThoi.FirstOrDefaultAsync(x => x.ID == id && !x.Is_Delete);
+            if (meThoi == null)
+            {
+                return NotFound(new { success = false, message = "Không tìm thấy mẻ thời cần xóa." });
+            }
+
+            meThoi.Is_Delete = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Đã xóa mềm mẻ thời thành công." });
+        }
+        [HttpPost]
+        public async Task<IActionResult>KhoiPhucMeThoi([FromBody] int id)
+        {
+            var methoi = await _context.Tbl_MeThoi.FirstOrDefaultAsync(x => x.ID == id && x.Is_Delete);
+             if (methoi == null)
+              return NotFound(new { success = false, message = "Không tìm thấy dữ liệu đã xóa để khôi phục." });
+
+            methoi.Is_Delete = false;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Khôi phục mẻ thời thành công." });
+        }
     }
 }

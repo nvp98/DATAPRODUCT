@@ -342,8 +342,10 @@ namespace Data_Product.Controllers
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return Json(new { success = true, maPhieu });
-               
+                string url = Url.Action("DetailPhieu", "BM16_GangThoi", new { id = maPhieu });
+
+                return Json(new { success = true, redirectUrl = url });
+
             }
             catch (Exception ex)
             {
@@ -479,7 +481,7 @@ namespace Data_Product.Controllers
                 var maThungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
 
                 var thungs = await _context.Tbl_BM_16_GangLong
-                    .Where(t => t.MaPhieu == req.MaPhieu && maThungList.Contains(t.MaThungGang))
+                    .Where(t => t.MaPhieu == req.MaPhieu && maThungList.Contains(t.MaThungGang)&& t.T_copy==false)
                     .ToListAsync();
 
                 if (!thungs.Any())
@@ -542,12 +544,25 @@ namespace Data_Product.Controllers
                 }
                 var mathungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
 
-                var thungs = await _context.Tbl_BM_16_GangLong.Where(x=> x.MaPhieu == req.MaPhieu 
-                && mathungList.Contains(x.MaThungGang)
-                && x.G_ID_TrangThai == 3 
-                && (x.T_ID_TrangThai == 2 || x.T_ID_TrangThai==4 )
-                && x.ID_TrangThai == 2).ToListAsync();
+                var allThungs = await _context.Tbl_BM_16_GangLong
+                    .Where(x => x.MaPhieu == req.MaPhieu && mathungList.Contains(x.MaThungGang))
+                    .ToListAsync();
 
+                var thungs = allThungs
+                    .Join(req.DsMaThung,
+                          dbThung => dbThung.MaThungGang,
+                          reqThung => reqThung.MaThungGang,
+                          (dbThung, reqThung) => new { dbThung, reqThung })
+                    .Where(x =>
+                        x.dbThung.G_ID_TrangThai == 3 &&
+                        x.dbThung.ID_TrangThai == 2 &&  x.dbThung.T_copy == false &&
+                        (
+                            x.dbThung.T_ID_TrangThai == 2 ||
+                            (x.dbThung.T_ID_TrangThai == 4 && (x.reqThung.ChuyenDen == "DUC1" || x.reqThung.ChuyenDen == "DUC2"))
+                        )
+                    )
+                    .Select(x => x.dbThung)
+                    .ToList();
                 if (!thungs.Any())
                 {
                     return Json(new { success = false, message = "Liên hệ NM.Luyện Thép Hủy Nhận thùng này trước khi thu hồi" });
@@ -565,6 +580,7 @@ namespace Data_Product.Controllers
                 {
                     thung.G_ID_TrangThai = 1; // Chưa chuyển
                     thung.ID_TrangThai = 1;   // Chưa chuyển
+                    thung.T_ID_TrangThai = 2; // ChoXuLy
                     thung.G_ID_NguoiThuHoi = idNhanVienThuHoi;             
                 }
                 await _context.SaveChangesAsync();
@@ -680,8 +696,8 @@ namespace Data_Product.Controllers
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = req.ID_Locao,
                         G_ID_Kip = req.ID_Kip,
-                        T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 2,
-                        //T_ID_TrangThai = 2,
+                        //T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 2,
+                        T_ID_TrangThai = 2,
                         G_Ca = soCa,
                         ID_TrangThai = 1,
                         T_copy = false,
@@ -908,7 +924,7 @@ namespace Data_Product.Controllers
                         worksheet.Cell(sumRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Format toàn bảng A8:R{sumRow}
-                        var usedRange = worksheet.Range($"A8:R{sumRow}");
+                        var usedRange = worksheet.Range($"A9:R{sumRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
@@ -1018,7 +1034,7 @@ namespace Data_Product.Controllers
                 if (string.IsNullOrEmpty(PhongBan)) return BadRequest("Không có phòng ban.");
 
                 var data = await _context.Tbl_BM_16_GangLong
-                    .Where(x => x.MaPhieu == MaPhieu && x.ID_TrangThai == 5)
+                    .Where(x => x.MaPhieu == MaPhieu && x.ID_TrangThai == 5 && x.T_copy == false)
                     .ToListAsync();
 
                 if (data == null || !data.Any())
@@ -1043,6 +1059,11 @@ namespace Data_Product.Controllers
                                            NgayLuyenThep = thung.NgayLuyenThep,
                                            ChuyenDen = thung.ChuyenDen,
                                            KL_XeGoong = thung.KL_XeGoong,
+                                           G_KLThungChua = thung.G_KLThungChua,
+                                           G_KLThungVaGang = thung.G_KLThungVaGang,
+                                           G_KLGangLong = thung.G_KLGangLong,
+                                           G_GhiChu = thung.G_GhiChu,
+                                           G_Ca = thung.G_Ca,
                                            T_ID_TrangThai = thung.T_ID_TrangThai,
                                            T_KLThungVaGang = thung.T_KLThungVaGang,
                                            T_KLThungChua = thung.T_KLThungChua,
@@ -1069,6 +1090,23 @@ namespace Data_Product.Controllers
                                            TenViTri = vitri?.TenViTri ?? ""
                                        }).ToList();
 
+                // Người chuyển (dạng group)
+                var nguoiChuyenList = (from gl in _context.Tbl_BM_16_GangLong
+                                     join user in _context.Tbl_TaiKhoan on gl.G_ID_NguoiChuyen equals user.ID_TaiKhoan
+                                     join pb in _context.Tbl_PhongBan on user.ID_PhongBan equals pb.ID_PhongBan into g_pb
+                                     from pb in g_pb.DefaultIfEmpty()
+                                     join vt in _context.Tbl_ViTri on user.ID_ChucVu equals vt.ID_ViTri into g_vt
+                                     from vt in g_vt.DefaultIfEmpty()
+                                     where gl.MaPhieu == MaPhieu //&& gl.MaThungGang
+                                      select new NguoiInfo
+                                     {
+                                         HoVaTen = user.HoVaTen,
+                                         TenPhongBan = pb != null ? pb.TenNgan : "",
+                                         TenViTri = vt != null ? vt.TenViTri : "",
+                                         ChuKy = user.ChuKy
+                                     }).Distinct().ToList();
+
+
                 // Người nhận (dạng group)
                 var nguoiNhanList = (from tkThung in _context.Tbl_BM_16_TaiKhoan_Thung
                                      join user in _context.Tbl_TaiKhoan on tkThung.ID_taiKhoan equals user.ID_TaiKhoan
@@ -1090,14 +1128,14 @@ namespace Data_Product.Controllers
                 var viewModel = new BBGN_GangLong_ViewModel
                 {
                     DanhSachGangLong = chiTietGangLong,
-                    NguoiChuyen = chiTietGangLong
-                    .Select(x => new NguoiInfo
-                    {
-                        HoVaTen = x.HoVaTen,
-                        TenPhongBan = x.TenPhongBan,
-                        TenViTri = x.TenViTri,
-                        ChuKy = x.ChuKy
-                    }).Distinct().ToList(),
+                    NguoiChuyen = nguoiChuyenList,
+                    //.Select(x => new NguoiInfo
+                    //{
+                    //    HoVaTen = x.HoVaTen,
+                    //    TenPhongBan = x.TenPhongBan,
+                    //    TenViTri = x.TenViTri,
+                    //    ChuKy = x.ChuKy
+                    //}).Distinct().ToList(),
 
                     NguoiNhan = nguoiNhanList
                 };

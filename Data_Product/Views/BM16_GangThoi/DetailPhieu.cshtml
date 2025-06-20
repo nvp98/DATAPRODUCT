@@ -163,7 +163,7 @@
 												</td>
 												<td class='text-center editItem'>
 													<a class="btn btn-primary btn-sm btn-edit-thung" title="Chỉnh sửa thùng"
-													   @* data-bs-toggle="modal" *@ data-bs-target="#editThungModal">
+													data-bs-target="#editThungModal">
 														<i class="bi bi-pen"></i>
 													</a>
 												</td>
@@ -384,6 +384,7 @@
 						MaThungGang:maThung,
 						ChuyenDen:chuyenDen
 					});
+					console.log('dsMaThung',dsMaThung)
 					//selectedIds.push(maThung);
 						// selectedIds.push({
 						// 		maPhieu: maPhieu,
@@ -414,9 +415,24 @@
 			{
 				const maPhieu = $('#PhieuID').val() || 0;
 				const selectedMaThungs = [];
+				let hasError = false;
 				$('.chon-thung-checkbox:checked').each(function () {
 					const row = $(this).closest('tr');
 					const maThung = row.find('td[name="maThung"]').text().trim();
+					const daChuyen = row.find('td[name="TinhTrang"] button').text().trim();
+					const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
+
+					if (daChuyen !== "Đã chuyển") {
+						alert(`Thùng ${maThung} chưa chuyển, không thể thu hồi`);
+						hasError = true;
+						return false; // thoát each
+					}
+
+					if (tinhTrang !== "Chờ xử lý") {
+						alert(`Thùng ${maThung} không ở trạng thái 'Chờ xử lý', không thể thu hồi`);
+						hasError = true;
+						return false; // thoát each
+					}
 
 					if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
 					else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
@@ -428,7 +444,7 @@
 						ChuyenDen: chuyenDen
 					});
 				});
-
+				if (hasError) return;
 				if (selectedMaThungs.length === 0)
 				{
 					alert('Vui lòng chọn ít nhất một thùng để thu hồi');

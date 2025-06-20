@@ -548,6 +548,7 @@
 						},
 						success: function (response) {
 							alert('Tạo phiếu thành công!');
+							 window.location.href = response.redirectUrl;
 						},
 						error: function (xhr, status, error) {
 							console.error('Error', xhr.responseText);

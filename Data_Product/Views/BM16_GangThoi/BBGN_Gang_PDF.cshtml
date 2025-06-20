@@ -66,20 +66,19 @@
         <div class="col-md-12 float-left">
             Chúng tôi gồm:
         </div>
-        <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-            <div style="width:37%"> 1. Đại diện bên giao: Ông/bà:@TaiKhoan.HoVaTen</div>
-            <div style="width:38%">Chức vụ:@ViTri.TenViTri </div>
-            <div style="width:25%">BP: @PhongBan.TenPhongBan</div>
-        </div>
-
-    @*     <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-            <div style="width:37%"> 2. Đại diện bên nhận: Ông/bà: ...</div>
-            <div style="width:38%">Chức vụ:  ... </div>
-            <div style="width:25%">BP: ...</div>
-        </div> *@
         @{
-            int stt = 3;
+            int stt = 1;
         }
+        @foreach(var item in Model.NguoiChuyen)
+        {
+        <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+                <div style="width:37%"> @stt. Đại diện bên giao: Ông/bà:@item.HoVaTen</div>
+                <div style="width:38%">Chức vụ:@item.TenViTri </div>
+                <div style="width:25%">BP: @item.TenPhongBan</div>
+        </div>
+            stt++;
+        }
+   
         @foreach (var item in Model.NguoiNhan)
         {
             <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
@@ -89,6 +88,11 @@
             </div>
             stt++;
         }
+        <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+            <div style="width:37%"> @stt. Đại diện quản lý chất lượng: Ông/bà: ...</div>
+            <div style="width:38%">Chức vụ: ...</div>
+            <div style="width:25%">BP: ...</div>
+        </div>
         <div class="col-md-12 float-left" style="margin-bottom:8px;">
             Cùng nhau thống nhất lập "Biên bản gang lỏng - gang thỏi" chi tiết như sau:
         </div>
@@ -216,7 +220,7 @@
     @* @if (ID_BBGN.ID_TrangThai_BBGN == 1) *@
     @* { *@
     <div class="col-lg-12" style="text-align: left;height: 150px;display: flex;">
-        <div class="col-xxl-4 col-md-4" style="width: 50%;font-weight:bold;font-size:20px">
+        <div class="col-xxl-4 col-md-4" style="width: 70%;font-weight:bold;font-size:15px">
 
             <div style="text-align: center;  padding-top:8px;">
                 P.QLCL
@@ -237,7 +241,7 @@
                 @* @ThongTin_BN.HoVaTen *@
             </div>
         </div>
-        <div class="col-xxl-4 col-md-4" style="width: 100%; font-weight:bold; font-size:20px">
+        <div class="col-xxl-4 col-md-4" style="width: 70%; font-weight:bold; font-size:15px">
             <div style="text-align: center; padding-top:8px;">
                 NM.LT
             </div>
@@ -270,26 +274,36 @@
         </div>
 
         
-        <div class="col-xxl-4 col-md-4" style="width: 50%;font-weight:bold;font-size:20px">
+        <div class="col-xxl-4 col-md-4" style="width: 70%;font-weight:bold;font-size:15px">
 
             <div style="text-align: center; padding-top:8px;">
                 NM.LG
             </div>
-            <div style="text-align: center;  padding:2%;">
-                @* @if(ThongTin_BG.ChuKy != null)
-                                        {
-                            var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BG.ChuKy;
-                            <img src="@lin" alt="" height="50">
-                                        }
-                                        else
-                                        {
-                                            <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">
-                                        } *@
-                @*<img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">*@
-            </div>
-            <div style="text-align: center; margin-top:8px">
-                @* @ThongTin_BG.HoVaTen *@
-            </div>
+            @for (int i = 0; i < Model.NguoiChuyen.Count; i += 2)
+            {
+                <div style="display: flex; width: 100%;">
+                    @for (int j = i; j < i + 2 && j < Model.NguoiChuyen.Count; j++)
+                    {
+                        var nguoi = Model.NguoiChuyen[j];
+                        <div style="width: 50%; text-align: center; padding: 10px;">
+                            <div style="padding-bottom: 6px;">
+                                @if (!string.IsNullOrEmpty(nguoi.ChuKy))
+                                {
+                                    var urlChuKy = "https://report.hoaphatdungquat.vn" + nguoi.ChuKy;
+                                    <img src="@urlChuKy" alt="Chữ ký" height="50" />
+                                }
+                                else
+                                {
+                                    <img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="Logo" height="50" />
+                                }
+                            </div>
+                            <div style="font-weight: bold;">
+                                @nguoi.HoVaTen
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </div>
 
