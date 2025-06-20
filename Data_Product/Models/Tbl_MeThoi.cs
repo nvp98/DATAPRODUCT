@@ -12,7 +12,7 @@ namespace Data_Product.Models
         public int ID_NguoiTao { get; set; }
         public int ID_TrangThai { get; set; }
         public int ID_LoThoi { get; set; }
-        //public bool Is_Delete { get; set; } = false;
+        public bool Is_Delete { get; set; } = false;
 
         [NotMapped]
         public string? MaLoThoi { get; set; }
