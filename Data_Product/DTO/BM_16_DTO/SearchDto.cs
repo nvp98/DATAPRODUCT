@@ -23,7 +23,8 @@
 
     public class SearchLTDto
     {
-        public DateTime? NgayLuyenGang { get; set; }
+        public DateTime? TuNgay{ get; set; }
+        public DateTime? DenNgay { get; set; }
         public int? ID_TrangThai { get; set; }
         public int? ID_Locao { get; set; }
         public List<string>? ChuyenDen { get; set; }

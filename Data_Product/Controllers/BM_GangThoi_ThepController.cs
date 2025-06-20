@@ -19,7 +19,6 @@ using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using static Data_Product.Controllers.BM_11Controller;
 
 namespace Data_Product.Controllers
 {
@@ -64,10 +63,12 @@ namespace Data_Product.Controllers
                         .Where(x => x.T_copy == false)
                         .AsQueryable();
 
-            if (payload.NgayLuyenGang.HasValue)
+            if (payload.TuNgay.HasValue && payload.DenNgay.HasValue)
             {
-                query = query.Where(x => x.NgayLuyenGang >= payload.NgayLuyenGang.Value && x.NgayLuyenGang < payload.NgayLuyenGang.Value.AddDays(1));
-                
+                var tuNgay = payload.TuNgay.Value.Date;
+                var denNgay = payload.DenNgay.Value.Date.AddDays(1); 
+
+                query = query.Where(x => x.NgayLuyenGang >= tuNgay && x.NgayLuyenGang < denNgay);
             }
 
             if (payload.G_Ca.HasValue)
@@ -269,7 +270,7 @@ namespace Data_Product.Controllers
                                    join meThoi in _context.Tbl_MeThoi
                                        on ttg.ID_MeThoi equals meThoi.ID into meThoiJoin
                                    from meThoi in meThoiJoin.DefaultIfEmpty()
-                                   orderby ttg.NgayTao, ttg.MaThungTG
+                                   orderby  ttg.MaThungTG, ttg.NgayTao
                                    select new ThungTrungGianGroupViewModel
                                    {
                                        ID_TTG = ttg.ID,
@@ -513,6 +514,96 @@ namespace Data_Product.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GetThungHuyNhan([FromBody] List<string> selectedMaThungHuy)
+        {
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var taiKhoan = await _context.Tbl_TaiKhoan
+                .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+            if (taiKhoan == null)
+                return BadRequest("Không tìm thấy tài khoản.");
+
+            // Lấy danh sách thùng người dùng đã nhận
+            var danhSachPhu = await _context.Tbl_BM_16_TaiKhoan_Thung
+                .Where(x => selectedMaThungHuy.Contains(x.MaThungGang) && x.ID_taiKhoan == taiKhoan.ID_TaiKhoan)
+                .ToListAsync();
+
+            if (!danhSachPhu.Any())
+                return Ok(new List<object>()); // Trống
+
+            // Lấy tất cả thùng gang liên quan
+            var gangLongList = await _context.Tbl_BM_16_GangLong
+                .Where(x => selectedMaThungHuy.Contains(x.MaThungGang))
+                .ToListAsync();
+
+            // Ánh xạ MaThungGang => danh sách ID_TTG
+            var maThungToListIDTTG = gangLongList
+                .Where(x => x.ID_TTG.HasValue)
+                .GroupBy(x => x.MaThungGang)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g
+                        .Select(x => x.ID_TTG.Value)
+                        .Distinct()
+                        .ToList()
+                );
+
+            var allIDTTG = maThungToListIDTTG.Values.SelectMany(x => x).Distinct().ToList();
+
+            // Lấy thông tin TTG: Ca, Ngày
+            var dictTTG = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => allIDTTG.Contains(x.ID))
+                .ToListAsync();
+
+            var ttgLookup = dictTTG
+                .GroupBy(x => x.ID)
+                .ToDictionary(x => x.Key, x => x.First()); // Unique theo ID
+
+            // Kết quả gộp
+            var ketQua = danhSachPhu
+                .GroupBy(x => x.MaThungGang)
+                .Select(g =>
+                {
+                    var maThung = g.Key;
+                    var lanNhanList = new List<(int Ca, DateTime Ngay)>();
+
+                    if (maThungToListIDTTG.TryGetValue(maThung, out var idTTGs))
+                    {
+                        foreach (var id in idTTGs)
+                        {
+                            if (ttgLookup.TryGetValue(id, out var ttg))
+                            {
+                                lanNhanList.Add((ttg.CaNhan, ttg.NgayNhan.Date));
+                            }
+                        }
+                    }
+
+                    // Gộp theo Ca + Ngày
+                    var soLanDaNhan = lanNhanList
+                        .GroupBy(x => new { x.Ca, x.Ngay })
+                        .Select(g2 => new
+                        {
+                            Ca = g2.Key.Ca,
+                            Ngay = g2.Key.Ngay,
+                            SoLan = g2.Count()
+                        })
+                        .OrderBy(x => x.Ngay)
+                        .ThenBy(x => x.Ca)
+                        .ToList();
+
+                    return new
+                    {
+                        maThungGang = maThung,
+                        soLanDaNhan
+                    };
+                })
+                .ToList();
+
+            return Ok(ketQua);
+        }
+
+
 
         [HttpPost]
         public async Task<IActionResult> HuyNhan([FromBody] HuyNhanThungDto payload)
@@ -738,7 +829,7 @@ namespace Data_Product.Controllers
         {
             try
             {
-                var thungList = await GetThungDaNhan(payload);
+                var thungList = await GetDanhSachThungTrungGianDaNhan(payload);
                 if (thungList == null || !thungList.Any())
                     return BadRequest("Danh sách trống.");
 
@@ -755,104 +846,182 @@ namespace Data_Product.Controllers
                         var loThoiEntity = await _context.Tbl_LoThoi.FirstOrDefaultAsync(x => x.ID == payload.ID_LoThoi);
                         var loThoi = loThoiEntity?.TenLoThoi ?? "";
 
-                        var headerCell = worksheet.Range("A5:O5").Merge();
+                        var headerCell = worksheet.Range("A5:P5").Merge();
                         headerCell.Value = $"Ngày: {payload.NgayLamViec:dd/MM/yyyy}     Ca: {ca}     Lò thổi: {loThoi}";
                         headerCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         headerCell.Style.Font.Bold = true;
                         headerCell.Style.Font.FontSize = 11;
 
                         // Xóa dữ liệu cũ (nếu có)
-                        var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 8;
-                        var rangeClear = worksheet.Range($"A8:O{lastRow}");
-                        rangeClear.Clear(XLClearOptions.Contents | XLClearOptions.NormalFormats);
-                       
+                        //var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 8;
+                        //var rangeClear = worksheet.Range($"A8:O{lastRow}");
+                        //rangeClear.Clear(XLClearOptions.Contents | XLClearOptions.NormalFormats);
+
                         int row = 8, stt = 1;
 
-                        foreach (var item in thungList)
+                        foreach (var thungTG in thungList)
                         {
-                            int icol = 1;
+                            var danhSach = thungTG.DanhSachThungGang;
+                            int rowspan = danhSach.Any() ? danhSach.Count : 1;
+                            int startRow = row;
 
-                            worksheet.Cell(row, icol++).Value = stt++;
-                            worksheet.Cell(row, icol++).Value = item.MaThungThep;
-                            worksheet.Cell(row, icol++).Value = item.ID_Locao;
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_ThungSo;
-                            worksheet.Cell(row, icol++).Value = item.T_KLThungVaGang;
-                            worksheet.Cell(row, icol++).Value = item.T_KLThungChua;
-
-                            // Cột 7: T_KLGangLong
-                            var cell7 = worksheet.Cell(row, icol++);
-                            if (item.T_KLGangLong.HasValue)
+                            if (danhSach.Any())
                             {
-                                cell7.Value = item.T_KLGangLong.Value;
-                                cell7.Style.NumberFormat.Format = "0.00";
-                                cell7.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cell7.Style.Font.Bold = true;
-                            }
+                                foreach (var item in danhSach)
+                                {
+                                    int icol = 1; // Bắt đầu cột từ 1 cho thùng gang
 
-                            worksheet.Cell(row, icol++).Value = item.ThungTrungGian;
-                            worksheet.Cell(row, icol++).Value = item.T_KLThungVaGang_Thoi;
-                            worksheet.Cell(row, icol++).Value = item.T_KLThungChua_Thoi;
-                            worksheet.Cell(row, icol++).Value = item.T_KL_phe;
+                                    worksheet.Cell(row, icol++).Value = stt++;
+                                    worksheet.Cell(row, icol++).Value = item.MaThungThep;
+                                    worksheet.Cell(row, icol++).Value = item.ID_LoCao;
+                                    worksheet.Cell(row, icol++).Value = item.BKMIS_ThungSo;
 
-                            // Cột 12: T_KLGangLongThoi
-                            var cell12 = worksheet.Cell(row, icol++);
-                            if (item.T_KLGangLongThoi.HasValue)
-                            {
-                                cell12.Value = item.T_KLGangLongThoi.Value;
-                                cell12.Style.NumberFormat.Format = "0.00";
-                                cell12.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cell12.Style.Font.Bold = true;
-                            }
+                                    var statusCell = worksheet.Cell(row, icol++);
+                                    statusCell.Style.Font.SetBold();
 
-                            worksheet.Cell(row, icol++).Value = item.MaMeThoi;
-                            worksheet.Cell(row, icol++).Value = item.T_GhiChu;
+                                    if (item.ID_TrangThai == 5)
+                                    {
+                                        statusCell.Value = "Đã chốt";
+                                        statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
+                                        statusCell.Style.Font.FontColor = XLColor.White;
+                                    }
+                                    else if (item.ID_TrangThai == 2)
+                                    {
+                                        statusCell.Value = "Chờ xử lý";
+                                        statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(255, 153, 0);
+                                        statusCell.Style.Font.FontColor = XLColor.White;
+                                    }
+                                    else
+                                    {
+                                        statusCell.Value = "Chưa chuyển";
+                                        statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(215, 215, 215);
+                                        statusCell.Style.Font.FontColor = XLColor.Black;
+                                    }
 
-                            var statusCell = worksheet.Cell(row, icol++);
-                            statusCell.Value = item.TrangThai;
-                            statusCell.Style.Font.SetBold();
+                                    if (thungTG.IsCopy)
+                                    {
+                                        var lableCopy = worksheet.Range($"F{row}:H{row}");
+                                        lableCopy.Merge();
+                                        lableCopy.Value = "Thùng trung gian copy";
+                                        lableCopy.Style.Font.FontColor = XLColor.Red;
+                                    }
+                                    else
+                                    {
+                                        worksheet.Cell(row, icol++).Value = item.T_KLThungVaGang;
+                                        worksheet.Cell(row, icol++).Value = item.T_KLThungChua;
 
-                            // Màu theo trạng thái
-                            if (item.ID_TrangThai == 5)
-                            {
-                                statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-                                statusCell.Style.Font.FontColor = XLColor.White;
-                            }
-                            else if (item.ID_TrangThai == 2)
-                            {
-                                statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(255, 153, 0);
-                                statusCell.Style.Font.FontColor = XLColor.White;
+                                        var cell7 = worksheet.Cell(row, icol++);
+                                        if (item.T_KLGangLong.HasValue)
+                                        {
+                                            cell7.Value =  item.T_KLGangLong.Value;
+                                            cell7.Style.NumberFormat.Format = "0.00";
+                                            cell7.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                            cell7.Style.Font.Bold = true;
+                                        }
+                                    }
+                                    
+
+                                    worksheet.Row(row).Height = 25;
+                                    row++;
+                                }
                             }
                             else
                             {
-                                statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(215, 215, 215);
-                                statusCell.Style.Font.FontColor = XLColor.Black;
+                                // Nếu không có thùng gang, render dòng trống
+                                int icol = 1;
+                                worksheet.Cell(row, icol++).Value = stt++;
+                                worksheet.Cell(row, icol++).Value = "-";
+                                worksheet.Cell(row, icol++).Value = "-";
+                                worksheet.Cell(row, icol++).Value = "-";
+                                worksheet.Cell(row, icol++).Value = "-";
+                                worksheet.Cell(row, icol++).Value = "-";
+                                worksheet.Cell(row, icol++).Value = "-";
+                                row++;
                             }
-                            worksheet.Row(row).Height = 25;
-                            row++;
+
+                            // Render và merge các ô Thùng Trung Gian từ cột 8 trở đi
+                            int colTg = 9;
+                            var cellTongKLGang = worksheet.Cell(startRow, colTg);
+                            if (thungTG.Tong_KLGangNhan.HasValue)
+                            {
+                                cellTongKLGang.Value = thungTG.Tong_KLGangNhan.Value;
+                                cellTongKLGang.Style.NumberFormat.Format = "0.00";
+                                cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellTongKLGang.Style.Font.Bold = true;
+                            }
+                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                            colTg++;
+
+                            worksheet.Cell(startRow, colTg).Value = thungTG.SoThungTG;
+                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                            colTg++;
+
+                            worksheet.Cell(startRow, colTg).Value = thungTG.KLThungVaGang_Thoi;
+                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                            colTg++;
+
+                            worksheet.Cell(startRow, colTg).Value = thungTG.KLThung_Thoi;
+                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                            colTg++;
+
+                            worksheet.Cell(startRow, colTg).Value = thungTG.KL_phe;
+                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                            colTg++;
+
+                            var cellKLGang = worksheet.Cell(startRow, colTg);
+                            if (thungTG.KLGang_Thoi.HasValue)
+                            {
+                                cellKLGang.Value = thungTG.KLGang_Thoi.Value;
+                                cellKLGang.Style.NumberFormat.Format = "0.00";
+                                cellKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellKLGang.Style.Font.Bold = true;
+                            }
+                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                            colTg++;
+
+                            worksheet.Cell(startRow, colTg).Value = thungTG.MaMeThoi;
+                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                            colTg++;
+
+                            worksheet.Cell(startRow, colTg).Value = thungTG.GhiChu ?? "";
+                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
                         }
+
 
                         // Dòng tổng
                         int sumRow = row;
-                        var totalLabel = worksheet.Range($"A{sumRow}:F{sumRow}");
+                        var totalLabel = worksheet.Range($"A{sumRow}:H{sumRow}");
                         totalLabel.Merge();
                         totalLabel.Value = "Tổng:";
                         totalLabel.Style.Font.SetBold();
                         totalLabel.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                        // Tổng cột 7
-                        worksheet.Cell(sumRow, 7).FormulaA1 = $"=SUM(G8:G{row - 1})";
-                        worksheet.Cell(sumRow, 7).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 7).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 7).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột 9
+                        worksheet.Cell(sumRow, 9).FormulaA1 = $"=SUM(I8:I{row - 1})";
+                        worksheet.Cell(sumRow, 9).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 9).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Tổng cột 12
-                        worksheet.Cell(sumRow, 12).FormulaA1 = $"=SUM(L8:L{row - 1})";
-                        worksheet.Cell(sumRow, 12).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 12).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 12).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        var totalLabel2 = worksheet.Range($"J{sumRow}:M{sumRow}");
+                        totalLabel2.Merge();
+                        totalLabel2.Value = "";
+                        totalLabel2.Style.Font.SetBold();
+                        totalLabel2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+
+                        // Tổng cột 14
+                        worksheet.Cell(sumRow, 14).FormulaA1 = $"=SUM(N8:N{row - 1})";
+                        worksheet.Cell(sumRow, 14).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 14).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 14).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                        var totalLabel3 = worksheet.Range($"O{sumRow}:P{sumRow}");
+                        totalLabel3.Merge();
+                        totalLabel3.Value = "";
+                        totalLabel3.Style.Font.SetBold();
+                        totalLabel3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
                         // Format toàn bảng
-                        var usedRange = worksheet.Range($"A7:O{sumRow}");
+                        var usedRange = worksheet.Range($"A7:P{sumRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
@@ -862,10 +1031,6 @@ namespace Data_Product.Controllers
 
 
                         // Chiều cao dòng
-                        for (int i = 8; i <= sumRow; i++)
-                        {
-                            worksheet.Row(i).Height = 25;
-                        }
 
                         // Ghi workbook vào MemoryStream (không lưu ra ổ đĩa)
                         workbook.SaveAs(ms);
@@ -887,12 +1052,14 @@ namespace Data_Product.Controllers
             }
         }
 
+
+        // TODO
         [HttpPost]
         public async Task<IActionResult> ExportToPDF([FromBody] SearchThungDaNhanDto payload)
         {
-            try { 
-                
+            try {
 
+                //GetDanhSachThungTrungGianDaNhan
                 var listThungs = await GetThungDaNhan(payload);
                 if (listThungs == null || !listThungs.Any())
                     return BadRequest("Danh sách trống.");
@@ -906,7 +1073,7 @@ namespace Data_Product.Controllers
                 if (PhongBan == null) return BadRequest("Không có phòng ban.");
 
                 //var data = listThungs.Where(x => x.ChuyenDen == PhongBan && x.ID_TrangThai == (int)TinhTrang.DaChot).ToList();
-                var dataListThung = listThungs.Where(x => x.ChuyenDen == "HRC2" && x.ID_TrangThai == (int)TinhTrang.DaChot).ToList();
+                var dataListThung = listThungs.Where(x => x.ChuyenDen == "HRC1" && x.ID_TrangThai == (int)TinhTrang.DaChot).ToList();
 
 
                 var data = (from thung in dataListThung
