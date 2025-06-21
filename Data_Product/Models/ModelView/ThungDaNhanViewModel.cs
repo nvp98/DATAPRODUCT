@@ -14,6 +14,17 @@ namespace Data_Product.Models.ModelView
         public decimal? T_KLThungChua { get; set; }
         public decimal? T_KLThungVaGang { get; set; }
 
+        public int? G_ID_NguoiChuyen { get; set; }
+        public string? ChuyenDen { get; set; }
+        public string? BKMIS_SoMe { get; set; }
+        public string? BKMIS_Gio { get; set; }
+
+        public string? HoVaTen { get; set; }
+        public string? TenTaiKhoan { get; set; }
+        public string? TenPhongBan { get; set; }
+        public string? ChuKy { get; set; }
+        public string? TenViTri { get; set; }
+
     }
 
     public class ThungTrungGianGroupViewModel
