@@ -1486,6 +1486,10 @@
             });
         }
 
+        function getNumberValue(val) {
+            return val !== "" ? parseFloat(val) : null;
+        }
+
         function getTableData() {
             const thungTrungGianMap = {};
 
@@ -1531,10 +1535,10 @@
                 // Lấy dữ liệu ở dòng đầu
                 parent.SoThungTG = $row.find('td[rowspan]').eq(2).text().trim();
                 parent.GhiChu = $row.find('textarea.IDGhiChu').val()?.trim() ?? '';
-                parent.KLThung_Thoi = parseFloat($row.find('input[name="klThung_Thoi"]').val()) || null;
-                parent.KLThungVaGang_Thoi = parseFloat($row.find('input[name="klThungVaGang_Thoi"]').val()) || null;
+                parent.KLThung_Thoi = getNumberValue($row.find('input[name="klThung_Thoi"]').val());
+                parent.KLThungVaGang_Thoi = getNumberValue($row.find('input[name="klThungVaGang_Thoi"]').val());
                 parent.KLGang_Thoi = parseFloat($row.find('.KLVaoLoThoi').text()) || 0;
-                parent.KLPhe = parseFloat($row.find('input[name="kl_phe"]').val()) || null;
+                parent.KLPhe = getNumberValue($row.find('input[name="kl_phe"]').val()) ;
                 parent.Tong_KLGangNhan = parseFloat($row.find('.tong_KL_GangNhan').text()) || 0;
                 const idMeThoiVal = $row.find('.selectMeThoi').val();
                 parent.ID_MeThoi = idMeThoiVal ? parseInt(idMeThoiVal) : null;

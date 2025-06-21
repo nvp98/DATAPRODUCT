@@ -7,32 +7,38 @@
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-@model List<Data_Product.Models.Tbl_BM_16_GangLong>
+@model List<Data_Product.Models.ModelView.ThungTrungGianGroupViewModel>
 
 @{
-    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
-    var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
+    var TenTaiKhoanNguoiIn = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoanNguoiIn = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoanNguoiIn).FirstOrDefault();
+    var PhongBanNguoiIn = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoanNguoiIn.ID_PhongBan).FirstOrDefault();
+    var ViTriNguoiIn = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoanNguoiIn.ID_ChucVu).FirstOrDefault();
 }
 @{
 
-    var total_KL_GangLongThoi = Model.Sum(x => x.T_KLGangLongThoi);
-    var total_KL_GangLong = Model.Sum(x => x.T_KLGangLong);
-    // var total_KL_GangNhan = Model.Sum(x => x.T_KLGangLongThoi);
+    var total_KL_GangLongThoi = Model.Sum(x => x.KLGang_Thoi ?? 0);
+    var total_KL_GangNhan = Model.Sum(x => x.Tong_KLGangNhan ?? 0);
+    var total_KL_GangLong = Model
+        .Where(m => m.DanhSachThungGang != null)
+        .SelectMany(m => m.DanhSachThungGang)
+        .Sum(g => g.T_KLGangLong ?? 0);
 
     var firstItem = Model.FirstOrDefault();
-    var phongBan = firstItem.ChuyenDen;
+    var phongBan = firstItem.DanhSachThungGang[0].ChuyenDen;
 
-    var taiKhoanList = Model.DistinctBy(x => x.TenTaiKhoan)
-    .Select(x => new
-    {
-        x.TenTaiKhoan,
-        x.HoVaTen,
-        x.TenViTri,
-        x.TenPhongBan,
-        x.ChuKy
-    }).ToList();
+    var allTaiKhoan = Model
+        .Where(m => m.DanhSachThungGang != null)
+        .SelectMany(m => m.DanhSachThungGang)
+        .GroupBy(g => g.TenTaiKhoan)
+        .Select(g => new {
+                    g.First().TenTaiKhoan,
+                    g.First().HoVaTen,
+                    g.First().TenViTri,
+                    g.First().TenPhongBan,
+                    g.First().ChuKy
+        })
+        .ToList();
 }
 
 <div style="padding:0px 30px 0px 50px">
@@ -57,14 +63,14 @@
                 BIÊN BẢN GIAO NHẬN GANG LỎNG - NM.@phongBan
             </div>
             <div class="text-muted small pt-0" style="text-align:center; margin-top:0;font-style: italic;">
-                Kíp @firstItem.T_Ca@firstItem.T_TenKip 
+                @* Kíp @firstItem.T_Ca@firstItem.T_TenKip 
                 @if(firstItem.T_Ca == 1)
                 {
                     @:Từ 08 giờ 00 ngày @firstItem.NgayLuyenThep?.ToString("dd/MM") đến 20 giờ 00 ngày @firstItem.NgayLuyenThep?.ToString("dd/MM/yyyy")
                 } else
                 {
                     @:Từ 20 giờ 00 ngày @firstItem.NgayLuyenThep?.ToString("dd/MM") đến 08 giờ 00 ngày @firstItem.NgayLuyenThep?.AddDays(1).ToString("dd/MM/yyyy")
-                }
+                } *@
             </div>
         </div>
         <br />
@@ -72,17 +78,21 @@
             Chúng tôi gồm:
         </div>
         <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-            <div style="width:37%"> 1. Đại diện bên giao: Ông/bà: @TaiKhoan.HoVaTen</div>
-            <div style="width:38%">Chức vụ:  @ViTri.TenViTri </div>
-            <div style="width:25%">BP: @PhongBan.TenPhongBan</div>
+            <div style="width:37%"> 1. Đại diện bên giao: Ông/bà: @TaiKhoanNguoiIn.HoVaTen</div>
+            <div style="width:38%">Chức vụ:  @ViTriNguoiIn.TenViTri </div>
+            <div style="width:25%">BP: @PhongBanNguoiIn.TenPhongBan</div>
         </div>
-        @foreach (var item in taiKhoanList)
+        @{
+            int stt = 2;
+        }
+        @foreach (var item in allTaiKhoan)
         {
             <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
-                <div style="width:37%"> 2. Đại diện bên nhận: Ông/bà: @item.HoVaTen</div>
+                <div style="width:37%"> @stt. Đại diện bên nhận: Ông/bà: @item.HoVaTen</div>
                 <div style="width:38%">Chức vụ:  @item.TenViTri </div>
                 <div style="width:25%">BP: @item.TenPhongBan</div>
             </div>
+            stt++;
         }
         <div class="col-md-12 float-left" style="margin-bottom:8px;">
             Cùng nhau thống nhất lập biên bản giao nhận gang lỏng chi tiết như sau:
@@ -100,10 +110,10 @@
                         <tr>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 5%;">STT</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">Lò cao</th>
-                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 13%;">Số mẻ</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">Thùng số</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">Thời gian</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 13%;">Số ID</th>
+                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 13%;">Số mẻ</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL thùng & gang lỏng (T)</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL thùng (T)</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL phế nạp (T)</th>
@@ -116,55 +126,63 @@
 
                             int RowNo = 1;
                         }
-                        @foreach (var item in Model)
+                        @foreach (var ttg in Model)
                         {
-                            <tr>
-                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 0;">
-                                    @RowNo@{
-                                    RowNo++;
-                                }
-                            </td>
+                            var rowspan = ttg.DanhSachThungGang?.Count ?? 1;
 
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.ID_Locao
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.MaMeThoi
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.BKMIS_ThungSo
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.Gio_NM
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.BKMIS_SoMe
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLThungVaGang_Thoi
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLThungChua_Thoi
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KL_phe
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLGangLongThoi
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_GhiChu
-                            </td>
+                            for (int i = 0; i < ttg.DanhSachThungGang.Count; i++)
+                            {
+                                var item = ttg.DanhSachThungGang[i];
+                                <tr>
+                                    <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 0;">
+                                        @RowNo@{
+                                        RowNo++;
+                                    }
+                                    </td>
+                                    <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @item.ID_LoCao
+                                    </td>
+                                    <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @item.BKMIS_ThungSo
+                                    </td>
+                                    <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @item.BKMIS_Gio
+                                    </td>
+                                    <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @item.BKMIS_SoMe
+                                    </td>
+                                    @if (i == 0)
+                                    {
+                                        <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                            @ttg.MaMeThoi
+                                        </td>
+                                        <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                            @ttg.KLThungVaGang_Thoi
+                                        </td>
+                                        <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                            @ttg.KLThung_Thoi
+                                        </td>
+                                        <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                            @ttg.KL_phe
+                                        </td>
+                                        <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                            @ttg.KLGang_Thoi
+                                        </td>
+                                        <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                            @ttg.GhiChu
+                                        </td>
+                                    }
+                            </tr>
+                            }
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="9" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;">Tổng khối lượng</td>
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;">@total_KL_GangLongThoi</td>
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;"></td>
                         </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="9" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;">Tổng khối lượng</td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;">@total_KL_GangLongThoi</td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;"></td>
-                    </tr>
-                </tfoot>
+                    </tfoot>
                 </table>
             } else if(phongBan == "HRC2")
             {
@@ -183,6 +201,7 @@
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 5%;">Thùng trung gian</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL thùng & gang lỏng (T)</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL thùng (T)</th>
+                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL phế (T)</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL vào lò thổi</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Mẻ</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Ghi chú </th>
@@ -193,59 +212,71 @@
 
                             int RowNo = 1;
                         }
-                        @foreach (var item in Model)
+                        @foreach (var ttg in Model)
                         {
-                            <tr>
-                                <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                    @RowNo@{
-                                    RowNo++;
+                            var rowspan = ttg.DanhSachThungGang?.Count ?? 1;
+
+                            for (int i = 0; i < ttg.DanhSachThungGang.Count; i++)
+                            {
+                                var item = ttg.DanhSachThungGang[i];
+                                <tr>
+                                    <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 0;">
+                                        @RowNo@{
+                                        RowNo++;
+                                    }
+                                </td>
+                                <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                    @item.ID_LoCao
+                                </td>
+                                <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                    @item.BKMIS_ThungSo
+                                </td>
+                                <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                    @item.BKMIS_SoMe
+                                </td>
+                                <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                    @item.BKMIS_Gio
+                                </td>
+                                <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                    @item.T_KLThungVaGang
+                                </td>
+                                <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                    @item.T_KLThungChua
+                                </td>
+                                <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                    @item.T_KLGangLong
+                                </td>
+                               
+                                @if (i == 0)
+                                {
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.Tong_KLGangNhan
+                                    </td>
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.SoThungTG
+                                    </td>
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.KLThungVaGang_Thoi
+                                    </td>
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.KLThung_Thoi
+                                    </td>
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.KL_phe
+                                    </td>
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.KLGang_Thoi
+                                    </td>
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.MaMeThoi
+                                    </td>
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.GhiChu
+                                    </td>
                                 }
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.ID_Locao
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.BKMIS_ThungSo
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.BKMIS_SoMe
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.Gio_NM
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLThungVaGang
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLThungChua
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLGangLong
-                            </td>
-                            @* TODO *@
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.KL_XeGoong 
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.ThungTrungGian
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLThungVaGang_Thoi
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLThungChua_Thoi
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_KLGangLongThoi
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.MaMeThoi
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                @item.T_GhiChu
-                            </td>
-                        </tr>
-                    }
+                            </tr>
+                            }
+                        }
                 </tbody>
                 <tfoot>
                     <tr>
@@ -253,8 +284,7 @@
                             Tổng khối lượng
                         </td>
                         <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;">@total_KL_GangLong</td>
-                        @* TODO *@
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;"></td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;">@total_KL_GangNhan</td>
                         <td colspan="3" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;"></td>
                         <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;">@total_KL_GangLongThoi</td>
                         <td colspan="2" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;"></td>
@@ -286,7 +316,7 @@
                 <div class="row">
                     <div class="col-12">
                         <div class="row g-2">
-                            @foreach (var item in taiKhoanList)
+                            @foreach (var item in allTaiKhoan)
                             {
                                 <div class="col-md-4 col-sm-6 col-12">
                                     <div style="text-align: center;  padding:2%;">
@@ -318,9 +348,9 @@
                 <span style="font-style:italic; font-weight:300; font-size: 14px;"> (Ký, họ tên)</span>
                 </div>
                 <div style="text-align: center;  padding:2%;">
-                    @if(TaiKhoan.ChuKy != null)
+                    @if(TaiKhoanNguoiIn.ChuKy != null)
                     {
-                        var lin = "https://report.hoaphatdungquat.vn" + TaiKhoan.ChuKy;
+                        var lin = "https://report.hoaphatdungquat.vn" + TaiKhoanNguoiIn.ChuKy;
                         <img src="@lin" alt="" height="50">
                     }
                     else
@@ -329,12 +359,9 @@
                     } 
                 </div>
                 <div style="text-align: center; margin-top:8px">
-                     @TaiKhoan.HoVaTen 
-                </div>
+                    @TaiKhoanNguoiIn.HoVaTen
+            </div>
             </div>
         </div>
-        
-        <!-- End Recent Sales -->
-   
 </div>
 
