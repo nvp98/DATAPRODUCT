@@ -87,7 +87,7 @@
 						<div class="row w-100 justify-content-end mb-3">
 							<div class="col-auto">
 								<button type="button" id="btnLuuThungMoi" class="btn btn-primary">
-									<i class="fa fa-save"></i> Lưu các thùng mới
+									<i class="bi bi-save"></i> Lưu
 								</button>
 								<button type="button" class="btn btn-secondary" id="btnLamMoi">
 									<i class="bi bi-arrow-clockwise"></i>
@@ -98,6 +98,9 @@
 								</button>
 								<button type="button" class="btn btn-danger btnthuhoi">
 									<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
+								</button>
+								<button type="button" class="btn btn-info btnxacnhan">
+									<i class="bi-check2-square"></i> Xác nhận
 								</button>
 								<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel" type="button">
 									Xuất Excel
@@ -134,6 +137,7 @@
 										<th rowspan="2">Tình trạng</th>
 										<th rowspan="2" class="toggle-col">Nơi nhận </th>
 										<th rowspan="2">Chốt thùng</th>
+										<th rowspan="2">Xác nhận QLCL</th>
 									</tr>
 									<tr>
 										<th>NM.HRC1</th>
@@ -151,10 +155,10 @@
 												<td class='text-center deleteItem'>
 													@* @if (!item.MaThungGang.EndsWith(".00"))
 													{ *@
-														<a class="btn btn-danger btn-sm" title="Xóa">
-															<i class="bi bi-trash"></i>
-														</a>
-												@* 	} *@
+													<a class="btn btn-danger btn-sm" title="Xóa">
+														<i class="bi bi-trash"></i>
+													</a>
+													@* 	} *@
 												</td>
 												<td class='text-center copyItem'>
 													<a class="btn btn-secondary btn-sm" title="copy">
@@ -224,6 +228,17 @@
 													else
 													{
 														<button type="button" class="btn btn-success btn-sm">Đã chốt</button>
+													}
+												</td>		
+
+												<td name="XacNhan">
+													@if(item.XacNhan == true)
+													{
+														<span class="badge bg-success">Đã xác nhận</span>
+													}
+													else
+													{
+														<span class="badge bg-secondary">Chưa xác nhận</span>
 													}
 												</td>
 											</tr>
@@ -384,13 +399,6 @@
 						MaThungGang:maThung,
 						ChuyenDen:chuyenDen
 					});
-					console.log('dsMaThung',dsMaThung)
-					//selectedIds.push(maThung);
-						// selectedIds.push({
-						// 		maPhieu: maPhieu,
-						// 		maThung: dsmaThung
-						// 	});
-					//console.log('dsMaThung',dsMaThung)
 				});
 				
 				if (dsMaThung.length === 0)
@@ -463,6 +471,34 @@
 				}
 			});
 
+			// xác nhận thùng
+			$('.btnxacnhan').click(function () {
+				const maPhieu = $('#PhieuID').val() || 0;
+				const selectedMaThungs = [];
+
+				$('.chon-thung-checkbox:checked').each(function () {
+					const row = $(this).closest('tr');
+					const maThung = row.find('td[name="maThung"]').text().trim();
+
+					selectedMaThungs.push({
+						MaThungGang: maThung
+					});
+				});
+
+				if (selectedMaThungs.length === 0) {
+					alert('Vui lòng chọn ít nhất một thùng để xác nhận');
+					return;
+				}
+
+				if (confirm(`Xác nhận ${selectedMaThungs.length} thùng đã chọn?`)) {
+					const requestData = {
+						MaPhieu: maPhieu,
+						DsMaThung: selectedMaThungs
+					};
+					console.log ('requestData',requestData);
+					XacNhanThung(requestData); // Gọi API
+				}
+			});
 			// Ẩn/hiện cột
 			let isHidden = true;
 			$('#toggleColumnsBtn').on('click', function() {
@@ -864,7 +900,7 @@
 					<td></td>
 					<td></td>
 					<td class="text-end">Tổng KL</td> <!-- Cột 3 -->
-					<td colspan="7"></td>
+					<td colspan="8"></td>
 					<td>${tong.toFixed(2)}</td> <!-- KL gang lỏng cân ray -->
 					<td colspan="15"></td>
 				</tr>
@@ -920,10 +956,10 @@
 			$('#modalGio').val(data.gio).prop('disabled', true);
 			$('#modalPhanLoai').val(data.phanLoai).prop('disabled', true);
 
-			$('#modalKLGangLong').val(data.klGangLong);
-			$('#modalKLThung').val(data.klThung);
-			$('#modalKLThungGangLong').val(data.klThungVaGang);
-			$('#modalKLXeGoong').val(data.klXeGoong);
+			$('#modalKLGangLong').val(data.klGangLong).prop('disabled',true);
+			$('#modalKLThung').val(data.klThung).prop('disabled',true);
+			$('#modalKLThungGangLong').val(data.klThungVaGang).prop('disabled',true);
+			$('#modalKLXeGoong').val(data.klXeGoong).prop('disabled',true);
 			$('#modalGioNM').val(data.gioNM);
 			$('#modalGhiChu').val(data.ghiChu);
 
@@ -1099,6 +1135,21 @@
 			window.URL.revokeObjectURL(url);
 		});
 	}
-
+	function XacNhanThung(data)
+		{
+		$.ajax({
+				url: '/BM16_GangThoi/XacNhanThung',
+				type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify(data),
+				success: function (res) {
+					alert('Xác nhận thành công!');
+					location.reload();
+				},
+				error: function () {
+					alert('Lỗi khi xác nhận thùng');
+				}
+		});
+		}
 
 </script>
