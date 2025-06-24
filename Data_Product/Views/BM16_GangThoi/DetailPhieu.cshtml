@@ -83,7 +83,7 @@
 			</div>
 			<div class="tab-content">
 				<div class="row">
-					<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 14px;">
+					<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 14px; z-index:1;">
 						<div class="row w-100 justify-content-end mb-3">
 							<div class="col-auto">
 								<button type="button" id="btnLuuThungMoi" class="btn btn-primary">
@@ -405,7 +405,7 @@
 						MaPhieu: maPhieu,
 						DsMaThung: dsMaThung
 					};
-					console.log('requestData',requestData)
+					//console.log('requestData',requestData)
 					chuyenThung(requestData);
 				}
 				});
@@ -496,8 +496,8 @@
 				const maThung = row.find('td[name="maThung"]').text().trim();
 				const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
 
-				if (tinhTrang == 'Đã chốt') {
-					alert("Thùng đã được chốt không thể xóa");
+				if (tinhTrang == 'Đã chốt' || maThung.endsWith(".00")) {
+					alert("Không thể xóa");
 					return;
 				}
 				// Trường hợp 1: Dòng sao chép (data-new="true")
@@ -644,7 +644,7 @@
 				let lastIndex = getLastThungIndex();
 				let updateList = [];
 				let listSoMeHienTai = soMeHienTai.map(x => x.soMe);
-				console.log('soMeHienTai',soMeHienTai)
+				//console.log('soMeHienTai',soMeHienTai)
 			$.ajax({
 				url: "/BM16_GangThoi/GetSoMeGangBKMis",
 				type: "GET",
@@ -652,8 +652,8 @@
 				success: function (data) {
 					let soMeMoi = data.map(item => item.testPatternCode || "");
 					let soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
-					console.log('soMeMoi',soMeMoi)
-					console.log('soMeCanXoa',soMeCanXoa)
+					// console.log('soMeMoi',soMeMoi)
+					// console.log('soMeCanXoa',soMeCanXoa)
 					// Xử lý khối lượng xe goòng trước khi thêm mẻ mới
 					$.ajax({
 						url: "/XeGoong/KLXeLoCao",
@@ -724,7 +724,7 @@
 										maPhieu: maPhieu,
 										DsMaThung: updateList
 									};
-									console.log('requestDataupdate',requestData)
+									//console.log('requestDataupdate',requestData)
 								$.ajax({
 									url: "/BM16_GangThoi/CapNhatThungChuaChuyen",
 									type: "POST",
@@ -746,7 +746,7 @@
 										maPhieu: maPhieu,
 										soMes: soMeCanXoa
 									};
-						console.log('requestData',requestData)
+						//console.log('requestData',requestData)
 								$.ajax({
 									url: "/BM16_GangThoi/XoaNhungSoMeKhongConTrongBK",
 									type: "POST",
@@ -779,6 +779,7 @@
 			let idKip = $("#ID_Kip").val();
 			let danhSachThung = [];
 
+			let isValid = true;
 			$("#dataTable tbody tr[data-new='true']").each(function () {
 				let row = $(this);
 				let vanChuyenHRC1 = row.find("input[name='VanChuyenHRC1']").is(":checked");
@@ -788,7 +789,7 @@
 
 				// Xác định nơi chuyển đến
 				let chuyenDen = vanChuyenHRC1 ? "HRC1" :
-								vanChuyenHRC2 ? "HRC2" :
+								vanChuyenHRC2 ? "HRC2" : 
 								vanChuyenDUC1 ? "DUC1" :
 								vanChuyenDUC2 ? "DUC2" :
 								"KHONG_XAC_DINH";
@@ -817,7 +818,7 @@
 				DanhSachThung: danhSachThung
 			};
 
-			console.log("==dataToSend==",dataToSend)
+			//console.log("==dataToSend==",dataToSend)
 
 			$.ajax({
 				url: "/BM16_GangThoi/SaveThung",
@@ -1077,9 +1078,6 @@
 			if (!inserted) {
 				$("#dataTable tbody").append(clonedRow);
 			}
-	console.log("Dòng mới được thêm vào:");
-	console.log(clonedRow[0]);              // In ra Element đầy đủ
-	console.log(clonedRow.html());
 			});
 
 	function ExportToPDF(){
