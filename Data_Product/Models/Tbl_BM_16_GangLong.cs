@@ -164,5 +164,9 @@ namespace Data_Product.Models
         public decimal? KL_phe { get; set; }
         [NotMapped]
         public decimal? Tong_KLGangNhan { get; set; }
+
+        public bool? XacNhan { get; set; }
+
+        public int? ID_NguoiXacNhan { get; set; }
     }
 }

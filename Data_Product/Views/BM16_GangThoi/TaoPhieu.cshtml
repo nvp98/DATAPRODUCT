@@ -552,7 +552,14 @@
 						},
 						error: function (xhr, status, error) {
 							console.error('Error', xhr.responseText);
-							alert('Lỗi khi tạo phiếu!');
+							const res = xhr.responseJSON;
+						
+							if (res && res.message === "Đã tồn tại phiếu cho lò cao này trong ngày được chọn.") {
+								alert("Đã tồn tại phiếu cho lò cao này trong ngày được chọn.");
+							} 
+							else {
+								alert("Lỗi khi tạo phiếu: " + res.message);
+							} 
 						}
 					});
 				});
