@@ -385,6 +385,10 @@ namespace Data_Product.Controllers
             var danhSachThung = await _context.Tbl_BM_16_GangLong
                 .Where(t => t.MaPhieu == id && t.T_copy == false )
                 .ToListAsync();
+            int soluongme = danhSachThung.Where(x => !string.IsNullOrWhiteSpace(x.BKMIS_SoMe))
+                .Select(x => x.BKMIS_SoMe)
+                .Distinct()
+                .Count();
             // Lấy danh sách user nhận thùng và join
             var thungUserList = await _context.Tbl_BM_16_TaiKhoan_Thung
                 .Where(tk => tk.MaPhieu == id) // Lọc trước theo phiếu đang xử lý
@@ -468,9 +472,8 @@ namespace Data_Product.Controllers
                     x.XacNhan
                 })
                 .ToList();
-
             ViewBag.DanhSachThung = viewData;
-
+            ViewBag.SoLuongMe = soluongme;
             ViewBag.MaPhieu = phieu.MaPhieu;
             ViewBag.Ngay = phieu.NgayTaoPhieu.ToString("yyyy-MM-dd");
             ViewBag.NgayPhieuGang = phieu.NgayPhieuGang.ToString("yyyy-MM-dd");
@@ -1171,7 +1174,21 @@ namespace Data_Product.Controllers
                                          TenViTri = vt != null ? vt.TenViTri : "",
                                          ChuKy = user.ChuKy
                                      }).Distinct().ToList();
-
+                // Người chuyển (dạng group)
+                var nguoiXacNhanList = (from gl in _context.Tbl_BM_16_GangLong
+                                       join user in _context.Tbl_TaiKhoan on gl.ID_NguoiXacNhan equals user.ID_TaiKhoan
+                                       join pb in _context.Tbl_PhongBan on user.ID_PhongBan equals pb.ID_PhongBan into g_pb
+                                       from pb in g_pb.DefaultIfEmpty()
+                                       join vt in _context.Tbl_ViTri on user.ID_ChucVu equals vt.ID_ViTri into g_vt
+                                       from vt in g_vt.DefaultIfEmpty()
+                                       where gl.MaPhieu == MaPhieu //&& gl.MaThungGang
+                                       select new NguoiInfo
+                                       {
+                                           HoVaTen = user.HoVaTen,
+                                           TenPhongBan = pb != null ? pb.TenNgan : "",
+                                           TenViTri = vt != null ? vt.TenViTri : "",
+                                           ChuKy = user.ChuKy
+                                       }).Distinct().ToList();
 
                 // Người nhận (dạng group)
                 var nguoiNhanList = (from tkThung in _context.Tbl_BM_16_TaiKhoan_Thung
@@ -1195,6 +1212,8 @@ namespace Data_Product.Controllers
                 {
                     DanhSachGangLong = chiTietGangLong,
                     NguoiChuyen = nguoiChuyenList,
+                    NguoiNhan = nguoiNhanList,
+                    NguoiXacNhan = nguoiXacNhanList
                     //.Select(x => new NguoiInfo
                     //{
                     //    HoVaTen = x.HoVaTen,
@@ -1203,7 +1222,9 @@ namespace Data_Product.Controllers
                     //    ChuKy = x.ChuKy
                     //}).Distinct().ToList(),
 
-                    NguoiNhan = nguoiNhanList
+
+
+
                 };
 
                 // Render View -> HTML

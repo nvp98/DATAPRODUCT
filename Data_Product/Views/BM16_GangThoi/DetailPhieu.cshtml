@@ -23,6 +23,10 @@
 	display: none;
 	}
 
+	.is-invalid {
+	border: 1px solid red !important;
+	background-color: #ffe6e6 !important;
+	}
 	/* td.deleteItem {
 	display: none;
 	} */
@@ -46,6 +50,12 @@
 		pager = ViewBag.Pager;
 		pageNo = pager.CurrentPage;
 	}
+}
+
+@{
+	var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+	var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+	var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
 }
 @using (Html.BeginForm("TaoPhieu", "BM16_GangThoi", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
 {
@@ -86,29 +96,35 @@
 					<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 14px; z-index:1;">
 						<div class="row w-100 justify-content-end mb-3">
 							<div class="col-auto">
-								<button type="button" id="btnLuuThungMoi" class="btn btn-primary">
-									<i class="bi bi-save"></i> Lưu
-								</button>
-								<button type="button" class="btn btn-secondary" id="btnLamMoi">
-									<i class="bi bi-arrow-clockwise"></i>
-									<span class="small pt-2 ps-1 text-white">Làm mới</span>
-								</button>
-								<button type="button" class="btn btn-success me-2 btnchuyenthung">
-									<i class="bi bi-arrow-right-circle"></i> Chuyển
-								</button>
-								<button type="button" class="btn btn-danger btnthuhoi">
-									<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
-								</button>
-								<button type="button" class="btn btn-info btnxacnhan">
-									<i class="bi-check2-square"></i> Xác nhận
-								</button>
-								<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel" type="button">
-									Xuất Excel
-								</button>
-								<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
-								<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
-									Ẩn/Hiện
-								</button>
+								@if (PhongBan?.TenNgan == "P.QLCL")
+								{
+									<button type="button" class="btn btn-info btnxacnhan">
+										<i class="bi-check2-square"></i> Xác nhận
+									</button>
+								} else 
+								{
+									<button type="button" id="btnLuuThungMoi" class="btn btn-primary">
+										<i class="bi bi-save"></i> Lưu
+									</button>
+									<button type="button" class="btn btn-secondary" id="btnLamMoi">
+										<i class="bi bi-arrow-clockwise"></i>
+										<span class="small pt-2 ps-1 text-white">Làm mới</span>
+									</button>
+									<button type="button" class="btn btn-success me-2 btnchuyenthung">
+										<i class="bi bi-arrow-right-circle"></i> Chuyển
+									</button>
+									<button type="button" class="btn btn-danger btnthuhoi">
+										<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
+									</button>
+							
+									<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel" type="button">
+										Xuất Excel
+									</button>
+									<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
+									<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
+										Ẩn/Hiện
+									</button>
+								}
 							</div>
 						</div>
 						<div class="table-responsive" style="max-height: 700px; overflow-y: auto;">
@@ -137,7 +153,9 @@
 										<th rowspan="2">Tình trạng</th>
 										<th rowspan="2" class="toggle-col">Nơi nhận </th>
 										<th rowspan="2">Chốt thùng</th>
-										<th rowspan="2">Xác nhận QLCL</th>
+										
+											<th rowspan="2">Xác nhận QLCL</th>
+										
 									</tr>
 									<tr>
 										<th>NM.HRC1</th>
@@ -360,6 +378,7 @@
 	</div>
 </div>
 <script>
+	var soLuongMe = @(ViewBag.SoLuongMe ?? 0);
 		$(document).ready(function()
 		{
 			// Chọn/bỏ chọn tất cả
@@ -808,16 +827,18 @@
 				}
 			});
 		}
-
+		////==================///////////
 		function saveGangThoiVaoPhieu() {
 			let phieuID = $("#PhieuID").val();
 			let idLoCao = $("#ID_Locao").val();
 			let idKip = $("#ID_Kip").val();
 			let danhSachThung = [];
-
-			let isValid = true;
+			let isValidAll = true;
+		
 			$("#dataTable tbody tr[data-new='true']").each(function () {
 				let row = $(this);
+				let isValid = true;
+				row.find("input, textarea").removeClass("is-invalid");
 				let vanChuyenHRC1 = row.find("input[name='VanChuyenHRC1']").is(":checked");
 				let vanChuyenHRC2 = row.find("input[name='VanChuyenHRC2']").is(":checked");
 				let vanChuyenDUC1 = row.find("input[name='VanChuyenDUC1']").is(":checked");
@@ -829,6 +850,43 @@
 								vanChuyenDUC1 ? "DUC1" :
 								vanChuyenDUC2 ? "DUC2" :
 								"KHONG_XAC_DINH";
+
+				let khoiLuongXe = parseFloat(row.find("input[name='KhoiLuongXeGoong']").val());
+				let khoiLuongThung = parseFloat(row.find("input[name='KhoiLuongThung']").val());
+				let klThungGangLong = parseFloat(row.find("input[name='KLThungGangLong']").val());
+				let klGangLong = parseFloat(row.find("input[name='KLGangLong']").val());
+				let gioNM = row.find("input[name='GioNM']").val()?.trim();
+
+				// Validate
+				if (isNaN(khoiLuongXe) || khoiLuongXe <= 0) {
+					row.find("input[name='KhoiLuongXeGoong']").addClass("is-invalid");
+					isValid = false;
+				}
+				if (isNaN(khoiLuongThung) || khoiLuongThung <= 0) {
+					row.find("input[name='KhoiLuongThung']").addClass("is-invalid");
+					isValid = false;
+				}
+				if (isNaN(klThungGangLong) || klThungGangLong <= 0) {
+					row.find("input[name='KLThungGangLong']").addClass("is-invalid");
+					isValid = false;
+				}
+				if (isNaN(klGangLong) || klGangLong <= 0) {
+					row.find("input[name='KLGangLong']").addClass("is-invalid");
+					isValid = false;
+				}
+				if (chuyenDen === "KHONG_XAC_DINH") {
+				row.find("input[name^='VanChuyen']").addClass("is-invalid");
+				isValid = false;
+				}
+				if (!gioNM) {
+					row.find("input[name='GioNM']").addClass("is-invalid");
+					isValid = false;
+				}
+
+				if (!isValid) {
+					isValidAll = false;
+					return; // skip this row
+				}
 				danhSachThung.push({
 					MaThungGang: row.find("td[name='maThung']").text().trim(),
 					BKMIS_SoMe: row.find("td[name='soMe']").text().trim(),
@@ -845,6 +903,10 @@
 				});
 				
 			});
+				if (!isValidAll) {
+				alert("Vui lòng kiểm tra lại các ô dữ liệu bị đánh dấu đỏ.");
+				return;
+			}
 
 			// Tạo object gửi lên controller
 			const dataToSend = {
@@ -897,11 +959,10 @@
 
 			let tongRow = `
 				<tr class="tong-row" style="font-weight:bold; background-color:#f0f0f0;">
-					<td></td>
-					<td></td>
-					<td class="text-end">Tổng KL</td> <!-- Cột 3 -->
-					<td colspan="8"></td>
-					<td>${tong.toFixed(2)}</td> <!-- KL gang lỏng cân ray -->
+					<td colspan="4"></td>
+					<td>${soLuongMe}</td>
+					<td colspan="6"></td>
+					<td>${tong.toFixed(2)}</td>
 					<td colspan="15"></td>
 				</tr>
 			`;
