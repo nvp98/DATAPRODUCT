@@ -19,13 +19,6 @@
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    Pager pager = new Pager();
-    int pageNo = 0;
-    if (ViewBag.Pager != null)
-    {
-        pager = ViewBag.Pager;
-        pageNo = pager.CurrentPage;
-    }
 
 }
 @{
@@ -97,12 +90,21 @@
     .rotate-icon.rotated {
         transform: rotate(180deg);
     }
+
+    #fixed-pagination {
+        position: absolute;
+        bottom: 60px;
+        left: 0;
+        right: 0;
+        z-index: 10; 
+        background-color: #fff;
+    }
 </style>
 
 
 
 
-<div id="main-container" class="d-flex flex-column vh-100">
+<div id="main-container" class="d-flex flex-column vh-100" style="position: relative; padding-bottom: 30px;">
     <!-- Collapse Filter -->
     <div class="p-2">
         <div class="row">
@@ -305,73 +307,88 @@
     </div>
 
     <!-- Bảng dữ liệu -->
-    <div class="flex-grow-1 px-2" style="min-height: 0; padding-bottom: 50px; margin-bottom: 15px;">
+    <div class="flex-grow-1 px-2" style="min-height: 0; padding-bottom: 50px; margin-bottom: 40px;">
         <div class="h-100 table-content" style="overflow: auto; font-size: 13px;">
-                <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu" style="min-width: 1500px;">
-                    <thead class="table-light sticky-top bg-white" style="z-index: 2">
-                        <tr>
-                            <th>Ngày LG</th>
-                            <th>Ca LG</th>
-                            <th>Kíp LG</th>
-                            <th class="hide-col">Mã thùng gang</th>
-                            <th>Lò cao</th>
-                            <th>Số mẻ</th>
-                            <th>Thùng số</th>
-                            <th>Giờ</th>
-                            <th class="hide-col">Phân loại</th>
-                            <th>KL xe goong</th>
-                            <th>KL thùng</th>
-                            <th>KL thùng và gang</th>
-                            <th>KL gang lỏng</th>
-                            <th class="hide-col">Chuyển đến</th>
-                            <th class="hide-col">KR</th>
-                            <th>Giờ NM</th>
-                            <th>Tình trạng LG</th>
-                            <th>Ngày LT</th>
-                            <th>Ca LT</th>
-                            <th>Kíp LT</th>
-                            <th class="hide-col">Mã thùng thép</th>
-                            <th>KL Gang nhận (T)</th>
-                            <th>Lò thổi</th>
-                            <th>Thùng trung gian</th>
-                            <th>KL thùng & gang lỏng (T)</th>
-                            <th>KL thùng (T)</th>
-                            <th>KL phế (T)</th>
-                            <th>KL vào lò thổi (T)</th>
-                            <th>Mẻ</th>
-                            <th>Tình trạng LT</th>
-                            <th>BP Nhận</th>
-                            <th>Người nhận</th>
-                            <th>Chọn thùng</th>
-                            <th>Tình trạng</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                     <tfoot>
-                        <tr style="height: 50px;">
-                            <td colspan="10" class="total-space" style="font-weight: 600; text-align: start">Tổng</td>
-                            <td id="IDTongKLGangLong" style="font-weight: 600">
-                                0.00
-                            </td>
-                            <td colspan="5" class="space-2"></td>
-                            <td id="IDTongKLGangNhan" style="font-weight: 600">
-                                0.00
-                            </td>
-                            <td colspan="5"></td>
-                            <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
-                                0.00
-                            </td>
-                            <td colspan="6"></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+            <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu" style="min-width: 1500px;">
+                <thead class="table-light sticky-top bg-white" style="z-index: 2">
+                    <tr>
+                        <th>Ngày LG</th>
+                        <th>Ca LG</th>
+                        <th>Kíp LG</th>
+                        <th class="hide-col">Mã thùng gang</th>
+                        <th>Lò cao</th>
+                        <th>Số mẻ</th>
+                        <th>Thùng số</th>
+                        <th>Giờ</th>
+                        <th class="hide-col">Phân loại</th>
+                        <th>KL xe goong</th>
+                        <th>KL thùng</th>
+                        <th>KL thùng và gang</th>
+                        <th>KL gang lỏng</th>
+                        <th class="hide-col">Chuyển đến</th>
+                        <th class="hide-col">KR</th>
+                        <th>Giờ NM</th>
+                        <th>Tình trạng LG</th>
+                        <th>Ngày LT</th>
+                        <th>Ca LT</th>
+                        <th>Kíp LT</th>
+                        <th class="hide-col">Mã thùng thép</th>
+                        <th>KL Gang nhận (T)</th>
+                        <th>Lò thổi</th>
+                        <th>Thùng trung gian</th>
+                        <th>KL thùng & gang lỏng (T)</th>
+                        <th>KL thùng (T)</th>
+                        <th>KL phế (T)</th>
+                        <th>KL vào lò thổi (T)</th>
+                        <th>Mẻ</th>
+                        <th>Tình trạng LT</th>
+                        <th>BP Nhận</th>
+                        <th>Người nhận</th>
+                        <th>Chọn thùng</th>
+                        <th>Tình trạng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                    <tr style="height: 50px;">
+                        <td colspan="10" class="total-space" style="font-weight: 600; text-align: start">Tổng</td>
+                        <td id="IDTongKLGangLong" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="5" class="space-2"></td>
+                        <td id="IDTongKLGangNhan" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="5"></td>
+                        <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="6"></td>
+                    </tr>
+
+                    <tr style="height: 50px;">
+                        <td colspan="10" class="total-space" style="font-weight: 600; text-align: start">Tổng Tất Cả</td>
+                        <td colspan="2" id="IDTongAllKLGangLong" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="17" class="space-3"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <div id="fixed-pagination" class="bg-white border-top shadow-sm">
+        <nav class="py-2">
+            <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
+        </nav>
     </div>
 </div>
 
 <script>
      let isHidden = true;
+     let currentPage = 1;
+     const pageSize = 10;
     // reset cacs filter search
         function clearFilter(ids = []) {
           ids.forEach(id => {
@@ -490,47 +507,42 @@
         }
 
         // render khu vực xử lý số liệu
-        function renderTable(data) {
-         const tbody = $('#tblDuLieu tbody');
-            tbody.empty();
-
+        function renderTable(res) {
+            const tbody = $('#tblDuLieu tbody');
+                tbody.empty();
+            const data = res.data;
             if (!data || data.length === 0) {
                 tbody.append(`<tr><td colspan="34" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
                             Không tìm thấy dữ liệu
-                         </td></tr>`);
+                            </td></tr>`);
                 return;
             }
 
-        const groupByTTG = new Map();
-        const groupedResult = [];
+            const groupByTTG = new Map();
+            const groupedResult = [];
 
-        // Group theo ID_TTG
-        data.forEach(item => {
-            if (item.iD_TTG != null) {
-                const key = item.iD_TTG;
-                if (!groupByTTG.has(key)) {
-                    groupByTTG.set(key, []);
+            // Group theo ID_TTG
+            data.forEach(item => {
+                if (item.iD_TTG != null) {
+                    const key = item.iD_TTG;
+                    if (!groupByTTG.has(key)) {
+                        groupByTTG.set(key, []);
+                    }
+                    groupByTTG.get(key).push(item);
+                } else {
+                    groupedResult.push([item]);
                 }
-                groupByTTG.get(key).push(item);
-            } else {
-                // Không có ID_TTG, coi như một group riêng
-                groupedResult.push([item]);
+            });
+
+            for (const [, group] of groupByTTG.entries()) {
+                group.sort((a, b) => (a.isCopy === b.isCopy) ? 0 : (a.isCopy ? 1 : -1));
+                groupedResult.push(group);
             }
-        });
-
-        // Thêm các nhóm có ID_TTG theo thứ tự đã chèn
-        for (const [, group] of groupByTTG.entries()) {
-            // Sort trong group: thùng gốc trước thùng copy
-            group.sort((a, b) => (a.isCopy === b.isCopy) ? 0 : (a.isCopy ? 1 : -1));
-            groupedResult.push(group);
-        }
-
-            console.log("Da group",groupedResult);
 
             $("#IDTongKLGangLong").text('0.00');
             $("#IDTongKLVaoLoThoi").text('0.00');
             $("#IDTongKLGangNhan").text('0.00');
-
+            
             groupedResult.forEach(group => {
                 const rowspan = group.length;
                 let isFirstRow = true;
@@ -557,16 +569,16 @@
                     row.append(`<td>${item.bkmiS_Gio ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
 
-                    if(!item.t_copy || isCopy){
-                        row.append(`<td>${item.kL_XeGoong ?? ''}</td>`);
-                        row.append(`<td>${item.g_KLThungVaGang ?? ''}</td>`);
-                        row.append(`<td>${item.g_KLThungChua ?? ''}</td>`);
-                        row.append(`<td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>`);
-                    } else {
+                    if(item.t_copy == true || isCopy){
                         row.append(`<td></td>`);
                         row.append(`<td></td>`);
                         row.append(`<td></td>`);
                         row.append(`<td class="G_KL_GangLong"></td>`);
+                    } else {
+                        row.append(`<td>${item.kL_XeGoong ?? ''}</td>`);
+                        row.append(`<td>${item.g_KLThungVaGang ?? ''}</td>`);
+                        row.append(`<td>${item.g_KLThungChua ?? ''}</td>`);
+                        row.append(`<td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>`);
                     }
                     row.append(`<td  class="hide-col">${item.chuyenDen ?? ''}</td>`);
                     row.append(`<td  class="hide-col">
@@ -583,9 +595,9 @@
                     row.append(`<td  class="hide-col">${item.maThungThep ?? ''}</td>`);
 
                     if (isFirstRow) {
-                        row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
-                        row.append(`<td rowspan="${rowspan}">${item.soThungTG ?? ''} ${ isCopy ? '<br/><span style="color: red;">TTG Copy</span>' : ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.soThungTG ?? ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.klThungVaGang_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.klThung_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.kL_phe?.toFixed(2) || ''}</td>`);
@@ -610,6 +622,7 @@
                 TongKLGangNhan();
                 applyColumnVisibility();
             });
+             $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toFixed(2) : $("#IDTongKLGangLong").text().trim());
         }
 
         function checkCondition(item){
@@ -620,7 +633,6 @@
                     || item.klGang_Thoi === null || item.kL_phe === null || item.iD_MeThoi === null
                     ? false : true;
         }
-
 
         // export Excel
         function exportToExcel(){
@@ -651,47 +663,80 @@
 
         function getSearchPayload(){
             const ID_LoCao = $("#LoCao").val() || null;
-                const ID_LoThoi = $("#LoThoi").val() || null;
-                const TuNgayLG = $("#TuNgayLG").val() || null;
-                const DenNgayLG = $("#DenNgayLG").val() || null;
-                const TuNgayLT = $("#TuNgayLT").val() || null;
-                const DenNgayLT = $("#DenNgayLT").val() || null;
-                const CaLT = $("#CaLT").val() || null;
-                const CaLG = $("#CaLG").val() || null;
-                const KipLT = $("#KipLT").val() || null;
-                const KipLG = $("#KipLG").val() || null;
-                const ChuyenDen = $("#ChuyenDen").val() || null;
-                const ThungSo = $("#ThungSo").val() || null;
-                const TinhTrangLT = $("#TinhTrangLT").val() || null;
-                const TinhTrangLG = $("#TinhTrangLG").val() || null;
-                const MaThungGang = $("#MaThungGang").val() || null;
-                const MaThungThep = $("#MaThungThep").val() || null;
-                const TinhTrangChot = $("#TinhTrangChot").val() || null;
+            const ID_LoThoi = $("#LoThoi").val() || null;
+            const TuNgayLG = $("#TuNgayLG").val() || null;
+            const DenNgayLG = $("#DenNgayLG").val() || null;
+            const TuNgayLT = $("#TuNgayLT").val() || null;
+            const DenNgayLT = $("#DenNgayLT").val() || null;
+            const CaLT = $("#CaLT").val() || null;
+            const CaLG = $("#CaLG").val() || null;
+            const KipLT = $("#KipLT").val() || null;
+            const KipLG = $("#KipLG").val() || null;
+            const ChuyenDen = $("#ChuyenDen").val() || null;
+            const ThungSo = $("#ThungSo").val() || null;
+            const TinhTrangLT = $("#TinhTrangLT").val() || null;
+            const TinhTrangLG = $("#TinhTrangLG").val() || null;
+            const MaThungGang = $("#MaThungGang").val() || null;
+            const MaThungThep = $("#MaThungThep").val() || null;
+            const TinhTrangChot = $("#TinhTrangChot").val() || null;
 
-                return dto = {
-                    ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
-                    ID_LoThoi: ID_LoThoi ? parseInt(ID_LoThoi) : null,
-                    TuNgay_LG: TuNgayLG || null,
-                    DenNgay_LG: DenNgayLG || null,
-                    TuNgay_LT: TuNgayLT || null,
-                    DenNgay_LT: DenNgayLT || null,
-                    Ca_LT: CaLT ? parseInt(CaLT) : null,
-                    Ca_LG: CaLG ? parseInt(CaLG) : null,
-                    ID_Kip_LT: KipLT ? KipLT : null,
-                    ID_Kip_LG: KipLG ? KipLG : null,
-                    ChuyenDen: ChuyenDen || null,
-                    ThungSo: ThungSo || null,
-                    ID_TinhTrang_LT: TinhTrangLT ? parseInt(TinhTrangLT) : null,
-                    ID_TinhTrang_LG: TinhTrangLG ? parseInt(TinhTrangLG) : null,
-                    ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null,
-                    MaThungGang: MaThungGang || null,
-                    MaThungThep: MaThungThep || null
-                };
+            return dto = {
+                ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
+                ID_LoThoi: ID_LoThoi ? parseInt(ID_LoThoi) : null,
+                TuNgay_LG: TuNgayLG || null,
+                DenNgay_LG: DenNgayLG || null,
+                TuNgay_LT: TuNgayLT || null,
+                DenNgay_LT: DenNgayLT || null,
+                Ca_LT: CaLT ? parseInt(CaLT) : null,
+                Ca_LG: CaLG ? parseInt(CaLG) : null,
+                ID_Kip_LT: KipLT ? KipLT : null,
+                ID_Kip_LG: KipLG ? KipLG : null,
+                ChuyenDen: ChuyenDen || null,
+                ThungSo: ThungSo || null,
+                ID_TinhTrang_LT: TinhTrangLT ? parseInt(TinhTrangLT) : null,
+                ID_TinhTrang_LG: TinhTrangLG ? parseInt(TinhTrangLG) : null,
+                ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null,
+                MaThungGang: MaThungGang || null,
+                MaThungThep: MaThungThep || null
+            };
         }
+
+        function renderPagination(totalRecords) {
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            const pagination = $('#pagination');
+            pagination.empty();
+
+            const createPageItem = (page, label = page, isActive = false, isDisabled = false) => {
+                return `
+                    <li class="page-item ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}">
+                        <a class="page-link" href="javascript:void(0)" data-page="${page}">${label}</a>
+                    </li>
+                `;
+            };
+
+            pagination.append(createPageItem(currentPage - 1, '«', false, currentPage === 1));
+
+            for (let i = 1; i <= totalPages; i++) {
+                pagination.append(createPageItem(i, i, i === currentPage));
+            }
+
+            pagination.append(createPageItem(currentPage + 1, '»', false, currentPage === totalPages));
+
+            $('#pagination .page-link').on('click', function () {
+                const page = parseInt($(this).data('page'));
+                if (!isNaN(page) && page !== currentPage) {
+                    currentPage = page;
+                    Search();
+                }
+            });
+        }
+
 
          // Search 
          function Search() {
-              const dto = getSearchPayload();
+             const dto = getSearchPayload();
+             dto.PageSize = pageSize;
+             dto.PageNumber = currentPage;
 
              $.ajax({
               url: '/BM16_GangThoi_PKH/Search',
@@ -699,14 +744,16 @@
                  contentType: 'application/json',
                  data: JSON.stringify(dto),
                  success: function (res) {
-                     // console.log(res);
-                    renderTable(res.data);
+                    console.log(res);
+                    renderTable(res);
+                    renderPagination(res.totalRecords);
                  },
                  error: function (err) {
                      alert("Lỗi khi tìm kiếm dữ liệu");
                  }
              });
          }
+
        
          // logic chot thung
         $('#btnChotThung').click(function () {
@@ -773,15 +820,26 @@
         });
 
         $("#btnTimKiem").click(function() {
+            currentPage = 1;
             Search();   
         })
 
         $("#btnReset").click(function() {
             clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep']);
+            currentPage = 1;
             Search();
         })
          
         $("#btnXuatExcel").click(function() {
+            const TuNgayLG = $("#TuNgayLG").val() || null;
+            const DenNgayLG = $("#DenNgayLG").val() || null;
+            if(!TuNgayLG){
+                alert("Vui lòng chọn Từ Ngày Luyện Gang"); return;
+            }
+
+            if(!DenNgayLG){
+                alert("Vui lòng chọn Đến Ngày Luyện Gang"); return;
+            }
             exportToExcel();
         })
 
@@ -799,6 +857,8 @@
 
             $('.total-space').attr('colspan', isHidden ? 10 : 12);
             $('.space-2').attr('colspan', isHidden ? 5 : 8);
+
+            $('.space-3').attr('colspan', isHidden ? 17 : 20);
         }
 
         // xu ly khi load
@@ -809,18 +869,4 @@
              // cho luyen thep
             setupDateRange('TuNgayLT','DenNgayLT');
         });
-</script>
-
-<script>
-    const collapseEl = document.getElementById('filterPanel');
-    const icon = document.getElementById('toggleIcon');
-
-    collapseEl.addEventListener('shown.bs.collapse', function () {
-      icon.classList.add('rotated');
-      $(".table-responsive").he
-    });
-
-    collapseEl.addEventListener('hidden.bs.collapse', function () {
-      icon.classList.remove('rotated');
-    });
 </script>
