@@ -41,7 +41,10 @@ namespace Data_Product.Controllers
             ViewBag.LoCaoList = loCaoList;
 
             // Lò Thổi
-            var loThoiList = await _context.Tbl_LoThoi.ToListAsync();
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
+            var loThoiList = await _context.Tbl_LoThoi.Where(x => x.BoPhan == TaiKhoan.ID_PhongBan).ToListAsync();
             ViewBag.LoThoiList = loThoiList;
 
             var currentYear = DateTime.Now.Year;
@@ -82,7 +85,13 @@ namespace Data_Product.Controllers
 
             if (payload.ID_TrangThai.HasValue)
             {
-                query = query.Where(x => x.T_ID_TrangThai == payload.ID_TrangThai.Value);
+                if(payload.ID_TrangThai.Value == (int)TinhTrang.DaChot)
+                {
+                    query = query.Where(x => x.ID_TrangThai == payload.ID_TrangThai.Value);
+                } else
+                {
+                    query = query.Where(x => x.T_ID_TrangThai == payload.ID_TrangThai.Value);
+                }
             }
 
             if (payload.ChuyenDen != null && payload.ChuyenDen.Any())
@@ -703,8 +712,14 @@ namespace Data_Product.Controllers
                             .Where(x => x.ID == idTTG)
                             .FirstOrDefaultAsync();
 
+
                         if (thungTrungGianToDelete != null)
                         {
+                            var thungTrungGianCopy = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.MaThungTG == thungTrungGianToDelete.MaThungTG && x.IsCopy == true).ToListAsync();
+                            if (thungTrungGianCopy.Any())
+                            {
+                                _context.Tbl_BM_16_ThungTrungGian.RemoveRange(thungTrungGianCopy);
+                            }
                             _context.Tbl_BM_16_ThungTrungGian.Remove(thungTrungGianToDelete);
                         }
                     }

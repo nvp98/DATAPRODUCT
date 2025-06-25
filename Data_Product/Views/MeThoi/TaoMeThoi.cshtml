@@ -5,24 +5,17 @@
 }
 <form id="formTaoMeThoi">
     <div class="mb-3">
-        <label for="loThoi" class="form-label">Lò Thổi</label>
-        <select class="form-select" id="formLoThoi" name="loThoi">
-            <option value="">-- Lò thổi --</option>
-            @foreach (var lothoi in ViewBag.LoThoiList)
-            {
-                <option data-id="@lothoi.ID" value="@lothoi.MaLoThoi">@lothoi.TenLoThoi</option>
-            }
-        </select>
+        <label for="soLuong" class="form-label">Số lượng: </label>
+        <input type="number" class="form-control" id="formSoLuong" name="soLuong" min="1" max="20" value="" />
+        <div class="invalid-feedback">
+            Vui lòng nhập số từ 1 đến 20.
+        </div>
     </div>
-    <div class="mb-3">
-        <label for="soLuong" class="form-label"></label>
-        <input type="number" class="form-control" id="formSoLuong" name="soLuong" min="1" value="" />
-    </div>
-
     
 
     <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" id="btnDongModalTaoMeThoi">Đóng</button>
         <button type="button" class="btn btn-primary" onclick="submitTaoMe()">Lưu</button>
     </div>
+    <div id="alertBox" class="alert d-none mt-3" role="alert"></div>
 </form>

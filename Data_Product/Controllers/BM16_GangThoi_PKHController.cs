@@ -2,6 +2,7 @@
 using Data_Product.Common.Enums;
 using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
+using Data_Product.Models.ModelView;
 using Data_Product.Repositorys;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Humanizer;
@@ -61,10 +62,42 @@ namespace Data_Product.Controllers
             var thungs = await _context.Tbl_BM_16_GangLong
                                        .Where(x => Ids.Contains(x.ID) && x.T_ID_TrangThai == (int)TinhTrang.DaNhan)
                                        .ToListAsync();
-
             if (thungs.Count == 0) return NotFound("Không tìm thấy thùng nào.");
+
+            var idTTGs = thungs.Select(x => x.ID_TTG).Distinct().ToList();
+
+            // Lấy tất cả thùng trung gian liên quan
+            var allTTGs = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => idTTGs.Contains(x.ID))
+                .ToListAsync();
+
+            var maThungTGs = allTTGs.Select(x => x.MaThungTG).Distinct().ToList();
+
+            // Lấy toàn bộ các thùng trung gian liên quan theo MaThungTG (gốc và bản sao)
+            var relatedTTGs = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => maThungTGs.Contains(x.MaThungTG))
+                .ToListAsync();
+
+            var idMeThoiList = relatedTTGs
+                .Where(x => x.ID_MeThoi.HasValue)
+                .Select(x => x.ID_MeThoi.Value)
+                .Distinct()
+                .ToList();
+
+            // Lấy toàn bộ mẻ thổi cần cập nhật
+            var meThoiList = await _context.Tbl_MeThoi
+                .Where(x => idMeThoiList.Contains(x.ID))
+                .ToListAsync();
+
+            // Cập nhật trạng thái mẻ thổi
+            foreach (var me in meThoiList)
+            {
+                me.ID_TrangThai = (int)TinhTrang.DaChot;
+            }
+
             foreach (var t in thungs)
             {
+
                 t.ID_TrangThai = (int)TinhTrang.DaChot;
                 t.ID_NguoiChot = TaiKhoan.ID_TaiKhoan;
             }
@@ -73,96 +106,172 @@ namespace Data_Product.Controllers
             return Ok();
         }
 
-        private async Task<List<Tbl_BM_16_GangLong>> SearchByPayload(SearchDto dto)
+        [HttpPost]
+        public async Task<IActionResult> HuyChotThung([FromBody] List<ChotThungDto> selectedIds)
         {
-            var query = _context.Tbl_BM_16_GangLong.AsQueryable();
+            if (selectedIds == null || selectedIds.Count == 0)
+                return BadRequest("Danh sách ID trống.");
 
-            if (dto.ID_LoCao.HasValue)
-            {
-                query = query.Where(x => x.ID_Locao == dto.ID_LoCao.Value);
-            }
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            if (TaiKhoan == null) return Unauthorized();
 
-            if (dto.ID_LoThoi.HasValue)
-            {
-                query = query.Where(x => x.ID_LoThoi == dto.ID_LoThoi.Value);
-            }
+            var Ids = selectedIds
+                                .Select(x => x.id)
+                                .ToList();
 
-            if (dto.TuNgay_LG.HasValue && dto.DenNgay_LG.HasValue)
-            {
-                var tuNgay = dto.TuNgay_LG.Value.Date;
-                var denNgay = dto.DenNgay_LG.Value.Date.AddDays(1); 
-                query = query.Where(x => x.NgayLuyenGang >= tuNgay && x.NgayLuyenGang < denNgay);
+            // Lấy tất cả các thùng cần xử lý
+            var thungs = await _context.Tbl_BM_16_GangLong
+                                       .Where(x => Ids.Contains(x.ID) && x.ID_TrangThai == (int)TinhTrang.DaChot)
+                                       .ToListAsync();
+            if (thungs.Count == 0) return NotFound("Không tìm thấy thùng nào.");
 
-            }
+            var idTTGs = thungs.Select(x => x.ID_TTG).Distinct().ToList();
 
-            if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
-            {
-                var tuNgay = dto.TuNgay_LT.Value.Date;
-                var denNgay = dto.DenNgay_LT.Value.Date.AddDays(1);
-                query = query.Where(x => x.NgayLuyenThep >= tuNgay && x.NgayLuyenThep < denNgay);
+            // Lấy tất cả thùng trung gian liên quan
+            var allTTGs = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => idTTGs.Contains(x.ID))
+                .ToListAsync();
 
-            }
-            if (dto.Ca_LT.HasValue)
-            {
-                query = query.Where(x => x.T_Ca == dto.Ca_LT.Value);
-            }
-            if (dto.Ca_LG.HasValue)
-            {
-                query = query.Where(x => x.G_Ca == dto.Ca_LG.Value);
-            }
+            var maThungTGs = allTTGs.Select(x => x.MaThungTG).Distinct().ToList();
 
-            if (!string.IsNullOrEmpty(dto.ID_Kip_LT))
-            {
-                query = query.Where(thung =>
-                                    thung.T_ID_Kip != null &&
-                                    _context.Tbl_Kip
-                                        .Where(k => k.TenKip == dto.ID_Kip_LT)
-                                        .Select(k => k.ID_Kip)
-                                        .Contains(thung.T_ID_Kip.Value)
-                                );
-            }
+            // Lấy toàn bộ các thùng trung gian liên quan theo MaThungTG (gốc và bản sao)
+            var relatedTTGs = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => maThungTGs.Contains(x.MaThungTG))
+                .ToListAsync();
 
-            if (!string.IsNullOrEmpty(dto.ID_Kip_LG))
+            var idMeThoiList = relatedTTGs
+                .Where(x => x.ID_MeThoi.HasValue)
+                .Select(x => x.ID_MeThoi.Value)
+                .Distinct()
+                .ToList();
+
+            // Lấy toàn bộ mẻ thổi cần cập nhật
+            var meThoiList = await _context.Tbl_MeThoi
+                .Where(x => idMeThoiList.Contains(x.ID))
+                .ToListAsync();
+
+            // Cập nhật trạng thái mẻ thổi
+            foreach (var me in meThoiList)
             {
-                query = query.Where(thung =>
-                                    thung.G_ID_Kip != null &&
-                                    _context.Tbl_Kip
-                                        .Where(k => k.TenKip == dto.ID_Kip_LG)
-                                        .Select(k => k.ID_Kip)
-                                        .Contains(thung.G_ID_Kip.Value)
-                                );
+                me.ID_TrangThai = (int)TinhTrang.ChoXuLy;
             }
 
-            if (!string.IsNullOrEmpty(dto.ChuyenDen))
+            foreach (var t in thungs)
             {
-                query = query.Where(x => x.ChuyenDen.Contains(dto.ChuyenDen));
-            }
-            if (!string.IsNullOrEmpty(dto.ThungSo))
-            {
-                query = query.Where(x => x.BKMIS_ThungSo.Contains(dto.ThungSo));
-            }
-            if (dto.ID_TinhTrang.HasValue)
-            {
-                query = query.Where(x => x.ID_TrangThai == dto.ID_TinhTrang.Value);
-            }
-            if (dto.ID_TinhTrang_LT.HasValue)
-            {
-                query = query.Where(x => x.T_ID_TrangThai == dto.ID_TinhTrang_LT.Value);
-            }
-            if (dto.ID_TinhTrang_LG.HasValue)
-            {
-                query = query.Where(x => x.G_ID_TrangThai == dto.ID_TinhTrang_LG.Value);
-            }
-            if (!string.IsNullOrEmpty(dto.MaThungGang))
-            {
-                query = query.Where(x => x.MaThungGang.Contains(dto.MaThungGang));
-            }
-            if (!string.IsNullOrEmpty(dto.MaThungThep))
-            {
-                query = query.Where(x => x.MaThungThep.Contains(dto.MaThungThep));
+
+                t.ID_TrangThai = (int)TinhTrang.ChoXuLy;
             }
 
-            var res = await (from a in query
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+            private async Task<PageResultViewModel<Tbl_BM_16_GangLong>> SearchByPayload(SearchDto dto)
+            {
+                var query = _context.Tbl_BM_16_GangLong.AsQueryable();
+
+                if (dto.ID_LoCao.HasValue)
+                {
+                    query = query.Where(x => x.ID_Locao == dto.ID_LoCao.Value);
+                }
+
+                if (dto.ID_LoThoi.HasValue)
+                {
+                    query = query.Where(x => x.ID_LoThoi == dto.ID_LoThoi.Value);
+                }
+
+                if (dto.TuNgay_LG.HasValue && dto.DenNgay_LG.HasValue)
+                {
+                    var tuNgay = dto.TuNgay_LG.Value.Date;
+                    var denNgay = dto.DenNgay_LG.Value.Date.AddDays(1); 
+                    query = query.Where(x => x.NgayLuyenGang >= tuNgay && x.NgayLuyenGang < denNgay);
+
+                }
+
+                if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
+                {
+                    var tuNgay = dto.TuNgay_LT.Value.Date;
+                    var denNgay = dto.DenNgay_LT.Value.Date.AddDays(1);
+                    query = query.Where(x => x.NgayLuyenThep >= tuNgay && x.NgayLuyenThep < denNgay);
+
+                }
+                if (dto.Ca_LT.HasValue)
+                {
+                    query = query.Where(x => x.T_Ca == dto.Ca_LT.Value);
+                }
+                if (dto.Ca_LG.HasValue)
+                {
+                    query = query.Where(x => x.G_Ca == dto.Ca_LG.Value);
+                }
+
+                if (!string.IsNullOrEmpty(dto.ID_Kip_LT))
+                {
+                    query = query.Where(thung =>
+                                        thung.T_ID_Kip != null &&
+                                        _context.Tbl_Kip
+                                            .Where(k => k.TenKip == dto.ID_Kip_LT)
+                                            .Select(k => k.ID_Kip)
+                                            .Contains(thung.T_ID_Kip.Value)
+                                    );
+                }
+
+                if (!string.IsNullOrEmpty(dto.ID_Kip_LG))
+                {
+                    query = query.Where(thung =>
+                                        thung.G_ID_Kip != null &&
+                                        _context.Tbl_Kip
+                                            .Where(k => k.TenKip == dto.ID_Kip_LG)
+                                            .Select(k => k.ID_Kip)
+                                            .Contains(thung.G_ID_Kip.Value)
+                                    );
+                }
+
+                if (!string.IsNullOrEmpty(dto.ChuyenDen))
+                {
+                    query = query.Where(x => x.ChuyenDen.Contains(dto.ChuyenDen));
+                }
+                if (!string.IsNullOrEmpty(dto.ThungSo))
+                {
+                    query = query.Where(x => x.BKMIS_ThungSo.Contains(dto.ThungSo));
+                }
+                if (dto.ID_TinhTrang.HasValue)
+                {
+                    query = query.Where(x => x.ID_TrangThai == dto.ID_TinhTrang.Value);
+                }
+                if (dto.ID_TinhTrang_LT.HasValue)
+                {
+                    query = query.Where(x => x.T_ID_TrangThai == dto.ID_TinhTrang_LT.Value);
+                }
+                if (dto.ID_TinhTrang_LG.HasValue)
+                {
+                    query = query.Where(x => x.G_ID_TrangThai == dto.ID_TinhTrang_LG.Value);
+                }
+                if (!string.IsNullOrEmpty(dto.MaThungGang))
+                {
+                    query = query.Where(x => x.MaThungGang.Contains(dto.MaThungGang));
+                }
+                if (!string.IsNullOrEmpty(dto.MaThungThep))
+                {
+                    query = query.Where(x => x.MaThungThep.Contains(dto.MaThungThep));
+                }
+
+                // Tổng số bản ghi
+                var totalRecords = await query.CountAsync();
+
+                // Phân trang (mặc định nếu null)
+                int page = dto.PageNumber <= 0 ? 1 : dto.PageNumber;
+                int pageSize = dto.PageSize <= 0 ? 20 : dto.PageSize;
+
+                // Thêm sắp xếp để phân trang
+                query = query.OrderBy(x => x.NgayTao)
+                             .ThenBy(x => x.MaThungGang)
+                             .ThenBy(x => x.MaThungThep)
+                             .Skip((page - 1) * pageSize)
+                             .Take(pageSize);
+
+
+            var gocData = await (from a in query
                              join trangThai in _context.Tbl_BM_16_TrangThai on a.ID_TrangThai equals trangThai.ID into g_tt
                              from trangThai in g_tt.DefaultIfEmpty()
 
@@ -232,6 +341,7 @@ namespace Data_Product.Controllers
                                  TrangThai = trangThai.TenTrangThai,
                                  TrangThaiLG = trangThaiLG.TenTrangThai,
                                  TrangThaiLT = trangThaiLT.TenTrangThai,
+                                 T_copy = a.T_copy,
 
                                  HoVaTen = user.HoVaTen,
                                  TenPhongBan = phongban.TenNgan,
@@ -239,6 +349,7 @@ namespace Data_Product.Controllers
                                  ID_TTG = a.ID_TTG,
                                  MaThungTG = ttg.MaThungTG,
                                  ID_MeThoi = ttg.ID_MeThoi,
+                                 IsCopy = ttg.IsCopy,
                                  MaMeThoi = methoi.MaMeThoi,
                                  ID_LoThoi = ttg.ID_LoThoi,
                                  SoThungTG = ttg.SoThungTG,
@@ -248,8 +359,122 @@ namespace Data_Product.Controllers
                                  KL_phe = ttg.KL_phe,
                                  Tong_KLGangNhan = ttg.Tong_KLGangNhan,
                              }).ToListAsync();
-            return res;
+
+            var maTTGs = gocData.Where(x => !string.IsNullOrEmpty(x.MaThungTG)).Select(x => x.MaThungTG).Distinct();
+            var thungTG_Copies = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.IsCopy == true && maTTGs.Contains(x.MaThungTG)).ToListAsync();
+
+            for (int i = 0; i < gocData.Count; i++)
+            {
+                var item = gocData[i];
+
+                if (!item.ID_TTG.HasValue || item.IsCopy == true) continue;
+
+                // Tìm các thùng copy có cùng MaThungTG
+                var copies = thungTG_Copies
+                    .Where(x => x.MaThungTG == item.MaThungTG)
+                    .ToList();
+
+                int insertIndex = i + 1;
+
+                foreach (var copy in copies)
+                {
+                    var clone = CloneGangLong(item);
+
+                    var methoi = await _context.Tbl_MeThoi
+                        .Where(x => x.ID == copy.ID_MeThoi)
+                        .FirstOrDefaultAsync();
+
+                    clone.ID_TTG = copy.ID;
+                    clone.IsCopy = true;
+                    clone.SoThungTG = copy.SoThungTG;
+                    clone.KLThungVaGang_Thoi = copy.KLThungVaGang_Thoi;
+                    clone.KLThung_Thoi = copy.KLThung_Thoi;
+                    clone.KLGang_Thoi = copy.KLGang_Thoi;
+                    clone.KL_phe = copy.KL_phe;
+                    clone.ID_MeThoi = methoi?.ID;
+                    clone.MaMeThoi = methoi?.MaMeThoi;
+
+                    gocData.Insert(insertIndex, clone);
+                    insertIndex++; // tiếp theo copy sẽ được thêm tiếp sau copy trước đó
+                    i++; // tăng i để tránh lặp lại
+                }
+            }
+            return new PageResultViewModel<Tbl_BM_16_GangLong>
+                {
+                    TotalRecords = totalRecords,
+                    Data = gocData
+            };
         }
+
+        private Tbl_BM_16_GangLong CloneGangLong(Tbl_BM_16_GangLong original)
+        {
+            return new Tbl_BM_16_GangLong
+            {
+                ID = original.ID,
+                NgayTao = original.NgayTao,
+                NgayLuyenGang = original.NgayLuyenGang,
+                G_Ca = original.G_Ca,
+                G_TenKip = original.G_TenKip,
+                MaThungGang = original.MaThungGang,
+                ID_Locao = original.ID_Locao,
+                BKMIS_SoMe = original.BKMIS_SoMe,
+                BKMIS_ThungSo = original.BKMIS_ThungSo,
+                BKMIS_Gio = original.BKMIS_Gio,
+                BKMIS_PhanLoai = original.BKMIS_PhanLoai,
+                //KL_XeGoong = original.KL_XeGoong,
+                //G_KLThungChua = original.G_KLThungChua,
+                //G_KLThungVaGang = original.G_KLThungVaGang,
+                //G_KLGangLong = original.G_KLGangLong,
+                KL_XeGoong = null,
+                G_KLThungChua = null,
+                G_KLThungVaGang = null,
+                G_KLGangLong = null,
+                ChuyenDen = original.ChuyenDen,
+                Gio_NM = original.Gio_NM,
+                G_ID_TrangThai = original.G_ID_TrangThai,
+                NgayLuyenThep = original.NgayLuyenThep,
+                T_Ca = original.T_Ca,
+                T_TenKip = original.T_TenKip,
+                MaThungThep = original.MaThungThep,
+                T_copy = original.T_copy,
+                KR = original.KR,
+                //T_KLThungVaGang = original.T_KLThungVaGang,
+                //T_KLThungChua = original.T_KLThungChua,
+                //T_KLGangLong = original.T_KLGangLong,
+                T_KLThungVaGang = null,
+                T_KLThungChua =null,
+                T_KLGangLong = null,
+
+                T_ID_TrangThai = original.T_ID_TrangThai,
+                ID_TrangThai = original.ID_TrangThai,
+                TenLoCao = original.TenLoCao,
+                T_KL_phe = original.T_KL_phe,
+                TrangThai = original.TrangThai,
+                TrangThaiLG = original.TrangThaiLG,
+                TrangThaiLT = original.TrangThaiLT,
+                HoVaTen = original.HoVaTen,
+                TenPhongBan = original.TenPhongBan,
+
+                ID_TTG = original.ID_TTG,
+                MaThungTG = original.MaThungTG,
+                ID_MeThoi = original.ID_MeThoi,
+                IsCopy = original.IsCopy,
+                MaMeThoi = original.MaMeThoi,
+                ID_LoThoi = original.ID_LoThoi,
+                SoThungTG = original.SoThungTG,
+                //KLThungVaGang_Thoi = original.KLThungVaGang_Thoi,
+                //KLThung_Thoi = original.KLThung_Thoi,
+                //KLGang_Thoi = original.KLGang_Thoi,
+                //KL_phe = original.KL_phe,
+                //Tong_KLGangNhan = original.Tong_KLGangNhan,
+                KLThungVaGang_Thoi = null,
+                KLThung_Thoi = null,
+                KLGang_Thoi = null,
+                KL_phe = null,
+                Tong_KLGangNhan = null,
+            };
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> ExportToExcel([FromBody] SearchDto dto)
@@ -257,13 +482,13 @@ namespace Data_Product.Controllers
             try
             {
                 var thungList = await SearchByPayload(dto);
-                if (thungList == null || !thungList.Any())
+                if (thungList.Data == null || !thungList.Data.Any())
                     return BadRequest("Danh sách trống.");
 
                 //var groupByTTG = thungList.GroupBy(x => x.ID_TTG).ToList();
-                var groupByTTG = thungList
+                var groupByTTG = thungList.Data
                                 .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
-                                .OrderByDescending(g => g.Max(x => x.NgayTao)) // Sort theo ngày tạo mới nhất
+                                .OrderByDescending(g => g.Max(x => x.NgayTao)) 
                                 .ToList();
                 // Đường dẫn đến template
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "QTGN_Gang_Long_PKH.xlsx");
