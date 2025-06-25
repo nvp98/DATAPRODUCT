@@ -23,15 +23,30 @@ namespace Data_Product.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> FilterMeThoi([FromBody] int id_LoThoi)
+        public async Task<IActionResult> FilterMeThoi([FromBody] MeThoiSearchDto dto)
         {
-            var currentYear = DateTime.Now.Year;
-            var result = await _context.Tbl_MeThoi
-                .Where(x => x.NgayTao.Year == currentYear && x.ID_LoThoi == id_LoThoi && x.ID_TrangThai == (int)TinhTrang.ChoXuLy)
+            var query = _context.Tbl_MeThoi
+                    .Where(x => x.ID_LoThoi == dto.id_LoThoi &&
+                    x.ID_TrangThai == (int)TinhTrang.ChoXuLy &&
+                    x.Is_Delete == false);
+
+            if (!string.IsNullOrWhiteSpace(dto.searchText))
+            {
+                query = query.Where(x => x.MaMeThoi.Contains(dto.searchText));
+            }
+
+            var now = DateTime.Now;
+            var startOfYear = new DateTime(now.Year, 1, 1);
+            var startOfNextYear = startOfYear.AddYears(1);
+
+            var result = await query
+                .Where(x => x.NgayTao >= startOfYear && x.NgayTao < startOfNextYear)
+                .OrderBy(x => x.MaMeThoi)
+                .Take(50)
+                .Select(x => new { id = x.ID, maMeThoi = x.MaMeThoi })
                 .ToListAsync();
 
             return Ok(result);
-           
         }
 
 
@@ -55,7 +70,7 @@ namespace Data_Product.Controllers
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
 
-            var currentDate = DateTime.Now.Date;
+            var currentDate = payload.ngayTao;
             string yearPart = (currentDate.Year % 100).ToString("D2"); 
             string loaiMe = payload.maLoThoi.Trim(); // A,B,C
             string prefix = yearPart + loaiMe;       // Ví dụ: 25A

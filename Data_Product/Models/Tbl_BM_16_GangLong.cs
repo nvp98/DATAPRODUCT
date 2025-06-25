@@ -168,5 +168,7 @@ namespace Data_Product.Models
         public bool? XacNhan { get; set; }
 
         public int? ID_NguoiXacNhan { get; set; }
+        [NotMapped]
+        public bool? IsCopy { get; set; }
     }
 }

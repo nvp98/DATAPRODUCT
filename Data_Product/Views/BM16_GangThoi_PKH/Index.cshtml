@@ -62,11 +62,13 @@
         scrollbar-color: #888 #f1f1f1; /* Màu thanh kéo và nền */
     }
 
-
+    .hide-col{
+        display: none;
+    }
 
     .status-card {
         height: 35px;
-        width: 80px;
+        width: 110px;
         border-radius: 5px;
         display: flex;
         justify-content: center;
@@ -112,7 +114,10 @@
                                 DANH SÁCH THÙNG
                             </b>
                         </span>
-                        <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
+                            <button class="btn btn-danger btn-sm px-4 status-card" id="btnHuyChotThung"> Hủy Chốt</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -278,10 +283,16 @@
                             <input type="text" class="form-control form-control-sm" id="MaThungThep" />
                         </div>
                         <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-2 mb-2">
-                            <div class="d-flex flex-row justify-content-center align-items-end gap-2" style="height: 100%">
-                                <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
-                                <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm </button>
-                                <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
+                            @* <div class="d-flex flex-row justify-content-center align-items-end gap-2" style="height: 100%"> *@
+                            <div class="d-flex flex-column gap-2 w-100">
+                                <div class="d-flex justify-content-between w-100 gap-2">
+                                    <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
+                                    <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
+                                </div>
+                                <div class="d-flex justify-content-between w-100 gap-2">
+                                    <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
+                                    <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -302,24 +313,24 @@
                             <th>Ngày LG</th>
                             <th>Ca LG</th>
                             <th>Kíp LG</th>
-                            <th>Mã thùng gang</th>
+                            <th class="hide-col">Mã thùng gang</th>
                             <th>Lò cao</th>
                             <th>Số mẻ</th>
                             <th>Thùng số</th>
                             <th>Giờ</th>
-                            <th>Phân loại</th>
+                            <th class="hide-col">Phân loại</th>
                             <th>KL xe goong</th>
                             <th>KL thùng</th>
                             <th>KL thùng và gang</th>
                             <th>KL gang lỏng</th>
-                            <th>Chuyển đến</th>
-                            <th>KR</th>
+                            <th class="hide-col">Chuyển đến</th>
+                            <th class="hide-col">KR</th>
                             <th>Giờ NM</th>
                             <th>Tình trạng LG</th>
                             <th>Ngày LT</th>
                             <th>Ca LT</th>
                             <th>Kíp LT</th>
-                            <th>Mã thùng thép</th>
+                            <th class="hide-col">Mã thùng thép</th>
                             <th>KL Gang nhận (T)</th>
                             <th>Lò thổi</th>
                             <th>Thùng trung gian</th>
@@ -339,11 +350,11 @@
                     </tbody>
                      <tfoot>
                         <tr style="height: 50px;">
-                            <td colspan="12" style="font-weight: 600; text-align: start">Tổng</td>
+                            <td colspan="10" class="total-space" style="font-weight: 600; text-align: start">Tổng</td>
                             <td id="IDTongKLGangLong" style="font-weight: 600">
                                 0.00
                             </td>
-                            <td colspan="8"></td>
+                            <td colspan="5" class="space-2"></td>
                             <td id="IDTongKLGangNhan" style="font-weight: 600">
                                 0.00
                             </td>
@@ -360,6 +371,7 @@
 </div>
 
 <script>
+     let isHidden = true;
     // reset cacs filter search
         function clearFilter(ids = []) {
           ids.forEach(id => {
@@ -489,27 +501,31 @@
                 return;
             }
 
-            const groupByTTG = {};      // chứa các group theo ID_TTG
-            const groupedResult = [];   // mảng các group (dạng array)
+        const groupByTTG = new Map();
+        const groupedResult = [];
 
-            data.forEach(item => {
-                if (item.iD_TTG != null) {
-                    const key = item.iD_TTG;
-                    if (!groupByTTG[key]) groupByTTG[key] = [];
-                    groupByTTG[key].push(item);
-                } else {
-                    // nếu không có iD_TTG, coi mỗi thùng là 1 group riêng
-                    groupedResult.push([item]);
+        // Group theo ID_TTG
+        data.forEach(item => {
+            if (item.iD_TTG != null) {
+                const key = item.iD_TTG;
+                if (!groupByTTG.has(key)) {
+                    groupByTTG.set(key, []);
                 }
-            });
+                groupByTTG.get(key).push(item);
+            } else {
+                // Không có ID_TTG, coi như một group riêng
+                groupedResult.push([item]);
+            }
+        });
 
-            // Thêm các group có iD_TTG khác null vào mảng kết quả
-            for (const key in groupByTTG) {
-                groupedResult.push(groupByTTG[key]);
-            }
-            for (const key in groupedResult) {
-                groupedResult[key].sort((a, b) => new Date(a.ngayTao) - new Date(b.ngayTao));
-            }
+        // Thêm các nhóm có ID_TTG theo thứ tự đã chèn
+        for (const [, group] of groupByTTG.entries()) {
+            // Sort trong group: thùng gốc trước thùng copy
+            group.sort((a, b) => (a.isCopy === b.isCopy) ? 0 : (a.isCopy ? 1 : -1));
+            groupedResult.push(group);
+        }
+
+            console.log("Da group",groupedResult);
 
             $("#IDTongKLGangLong").text('0.00');
             $("#IDTongKLVaoLoThoi").text('0.00');
@@ -520,7 +536,10 @@
                 let isFirstRow = true;
 
                 group.forEach(item => {
-                   const row = $(`<tr data-id="${item.id}"></tr>`);
+
+                    const isCopy = item.isCopy;
+
+                    const row = $(`<tr data-id="${item.id}"></tr>`);
                     const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
                     const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
@@ -531,18 +550,26 @@
                     row.append(`<td>${ngayLG ?? ''}</td>`);
                     row.append(`<td>${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>`);
                     row.append(`<td>${item.g_TenKip ?? ''}</td>`);
-                    row.append(`<td>${item.maThungGang ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.maThungGang ?? ''}</td>`);
                     row.append(`<td>${item.iD_Locao ?? ''}</td>`);
-                    row.append(`<td>${item.bkmiS_SoMe ?? ''}</td>`);
-                    row.append(`<td>${item.bkmiS_ThungSo ?? ''}</td>`);
+                    row.append(`<td ${item.t_copy || isCopy ? 'style="color: red;"' : ''}>${item.bkmiS_SoMe ?? ''}</td>`);
+                    row.append(`<td ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
                     row.append(`<td>${item.bkmiS_Gio ?? ''}</td>`);
-                    row.append(`<td>${item.bkmiS_PhanLoai ?? ''}</td>`);
-                    row.append(`<td>${item.kL_XeGoong ?? ''}</td>`);
-                    row.append(`<td>${item.g_KLThungVaGang ?? ''}</td>`);
-                    row.append(`<td>${item.g_KLThungChua ?? ''}</td>`);
-                    row.append(`<td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>`);
-                    row.append(`<td>${item.chuyenDen ?? ''}</td>`);
-                    row.append(`<td>
+                    row.append(`<td  class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
+
+                    if(!item.t_copy || isCopy){
+                        row.append(`<td>${item.kL_XeGoong ?? ''}</td>`);
+                        row.append(`<td>${item.g_KLThungVaGang ?? ''}</td>`);
+                        row.append(`<td>${item.g_KLThungChua ?? ''}</td>`);
+                        row.append(`<td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>`);
+                    } else {
+                        row.append(`<td></td>`);
+                        row.append(`<td></td>`);
+                        row.append(`<td></td>`);
+                        row.append(`<td class="G_KL_GangLong"></td>`);
+                    }
+                    row.append(`<td  class="hide-col">${item.chuyenDen ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">
                                     ${item.kr === true ?
                                         `<input type="checkbox" ${item.kr ? "checked" : ""} onclick="return false;" style="pointer-events: none;"/>`
                                         : ''
@@ -553,12 +580,12 @@
                     row.append(`<td>${ngayLT ?? ''}</td>`);
                     row.append(`<td>${item.t_Ca == null ? '' : (item.t_Ca === 1 ? 'N' : 'Đ')}</td>`);
                     row.append(`<td>${item.t_TenKip ?? ''}</td>`);
-                    row.append(`<td>${item.maThungThep ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.maThungThep ?? ''}</td>`);
 
                     if (isFirstRow) {
                         row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
-                        row.append(`<td rowspan="${rowspan}">${item.soThungTG || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.soThungTG ?? ''} ${ isCopy ? '<br/><span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.klThungVaGang_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.klThung_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.kL_phe?.toFixed(2) || ''}</td>`);
@@ -581,11 +608,12 @@
                 TongKLGangLong();
                 TongKLVaoLoThoi();
                 TongKLGangNhan();
+                applyColumnVisibility();
             });
         }
 
         function checkCondition(item){
-            return item.iD_TrangThai == 5 || item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 
+            return  item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 
                     ||  item.t_KLThungVaGang === null || item.t_KLThungChua === null 
                     || item.t_KLGangLong === null || item.iD_TTG === null || item.soThungTG === null 
                     || item.klThungVaGang_Thoi === null || item.klThung_Thoi === null
@@ -670,8 +698,9 @@
                  method: 'POST',
                  contentType: 'application/json',
                  data: JSON.stringify(dto),
-                 success: function (data) {
-                    renderTable(data);
+                 success: function (res) {
+                     // console.log(res);
+                    renderTable(res.data);
                  },
                  error: function (err) {
                      alert("Lỗi khi tìm kiếm dữ liệu");
@@ -712,18 +741,65 @@
               });
         });
 
+        $('#btnHuyChotThung').click(function () {
+              let selectedIds = [];
+              $('#tblDuLieu tbody tr').each(function () {
+                  const checkbox = $(this).find('.cbx-chotThung');
+                  if (checkbox.is(':checked')) {
+                      const id = $(this).data('id');
+                      selectedIds.push({id: id});
+                  }
+              });
+
+              if (selectedIds.length === 0) {
+                  alert("Vui lòng chọn ít nhất 1 dòng.");
+                  return;
+              }
+             console.log(selectedIds)
+              $.ajax({
+                  url: "/BM16_GangThoi_PKH/HuyChotThung",
+                  type: "POST",
+                  contentType: "application/json",
+                    data: JSON.stringify(selectedIds),
+                  processData: false,
+                  success: function (res) {
+                      alert("Đã Hủy chốt thùng thành công")
+                      Search();
+                  },
+                  error: function () {
+                      alert("Lỗi khi nhận dữ liệu!");
+                  }
+              });
+        });
+
         $("#btnTimKiem").click(function() {
             Search();   
         })
 
         $("#btnReset").click(function() {
-            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep']);
+            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep']);
             Search();
         })
-
+         
         $("#btnXuatExcel").click(function() {
             exportToExcel();
         })
+
+        $('#BtnAnHien').click(function() {
+            isHidden = !isHidden;
+
+            applyColumnVisibility();
+        });
+
+        function applyColumnVisibility() {
+            const display = isHidden ? 'none' : 'table-cell';
+
+            // Cột cần ẩn/hiện
+            $('.hide-col').css('display', display);
+
+            $('.total-space').attr('colspan', isHidden ? 10 : 12);
+            $('.space-2').attr('colspan', isHidden ? 5 : 8);
+        }
 
         // xu ly khi load
         $(document).ready(function () {
