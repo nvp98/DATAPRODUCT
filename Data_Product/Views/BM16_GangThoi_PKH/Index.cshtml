@@ -560,7 +560,7 @@
 
                     const isCopy = item.isCopy;
 
-                    const row = $(`<tr data-id="${item.id}"></tr>`);
+                    const row = $(`<tr data-id="${item.id}" data-idtrangthai="${item.iD_TrangThai}"></tr>`);
                     const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
                     const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
@@ -769,24 +769,32 @@
          // logic chot thung
         $('#btnChotThung').click(function () {
               let selectedIds = [];
+              let hasLocked = false;
               $('#tblDuLieu tbody tr').each(function () {
                   const checkbox = $(this).find('.cbx-chotThung');
                   if (checkbox.is(':checked')) {
                       const id = $(this).data('id');
+                      const idTrangThai = $(this).data('idtrangthai');
+                      if (idTrangThai == 5) {
+                        hasLocked = true;
+                        return false; 
+                      }
                       selectedIds.push({id: id});
                   }
               });
-
+              if (hasLocked) {
+                  alert("Vui lòng không chọn các thùng đã chốt.");
+                  return;
+              }
               if (selectedIds.length === 0) {
                   alert("Vui lòng chọn ít nhất 1 dòng.");
                   return;
               }
-             console.log(selectedIds)
               $.ajax({
                   url: "/BM16_GangThoi_PKH/ChotThung",
                   type: "POST",
                   contentType: "application/json",
-                    data: JSON.stringify(selectedIds),
+                  data: JSON.stringify(selectedIds),
                   processData: false,
                   success: function (res) {
                       alert("Đã chốt thùng thành công")
@@ -801,19 +809,28 @@
 
         $('#btnHuyChotThung').click(function () {
               let selectedIds = [];
+              let hasLocked = false;
               $('#tblDuLieu tbody tr').each(function () {
                   const checkbox = $(this).find('.cbx-chotThung');
                   if (checkbox.is(':checked')) {
                       const id = $(this).data('id');
+                      const idTrangThai = $(this).data('idtrangthai');
+                      if (idTrangThai == 2) {
+                        hasLocked = true;
+                        return false;
+                      }
                       selectedIds.push({id: id});
                   }
               });
-
+              if (hasLocked) {
+                  alert("Vui lòng không chọn các thùng chưa chốt.");
+                  return;
+              }
               if (selectedIds.length === 0) {
                   alert("Vui lòng chọn ít nhất 1 dòng.");
                   return;
               }
-             console.log(selectedIds)
+
               $.ajax({
                   url: "/BM16_GangThoi_PKH/HuyChotThung",
                   type: "POST",
