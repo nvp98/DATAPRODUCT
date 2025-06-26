@@ -692,7 +692,7 @@ namespace Data_Product.Controllers
                     var chuyenDen = item.ChuyenDen ?? "";
                     var tenCaStr = await _context.Tbl_Kip
                    .Where(k => k.ID_Kip == req.ID_Kip)
-                   .Select(k => k.TenCa)   // kiểu string
+                   .Select(k => k.TenCa)
                    .FirstOrDefaultAsync();
 
                     int? soCa = int.TryParse(tenCaStr, out int result) ? result : null;

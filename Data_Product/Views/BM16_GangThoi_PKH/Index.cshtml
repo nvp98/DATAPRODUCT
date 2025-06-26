@@ -150,19 +150,21 @@
                                         }
                                     </select>
                                 </div>
-
-                                <!-- Từ ngày LG -->
+                                <!-- Chuyển đến -->
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label for="TuNgayLG" class="form-label">Từ ngày LG:</label>
-                                    <input type="date" class="form-control form-control-sm" id="TuNgayLG" name="TuNgayLG"
-                                           onkeydown="return false;">
+                                    <label class="form-label">Chuyển đến:</label>
+                                    <select class="form-select form-select-sm" id="ChuyenDen" name="ChuyenDen">
+                                        <option value="">-- Chuyển đến --</option>
+                                        <option value="HRC1">HRC 1</option>
+                                        <option value="DUC1">Đúc 1</option>
+                                        <option value="HRC2">HRC 2</option>
+                                        <option value="DUC2">Đúc 2</option>
+                                    </select>
                                 </div>
-
-                                <!-- Đến ngày LG -->
+                                <!-- Thùng số -->
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label for="DenNgayLG" class="form-label">Đến ngày LG:</label>
-                                    <input type="date" class="form-control form-control-sm" id="DenNgayLG" name="DenNgayLG"
-                                           onkeydown="return false;">
+                                    <label class="form-label">Thùng số:</label>
+                                    <input type="number" class="form-control form-control-sm" id="ThungSo" />
                                 </div>
 
                                 <!-- Từ ngày LT -->
@@ -188,17 +190,16 @@
                                         <option value="2">Ca 2</option>
                                     </select>
                                 </div>
-
-                                <!-- Ca LG -->
+                                <!-- Tình trạng LT -->
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label class="form-label">Ca LG:</label>
-                                    <select class="form-select form-select-sm" id="CaLG" name="CaLG">
-                                        <option value="">-- Ca --</option>
-                                        <option value="1">Ca 1</option>
-                                        <option value="2">Ca 2</option>
+                                    <label class="form-label">Tình trạng LT:</label>
+                                    <select class="form-select form-select-sm" id="TinhTrangLT" name="TinhTrangLT">
+                                        <option value="">-- Tình trạng --</option>
+                                        <option value="2">Chờ xử lý</option>
+                                        <option value="4">Đã nhận</option>
                                     </select>
                                 </div>
-
+                              
                                 <!-- Kíp LT -->
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
                                     <label class="form-label">Kíp LT:</label>
@@ -213,6 +214,34 @@
                         </div>
                         <div class="col-12 col-md-6 border">
                             <div class="row">
+                                <!-- Mã thùng gang -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Mã thùng gang:</label>
+                                    <input type="text" class="form-control form-control-sm" id="MaThungGang" />
+                                </div>
+                               
+                                <!-- Từ ngày LG -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label for="TuNgayLG" class="form-label">Từ ngày LG:</label>
+                                    <input type="date" class="form-control form-control-sm" id="TuNgayLG" name="TuNgayLG"
+                                           onkeydown="return false;">
+                                </div>
+                                <!-- Đến ngày LG -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label for="DenNgayLG" class="form-label">Đến ngày LG:</label>
+                                    <input type="date" class="form-control form-control-sm" id="DenNgayLG" name="DenNgayLG"
+                                           onkeydown="return false;">
+                                </div>
+                                
+                                <!-- Ca LG -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Ca LG:</label>
+                                    <select class="form-select form-select-sm" id="CaLG" name="CaLG">
+                                        <option value="">-- Ca --</option>
+                                        <option value="1">Ca 1</option>
+                                        <option value="2">Ca 2</option>
+                                    </select>
+                                </div>
                                 <!-- Kíp LG -->
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
                                     <label class="form-label">Kíp LG:</label>
@@ -223,46 +252,6 @@
                                         <option value="C">C</option>
                                     </select>
                                 </div>
-
-                                <!-- Chuyển đến -->
-                                <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label class="form-label">Chuyển đến:</label>
-                                    <select class="form-select form-select-sm" id="ChuyenDen" name="ChuyenDen">
-                                        <option value="">-- Chuyển đến --</option>
-                                        <option value="HRC1">HRC 1</option>
-                                        <option value="DUC1">Đúc 1</option>
-                                        <option value="HRC2">HRC 2</option>
-                                        <option value="DUC2">Đúc 2</option>
-                                    </select>
-                                </div>
-
-                                <!-- Thùng số -->
-                                <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label class="form-label">Thùng số:</label>
-                                    <input type="number" class="form-control form-control-sm" id="ThungSo" />
-                                </div>
-
-                                <!-- Tình trạng chốt -->
-                                <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label class="form-label">Tình trạng chốt:</label>
-                                    <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
-                                        <option value="">-- Tình trạng --</option>
-                                        <option value="1">Chưa chuyển</option>
-                                        <option value="2">Chờ xử lý</option>
-                                        <option value="5">Đã chốt</option>
-                                    </select>
-                                </div>
-
-                                <!-- Tình trạng LT -->
-                                <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label class="form-label">Tình trạng LT:</label>
-                                    <select class="form-select form-select-sm" id="TinhTrangLT" name="TinhTrangLT">
-                                        <option value="">-- Tình trạng --</option>
-                                        <option value="2">Chờ xử lý</option>
-                                        <option value="4">Đã nhận</option>
-                                    </select>
-                                </div>
-
                                 <!-- Tình trạng LG -->
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
                                     <label class="form-label">Tình trạng LG:</label>
@@ -283,11 +272,16 @@
                                         }
                                     </select>
                                 </div>
-                                <!-- Mã thùng gang -->
+                                 <!-- Tình trạng chốt -->
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label class="form-label">Mã thùng gang:</label>
-                                    <input type="text" class="form-control form-control-sm" id="MaThungGang" />
-                                </div>                               
+                                    <label class="form-label">Tình trạng chốt:</label>
+                                    <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
+                                        <option value="">-- Tình trạng --</option>
+                                        <option value="1">Chưa chuyển</option>
+                                        <option value="2">Chờ xử lý</option>
+                                        <option value="5">Đã chốt</option>
+                                    </select>
+                                </div>
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
                                     @* <div class="d-flex flex-row justify-content-center align-items-end gap-2" style="height: 100%"> *@
                                     <div class="d-flex flex-column gap-2 w-100">

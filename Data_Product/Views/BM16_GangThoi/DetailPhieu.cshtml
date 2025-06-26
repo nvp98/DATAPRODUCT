@@ -75,7 +75,7 @@
 
 				<div class="col mb-3">
 					<label class="form-label">Tên kíp:</label>
-					<input type="text" class="form-control" value="@ViewBag.TenKip" readonly id="IDKip" />
+					<input type="text" class="form-control" value="@ViewBag.TenKip" readonly @* id="IDKip" *@ />
 				</div>
 
 				<div class="col mb-3">
@@ -116,7 +116,7 @@
 									<button type="button" class="btn btn-danger btnthuhoi">
 										<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
 									</button>
-							
+
 									<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel" type="button">
 										Xuất Excel
 									</button>
@@ -131,9 +131,12 @@
 							<table class="table table-bordered table-hover align-middle text-center" id="dataTable">
 								<thead class="table-light sticky-top">
 									<tr>
-										<th rowspan="2">Xóa</th>
-										<th rowspan="2">Copy</th>
-										<th rowspan="2">Chỉnh sửa</th>
+										@if (PhongBan?.TenNgan != "P.QLCL")
+										{
+											<th rowspan="2">Xóa</th>
+											<th rowspan="2">Copy</th>
+											<th rowspan="2">Chỉnh sửa</th>
+										}
 										<th rowspan="2">Mã thùng</th>
 										<th rowspan="2">Số mẻ</th>
 										<th rowspan="2">Thùng số</th>
@@ -153,9 +156,8 @@
 										<th rowspan="2">Tình trạng</th>
 										<th rowspan="2" class="toggle-col">Nơi nhận </th>
 										<th rowspan="2">Chốt thùng</th>
-										
-											<th rowspan="2">Xác nhận QLCL</th>
-										
+										<th rowspan="2">Xác nhận QLCL</th>
+
 									</tr>
 									<tr>
 										<th>NM.HRC1</th>
@@ -166,36 +168,40 @@
 								</thead>
 								<tbody>
 									@if (ViewBag.DanhSachThung != null)
-									{
+									{ 
 										foreach (var item in ViewBag.DanhSachThung)
 										{
 											<tr>
-												<td class='text-center deleteItem'>
-													@* @if (!item.MaThungGang.EndsWith(".00"))
+
+												@if (PhongBan?.TenNgan != "P.QLCL")
+												{
+													<td class='text-center deleteItem'>
+														@* @if (!item.MaThungGang.EndsWith(".00"))
 													{ *@
-													<a class="btn btn-danger btn-sm" title="Xóa">
-														<i class="bi bi-trash"></i>
-													</a>
-													@* 	} *@
-												</td>
-												<td class='text-center copyItem'>
-													<a class="btn btn-secondary btn-sm" title="copy">
-														<i class="bi bi-copy"></i>
-													</a>
-												</td>
-												<td class='text-center editItem'>
-													<a class="btn btn-primary btn-sm btn-edit-thung" title="Chỉnh sửa thùng"
+														<a class="btn btn-danger btn-sm" title="Xóa">
+															<i class="bi bi-trash"></i>
+														</a>
+														@* 	} *@
+													</td>
+													<td class='text-center copyItem'>
+														<a class="btn btn-secondary btn-sm" title="copy">
+															<i class="bi bi-copy"></i>
+														</a>
+													</td>
+													<td class='text-center editItem'>
+														<a class="btn btn-primary btn-sm btn-edit-thung" title="Chỉnh sửa thùng"
 													data-bs-target="#editThungModal">
 														<i class="bi bi-pen"></i>
 													</a>
 												</td>
+												}
 												<td name="maThung">@item.MaThung</td>
 												<td name="soMe">@item.SoMe</td>
 												<td name="ThungSo">@item.ThuTuThung</td>
 												<td name="Gio">@item.GioNhaMay</td>
 												<td name="PhanLoai">@item.PhanLoai</td>
 												<td>
-													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px; " />
+													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;" disabled />
 												</td>
 												<td>
 													<input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung" style="width: 100px; padding: 4px;" disabled>
@@ -210,7 +216,7 @@
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") disabled /></td>
 												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") disabled /></td>
 												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") disabled /></td>
-												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM"></td>
+												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM" disabled></td>
 												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;" disabled>@item.GhiChu</textarea></td>
 												<td><input type="checkbox" class="chon-thung-checkbox" /></td>
 												<td name="TinhTrang">
@@ -646,12 +652,13 @@
 				}
 				}, 5000);
 			}
-						// Hàm tạo mã thùng
+			// Hàm tạo mã thùng
 			function generateMaThung(dateStr, loCao, ca, stt) {
 					const date = new Date(dateStr);
 					const dd = String(date.getDate()).padStart(2, '0');
 					const mm = String(date.getMonth() + 1).padStart(2, '0');
 					const yy = String(date.getFullYear()).slice(-2);
+					//const caChar = (ca === '1') ? 'N' : 'D';
 					const caChar = (ca === '1') ? 'N' : 'D';
 					const sttFormatted = String(stt).padStart(3, '0');
 
@@ -675,6 +682,7 @@
 				let ngay = $("#ID_Day").val();
 				let idLoCao = $("#ID_Locao").val();
 				let idKip = $("#ID_Kip").val();
+				let idca = $("#IDCa").val();
 
 				let tableBody = $("#dataTable tbody");
 				let soMeHienTai = [];
@@ -699,7 +707,6 @@
 				let lastIndex = getLastThungIndex();
 				let updateList = [];
 				let listSoMeHienTai = soMeHienTai.map(x => x.soMe);
-				//console.log('soMeHienTai',soMeHienTai)
 			$.ajax({
 				url: "/BM16_GangThoi/GetSoMeGangBKMis",
 				type: "GET",
@@ -707,9 +714,7 @@
 				success: function (data) {
 					let soMeMoi = data.map(item => item.testPatternCode || "");
 					let soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
-					// console.log('soMeMoi',soMeMoi)
-					// console.log('soMeCanXoa',soMeCanXoa)
-					// Xử lý khối lượng xe goòng trước khi thêm mẻ mới
+
 					$.ajax({
 						url: "/XeGoong/KLXeLoCao",
 						type: "GET",
@@ -724,7 +729,7 @@
 								//console.log('matched:', matched);
 								if (allMatched.length === 0) {
 									lastIndex++;
-									let maThung = generateMaThung(ngay, idLoCao, idKip, lastIndex);
+									let maThung = generateMaThung(ngay, idLoCao, idca, lastIndex);
 									let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
 									let phanLoai = item.classifyName || "";
 									let time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
