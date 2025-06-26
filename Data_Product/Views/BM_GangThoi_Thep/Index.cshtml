@@ -40,20 +40,21 @@
     }
 }
 <style>
-    body {
-        overflow: hidden; /* Ngăn cuộn toàn bộ trang */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
     }
 
-    .isolated-layout {
-        all: initial;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+     .isolated-layout {
         display: flex;
         flex-direction: column;
-        min-height: 100vh; /* Chiếm toàn bộ chiều cao viewport */
+        height: 100vh; 
         background-color: #ffffff;
         border: 1px solid #dee2e6;
-        overflow: hidden; /* Ngăn cuộn container chính */
-        font-size: 11px;
+        overflow: hidden; 
+        font-size: 13px;
     }
 
     .isolated-layout .header-fixed {
@@ -66,53 +67,50 @@
     }
 
     .isolated-layout .content {
-        flex-grow: 1; 
+        flex-grow: 1;
+        min-height: 0; 
         display: flex;
         flex-direction: column;
+        overflow: hidden;
     }
 
-    .isolated-layout .table-container {
-        max-height: calc(100vh - 120px);
-        overflow: auto;
-        margin-top: 20px;
+    .table-content {
+        flex-grow: 1;
+    }
+
+    .table-container {
+        overflow: auto; 
+        height: 100%; 
+        width: 100%;
         border: 1px solid #dee2e6;
-        /* padding-bottom: 200px;  */
+        position: relative;
     }
 
-    /* Tùy chỉnh thanh cuộn cho WebKit (Chrome, Safari) */
+    .table{
+        margin-bottom: 20px;
+    }
+
+
     .isolated-layout .table-container::-webkit-scrollbar {
-        width: 2px; /* Chiều rộng thanh cuộn mỏng hơn */
+        width: 2px;
     }
 
     .isolated-layout .table-container::-webkit-scrollbar-thumb {
-        background-color: #888; /* Màu thanh kéo */
-        border-radius: 1px; /* Bo góc thanh kéo */
+        background-color: #888; 
+        border-radius: 1px;
     }
 
     .isolated-layout .table-container::-webkit-scrollbar-thumb:hover {
-        background-color: #555; /* Màu khi hover */
+        background-color: #555; 
     }
 
     .isolated-layout .table-container::-webkit-scrollbar-track {
-        background-color: #f1f1f1; /* Màu nền thanh cuộn */
+        background-color: #f1f1f1;
     }
 
-    /* Tùy chỉnh thanh cuộn cho Firefox */
     .isolated-layout .table-container {
-        scrollbar-width: thin; /* Thanh cuộn mỏng */
-        scrollbar-color: #888 #f1f1f1; /* Màu thanh kéo và nền */
-    }
-
-    .isolated-layout .table-container table {
-        width: 100%;
-        margin: 0;
-    }
-
-    .isolated-layout .table-container thead th {
-        position: sticky;
-        top: 0;
-        background-color: #f8f9fa;
-        z-index: 10;
+        scrollbar-width: thin; 
+        scrollbar-color: #888 #f1f1f1; 
     }
 
     .isolated-layout .table-container tbody tr:hover {
@@ -126,11 +124,6 @@
     .filter-item {
         margin-top: 5px;
         height: 40px;
-    }
-
-    .table-container {
-        width: 100%;
-        height: 100%;
     }
 
     .btn {
@@ -168,21 +161,18 @@
         display: none;
     }
 
-    /* Gọn toàn bộ font */
     .select2-container--default .select2-selection--single,
     .select2-container--default .select2-selection--multiple,
     .select2-results__option {
         font-size: 14px;
     }
 
-    /* Xoá viền khi focus input search */
     .select2-container--default .select2-search--dropdown .select2-search__field:focus {
         outline: none !important;
         border: 1px solid gray !important;
         box-shadow: none !important;
     }
 
-    /* Gọn thanh scroll trong dropdown */
     .select2-results__options::-webkit-scrollbar {
         width: 6px;
     }
@@ -196,7 +186,6 @@
         background-color: transparent;
     }
 
-    /* Optional: gọn phần select đã chọn */
     .select2-container--default .select2-selection--single {
         height: 32px;
         line-height: 32px;
@@ -215,9 +204,39 @@
         background-color: #eee;
         pointer-events: none;
     }
+
+    .bg-chua-chuyen {
+        background-color: #6c757d;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    .bg-da-chuyen {
+        background-color: #61bd63;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .bg-da-nhan {
+        background-color: #50cbde;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .bg-cho-xu-ly {
+        background-color: #ffc107;
+        color: #212529;
+        font-weight: bold;
+    }
+
+    .bg-da-chot {
+        background-color: #1e7e34;
+        color: #ffffff;
+        font-weight: bold;
+    }
 </style>
-<div class="isolated-layout d-flex flex-column vh-100">
-    <div class="header-fixed p-2">
+ <div class="isolated-layout d-flex flex-column vh-100">
+    <div class="header-fixed p-2" style="font-size: 14px; margin-bottom: 20px;">
         <div class="container-fluid">
             <input type="text" style="display: none" id="ID_currentUser" value="@TaiKhoan.ID_TaiKhoan" />
             <input type="text" style="display: none" id="IDPhongBan" value="@PhongBan.TenNgan.Split('.').Last()" />
@@ -226,10 +245,8 @@
                     <h5><strong>KHU VỰC NHẬN THÙNG</strong></h5>
                     <hr />
                     <div class="row g-3">
-                        <!-- Cột chứa các input/dropdown -->
                         <div class="col-12">
                             <div class="row g-3">
-                                <!-- Ngày làm việc -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="TuNgayLamViec" class="col-sm-5 col-form-label">Từ Ngày: </label>
@@ -242,7 +259,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Ngày làm việc -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="DenNgayLamViec" class="col-sm-5 col-form-label">Đến Ngày: </label>
@@ -256,7 +272,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Ca làm việc -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="CaLamViec" class="col-sm-5 col-form-label">Ca làm việc: </label>
@@ -270,7 +285,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Lò cao -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="LoCao" class="col-sm-5 col-form-label">Lò cao:</label>
@@ -286,7 +300,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Chuyển đến -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="ChuyenDen" class="col-sm-5 col-form-label">Chuyển đến:</label>
@@ -302,7 +315,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Tình trạng -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="ChuyenDen" class="col-sm-5 col-form-label">Tình trạng:</label>
@@ -316,7 +328,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Timf kieem -->
                             </div>
                         </div>
                     </div>
@@ -336,7 +347,6 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <div class="row g-3">
-                                <!-- Ngày làm việc -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="ngayLamViec" class="col-sm-4 col-form-label">Ngày làm việc: </label>
@@ -349,7 +359,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Ca làm việc -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="caLamViec" class="col-sm-3 col-form-label">Ca làm việc: </label>
@@ -363,7 +372,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Lò thổi -->
                                 <div class="col-lg-6 col-12 filter-item">
                                     <div class="row mb-3">
                                         <label for="caLamViec" class="col-sm-4 col-form-label">Lò thổi: </label>
@@ -378,7 +386,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Timf kieem -->
                                 <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
                                     <button class="btn btn-primary btn-sm px-4" id="btnSeachThungDaNhan">Tìm kiếm</button>
                                 </div>
@@ -400,11 +407,11 @@
     </div>
     <div class="content flex-grow-1 px-2" style="min-height: 0; padding-bottom: 50px; margin-bottom: 15px;">
         <div class="container-fluid h-100 table-content">
-            <div class="row" style="height: 100%; padding-bottom: 30px;">
-                <div class="col-5">
+            <div class="row" style="height: 100%; padding-bottom: 10px;">
+                <div class="col-5" style="height: 100%">
                     <div class="table-container" role="region" aria-label="Scrollable Table 1">
                         <table class="table table-bordered text-center align-middle table-hover" id="IDtbKhuVucNhanThung">
-                            <thead class="table-light sticky-top bg-white">
+                            <thead class ="table-light sticky-top bg-white" style="z-index: 2">
                                 <tr>
                                     <th>Giờ NM</th>
                                     <th>Mã thùng gang</th>
@@ -423,7 +430,7 @@
                         </table>
                     </div>
                 </div>
-                <div class="col-7">
+                <div class="col-7" style="height: 100%">
                     <div class="table-container" role="region" aria-label="Scrollable Table 2">
                         <table class="table table-bordered text-center align-middle table-hover" id="IDtbXuLySoLieu">
                             <thead class="table-light sticky-top bg-white" style="z-index: 2">
@@ -443,7 +450,7 @@
                                     <th>KL phế (T)</th>
                                     <th>KL vào lò thổi </th>
                                     <th>Mẻ thổi</th>
-                                    <th>Ghi chú</th>
+                                    <th style="min-width: 150px;">Ghi chú</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -467,11 +474,10 @@
             </div>
         </div>
     </div>
-</div>
-  
+</div> 
 
 
-    
+     
 
     <!-- Modal form tạo mẻ thổi -->
     <div class="modal fade" id="modalTaoMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
@@ -555,11 +561,7 @@
         width: "100%"
     });
 </script>
-
-
-    @* logic auto tinhs toan so lieu*@
     <script type="text/javascript">
-        
         let pendingPayload = null;
         let dataThungDaNhan = [];
         let selectedMaThung = null;
@@ -570,20 +572,20 @@
         // render card trạng thái
         function renderStatusCard(tinhTrang) {
             const statusMap = {
-                1: { label: "Chưa chuyển", bgClass: "bg-secondary", textColor: "white" },
-                2: { label: "Chờ xử lý", bgClass: "bg-warning", textColor: "black" },
-                3: { label: "Đã chuyển", bgClass: "bg-success", textColor: "white" },
-                4: { label: "Đã nhận", bgClass: "bg-success bg-gradient", textColor: "white" },
-                5: { label: "Đã chốt", bgClass: "bg-success", textColor: "white" },
+                1: { label: "Chưa chuyển", bgClass: "bg-chua-chuyen" },
+                2: { label: "Chờ xử lý", bgClass: "bg-cho-xu-ly" },
+                3: { label: "Đã chuyển", bgClass: "bg-da-chuyen" },
+                4: { label: "Đã nhận", bgClass: "bg-da-nhan" },
+                5: { label: "Đã chốt", bgClass: "bg-da-chot" },
             };
 
-            const { label, bgClass, textColor } = statusMap[tinhTrang] || {
-                label: "Không rõ", bgClass: "bg-light", textColor: "black"
+            const { label, bgClass } = statusMap[tinhTrang] || {
+                label: "Không rõ", bgClass: "bg-light"
             };
 
             return `
                 <div class="status-card ${bgClass}">
-                <span class="status-text small pt-2 ps-1" style="color: ${textColor};">
+                <span class="status-text small pt-2 ps-1"">
                         ${label}
                     </span>
                 </div>
@@ -606,7 +608,7 @@
                 sumKLGangThoi();
                 return;
             }
-
+            const phongBan = $("#IDPhongBan").val();
             data.forEach(tg => {
                 const rowspan = tg.danhSachThungGang.length;
                 const isCopy = tg.isCopy === true || tg.isCopy === 'true';
@@ -617,6 +619,8 @@
                     const tinhTrangHTML = renderStatusCard(thung.iD_TrangThai);
 
                     const disabled = thung.iD_TrangThai === 5 ? 'disabled' : '';
+                    const disabledInputKL = thung.iD_TrangThai === 5 || phongBan === "HRC1" ? 'disabled' : '';
+
                     let row = `<tr`;
                     // Nếu là dòng đầu tiên của thùng trung gian thì thêm data-attribute
                     if (index === 0) {
@@ -680,10 +684,10 @@
                         <td rowspan="${rowspan}">${tg.soThungTG ?? ''}
                             </td>
                         <td rowspan="${rowspan}">
-                            <input ${disabled} class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" min=0 name="klThungVaGang_Thoi" value="${tg.klThungVaGang_Thoi ?? ''}"/>
+                            <input ${disabledInputKL} class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" min=0 name="klThungVaGang_Thoi" value="${tg.klThungVaGang_Thoi ?? ''}"/>
                             </td>
                         <td rowspan="${rowspan}">
-                            <input ${disabled} class="table_tbx KLThungVaoLoThoi" type="number" min=0 name="klThung_Thoi" value="${tg.klThung_Thoi ?? ''}"/>
+                            <input ${disabledInputKL} class="table_tbx KLThungVaoLoThoi" type="number" min=0 name="klThung_Thoi" value="${tg.klThung_Thoi ?? ''}"/>
                         </td>
                         <td rowspan="${rowspan}">
                             <input ${disabled} class="table_tbx KLPhe" type="number" min=0 name="kl_phe" value="${tg.kL_phe ?? ''}"/>
@@ -826,11 +830,10 @@
                 success: function (data) {
                     // gán data vào biến global
                     dataThungDaNhan = data;
-                    
+
                     if(data.length !== 0){
-                        data.forEach(danhSach => {
-                            $("#BtnXuatPhieuPDF").css("display", danhSach.danhSachThungGang.some(item => item.iD_TrangThai === 5) ? "block" : "none");
-                        })
+
+                        checkShowBtnPDF(data);
                     } else{
                         $("#BtnXuatPhieuPDF").css("display","none");
                     }
@@ -842,6 +845,19 @@
                     alert("Lỗi khi tìm kiếm dữ liệu");
                 }
             });
+        }
+
+        function checkShowBtnPDF(data) {
+            const coTrangThai5 = data.some(thung =>
+                Array.isArray(thung.danhSachThungGang) &&
+                thung.danhSachThungGang.some(item => item.iD_TrangThai === 5)
+            );
+
+            if (coTrangThai5) {
+                $('#BtnXuatPhieuPDF').show();
+            } else {
+                $('#BtnXuatPhieuPDF').hide();
+            }
         }
 
         function ExportToExcel(){
@@ -1202,7 +1218,14 @@
             const $row = $(this).closest('tr');
             const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
             const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
-         
+            
+            
+            const phongBan = $("#IDPhongBan").val();
+            if(phongBan === "HRC1"){
+                $row.find('.KLThungVaGangLongVaoLoThoi').val(KLThungVaGangLong).trigger('input');
+                $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
+            }
+
             // Nếu cả 2 đều là số hợp lệ
             if (!isNaN(KLThungVaGangLong) && !isNaN(KLThung)) {
                 const result = KLThungVaGangLong - KLThung;
@@ -1696,7 +1719,7 @@
             SearchLT(); // call hàm search
         });
 </script>
-@* Logic me thoi *@
+
 <script>
     
     // open modal tao me

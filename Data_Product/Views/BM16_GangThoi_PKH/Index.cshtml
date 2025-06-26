@@ -99,10 +99,37 @@
         z-index: 10; 
         background-color: #fff;
     }
+
+    .bg-chua-chuyen {
+        background-color: #6c757d;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    .bg-da-chuyen {
+        background-color: #61bd63;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .bg-da-nhan {
+        background-color: #50cbde;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .bg-cho-xu-ly {
+        background-color: #ffc107;
+        color: #212529;
+        font-weight: bold;
+    }
+
+    .bg-da-chot {
+        background-color: #1e7e34;
+        color: #ffffff;
+        font-weight: bold;
+    }
 </style>
-
-
-
 
 <div id="main-container" class="d-flex flex-column vh-100" style="position: relative; padding-bottom: 30px;">
     <!-- Collapse Filter -->
@@ -333,6 +360,9 @@
                         <th>Ca LT</th>
                         <th>Kíp LT</th>
                         <th class="hide-col">Mã thùng thép</th>
+                        <th class="hide-col">KL thùng & gang lỏng (T)</th>
+                        <th class="hide-col">KL thùng (T)</th>
+                        <th class="hide-col">KL gang lỏng (T)</th>
                         <th>KL Gang nhận (T)</th>
                         <th>Lò thổi</th>
                         <th>Thùng trung gian</th>
@@ -388,7 +418,7 @@
 <script>
      let isHidden = true;
      let currentPage = 1;
-     const pageSize = 10;
+     const pageSize = 20;
     // reset cacs filter search
         function clearFilter(ids = []) {
           ids.forEach(id => {
@@ -476,26 +506,26 @@
 
         // render card trạng thái
          function renderStatusCard(tinhTrang) {
-             const statusMap = {
-                 1: { label: "Chưa chuyển", bgClass: "bg-secondary", textColor: "white" },
-                 2: { label: "Chờ xử lý", bgClass: "bg-warning", textColor: "black" },
-                 3: { label: "Đã chuyển", bgClass: "bg-success", textColor: "white" },
-                 4: { label: "Đã nhận", bgClass: "bg-success", textColor: "white" },
-                 5: { label: "Đã chốt", bgClass: "bg-success", textColor: "white" },
-             };
+            const statusMap = {
+                1: { label: "Chưa chuyển", bgClass: "bg-chua-chuyen" },
+                2: { label: "Chờ xử lý", bgClass: "bg-cho-xu-ly" },
+                3: { label: "Đã chuyển", bgClass: "bg-da-chuyen" },
+                4: { label: "Đã nhận", bgClass: "bg-da-nhan" },
+                5: { label: "Đã chốt", bgClass: "bg-da-chot" },
+            };
 
-             const { label, bgClass, textColor } = statusMap[tinhTrang] || {
-                 label: "Không rõ", bgClass: "bg-light", textColor: "black"
-             };
+            const { label, bgClass } = statusMap[tinhTrang] || {
+                label: "Không rõ", bgClass: "bg-light"
+            };
 
-             return `
-                 <div class="status-card ${bgClass}">
-                 <span class="status-text small pt-2 ps-1" style="color: ${textColor};">
-                         ${label}
-                     </span>
-                 </div>
-             `;
-         }
+            return `
+                <div class="status-card ${bgClass}">
+                <span class="status-text small pt-2 ps-1"">
+                        ${label}
+                    </span>
+                </div>
+            `;
+        }
 
          function getDayOnly(dateString) {
             if (!dateString) return "";
@@ -518,32 +548,11 @@
                 return;
             }
 
-            const groupByTTG = new Map();
-            const groupedResult = [];
-
-            // Group theo ID_TTG
-            data.forEach(item => {
-                if (item.iD_TTG != null) {
-                    const key = item.iD_TTG;
-                    if (!groupByTTG.has(key)) {
-                        groupByTTG.set(key, []);
-                    }
-                    groupByTTG.get(key).push(item);
-                } else {
-                    groupedResult.push([item]);
-                }
-            });
-
-            for (const [, group] of groupByTTG.entries()) {
-                group.sort((a, b) => (a.isCopy === b.isCopy) ? 0 : (a.isCopy ? 1 : -1));
-                groupedResult.push(group);
-            }
-
             $("#IDTongKLGangLong").text('0.00');
             $("#IDTongKLVaoLoThoi").text('0.00');
             $("#IDTongKLGangNhan").text('0.00');
             
-            groupedResult.forEach(group => {
+            data.forEach(group => {
                 const rowspan = group.length;
                 let isFirstRow = true;
 
@@ -593,7 +602,9 @@
                     row.append(`<td>${item.t_Ca == null ? '' : (item.t_Ca === 1 ? 'N' : 'Đ')}</td>`);
                     row.append(`<td>${item.t_TenKip ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.maThungThep ?? ''}</td>`);
-
+                    row.append(`<td  class="hide-col">${item.t_KLThungVaGang ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.t_KLThungChua ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.t_KLGangLong ?? ''}</td>`);
                     if (isFirstRow) {
                         row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
@@ -856,9 +867,9 @@
             $('.hide-col').css('display', display);
 
             $('.total-space').attr('colspan', isHidden ? 10 : 12);
-            $('.space-2').attr('colspan', isHidden ? 5 : 8);
+            $('.space-2').attr('colspan', isHidden ? 5 : 11);
 
-            $('.space-3').attr('colspan', isHidden ? 17 : 20);
+            $('.space-3').attr('colspan', isHidden ? 17 : 23);
         }
 
         // xu ly khi load

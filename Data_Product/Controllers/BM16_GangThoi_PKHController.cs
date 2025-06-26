@@ -167,7 +167,7 @@ namespace Data_Product.Controllers
             return Ok();
         }
 
-        private async Task<PageResultViewModel<Tbl_BM_16_GangLong>> SearchByPayload(SearchDto dto)
+        private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
         {
             var query = _context.Tbl_BM_16_GangLong.AsQueryable();
             decimal sumKLGang = 0;
@@ -268,18 +268,17 @@ namespace Data_Product.Controllers
             // Tổng số bản ghi
             var totalRecords = await query.CountAsync();
 
+            query = query.OrderByDescending(x => x.NgayTao)
+                                .ThenBy(x => x.MaThungGang)
+                                .ThenBy(x => x.MaThungThep);
+
             // Check nếu không có pageNumber và pageSize sẽ lấy dữ liệu để xuất excel
-            if(dto.PageNumber.HasValue && dto.PageSize.HasValue)
+            if (dto.PageNumber.HasValue && dto.PageSize.HasValue)
             {
                 int page = dto.PageNumber.Value;
                 int pageSize = dto.PageSize.Value;
 
-                // Thêm sắp xếp để phân trang
-                query = query.OrderBy(x => x.NgayTao)
-                                .ThenBy(x => x.MaThungGang)
-                                .ThenBy(x => x.MaThungThep)
-                                .Skip((page - 1) * pageSize)
-                                .Take(pageSize);
+                query = query.Skip((page - 1) * pageSize).Take(pageSize);
             }
 
             var gocData = await (from a in query
@@ -406,15 +405,22 @@ namespace Data_Product.Controllers
                     clone.MaMeThoi = methoi?.MaMeThoi;
 
                     gocData.Insert(insertIndex, clone);
-                    insertIndex++; // tiếp theo copy sẽ được thêm tiếp sau copy trước đó
-                    i++; // tăng i để tránh lặp lại
+                    insertIndex++; 
+                    i++; 
                 }
             }
-            return new PageResultViewModel<Tbl_BM_16_GangLong>
+            var test = gocData;
+            var groupedData = gocData
+                                .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
+                                .OrderByDescending(g => g.Max(x => x.NgayTao))
+                                .Select(g => g.ToList())
+                                .ToList();
+
+            return new PageResultViewModel<List<Tbl_BM_16_GangLong>>
             {
                     TotalRecords = totalRecords,
                     SumKLGang = sumKLGang,
-                    Data = gocData
+                    Data = groupedData
             };
         }
 
@@ -502,10 +508,11 @@ namespace Data_Product.Controllers
                     return BadRequest("Danh sách trống.");
 
                 //var groupByTTG = thungList.GroupBy(x => x.ID_TTG).ToList();
-                var groupByTTG = thungList
-                                .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
-                                .OrderByDescending(g => g.Max(x => x.NgayTao)) 
-                                .ToList();
+                //var groupByTTG = thungList
+                //                .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
+                //                .OrderByDescending(g => g.Max(x => x.NgayTao))
+                //                .ToList();
+                var groupByTTG = thungList;
                 // Đường dẫn đến template
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "QTGN_Gang_Long_PKH.xlsx");
                 using (var ms = new MemoryStream())
@@ -604,9 +611,6 @@ namespace Data_Product.Controllers
                                     {
                                         cellTongKLGang.Value = "";
                                     }
-
-                                    cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                    cellTongKLGang.Style.Font.Bold = true;
 
                                     worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge();
                                     colIndex++;
@@ -769,22 +773,38 @@ namespace Data_Product.Controllers
                 case 1:
                 default:
                     // Xám nhạt
-                    cell.Style.Fill.BackgroundColor = XLColor.FromArgb(215, 215, 215); 
-                    cell.Style.Font.FontColor = XLColor.Black;
+                    //cell.Style.Fill.BackgroundColor = XLColor.FromArgb(215, 215, 215); 
+                    //cell.Style.Font.FontColor = XLColor.Black;
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#6c757d");
+                    cell.Style.Font.FontColor = XLColor.FromHtml("#ffffff");
+                    cell.Style.Font.Bold = true;
                     break;
-
                 case 2:
                     // Cam
-                    cell.Style.Fill.BackgroundColor = XLColor.FromArgb(255, 153, 0);
-                    cell.Style.Font.FontColor = XLColor.White;
+                    //cell.Style.Fill.BackgroundColor = XLColor.FromArgb(255, 153, 0);
+                    //cell.Style.Font.FontColor = XLColor.White;
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#ffc107");
+                    cell.Style.Font.FontColor = XLColor.FromHtml("#212529");
+                    cell.Style.Font.Bold = true;
                     break;
 
                 case 3:
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#61bd63");
+                    cell.Style.Font.FontColor = XLColor.FromHtml("#000000");
+                    cell.Style.Font.Bold = true;
+                    break;
                 case 4:
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#50cbde");
+                    cell.Style.Font.FontColor = XLColor.FromHtml("#000000");
+                    cell.Style.Font.Bold = true;
+                    break;
                 case 5:
                     // Xanh lá
-                    cell.Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-                    cell.Style.Font.FontColor = XLColor.White;
+                    //cell.Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
+                    //cell.Style.Font.FontColor = XLColor.White;
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1e7e34");
+                    cell.Style.Font.FontColor = XLColor.FromHtml("#ffffff");
+                    cell.Style.Font.Bold = true;
                     break;
             }
         }
