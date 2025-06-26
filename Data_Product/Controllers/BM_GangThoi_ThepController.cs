@@ -542,83 +542,94 @@ namespace Data_Product.Controllers
             if (taiKhoan == null)
                 return BadRequest("Không tìm thấy tài khoản.");
 
-            // Lấy danh sách thùng người dùng đã nhận
-            var danhSachPhu = await _context.Tbl_BM_16_TaiKhoan_Thung
-                .Where(x => selectedMaThungHuy.Contains(x.MaThungGang) && x.ID_taiKhoan == taiKhoan.ID_TaiKhoan)
-                .ToListAsync();
-
-            if (!danhSachPhu.Any())
-                return Ok(new List<object>()); // Trống
-
-            // Lấy tất cả thùng gang liên quan
-            var gangLongList = await _context.Tbl_BM_16_GangLong
+            // Bước 1: Lấy tất cả bản ghi theo danh sách mã thùng
+            var allThung = await _context.Tbl_BM_16_TaiKhoan_Thung
                 .Where(x => selectedMaThungHuy.Contains(x.MaThungGang))
                 .ToListAsync();
 
-            // Ánh xạ MaThungGang => danh sách ID_TTG
-            var maThungToListIDTTG = gangLongList
-                .Where(x => x.ID_TTG.HasValue)
-                .GroupBy(x => x.MaThungGang)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g
-                        .Select(x => x.ID_TTG.Value)
-                        .Distinct()
-                        .ToList()
-                );
+            bool isValid = selectedMaThungHuy.All(maThung => allThung.Any(x => x.MaThungGang == maThung && x.ID_taiKhoan == taiKhoan.ID_TaiKhoan));
 
-            var allIDTTG = maThungToListIDTTG.Values.SelectMany(x => x).Distinct().ToList();
+            if (isValid)
+            {
+                // Bước 3: Trả về các thùng đúng tài khoản
+                var danhSachPhu = allThung
+                    .Where(x => x.ID_taiKhoan == taiKhoan.ID_TaiKhoan)
+                    .ToList();
 
-            // Lấy thông tin TTG: Ca, Ngày
-            var dictTTG = await _context.Tbl_BM_16_ThungTrungGian
-                .Where(x => allIDTTG.Contains(x.ID))
-                .ToListAsync();
+                // Lấy tất cả thùng gang liên quan
+                var gangLongList = await _context.Tbl_BM_16_GangLong
+                    .Where(x => selectedMaThungHuy.Contains(x.MaThungGang))
+                    .ToListAsync();
 
-            var ttgLookup = dictTTG
-                .GroupBy(x => x.ID)
-                .ToDictionary(x => x.Key, x => x.First()); // Unique theo ID
+                // Ánh xạ MaThungGang => danh sách ID_TTG
+                var maThungToListIDTTG = gangLongList
+                    .Where(x => x.ID_TTG.HasValue)
+                    .GroupBy(x => x.MaThungGang)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g
+                            .Select(x => x.ID_TTG.Value)
+                            .Distinct()
+                            .ToList()
+                    );
 
-            // Kết quả gộp
-            var ketQua = danhSachPhu
-                .GroupBy(x => x.MaThungGang)
-                .Select(g =>
-                {
-                    var maThung = g.Key;
-                    var lanNhanList = new List<(int Ca, DateTime Ngay)>();
+                var allIDTTG = maThungToListIDTTG.Values.SelectMany(x => x).Distinct().ToList();
 
-                    if (maThungToListIDTTG.TryGetValue(maThung, out var idTTGs))
+                // Lấy thông tin TTG: Ca, Ngày
+                var dictTTG = await _context.Tbl_BM_16_ThungTrungGian
+                    .Where(x => allIDTTG.Contains(x.ID))
+                    .ToListAsync();
+
+                var ttgLookup = dictTTG
+                    .GroupBy(x => x.ID)
+                    .ToDictionary(x => x.Key, x => x.First()); // Unique theo ID
+
+                // Kết quả gộp
+                var ketQua = danhSachPhu
+                    .GroupBy(x => x.MaThungGang)
+                    .Select(g =>
                     {
-                        foreach (var id in idTTGs)
+                        var maThung = g.Key;
+                        var lanNhanList = new List<(int Ca, DateTime Ngay)>();
+
+                        if (maThungToListIDTTG.TryGetValue(maThung, out var idTTGs))
                         {
-                            if (ttgLookup.TryGetValue(id, out var ttg))
+                            foreach (var id in idTTGs)
                             {
-                                lanNhanList.Add((ttg.CaNhan, ttg.NgayNhan.Date));
+                                if (ttgLookup.TryGetValue(id, out var ttg))
+                                {
+                                    lanNhanList.Add((ttg.CaNhan, ttg.NgayNhan.Date));
+                                }
                             }
                         }
-                    }
 
-                    // Gộp theo Ca + Ngày
-                    var soLanDaNhan = lanNhanList
-                        .GroupBy(x => new { x.Ca, x.Ngay })
-                        .Select(g2 => new
+                        // Gộp theo Ca + Ngày
+                        var soLanDaNhan = lanNhanList
+                            .GroupBy(x => new { x.Ca, x.Ngay })
+                            .Select(g2 => new
+                            {
+                                Ca = g2.Key.Ca,
+                                Ngay = g2.Key.Ngay,
+                                SoLan = g2.Count()
+                            })
+                            .OrderBy(x => x.Ngay)
+                            .ThenBy(x => x.Ca)
+                            .ToList();
+
+                        return new
                         {
-                            Ca = g2.Key.Ca,
-                            Ngay = g2.Key.Ngay,
-                            SoLan = g2.Count()
-                        })
-                        .OrderBy(x => x.Ngay)
-                        .ThenBy(x => x.Ca)
-                        .ToList();
+                            maThungGang = maThung,
+                            soLanDaNhan
+                        };
+                    })
+                    .ToList();
 
-                    return new
-                    {
-                        maThungGang = maThung,
-                        soLanDaNhan
-                    };
-                })
-                .ToList();
-
-            return Ok(ketQua);
+                return Ok(new { data = ketQua, isExist = true });
+            } else
+            {
+                return Ok(new { data = new List<object>(), isExist = false });
+            }
+            
         }
 
 

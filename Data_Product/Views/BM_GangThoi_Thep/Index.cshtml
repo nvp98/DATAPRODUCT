@@ -1389,38 +1389,43 @@
         });
 
         function modalXacNhanHuy(){
-            const modal = new bootstrap.Modal(document.getElementById('huyNhanThungModal'));
-            modal.show();
-
+            const selectedMaThungHuy = selectedMaThungHuyTmp;
             $.ajax({
                 url: "/BM_GangThoi_Thep/GetThungHuyNhan",
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify(selectedMaThungHuyTmp),
-                success: function (data) {
+                data: JSON.stringify(selectedMaThungHuy),
+                success: function (res) {
+                    console.log(res)
+                    const data = res.data;
                     if(data.length){
+                        const modal = new bootstrap.Modal(document.getElementById('huyNhanThungModal'));
+                        modal.show();
+
                         let html ='';
                         data.forEach(item => {
-                            const solan = item.soLanDaNhan.length;
-                            html += `<div>
-                                    <p>Bạn đã nhận thùng ${item.maThungGang} - ${solan} lần</p>
-                                `;
-                                item.soLanDaNhan.forEach(lan =>{
-                                    const ngay = new Date(lan.ngay);
-                                    const day = ngay.getDate().toString().padStart(2, '0');
-                                    const month = (ngay.getMonth() + 1).toString().padStart(2, '0');
-                                    const year = ngay.getFullYear();
-                                    const ngayFormatted = `${day}/${month}/${year}`;
+                        const solan = item.soLanDaNhan.length;
+                        html += `<div>
+                                <p>Thùng ${item.maThungGang} đã được nhận - ${solan} lần</p>
+                            `;
+                            item.soLanDaNhan.forEach(lan =>{
+                                const ngay = new Date(lan.ngay);
+                                const day = ngay.getDate().toString().padStart(2, '0');
+                                const month = (ngay.getMonth() + 1).toString().padStart(2, '0');
+                                const year = ngay.getFullYear();
+                                const ngayFormatted = `${day}/${month}/${year}`;
 
-                                    let stt = 1;
-                                        html += `<p>${stt}. Ca ${lan.ca} ngày ${ngayFormatted} - ${lan.soLan} lần</p>`;
-                                    stt++;
-                                })
+                                let stt = 1;
+                                    html += `<p>${stt}. Ca ${lan.ca} ngày ${ngayFormatted} - ${lan.soLan} lần</p>`;
+                                stt++;
+                            })
                             html += `</div>`;
-                        })
+                        });
                         $("#huyNhanThung-content").html(html);
-                       selectedMaThungHuyTmp = null;
+                    } else {
+                        alert('Có thùng bạn chưa nhận nên không thể hủy nhận. Vui lòng kiểm tra lại');
                     }
+                    selectedMaThungHuyTmp = null;
                 }
             });
         }
