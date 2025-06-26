@@ -749,6 +749,7 @@ namespace Data_Product.Controllers
                         && x.MaThungGang == item.MaThungGang 
                         && x.BKMIS_SoMe == item.BKMIS_SoMe
                         && x.G_ID_TrangThai == 1
+                        && x.XacNhan == false
                         && (x.ID_TrangThai == 1 || x.ID_TrangThai == 2) ) ;
 
                 if (thung != null)

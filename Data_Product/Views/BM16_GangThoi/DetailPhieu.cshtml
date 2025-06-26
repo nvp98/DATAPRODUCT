@@ -95,7 +95,13 @@
 				<div class="row">
 					<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 14px; z-index:1;">
 						<div class="row w-100 justify-content-end mb-3">
-							<div class="col-auto">
+							<div class="row">
+								<div class="col-6">
+									<p class="fw-bold text-danger" style="font-size:16px">
+										Dữ liệu BK-MIS chỉ được cập nhật/làm mới đối với các thùng <u>CHƯA CHUYỂN</u> và <u>CHƯA XÁC NHẬN</u>
+									</p>
+								</div>
+								<div class="col-6">
 								@if (PhongBan?.TenNgan == "P.QLCL")
 								{
 									<button type="button" class="btn btn-info btnxacnhan">
@@ -125,6 +131,7 @@
 										Ẩn/Hiện
 									</button>
 								}
+								</div>
 							</div>
 						</div>
 						<div class="table-responsive" style="max-height: 700px; overflow-y: auto;">
@@ -190,7 +197,7 @@
 													</td>
 													<td class='text-center editItem'>
 														<a class="btn btn-primary btn-sm btn-edit-thung" title="Chỉnh sửa thùng"
-													data-bs-target="#editThungModal">
+													@* data-bs-target="#editThungModal" *@>
 														<i class="bi bi-pen"></i>
 													</a>
 												</td>
@@ -758,6 +765,7 @@
 											<td></td>
 											<td></td>
 											<td class="toggle-col"></td>
+												<td></td>
 										</tr>`;
 									tableBody.append(row);
 								} else {
@@ -784,7 +792,6 @@
 										maPhieu: maPhieu,
 										DsMaThung: updateList
 									};
-									//console.log('requestDataupdate',requestData)
 								$.ajax({
 									url: "/BM16_GangThoi/CapNhatThungChuaChuyen",
 									type: "POST",
@@ -978,8 +985,10 @@
 				});
 		$(document).on('click', '.btn-edit-thung', function () {
 			const row = $(this).closest('tr');
-			const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
-			if (tinhTrang == "Đã chốt"){
+			const chotThung = row.find('td[name="ChotThung"] button').text().trim();
+			const tinhTrang = row.find('td[name="TinhTrang"] button').text().trim();
+			console.log(tinhTrang)
+			if (tinhTrang == "Đã chuyển" || chotThung == "Đã chốt" ){
 				alert ("Không được chỉnh sửa")
 				return;
 			}
@@ -998,7 +1007,7 @@
 				chuyenDen: '',
 
 			};
-			console.log ('====data edit====',data)
+			//console.log ('====data edit====',data)
 			// Ghép chuyển đến dựa vào checkbox:
 			const den = [];
 			if (row.find('td:eq(12) input').is(':checked')) den.push('HRC1');
@@ -1022,9 +1031,9 @@
 			$('#modalGio').val(data.gio).prop('disabled', true);
 			$('#modalPhanLoai').val(data.phanLoai).prop('disabled', true);
 
-			$('#modalKLGangLong').val(data.klGangLong).prop('disabled',true);
-			$('#modalKLThung').val(data.klThung).prop('disabled',true);
-			$('#modalKLThungGangLong').val(data.klThungVaGang).prop('disabled',true);
+			$('#modalKLGangLong').val(data.klGangLong);
+			$('#modalKLThung').val(data.klThung);
+			$('#modalKLThungGangLong').val(data.klThungVaGang);
 			$('#modalKLXeGoong').val(data.klXeGoong).prop('disabled',true);
 			$('#modalGioNM').val(data.gioNM);
 			$('#modalGhiChu').val(data.ghiChu);

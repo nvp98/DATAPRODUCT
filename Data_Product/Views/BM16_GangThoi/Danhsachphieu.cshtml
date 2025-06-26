@@ -4,6 +4,8 @@
 @model List<Data_Product.DTO.BM_16_DTO.PhieuViewModel>
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@inject Data_Product.Repositorys.DataContext _context
+@using System.Security.Claims;
 @if (TempData["msgSuccess"] != null)
 {
 	@Html.Raw(TempData["msgSuccess"])
@@ -24,6 +26,11 @@
 		pageNo = pager.CurrentPage;
 	}
 
+}
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
 }
 @{
     string search = ViewBag.Search as string ?? "";
@@ -152,7 +159,10 @@
                                                 <td class="text-center">@item.ThoiGianTao</td>
                                                 <td class="text-center">
                                                     <a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>
-                                                    <a href="javascript:void(0);"data-maphieu="@item.MaPhieu" class="btn btn-sm btn-warning btn-xoa-phieu">Xóa</a>
+                                                    @if (PhongBan?.TenNgan != "P.QLCL")
+                                                    {
+                                                           <a href="javascript:void(0);" data-maphieu="@item.MaPhieu" class="btn btn-sm btn-warning btn-xoa-phieu">Xóa</a>
+                                                    }
                                                 </td>
                                             </tr>
                                         }
