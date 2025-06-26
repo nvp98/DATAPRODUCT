@@ -10,6 +10,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using Humanizer;
 using iText.Html2pdf;
 using iText.Kernel.Events;
+using iText.Layout.Element;
 using iText.Layout.Font;
 using iTextSharp.text;
 using Microsoft.AspNetCore.Mvc;
@@ -904,29 +905,23 @@ namespace Data_Product.Controllers
 
                                     if (item.ID_TrangThai == 5)
                                     {
-                                        statusCell.Value = "Đã chốt";
-                                        statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-                                        statusCell.Style.Font.FontColor = XLColor.White;
+                                        SetCellColor(statusCell, "Đã chốt", "#1e7e34", "#ffffff");
                                     }
                                     else if (item.ID_TrangThai == 2)
                                     {
-                                        statusCell.Value = "Chờ xử lý";
-                                        statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(255, 153, 0);
-                                        statusCell.Style.Font.FontColor = XLColor.White;
+                                        SetCellColor(statusCell, "Chờ xử lý", "#ffc107", "#212529");
                                     }
                                     else
                                     {
-                                        statusCell.Value = "Chưa chuyển";
-                                        statusCell.Style.Fill.BackgroundColor = XLColor.FromArgb(215, 215, 215);
-                                        statusCell.Style.Font.FontColor = XLColor.Black;
+                                        SetCellColor(statusCell, "Chưa chuyển", "#6c757d", "#ffffff");
                                     }
 
                                     if (thungTG.IsCopy)
                                     {
-                                        var lableCopy = worksheet.Range($"F{row}:H{row}");
-                                        lableCopy.Merge();
-                                        lableCopy.Value = "Thùng trung gian copy";
-                                        lableCopy.Style.Font.FontColor = XLColor.Red;
+                                        worksheet.Cell(row, icol++).Value = "";
+                                        worksheet.Cell(row, icol++).Value = "";
+                                        worksheet.Cell(row, icol++).Value = "";
+
                                     }
                                     else
                                     {
@@ -965,12 +960,22 @@ namespace Data_Product.Controllers
                             // Render và merge các ô Thùng Trung Gian từ cột 8 trở đi
                             int colTg = 9;
                             var cellTongKLGang = worksheet.Cell(startRow, colTg);
-                            if (thungTG.Tong_KLGangNhan.HasValue)
+                            cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                            cellTongKLGang.Style.Font.Bold = true;
+
+                            if (thungTG.IsCopy == true)
+                            {
+                                cellTongKLGang.Value = "TTG Copy";
+                                cellTongKLGang.Style.Font.FontColor = XLColor.Red;
+                            }
+                            else if (thungTG.Tong_KLGangNhan.HasValue)
                             {
                                 cellTongKLGang.Value = thungTG.Tong_KLGangNhan.Value;
                                 cellTongKLGang.Style.NumberFormat.Format = "0.00";
-                                cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cellTongKLGang.Style.Font.Bold = true;
+                            }
+                            else
+                            {
+                                cellTongKLGang.Value = "";
                             }
                             worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
                             colTg++;
@@ -1075,6 +1080,14 @@ namespace Data_Product.Controllers
             }
         }
 
+        void SetCellColor(IXLCell cell, string text, string hexBackground, string hexFont)
+        {
+            cell.Value = text;
+            cell.Style.Fill.BackgroundColor = XLColor.FromHtml(hexBackground);
+            cell.Style.Font.FontColor = XLColor.FromHtml(hexFont);
+            cell.Style.Font.Bold = true;
+        }
+
         public async Task<List<ThungTrungGianGroupViewModel>> GetDanhSachThungCoNguoiChuyen(SearchThungDaNhanDto payload)
         {
             var thungList = await GetDanhSachThungTrungGianDaNhan(payload);
@@ -1083,8 +1096,6 @@ namespace Data_Product.Controllers
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
             var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault().TenNgan.Split('.').Last();
 
-
-            //PhongBan = "HRC2"; // sẽ xóa sau
 
             if (string.IsNullOrEmpty(PhongBan))
                 return new List<ThungTrungGianGroupViewModel>();
