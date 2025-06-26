@@ -30,6 +30,72 @@
 	/* td.deleteItem {
 	display: none;
 	} */
+	/* Container và table cần thiết lập overflow */
+	.table-container {
+		overflow-x: auto;
+		position: relative;
+	}
+
+	table {
+		border-collapse: collapse;
+	}
+
+	/* Sticky header chung */
+	.sticky-header {
+		position: sticky;
+		left: 0;
+		z-index: 10;
+	}
+
+	/* Cột Mã thùng (cột đầu tiên trong nhóm sticky) */
+	th:nth-child(4), /* Vị trí thực tế của Mã thùng */
+	td:nth-child(4) {
+		position: sticky;
+		left: 0;
+		z-index: 10;
+		width: 123.17px;
+	}
+
+	/* Cột Số mẻ */
+	th:nth-child(5),
+	td:nth-child(5) {
+		position: sticky;
+		left: 123.17px;
+		z-index: 10;
+		width: 123.06px;
+	}
+
+	/* Cột Thùng số */
+	th:nth-child(6),
+	td:nth-child(6) {
+		position: sticky;
+		left: 246.23px; /* Tổng width của Mã thùng + Số mẻ */
+		z-index: 10;
+		width: 56.7px;
+	}
+
+	/* Cột Giờ */
+	th:nth-child(7),
+	td:nth-child(7) {
+		position: sticky;
+		left: 302.93px; /* Tổng width các cột trước */
+		z-index: 10;
+		width: 48.89px;
+	}
+
+	/* Cột Phân loại */
+	th:nth-child(8),
+	td:nth-child(8) {
+		position: sticky;
+		left: 351.82px; /* Tổng width các cột trước */
+		z-index: 10;
+		width: 48.13px;
+	}
+
+	/* Đảm bảo header có z-index cao hơn */
+	thead th {
+		z-index: 20 !important;
+}
 </style>
 @if (TempData["msgSuccess"] != null)
 {
