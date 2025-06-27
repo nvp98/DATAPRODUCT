@@ -42,6 +42,8 @@ namespace Data_Product.Models.ModelView
         public decimal? KLGang_Thoi { get; set; }
         public decimal? Tong_KLGangNhan { get; set; }
 
+        public DateTime? NgayTao { get; set; }
+
         public int? ID_MeThoi { get; set; }
         public string MaMeThoi { get; set; }
 
