@@ -407,7 +407,7 @@
 
 						<div class="form-group mb-3">
 							<label for="modalKLGangLong">KL gang lỏng</label>
-							<input type="number" id="modalKLGangLong" class="form-control" step="0.01" />
+							<input type="number" id="modalKLGangLong" class="form-control" step="0.01" readonly />
 						</div>
 
 						<div class="form-group mb-3">
@@ -910,6 +910,7 @@
 			let phieuID = $("#PhieuID").val();
 			let idLoCao = $("#ID_Locao").val();
 			let idKip = $("#ID_Kip").val();
+			let ngay = $("#ID_Day").val();
 			let danhSachThung = [];
 			let isValidAll = true;
 		
@@ -991,6 +992,7 @@
 				MaPhieu: phieuID,
 				ID_LoCao: parseInt(idLoCao),
 				ID_Kip: parseInt(idKip),
+				NgayPhieuGang:ngay,
 				DanhSachThung: danhSachThung
 			};
 
@@ -1256,6 +1258,15 @@
 				$("#dataTable tbody").append(clonedRow);
 			}
 			});
+		$(document).ready(function() {
+		  $('#modalKLThung, #modalKLThungGangLong').on('input', function() {
+			const klThung = parseFloat($('#modalKLThung').val()) || 0;
+			const klThungVaGang = parseFloat($('#modalKLThungGangLong').val()) || 0;
+			const klGangLong = klThungVaGang - klThung;
+
+			$('#modalKLGangLong').val(klGangLong.toFixed(2));
+		  });
+		});
 
 	function ExportToPDF(){
 		// value cac field
@@ -1271,7 +1282,7 @@
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
 			a.href = url;
-			a.download = 'BBGN Gang long - Thep.pdf';
+			a.download = 'BBGN Gang long - Luyen Gang.pdf';
 			a.click();
 			window.URL.revokeObjectURL(url);
 		});

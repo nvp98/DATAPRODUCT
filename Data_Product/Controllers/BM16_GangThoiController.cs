@@ -343,7 +343,7 @@ namespace Data_Product.Controllers
                         Gio_NM = thung.Gio_NM,
                         G_GhiChu = thung.G_GhiChu,
                         G_ID_TrangThai = 1/* (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 1*/,
-                        NgayTao = DateTime.Now,
+                        NgayTao = model.NgayPhieuGang,
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = model.ID_Locao,
                         G_ID_Kip = model.ID_Kip,
@@ -714,7 +714,7 @@ namespace Data_Product.Controllers
                         Gio_NM =    item.Gio_NM,
                         G_GhiChu = item.G_GhiChu,
                         G_ID_TrangThai = 1,
-                        NgayTao = DateTime.Now,
+                        NgayTao = req.NgayPhieuGang,
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = req.ID_Locao,
                         G_ID_Kip = req.ID_Kip,
@@ -1105,7 +1105,7 @@ namespace Data_Product.Controllers
                 if (string.IsNullOrEmpty(PhongBan)) return BadRequest("Không có phòng ban.");
 
                 var data = await _context.Tbl_BM_16_GangLong
-                    .Where(x => x.MaPhieu == MaPhieu && x.ID_TrangThai == 5 && x.T_copy == false)
+                    .Where(x => x.MaPhieu == MaPhieu && x.ID_TrangThai == 5 && x.T_copy == false && x.XacNhan == true)
                     .ToListAsync();
 
                 if (data == null || !data.Any())
@@ -1236,7 +1236,7 @@ namespace Data_Product.Controllers
                 // 2. Chuyển đổi HTML sang PDF
                 byte[] pdfBytes = ConvertHtmlToPdf(html);
 
-                string filename = $"BBGN Gang long - Thep {DateTime.Now.ToString("yyyyMMddHHmm")}.pdf";
+                string filename = $"BBGN Gang long - Luyen Gang {DateTime.Now.ToString("yyyyMMddHHmm")}.pdf";
 
                 return File(pdfBytes, "application/pdf", filename);
             }
