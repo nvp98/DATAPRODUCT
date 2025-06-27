@@ -171,6 +171,10 @@ namespace Data_Product.Controllers
         {
             var query = _context.Tbl_BM_16_GangLong.AsQueryable();
             decimal sumKLGang = 0;
+            decimal sumKLGangLongThep = 0;
+            decimal sumKLGangNhan = 0;
+            decimal sumKLPhe = 0;
+            decimal sumKLVaoLoThoi = 0;
 
             if (dto.ID_LoCao.HasValue)
             {
@@ -261,8 +265,24 @@ namespace Data_Product.Controllers
             {
                 var tuNgay = dto.TuNgay_LG.Value.Date;
                 var denNgay = dto.DenNgay_LG.Value.Date.AddDays(1);
-                query = query.Where(x => x.NgayLuyenGang >= tuNgay && x.NgayLuyenGang < denNgay);
+                query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
                 sumKLGang = query.Where(x => x.T_copy != true).Sum(x => x.G_KLGangLong ?? 0);
+                sumKLGangLongThep = query.Sum(x => x.T_KLGangLong ?? 0);
+
+                var maThungTGList = (
+                    from a in query
+                    join ttgRoot in _context.Tbl_BM_16_ThungTrungGian
+                        on a.ID_TTG equals ttgRoot.ID
+                    select ttgRoot.MaThungTG
+                ).Distinct().ToList();
+
+                var relatedThung = _context.Tbl_BM_16_ThungTrungGian
+                    .Where(x => maThungTGList.Contains(x.MaThungTG))
+                    .ToList(); 
+
+                 sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
+                 sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
+                 sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
             }
             
             // Tổng số bản ghi
@@ -420,6 +440,10 @@ namespace Data_Product.Controllers
             {
                     TotalRecords = totalRecords,
                     SumKLGang = sumKLGang,
+                    SumKLGangLongThep = sumKLGangLongThep,
+                    SumKLGangNhan = sumKLGangNhan,
+                    SumKLPhe = sumKLPhe,
+                    SumKLVaoLoThoi = sumKLVaoLoThoi,
                     Data = groupedData
             };
         }

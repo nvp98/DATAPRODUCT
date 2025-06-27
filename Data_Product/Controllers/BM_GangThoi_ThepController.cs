@@ -72,7 +72,7 @@ namespace Data_Product.Controllers
                 var tuNgay = payload.TuNgay.Value.Date;
                 var denNgay = payload.DenNgay.Value.Date.AddDays(1); 
 
-                query = query.Where(x => x.NgayLuyenGang >= tuNgay && x.NgayLuyenGang < denNgay);
+                query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
             }
 
             if (payload.G_Ca.HasValue)
@@ -118,7 +118,8 @@ namespace Data_Product.Controllers
                                  T_ID_TrangThai = a.T_ID_TrangThai,
                                  TrangThaiLT = trangThai.TenTrangThai,
                                  ID_Locao = a.ID_Locao,
-                                 TenLoCao = loCao.TenLoCao
+                                 TenLoCao = loCao.TenLoCao,
+                                 NgayTao = a.NgayTao
                              }).ToListAsync();
 
 
@@ -168,6 +169,7 @@ namespace Data_Product.Controllers
                 x.TrangThaiLT,
                 x.ID_Locao,
                 x.TenLoCao,
+                x.NgayTao,
                 NguoiNhanList = userStats.ContainsKey(x.MaThungGang)
                             ? userStats[x.MaThungGang]
                             : new List<string>()
@@ -181,75 +183,6 @@ namespace Data_Product.Controllers
         {
             var data = await GetDanhSachThungTrungGianDaNhan(payload);
             return Ok(data);
-        }
-
-        private async Task<List<Tbl_BM_16_GangLong>> GetThungDaNhan(SearchThungDaNhanDto payload)
-        {
-            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-            if (TaiKhoan == null) return null;
-
-            var query = from gangLong in _context.Tbl_BM_16_GangLong
-                        join phu in _context.Tbl_BM_16_TaiKhoan_Thung
-                            on gangLong.MaThungGang equals phu.MaThungGang
-                        where phu.ID_taiKhoan == TaiKhoan.ID_TaiKhoan
-                              && gangLong.T_ID_TrangThai == (int)TinhTrang.DaNhan && gangLong.MaThungThep == phu.MaThungThep
-                        select new { gangLong, phu };
-
-            if (payload.NgayLamViec.HasValue)
-            {
-                query = query.Where(x => x.gangLong.NgayLuyenThep >= payload.NgayLamViec.Value && x.gangLong.NgayLuyenThep < payload.NgayLamViec.Value.AddDays(1));
-            }
-
-            if (payload.T_Ca.HasValue)
-            {
-                query = query.Where(x => x.gangLong.T_Ca == (int)payload.T_Ca.Value);
-            }
-
-            if (payload.ID_LoThoi.HasValue)
-            {
-                query = query.Where(x => x.gangLong.ID_LoThoi == (int)payload.ID_LoThoi.Value);
-            }
-
-            var res = await (from x in query
-                             join meThoi in _context.Tbl_MeThoi on x.gangLong.ID_MeThoi equals meThoi.ID into meThoiJoin
-                             from meThoi in meThoiJoin.DefaultIfEmpty()
-                             join trangThai in _context.Tbl_BM_16_TrangThai on x.gangLong.ID_TrangThai equals trangThai.ID
-                             join kipT in _context.Tbl_Kip on x.gangLong.T_ID_Kip equals kipT.ID_Kip
-                             select new Tbl_BM_16_GangLong
-                             {
-                                 ID = x.gangLong.ID,
-                                 BKMIS_SoMe = x.gangLong.BKMIS_SoMe,
-                                 BKMIS_Gio = x.gangLong.BKMIS_Gio,
-                                 BKMIS_PhanLoai = x.gangLong.BKMIS_PhanLoai,
-                                 MaThungThep = x.gangLong.MaThungThep,
-                                 BKMIS_ThungSo = x.gangLong.BKMIS_ThungSo,
-                                 NgayLuyenThep = x.gangLong.NgayLuyenThep,
-                                 ChuyenDen = x.gangLong.ChuyenDen,
-                                 KL_XeGoong = x.gangLong.KL_XeGoong,
-                                 KR = x.gangLong.KR,
-                                 T_ID_TrangThai = x.gangLong.T_ID_TrangThai,
-                                 T_KLThungVaGang = x.gangLong.T_KLThungVaGang,
-                                 T_KLThungChua = x.gangLong.T_KLThungChua,
-                                 T_KLGangLong = x.gangLong.T_KLGangLong,
-                                 ThungTrungGian = x.gangLong.ThungTrungGian,
-                                 T_KLThungVaGang_Thoi = x.gangLong.T_KLThungVaGang_Thoi,
-                                 T_KLThungChua_Thoi = x.gangLong.T_KLThungChua_Thoi,
-                                 T_KLGangLongThoi = x.gangLong.T_KLGangLongThoi,
-                                 T_GhiChu = x.gangLong.T_GhiChu,
-                                 ID_Locao = x.gangLong.ID_Locao,
-                                 ID_TrangThai = x.gangLong.ID_TrangThai,
-                                 TrangThai = trangThai.TenTrangThai,
-                                 ID_MeThoi = x.gangLong.ID_MeThoi,
-                                 MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
-                                 T_KL_phe = x.gangLong.T_KL_phe,
-                                 Gio_NM = x.gangLong.Gio_NM,
-                                 T_Ca = x.gangLong.T_Ca,
-                                 T_TenKip = kipT != null ? kipT.TenKip : null,
-                                 G_ID_NguoiChuyen = x.gangLong.G_ID_NguoiChuyen
-                             }).ToListAsync();
-
-            return res;
         }
 
         public async Task<List<ThungTrungGianGroupViewModel>> GetDanhSachThungTrungGianDaNhan(SearchThungDaNhanDto payload)
@@ -277,26 +210,35 @@ namespace Data_Product.Controllers
                 query = query.Where(x => x.ID_LoThoi == payload.ID_LoThoi);
 
             var thungList = await (from ttg in query
-                                   join meThoi in _context.Tbl_MeThoi
-                                       on ttg.ID_MeThoi equals meThoi.ID into meThoiJoin
-                                   from meThoi in meThoiJoin.DefaultIfEmpty()
-                                   orderby  ttg.MaThungTG, ttg.NgayTao
-                                   select new ThungTrungGianGroupViewModel
-                                   {
-                                       ID_TTG = ttg.ID,
-                                       MaThungTG = ttg.MaThungTG,
-                                       MaThungTG_Copy = ttg.MaThungTG_Copy,
-                                       SoThungTG = ttg.SoThungTG,
-                                       GhiChu = ttg.GhiChu,
-                                       IsCopy = ttg.IsCopy,
-                                       KLThung_Thoi = ttg.KLThung_Thoi,
-                                       KLThungVaGang_Thoi = ttg.KLThungVaGang_Thoi,
-                                       KL_phe = ttg.KL_phe,
-                                       KLGang_Thoi = ttg.KLGang_Thoi,
-                                       Tong_KLGangNhan = ttg.Tong_KLGangNhan,
-                                       ID_MeThoi = ttg.ID_MeThoi,
-                                       MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null
-                                   }).ToListAsync();
+                                    join meThoi in _context.Tbl_MeThoi
+                                        on ttg.ID_MeThoi equals meThoi.ID into meThoiJoin
+                                    from meThoi in meThoiJoin.DefaultIfEmpty()
+
+                                        // Tính NgayTaoGoc là ngày tạo của thùng gốc theo MaThungTG
+                                    join thungGoc in query.Where(x => !x.IsCopy)
+                                        on ttg.MaThungTG equals thungGoc.MaThungTG into thungGocJoin
+                                    from thungGoc in thungGocJoin.DefaultIfEmpty()
+
+                                    orderby thungGoc.NgayTao, ttg.MaThungTG, ttg.IsCopy
+
+                                    select new ThungTrungGianGroupViewModel
+                                    {
+                                        ID_TTG = ttg.ID,
+                                        MaThungTG = ttg.MaThungTG,
+                                        MaThungTG_Copy = ttg.MaThungTG_Copy,
+                                        SoThungTG = ttg.SoThungTG,
+                                        GhiChu = ttg.GhiChu,
+                                        IsCopy = ttg.IsCopy,
+                                        KLThung_Thoi = ttg.KLThung_Thoi,
+                                        KLThungVaGang_Thoi = ttg.KLThungVaGang_Thoi,
+                                        KL_phe = ttg.KL_phe,
+                                        KLGang_Thoi = ttg.KLGang_Thoi,
+                                        Tong_KLGangNhan = ttg.Tong_KLGangNhan,
+                                        ID_MeThoi = ttg.ID_MeThoi,
+                                        MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
+                                        NgayTao = ttg.NgayTao
+                                    }
+                                ).ToListAsync();
 
             // Lấy danh sách gang lỏng theo ID_TTG
             var gangList = await _context.Tbl_BM_16_GangLong
@@ -415,7 +357,7 @@ namespace Data_Product.Controllers
                 int countItem = await _context.Tbl_BM_16_TaiKhoan_Thung
                     .CountAsync(s => s.MaThungGang == t.MaThungGang);
 
-                string maThungThep = GenerateMaThungThep(t.MaThungGang, payload.idLoThoi, t.T_Ca, countItem);
+                string maThungThep = GenerateMaThungThep(t.MaThungGang,payload.ngayNhan, payload.idLoThoi, t.T_Ca, countItem);
 
                 int idThungTG = idThungTG_Common ?? await TaoThungTrungGian(payload.ngayNhan, payload.idCa, payload.idLoThoi, t.BKMIS_ThungSo, payload.idNguoiNhan);
 
@@ -847,10 +789,10 @@ namespace Data_Product.Controllers
         }
 
 
-        private string GenerateMaThungThep(string maThungGang, int loThoiId, int? caValue, int count)
+        private string GenerateMaThungThep(string maThungGang, DateTime ngayNhan, int loThoiId, int? caValue, int count)
         {
             string ca = caValue == (int)CaLamViec.Ngay ? "N" : "Đ";
-            string dayStr = DateTime.Now.Day.ToString("00");
+            string dayStr = ngayNhan.Day.ToString("00");
             string countStr = count == 0 ? "00" : count < 10 ? "0" + count : count.ToString();
             return $"{maThungGang}.{dayStr}{ca}T{loThoiId}.{countStr}";
         }
