@@ -539,6 +539,7 @@ namespace Data_Product.Controllers
                     thung.T_ID_TrangThai = isDuc ? 4 : 2;
                     //thung.Gio_NM = DateTime.Now.ToString("HH:mm");
                     //thung.NgayTao = DateTime.Now;
+                    thung.NgayLuyenGang = DateTime.Now;
                 }
                 await _context.SaveChangesAsync();
                 return Json(new
