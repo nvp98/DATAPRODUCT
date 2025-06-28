@@ -32,6 +32,8 @@
 publish/
 dist/
 
+/Properties/PublishProfiles/
+
 ## Tệp nén hoặc đóng gói
 *.zip
 *.tar.gz
