@@ -2,7 +2,7 @@
 {
     public enum CaLamViec
     {
-        Ngay, // 1 = "N"
-        Dem, // 2 = "Đ"
+        Ngay = 1, 
+        Dem = 2, 
     }
 }
