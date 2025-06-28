@@ -104,6 +104,7 @@ namespace Data_Product.Controllers
                              join trangThai in _context.Tbl_BM_16_TrangThai on a.T_ID_TrangThai equals trangThai.ID
                              join loCao in _context.Tbl_LoCao on a.ID_Locao equals loCao.ID
                              where a.T_copy == false && a.G_ID_TrangThai == (int)TinhTrang.DaChuyen
+                             orderby a.NgayTao descending
                              select new Tbl_BM_16_GangLong
                              {
                                  ID = a.ID,
@@ -219,7 +220,7 @@ namespace Data_Product.Controllers
                                         on ttg.MaThungTG equals thungGoc.MaThungTG into thungGocJoin
                                     from thungGoc in thungGocJoin.DefaultIfEmpty()
 
-                                    orderby thungGoc.NgayTao, ttg.MaThungTG, ttg.IsCopy
+                                    orderby thungGoc.NgayTaoTTG, ttg.MaThungTG, ttg.IsCopy
 
                                     select new ThungTrungGianGroupViewModel
                                     {
@@ -236,7 +237,7 @@ namespace Data_Product.Controllers
                                         Tong_KLGangNhan = ttg.Tong_KLGangNhan,
                                         ID_MeThoi = ttg.ID_MeThoi,
                                         MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
-                                        NgayTao = ttg.NgayTao
+                                        NgayTaoTTG = ttg.NgayTaoTTG
                                     }
                                 ).ToListAsync();
 
@@ -261,6 +262,7 @@ namespace Data_Product.Controllers
                         ChuyenDen = x.ChuyenDen,
                         BKMIS_SoMe = x.BKMIS_SoMe,
                         BKMIS_Gio = x.BKMIS_Gio,
+                        NgayTaoG = x.NgayTao
                     }
                 }).ToListAsync();
 
@@ -298,7 +300,8 @@ namespace Data_Product.Controllers
                             G_ID_NguoiChuyen = x.G_ID_NguoiChuyen,
                             ChuyenDen = x.ChuyenDen,
                             BKMIS_SoMe = x.BKMIS_SoMe,
-                            BKMIS_Gio = x.BKMIS_Gio
+                            BKMIS_Gio = x.BKMIS_Gio,
+                            NgayTaoG = x.NgayTaoG
                         }).ToList();
                 }
             }
@@ -318,7 +321,7 @@ namespace Data_Product.Controllers
                 ID_LoThoi = idLoThoi,
                 IsCopy = false,
                 ID_NguoiNhan = ID_NguoiNhan,
-                NgayTao = DateTime.Now
+                NgayTaoTTG = DateTime.Now
             };
             _context.Tbl_BM_16_ThungTrungGian.Add(thungTrungGian);
             await _context.SaveChangesAsync();
@@ -357,7 +360,7 @@ namespace Data_Product.Controllers
                 int countItem = await _context.Tbl_BM_16_TaiKhoan_Thung
                     .CountAsync(s => s.MaThungGang == t.MaThungGang);
 
-                string maThungThep = GenerateMaThungThep(t.MaThungGang,payload.ngayNhan, payload.idLoThoi, t.T_Ca, countItem);
+                string maThungThep = GenerateMaThungThep(t.MaThungGang, payload.ngayNhan, payload.idLoThoi, payload.idCa, countItem);
 
                 int idThungTG = idThungTG_Common ?? await TaoThungTrungGian(payload.ngayNhan, payload.idCa, payload.idLoThoi, t.BKMIS_ThungSo, payload.idNguoiNhan);
 
@@ -401,7 +404,7 @@ namespace Data_Product.Controllers
                         ID_Locao = t.ID_Locao,
                         ID_Phieu = t.ID_Phieu,
                         MaPhieu = t.MaPhieu,
-                        NgayTao = DateTime.Today,
+                        NgayTao = t.NgayTao,
                         T_copy = true,
                         MaThungThep = maThungThep,
                         ID_LoThoi = payload.idLoThoi,
@@ -737,7 +740,7 @@ namespace Data_Product.Controllers
                             CaNhan = tgDto.CaNhan,
                             ID_LoThoi = tgDto.ID_LoThoi,
                             ID_NguoiNhan = TaiKhoan.ID_TaiKhoan,
-                            NgayTao = DateTime.Now,
+                            NgayTaoTTG = DateTime.Now,
                             IsCopy = true
                         };
                         _context.Tbl_BM_16_ThungTrungGian.Add(ttg);

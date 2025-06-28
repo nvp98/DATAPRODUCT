@@ -21,7 +21,7 @@ namespace Data_Product.Models
         public int? ID_MeThoi { get; set; }
         public bool IsCopy { get; set; }
         public string? GhiChu { get; set; }
-        public DateTime? NgayTao { get; set; }
+        public DateTime? NgayTaoTTG { get; set; }
 	    public string? GioNhan { get; set; }
         public string? MaThungTG_Copy { get; set; }
         public int? ID_NguoiNhan { get; set; }

@@ -176,6 +176,8 @@ namespace Data_Product.Controllers
             decimal sumKLPhe = 0;
             decimal sumKLVaoLoThoi = 0;
 
+            
+
             if (dto.ID_LoCao.HasValue)
             {
                 query = query.Where(x => x.ID_Locao == dto.ID_LoCao.Value);
@@ -260,7 +262,7 @@ namespace Data_Product.Controllers
                 query = query.Where(x => x.NgayLuyenThep >= tuNgay && x.NgayLuyenThep < denNgay);
 
             }
-
+           
             if (dto.TuNgay_LG.HasValue && dto.DenNgay_LG.HasValue)
             {
                 var tuNgay = dto.TuNgay_LG.Value.Date;
@@ -284,13 +286,23 @@ namespace Data_Product.Controllers
                  sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
                  sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
             }
-            
+
+            if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
+            {
+                query = query.OrderByDescending(x => x.NgayLuyenThep)
+                                .ThenBy(x => x.MaThungGang)
+                                .ThenBy(x => x.MaThungThep);
+
+            }
+            else
+            {
+                query = query.OrderByDescending(x => x.NgayTao)
+                                    .ThenBy(x => x.MaThungGang)
+                                    .ThenBy(x => x.MaThungThep);
+            }
             // Tổng số bản ghi
             var totalRecords = await query.CountAsync();
 
-            query = query.OrderByDescending(x => x.NgayTao)
-                                .ThenBy(x => x.MaThungGang)
-                                .ThenBy(x => x.MaThungThep);
 
             // Check nếu không có pageNumber và pageSize sẽ lấy dữ liệu để xuất excel
             if (dto.PageNumber.HasValue && dto.PageSize.HasValue)
@@ -563,7 +575,7 @@ namespace Data_Product.Controllers
                             {
                                 int colIndex = 1;
                                 worksheet.Cell(row, colIndex++).Value = stt;
-                                worksheet.Cell(row, colIndex++).Value = item.NgayLuyenGang?.Day.ToString();
+                                worksheet.Cell(row, colIndex++).Value = item.NgayTao?.Day.ToString();
                                 worksheet.Cell(row, colIndex++).Value = item.G_Ca == 1 ? "N" : item.G_Ca == 2 ? "Đ" : "";
                                 worksheet.Cell(row, colIndex++).Value = item.G_TenKip;
                                 worksheet.Cell(row, colIndex++).Value = item.MaThungGang;
@@ -800,16 +812,12 @@ namespace Data_Product.Controllers
                 case 1:
                 default:
                     // Xám nhạt
-                    //cell.Style.Fill.BackgroundColor = XLColor.FromArgb(215, 215, 215); 
-                    //cell.Style.Font.FontColor = XLColor.Black;
                     cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#6c757d");
                     cell.Style.Font.FontColor = XLColor.FromHtml("#ffffff");
                     cell.Style.Font.Bold = true;
                     break;
                 case 2:
                     // Cam
-                    //cell.Style.Fill.BackgroundColor = XLColor.FromArgb(255, 153, 0);
-                    //cell.Style.Font.FontColor = XLColor.White;
                     cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#ffc107");
                     cell.Style.Font.FontColor = XLColor.FromHtml("#212529");
                     cell.Style.Font.Bold = true;
@@ -827,8 +835,6 @@ namespace Data_Product.Controllers
                     break;
                 case 5:
                     // Xanh lá
-                    //cell.Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-                    //cell.Style.Font.FontColor = XLColor.White;
                     cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1e7e34");
                     cell.Style.Font.FontColor = XLColor.FromHtml("#ffffff");
                     cell.Style.Font.Bold = true;
