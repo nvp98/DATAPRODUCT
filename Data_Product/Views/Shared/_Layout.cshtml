@@ -33,7 +33,7 @@
 @{
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-
+    var checkQuyenBTBD = _context.Tbl_QuyenXuLy.Where(x => x.MaXL == "BTBD" && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan).Select(x=>x.ID_XuongXL).Distinct().ToList();
 }
 <body>
     @if (!User.Identity.IsAuthenticated)
@@ -318,7 +318,7 @@
                                     <span>BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
                                 </a>
                             </li>
-                            @if (TaiKhoan.ID_Quyen == 10 || TaiKhoan.ID_Quyen == 1 || ListQuyen.Any(x => x == "10"))
+                            @if (TaiKhoan.ID_Quyen == 10 || TaiKhoan.ID_Quyen == 1 || ListQuyen.Any(x => x == "10") || checkQuyenBTBD != null)
                             {
                                 <li class="nav-item">
                                     <a class="nav-link collapsed" href="@Url.Action("Index_BTBD", "BM_NhatKy_SanXuat")">

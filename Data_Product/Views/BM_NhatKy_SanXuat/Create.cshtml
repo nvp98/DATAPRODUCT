@@ -224,15 +224,14 @@
                                                 let soThungValue = (row[3] || "").toString().replace(/[^0-9]/g, '');
 
                                                 //index 0->n
-                                                let index = indexx -1;
+                                                let index = indexx -6;
 
                                                 let newRow = `
                                                                                         <tr class="data-row">
                                                                                             <td>
                                                                                                <select name="NhatKy_SanXuat_ChiTiet[${index}].ID_Xuong" class="form-control marginTB5 " required>
-                                                                                                <option value=''>--Chọn Xưởng--</option>
                                                                                                 ${Xuong.map(option =>
-                                                                                                `<option value="${option.value}" ${option.text == TenXuong ? "selected" : ""}>${option.text}</option>`
+                                                                                                `<option value="${option.value}" selected>${option.text}</option>`
                                                                                                         ).join("")}
                                                                                                 </select>
                                                                                             </td>
@@ -320,7 +319,6 @@
                                  <tr class="data-row">
                                             <td>
                                               <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[{index}].ID_Xuong" style="width: 100%" required>
-                                                    <option value=''>--Chọn Xưởng--</option>
                                                     @foreach (var item in ViewBag.IDXuong)
                                                     {
                                                         <option value='@item.Value'>@item.Text</option>

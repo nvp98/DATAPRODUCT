@@ -657,7 +657,9 @@ namespace Data_Product.Controllers
                                 ChuKy = a.ChuKy,
                                 ID_TrangThai = (int)a.ID_TrangThai,
                                 PhongBan_Them = a.PhongBan_Them,
-                                Quyen_Them = a.Quyen_Them
+                                Quyen_Them = a.Quyen_Them,
+                                PhongBan_API = a.PhongBan_API,
+                                Xuong_API = a.Xuong_API
                             }).OrderBy(x => x.TenTaiKhoan).ToList();
             using (var workbook = new XLWorkbook())
             {
@@ -667,8 +669,11 @@ namespace Data_Product.Controllers
                 worksheet.Cell(1, 2).Value = "Mã nhân viên";
                 worksheet.Cell(1, 3).Value = "Họ và tên";
                 worksheet.Cell(1, 4).Value = "Phòng Ban";
-                worksheet.Cell(1, 5).Value = "Chức vụ";
-                worksheet.Cell(1, 6).Value = "Quyền đăng nhập";
+                worksheet.Cell(1, 5).Value = "Xưởng";
+                worksheet.Cell(1, 6).Value = "Chức vụ";
+                worksheet.Cell(1, 7).Value = "Phòng Ban NS";
+                worksheet.Cell(1, 8).Value = "Xưởng NS";
+                worksheet.Cell(1, 9).Value = "Quyền đăng nhập";
                 //value
                 //worksheet.Cell(2, 1).Value = 1;
                 //worksheet.Cell(2, 2).Value = "John Doe";
@@ -680,8 +685,11 @@ namespace Data_Product.Controllers
                     worksheet.Cell(row, 2).Value = item.TenTaiKhoan;
                     worksheet.Cell(row, 3).Value = item.HoVaTen;
                     worksheet.Cell(row, 4).Value = item.TenPhongBan;
-                    worksheet.Cell(row, 5).Value = item.TenChucVu;
-                    worksheet.Cell(row, 6).Value = item.TenQuyen;
+                    worksheet.Cell(row, 5).Value = item.TenXuong;
+                    worksheet.Cell(row, 6).Value = item.TenChucVu;
+                    worksheet.Cell(row, 7).Value = item.PhongBan_API;
+                    worksheet.Cell(row, 8).Value = item.Xuong_API;
+                    worksheet.Cell(row, 9).Value = item.TenQuyen;
                     row++;stt++;
                 }
 

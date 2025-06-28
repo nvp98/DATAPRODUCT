@@ -35,6 +35,25 @@ namespace Data_Product.Controllers
                 res = res.Where(x => x.TenXuong.Contains(search)).ToList();
 
             }
+            List<Tbl_Xuong> xuong = (from a in _context.Tbl_Xuong
+                                     join b in _context.Tbl_PhongBan on a.ID_PhongBan equals b.ID_PhongBan
+                                     select new Tbl_Xuong
+                                     {
+                                         ID_Xuong = a.ID_Xuong,
+                                         ID_PhongBan = b.ID_PhongBan,
+                                         TenXuong = b.TenPhongBan + "-" + a.TenXuong
+                                     }
+                                 ).ToList();
+            ViewBag.XList = new SelectList(xuong, "ID_Xuong", "TenXuong");
+            List<Tbl_TaiKhoan> taiKhoans = (from a in _context.Tbl_TaiKhoan
+                                     join b in _context.Tbl_PhongBan on a.ID_PhongBan equals b.ID_PhongBan
+                                     select new Tbl_TaiKhoan
+                                     {
+                                         ID_TaiKhoan = a.ID_TaiKhoan,
+                                         TenTaiKhoan = a.TenTaiKhoan + " - " + a.HoVaTen
+                                     }
+                                 ).ToList();
+            ViewBag.TKList = new SelectList(taiKhoans, "ID_TaiKhoan", "TenTaiKhoan");
             //const int pageSize = 20;
             //if (page < 1)
             //{
@@ -300,5 +319,59 @@ namespace Data_Product.Controllers
                 return File(stream, System.Net.Mime.MediaTypeNames.Application.Octet, "DanhSachXuong.xlsx");
             }
         }
+        public class QuyenBTBDModel
+        {
+            public string TaiKhoan { get; set; }
+            public List<string> DanhSachXuong { get; set; }
+        }
+
+        [HttpPost]
+        public IActionResult SaveQuyenBTBD([FromBody] List<QuyenBTBDModel> data)
+        {
+            foreach (var item in data)
+            {
+                string taiKhoan = item.TaiKhoan;
+                if(taiKhoan != null)
+                {
+                    var danhSachXuong = ((IEnumerable<dynamic>)item.DanhSachXuong).Select(x => x.ToString()).ToList();
+                    foreach (var xuong in danhSachXuong)
+                    {
+                        if (xuong != null)
+                        {
+                            int IDTaiKhoan = Convert.ToInt32(taiKhoan);
+                            int IDXuong = Convert.ToInt32(xuong);
+                            //check trùng
+                            var che = _context.Tbl_QuyenXuLy.FirstOrDefault(x => x.MaXL == "BTBD" && x.ID_TaiKhoan == IDTaiKhoan && x.ID_XuongXL == IDXuong);
+                            if(che == null)
+                            {
+                                var newQuyen = new Tbl_QuyenXuLy()
+                                {
+                                    ID_TaiKhoan = IDTaiKhoan,
+                                    ID_XuongXL = IDXuong,
+                                    MaXL = "BTBD"
+                                };
+                                _context.Tbl_QuyenXuLy.Add(newQuyen);
+                            }
+                        }
+                    }
+                }
+                _context.SaveChanges();
+                // TODO: xử lý
+            }
+            return Ok(new { message = "Đã lưu thành công!" });
+        }
+        [HttpPost]
+        public IActionResult DeleteQuyen(int id)
+        {
+            var quyen = _context.Tbl_QuyenXuLy.FirstOrDefault(x => x.ID == id);
+            if (quyen != null)
+            {
+                _context.Tbl_QuyenXuLy.Remove(quyen);
+                _context.SaveChanges();
+                return Json(new { status = "ok" });
+            }
+            return Json(new { status = "error", message = "Không tìm thấy quyền cần xóa" });
+        }
+
     }
 }

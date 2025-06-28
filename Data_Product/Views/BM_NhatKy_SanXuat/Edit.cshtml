@@ -141,24 +141,38 @@
                                     </div><!-- End Recent Sales -->
                                 </div><!-- End Recent Sales -->
                                 <div class="col-4 m-auto" style=" ">
-                                    <button type="button" class="btn btn-danger" onclick="if(confirm('Bạn có chắc chắn muốn xóa?')) { window.location.href='@Url.Action("XoaDuLieu", "BM_NhatKy_SanXuat", new { id = Model.ID })'; }">
-                                        <i class="bi bi-x-lg"></i>
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Xóa dữ liệu
-                                        </span>
-                                    </button>
+                                   
                                    @* <button type="submit" class="btn btn-warning" name="luu" id="luu" value="2">
                                         <i class="bi bi-floppy"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Lưu
                                         </span>
                                     </button>*@
-                                    <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
-                                        <i class="bi bi-send"></i>
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Gửi phiếu
-                                        </span>
-                                    </button>
+                                    @if(ViewBag.IsHieuChinh != null)
+                                    {
+                                        <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="0">
+                                            <i class="bi bi-send"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                Gửi phiếu hiệu chỉnh
+                                            </span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-danger" onclick="if(confirm('Bạn có chắc chắn muốn xóa?')) { window.location.href='@Url.Action("XoaDuLieu", "BM_NhatKy_SanXuat", new { id = Model.ID })'; }">
+                                            <i class="bi bi-x-lg"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                Xóa dữ liệu
+                                            </span>
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
+                                            <i class="bi bi-send"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                Gửi phiếu
+                                            </span>
+                                        </button>
+                                    }
+                                   
                                 </div><!-- End Recent Sales -->
                             </div>
                         </div>
@@ -224,15 +238,14 @@
                                                 let soThungValue = (row[3] || "").toString().replace(/[^0-9]/g, '');
 
                                                 //index 0->n
-                                                let index = indexx - 1;
+                                                let index = indexx - 6;
 
                                                 let newRow = `
                                                                                                                             <tr class="data-row">
                                                                                                                                 <td>
                                                                                                                                    <select name="NhatKy_SanXuat_ChiTiet[${index}].ID_Xuong" class="form-control marginTB5 LoCao">
-                                                                                                                                    <option value='null'>--Chọn Xưởng--</option>
                                                                                                                                     ${Xuong.map(option =>
-                                                    `<option value="${option.value}" ${option.text == TenXuong ? "selected" : ""}>${option.text}</option>`
+                                                    `<option value="${option.value}" selected>${option.text}</option>`
                                                 ).join("")}
                                                                                                                                     </select>
                                                                                                                                 </td>
@@ -243,7 +256,7 @@
                                                                                                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[6] ? "checked" : ""} value="3" class="radio-square" ></td>
                                                                                                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[7] ? "checked" : ""} value="4" class="radio-square" ></td>
                                                                                                                                 <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].NoiDungDung" value="${row[8] || ""}" class="form-control" required></td>
-                                                                                                                                <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].GhiChu" value="${row[9] || ""}" class="form-control" required></td>
+                                                                                                                                <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].GhiChu" value="${row[9] || ""}" class="form-control" ></td>
                                                                                                                                 <td><button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button></td>
                                                                                                                             </tr>
                                                                                                                         `;
@@ -320,7 +333,6 @@
                                             <tr class="data-row">
                                                 <td>
                                                     <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_Xuong" style="width: 100%" required>
-                                                        <option value=''>--Chọn Xưởng--</option>
                                                         @foreach (var it in ViewBag.IDXuong)
                                                         {
                                                             if(item.ID_Xuong.ToString() == @it.Value)
@@ -357,7 +369,6 @@
                                  <tr class="data-row">
                                             <td>
                                               <select class="form-control marginTB5 LoCao" name="NhatKy_SanXuat_ChiTiet[{index}].ID_Xuong" style="width: 100%" required>
-                                                    <option value=''>--Chọn Xưởng--</option>
                                 @foreach (var item in ViewBag.IDXuong)
                                 {
                                                                         <option value='@item.Value'>@item.Text</option>

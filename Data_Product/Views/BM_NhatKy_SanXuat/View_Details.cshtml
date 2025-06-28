@@ -37,6 +37,8 @@
 @{
     var taiKhoan = ViewBag.taikhoan as Tbl_TaiKhoan;
     var taiKhoanBTBD = ViewBag.taikhoanBTBD as Tbl_TaiKhoan;
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var userName = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
 }
 <style>
     .radio-square {
@@ -69,15 +71,23 @@
                 <div class="card">
                     <div class="row">
                         <!-- Button gửi yêu cầu xóa phiếu -->
-                        @if (Model.TinhTrang == 1 && Model.ID_NhanVien_SX == taiKhoan.ID_TaiKhoan && Model.IsLock == false)
-                        {
-                            <div class="d-flex gap-2">
+                        <div class="d-flex gap-2">
+                            @if (Model.TinhTrang == 1 && Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock == false && Model.IsDelete == false))
+                            {
                                 <button class="btn btn-danger"
                                         onclick="requestDelete(@Model.ID)">
                                     Yêu cầu xóa phiếu
                                 </button>
-                            </div>
-                        }
+                            }
+
+                            @if (Model.TinhTrang == 1 && Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock == false && Model.IsDelete == false))
+                            {
+                                <button class="btn btn-success"
+                                        onclick="requestHieuChinh(@Model.ID)">
+                                    Đề nghị hiệu chỉnh
+                                </button>
+                            }
+                        </div>
                        
                     </div>
 
@@ -326,6 +336,12 @@
                     alert("Có lỗi xảy ra khi gửi yêu cầu xóa.");
                 }
             });
+        }
+    }
+    function requestHieuChinh(phieuId) {
+        console.log(phieuId)
+        if (confirm("Bạn có chắc chắn muốn gửi yêu cầu hiệu chỉnh phiếu này không?")) {
+            window.location.href = '@Url.Action("Edit", "BM_NhatKy_SanXuat")' + '?IDNKSX=' + phieuId + '&isHieuChinh=1';
         }
     }
 </script>

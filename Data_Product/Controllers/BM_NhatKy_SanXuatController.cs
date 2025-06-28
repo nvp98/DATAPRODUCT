@@ -43,7 +43,7 @@ namespace Data_Product.Controllers
                 new SelectListItem { Value = "0", Text = "Đã gửi" },
                 new SelectListItem { Value = "1", Text = "Hoàn thành" },
                 new SelectListItem { Value = "2", Text = "Đang xóa phiếu" },
-                new SelectListItem { Value = "3", Text = "Đã xóa phiếu" }
+                new SelectListItem { Value = "3", Text = "Đã xóa phiếu" },
             };
             ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
             var res = await(from a in _context.Tbl_NhatKy_SanXuat.Where(x => x.ID_NhanVien_SX == ID_NhanVien_BG && !x.IsDelete)
@@ -85,11 +85,11 @@ namespace Data_Product.Controllers
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
             int ID_NhanVien = TaiKhoan?.ID_TaiKhoan ?? 0;
-
+            var checkQuyenBTBD = _context.Tbl_QuyenXuLy.Where(x => x.MaXL == "BTBD" && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan).Select(x => x.ID_XuongXL).Distinct().ToList();
             var trangThaiList = new List<SelectListItem>
             {
                 new SelectListItem { Value = "-1", Text = "Không xác nhận" },
-                new SelectListItem { Value = "0", Text = "Đã gửi" },
+                new SelectListItem { Value = "0", Text = "Chờ xử lý" },
                 new SelectListItem { Value = "1", Text = "Hoàn thành" },
                 new SelectListItem { Value = "2", Text = "Đang xóa phiếu" },
                 new SelectListItem { Value = "3", Text = "Đã xóa phiếu" }
@@ -97,7 +97,7 @@ namespace Data_Product.Controllers
             ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
 
             // Query gốc, chưa gọi ToListAsync
-            var query = from a in _context.Tbl_NhatKy_SanXuat
+            var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x=> checkQuyenBTBD.Contains(x.ID_Xuong_SX))
                         join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan
                         where !a.IsDelete
                         select new Tbl_NhatKy_SanXuat
@@ -266,7 +266,7 @@ namespace Data_Product.Controllers
                                  }).ToListAsync();
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
 
-            ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.Where(x=>x.ID_PhongBan == PhongBan.ID_PhongBan), "ID_Xuong", "TenXuong");
+            ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.Where(x=>x.ID_Xuong == TaiKhoan.ID_PhanXuong), "ID_Xuong", "TenXuong");
 
             var CaKip = await(from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == NgayLamViec)
                               select new Tbl_Kip
@@ -324,6 +324,7 @@ namespace Data_Product.Controllers
                 {
                     ID_NhanVien_SX = ThongTin_NV.ID_TaiKhoan,
                     ID_PhongBan_SX = ThongTin_BP.ID_PhongBan,
+                    ID_Xuong_SX = ThongTin_NV?.ID_PhanXuong??0,
                     ID_Kip = ID_Kip.ID_Kip,
                     Ca = ID_Kip.TenCa,
                     Kip = ID_Kip.TenKip,
@@ -381,7 +382,7 @@ namespace Data_Product.Controllers
             }
         }
 
-        public async Task<IActionResult> Edit(int IDNKSX)
+        public async Task<IActionResult> Edit(int IDNKSX, int? isHieuChinh)
         {
 
             DateTime DayNow = DateTime.Now;
@@ -405,10 +406,10 @@ namespace Data_Product.Controllers
                                   }).ToListAsync();
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
 
-            ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.Where(x => x.ID_PhongBan == PhongBan.ID_PhongBan), "ID_Xuong", "TenXuong");
+            ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong), "ID_Xuong", "TenXuong");
 
-            
 
+            ViewBag.IsHieuChinh = isHieuChinh;
             var res = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == IDNKSX);
             res.NhatKy_SanXuat_ChiTiet = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x=>x.ID_NhatKy ==  IDNKSX).ToList();
 
@@ -441,7 +442,7 @@ namespace Data_Product.Controllers
             {
                 //IDTaiKhoan = Convert.ToInt32(formCollection["IDTaiKhoan"]);
                 IDKip = Convert.ToInt32(formCollection["IDKip"]);
-                XacNhan = formCollection["luu"];
+                XacNhan = formCollection["xacnhan"];
                 ID_Day = formCollection["ID_Day"];
                 ID_ca = formCollection["IDCa"];
 
@@ -467,12 +468,12 @@ namespace Data_Product.Controllers
                 //NhatKy.Ca = ID_Kip.TenCa;
                 //NhatKy.Kip = ID_Kip.TenKip;
 
-                //if (XacNhan != null)
-                //{
-                //    NhatKy.TinhTrang = 0; // lưu
-                //}
-                //else NhatKy.TinhTrang = 1; // gửi
+                //kiem tra neu hieu chinh
                 NhatKy.TinhTrang = 0; // Gửi dữ liệu
+                if (XacNhan =="0")
+                {
+                    NhatKy.ID_NhanVien_BTBD = null;
+                }
                 _context.SaveChanges(); // update Nhật ký
                 // xóa danh sách chitiet cũ 
                 var listchitiet = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == _DO.ID).ToList();
@@ -829,7 +830,7 @@ namespace Data_Product.Controllers
                         }
                         else if (item.TinhTrang == 2)
                         {
-                            tinhtrang = "Yêu cầu xóa";
+                            tinhtrang = "Đang xóa phiếu";
                         }
                         else if (item.TinhTrang == 3)
                         {
