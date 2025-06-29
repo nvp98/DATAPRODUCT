@@ -1071,49 +1071,68 @@
 
             if (!maThungTG) return;
 
-            // Tìm dòng gốc
-            const indexGoc = dataThungDaNhan.findIndex(x => x.maThungTG === maThungTG && !x.isCopy);
-            if (indexGoc === -1) return;
+            $.ajax({
+                url: '/BM_GangThoi_Thep/CheckValidCopyThungTG',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(maThungTG),
+                success: function (res) {
+                    if(res.isValid){
+                        // Tìm dòng gốc
+                        const indexGoc = dataThungDaNhan.findIndex(x => x.maThungTG === maThungTG && !x.isCopy);
+                        if (indexGoc === -1) return;
 
-            // Lấy thùng gốc
-            const tgGoc = dataThungDaNhan[indexGoc];
+                        // Lấy thùng gốc
+                        const tgGoc = dataThungDaNhan[indexGoc];
 
-            // Tạo bản sao (deep copy)
-            const GenMaThung = Date.now().toString(32);
-            const tgCopy = JSON.parse(JSON.stringify(tgGoc));
-            tgCopy.isCopy = true;
-            tgCopy.maThungTG = maThungTG;
-            tgCopy.maThungTG_Copy =`${maThungTG}${GenMaThung}`
-            tgCopy.tong_KLGangNhan = null;
-            tgCopy.klThungVaGang_Thoi = null;
-            tgCopy.klThung_Thoi = null;
-            tgCopy.kL_phe  = null;
-            tgCopy.klGang_Thoi  = null;
-            tgCopy.iD_MeThoi  = null;
-            tgCopy.maMeThoi  = null;
-            tgCopy.ghiChu  = null;
+                        // Tạo bản sao (deep copy)
+                        const GenMaThung = Date.now().toString(32);
+                        const tgCopy = JSON.parse(JSON.stringify(tgGoc));
+                        tgCopy.isCopy = true;
+                        tgCopy.maThungTG = maThungTG;
+                        tgCopy.maThungTG_Copy =`${maThungTG}${GenMaThung}`
+                        tgCopy.tong_KLGangNhan = null;
+                        tgCopy.klThungVaGang_Thoi = null;
+                        tgCopy.klThung_Thoi = null;
+                        tgCopy.kL_phe  = null;
+                        tgCopy.klGang_Thoi  = null;
+                        tgCopy.iD_MeThoi  = null;
+                        tgCopy.maMeThoi  = null;
+                        tgCopy.ghiChu  = null;
 
-            // Tìm vị trí sau tất cả bản sao hoặc thùng con cùng maThungTG
-            let insertAfter = indexGoc;
-            for (let i = indexGoc + 1; i < dataThungDaNhan.length; i++) {
-                const item = dataThungDaNhan[i];
+                        // Tìm vị trí sau tất cả bản sao hoặc thùng con cùng maThungTG
+                        let insertAfter = indexGoc;
+                        for (let i = indexGoc + 1; i < dataThungDaNhan.length; i++) {
+                            const item = dataThungDaNhan[i];
 
-                // Nếu là bản sao hoặc thùng con có liên quan đến thùng gốc
-                if (
-                    (item.isCopy && item.maThungTG === maThungTG) ||
-                    (item.maThungTG && item.maThungTG.startsWith(maThungTG))
-                ) {
-                    insertAfter = i;
-                } else {
-                    break; // Ngừng nếu không còn dòng liên quan
+                            // Nếu là bản sao hoặc thùng con có liên quan đến thùng gốc
+                            if (
+                                (item.isCopy && item.maThungTG === maThungTG) ||
+                                (item.maThungTG && item.maThungTG.startsWith(maThungTG))
+                            ) {
+                                insertAfter = i;
+                            } else {
+                                break; // Ngừng nếu không còn dòng liên quan
+                            }
+                        }
+
+                        // Chèn bản sao vào đúng vị trí
+                        dataThungDaNhan.splice(insertAfter + 1, 0, tgCopy);
+
+                        // Gọi hàm render lại bảng
+                        renderTableXuLySoLieu(dataThungDaNhan);
+                    } else {
+                        alert("Thùng đã chốt. Vui lòng kiểm tra lại");
+                        ReLoad();
+                    }
+                
+                },
+                error: function (err) {
+                    alert("Lỗi khi tìm kiếm dữ liệu");
                 }
-            }
+            });
 
-            // Chèn bản sao vào đúng vị trí
-            dataThungDaNhan.splice(insertAfter + 1, 0, tgCopy);
-
-            // Gọi hàm render lại bảng
-            renderTableXuLySoLieu(dataThungDaNhan);
+            
         });
 
 
@@ -1126,10 +1145,28 @@
 
             if (index !== -1) {
                 selectedMaThung = maThungTG_Copy;
+
+                $.ajax({
+                    url: '/BM_GangThoi_Thep/CheckValidXoaThungTGCopy',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(selectedMaThung),
+                    success: function (res) {
+                        if(res.isValid){
+                            // Hiện modal
+                            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                            modal.show();
+                        } else {
+                            alert("Thùng đã chốt. Vui lòng kiểm tra lại");
+                            ReLoad();
+                        }
+                    },
+                    error: function () {
+                        alert("Lỗi khi tìm kiếm dữ liệu");
+                    }
+                });
+
                
-                 // Hiện modal
-                var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-                modal.show();
             }
         });
 
@@ -1326,7 +1363,13 @@
                 data: JSON.stringify(selectedList),
                 processData: false,
                 success: function (res) {
-                    alert("Lưu KR thành công!")
+                    if(res.isValid){
+                        alert("Lưu KR thành công!");
+                    }
+                    // else{
+                    //     alert("Có thùng vừa mới được chốt. Vui lòng kiểm tra lại");
+                    // }
+                    // ReLoad();
                 }
             });
         });
@@ -1396,9 +1439,8 @@
                 contentType: "application/json",
                 data: JSON.stringify(selectedMaThungHuy),
                 success: function (res) {
-                    console.log(res)
                     const data = res.data;
-                    if(data.length){
+                    if(data.length && res.truongHop === 2){
                         const modal = new bootstrap.Modal(document.getElementById('huyNhanThungModal'));
                         modal.show();
 
@@ -1422,12 +1464,28 @@
                             html += `</div>`;
                         });
                         $("#huyNhanThung-content").html(html);
-                    } else {
+                    } else if(res.truongHop === 1) {
+                        alert('Có thùng đã được vừa mới chốt. Vui lòng kiểm tra lại');
+                        ReLoad();
+                    }
+                    else {
                         alert('Có thùng bạn chưa nhận nên không thể hủy nhận. Vui lòng kiểm tra lại');
+                        ReLoad();
                     }
                     selectedMaThungHuyTmp = null;
                 }
             });
+        }
+
+        function ReLoad(){
+             SearchLT();
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(NgayNhan && IDCaNhan && IDLoThoi){
+                SearchThungDaNhanTheoUser();
+            }
         }
 
         // xac nhan Modal
@@ -1445,14 +1503,7 @@
                 success: function (res) {
                     if(res.success){
                         // render lai
-                        SearchLT();
-                        const NgayNhan = $('#IDNgayNhan').val() || null;
-                        const IDCaNhan = $('#IDCaNhan').val() || null;
-                        const IDLoThoi = $('#IDLoThoi').val() || null;
-
-                        if(NgayNhan && IDCaNhan && IDLoThoi){
-                            SearchThungDaNhanTheoUser();
-                        }
+                        ReLoad();
                         selectedMaThungHuy = null;
                     }
                 }
@@ -1460,7 +1511,6 @@
             // Tắt modal sau khi gửi
             const modal = bootstrap.Modal.getInstance(document.getElementById('huyNhanThungModal'));
             modal.hide();
-            // $('#btnCloseModalHuyNhan').click();
         });
 
          // logic nhan thung
@@ -1503,18 +1553,36 @@
                 idLoThoi: IDLoThoi,
                 idNguoiNhan: ID_currentUser
             }
-            const phongBan = $('#IDPhongBan').val();
 
-            if (phongBan === "HRC2") {
-                // Gán payload tạm
-                pendingPayload = payload;
+            $.ajax({
+                url: "/BM_GangThoi_Thep/CheckNhan",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedIds),
+                processData: false,
+                success: function (res) {
+                    if(res.isValid){
+                        const phongBan = $('#IDPhongBan').val();
 
-                const modalThungTrungGian = new bootstrap.Modal(document.getElementById('modalThungTrungGian'));
-                modalThungTrungGian.show();
-            } else {
-                // Gửi luôn nếu không cần nhập thùng trung gian
-                guiNhan(payload);
-            }
+                        if (phongBan === "HRC2") {
+                            // Gán payload tạm
+                            pendingPayload = payload;
+
+                            const modalThungTrungGian = new bootstrap.Modal(document.getElementById('modalThungTrungGian'));
+                            modalThungTrungGian.show();
+                        } else {
+                            // Gửi luôn nếu không cần nhập thùng trung gian
+                            guiNhan(payload);
+                        }
+                    } else{
+                        alert('Có thùng đã được chốt, vui lòng kiểm tra lại');
+                        ReLoad();
+                    }
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
 
         });
 
@@ -1550,12 +1618,7 @@
                 data: JSON.stringify(payload),
                 processData: false,
                 success: function (res) {
-                    // render lai
-                    SearchLT();
-
-                    // render cac thung da nhan
-                    SearchThungDaNhanTheoUser();
-
+                    ReLoad();
                 },
                 error: function () {
                     alert("Lỗi khi nhận dữ liệu!");
@@ -1684,7 +1747,7 @@
                 processData: false,
                 success: function (res) {
                     alert("Lưu thành công!");
-                    SearchThungDaNhanTheoUser();
+                    ReLoad();
                 },
                 error: function () {
                     alert("Lỗi khi nhận dữ liệu!");

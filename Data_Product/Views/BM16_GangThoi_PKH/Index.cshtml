@@ -815,7 +815,6 @@
                  contentType: 'application/json',
                  data: JSON.stringify(dto),
                  success: function (res) {
-                    console.log(res);
                     renderTable(res);
                     renderPagination(res.totalRecords);
                  },
@@ -844,10 +843,12 @@
               });
               if (hasLocked) {
                   alert("Vui lòng không chọn các thùng đã chốt.");
+                  Search();
                   return;
               }
               if (selectedIds.length === 0) {
                   alert("Vui lòng chọn ít nhất 1 dòng.");
+                  Search();
                   return;
               }
               $.ajax({
@@ -884,10 +885,12 @@
               });
               if (hasLocked) {
                   alert("Vui lòng không chọn các thùng chưa chốt.");
+                  Search();
                   return;
               }
               if (selectedIds.length === 0) {
                   alert("Vui lòng chọn ít nhất 1 dòng.");
+                  Search();
                   return;
               }
 
