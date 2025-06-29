@@ -328,6 +328,19 @@ namespace Data_Product.Controllers
             return thungTrungGian.ID;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CheckNhan([FromBody] List<int> selectedIds)
+        {
+            var isInValid = await _context.Tbl_BM_16_GangLong
+                                      .Where(x => selectedIds.Contains(x.ID))
+                                      .AnyAsync(x => x.ID_TrangThai == (int)TinhTrang.DaChot);
+            if (isInValid)
+            {
+                return Ok(new { isValid = false });
+            }
+            return Ok(new { isValid = true });
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Nhan([FromBody] NhanThungDto payload)
@@ -339,6 +352,13 @@ namespace Data_Product.Controllers
             var thungs = await _context.Tbl_BM_16_GangLong
                                        .Where(x => payload.selectedIds.Contains(x.ID))
                                        .ToListAsync();
+            //bool isValid = thungs.Any(x => x.ID_TrangThai == (int)TinhTrang.DaChot);
+
+            //if (isValid)
+            //{
+            //    return Ok(new { Message = "Có thùng đã được chốt.", isValid = true});
+            //}
+
             var kip = await (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == payload.ngayNhan && x.TenCa == payload.idCa.ToString())
                                select new Tbl_Kip
                                {
@@ -435,7 +455,26 @@ namespace Data_Product.Controllers
             return Ok(new { Message = "Đã xử lý nhận thùng.", Soluong = payload.selectedIds.Count});
         }
 
-        
+        [HttpPost]
+        public async Task<IActionResult> CheckValidXoaThungTGCopy([FromBody] string maThungTGCopy)
+        {
+            var thungTGCopy = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.MaThungTG_Copy == maThungTGCopy && x.IsCopy == true).FirstOrDefaultAsync();
+
+            if (thungTGCopy == null)
+                return Ok(new { isValid = true });
+
+            var thungTGGoc = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.MaThungTG == thungTGCopy.MaThungTG && x.IsCopy == false).FirstOrDefaultAsync();
+
+            var isInvalid = await _context.Tbl_BM_16_GangLong.Where(x => x.ID_TTG == thungTGGoc.ID).AnyAsync(x => x.ID_TrangThai == (int)TinhTrang.DaChot);
+
+            if (isInvalid)
+            {
+                return Ok(new { isValid = false });
+            }
+
+            return Ok(new { isValid = true });
+        }
+
         [HttpPost]
         public async Task<IActionResult> XoaThungCopy([FromBody] string selectedMaThung)
         {
@@ -453,6 +492,21 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> CheckValidCopyThungTG([FromBody] string maThungTG)
+        {
+            var thungTG = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.MaThungTG == maThungTG && x.IsCopy == false).FirstOrDefaultAsync();
+
+            var isInvalid = await _context.Tbl_BM_16_GangLong.Where(x => x.ID_TTG == thungTG.ID).AnyAsync(x => x.ID_TrangThai == (int)TinhTrang.DaChot);
+
+            if (isInvalid)
+            {
+                return Ok(new { isValid = false });
+            }
+
+            return Ok(new { isValid  = true});
+        }
+
+        [HttpPost]
         public async Task<IActionResult> LuuKR([FromBody] List<LuuKRDto> selectedList)
         {
             if (selectedList == null || selectedList.Count == 0)
@@ -462,19 +516,27 @@ namespace Data_Product.Controllers
                                 .Select(x => x.maThungGang)
                                 .ToList();
 
+            //var isInvalid = await _context.Tbl_BM_16_GangLong
+            //                           .Where(x => selectedMaThungs.Contains(x.MaThungGang)).AnyAsync(x => x.ID_TrangThai == (int)TinhTrang.DaChot);
+            //if (isInvalid)
+            //{
+            //    return Ok(new { isValid = false });
+            //}
+
             // Lấy tất cả các thùng cần xử lý
             var thungs = await _context.Tbl_BM_16_GangLong
-                                       .Where(x => selectedMaThungs.Contains(x.MaThungGang))
+                                       .Where(x => selectedMaThungs.Contains(x.MaThungGang) && x.ID_TrangThai != (int)TinhTrang.DaChot)
                                        .ToListAsync();
 
             if (thungs.Count == 0) return NotFound("Không tìm thấy thùng nào.");
+
             foreach (var t in thungs)
             {
                 t.KR = selectedList.Find(x => x.maThungGang == t.MaThungGang).isChecked;
             }
 
             await _context.SaveChangesAsync();
-            return Ok();
+            return Ok(new { isValid = true });
         }
 
         [HttpPost]
@@ -486,6 +548,13 @@ namespace Data_Product.Controllers
 
             if (taiKhoan == null)
                 return BadRequest("Không tìm thấy tài khoản.");
+
+            var isInvalid = await _context.Tbl_BM_16_GangLong.Where(x => selectedMaThungHuy.Contains(x.MaThungGang)).AnyAsync(x => x.ID_TrangThai == (int)TinhTrang.DaChot);
+
+            if (isInvalid)
+            {
+                return Ok(new { data = new List<object>(), truongHop = 1 });
+            }
 
             // Bước 1: Lấy tất cả bản ghi theo danh sách mã thùng
             var allThung = await _context.Tbl_BM_16_TaiKhoan_Thung
@@ -569,10 +638,10 @@ namespace Data_Product.Controllers
                     })
                     .ToList();
 
-                return Ok(new { data = ketQua, isExist = true });
+                return Ok(new { data = ketQua, truongHop = 2 });
             } else
             {
-                return Ok(new { data = new List<object>(), isExist = false });
+                return Ok(new { data = new List<object>(), truongHop = 0 });
             }
             
         }
@@ -587,6 +656,7 @@ namespace Data_Product.Controllers
             try
             {
                 using var tran = await _context.Database.BeginTransactionAsync();
+
                 //  Lấy các bản ghi bảng phụ của user hiện tại theo MaThung
                 var phuToDelete = await _context.Tbl_BM_16_TaiKhoan_Thung
                     .Where(x => payload.selectedMaThungs.Contains(x.MaThungGang) && x.ID_taiKhoan == payload.idNguoiHuyNhan)
@@ -717,6 +787,8 @@ namespace Data_Product.Controllers
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
             if (TaiKhoan == null) return BadRequest("Không tìm thấy tài khoản.");
 
+            var danhSachBiBoQua = new List<string>();
+
             foreach (var tgDto in dsThungTG)
             {
                 Tbl_BM_16_ThungTrungGian ttg = null;
@@ -754,8 +826,25 @@ namespace Data_Product.Controllers
                                                       x.ID_NguoiNhan == TaiKhoan.ID_TaiKhoan);
 
                     if (ttg == null)
-                        continue; 
+                        continue;
                 }
+
+                // ===== KIỂM TRA: Nếu có thùng gang đã chốt thì bỏ qua luôn =====
+                bool coGangDaChot = await _context.Tbl_BM_16_GangLong
+                    .AnyAsync(x => x.ID_TTG == ttg.ID && x.ID_TrangThai == (int)TinhTrang.DaChot);
+                if(coGangDaChot)
+                {
+                    danhSachBiBoQua.Add(ttg.IsCopy ? ttg.MaThungTG_Copy : ttg.MaThungTG);
+                    continue;
+                }
+
+                ttg.KLThungVaGang_Thoi = tgDto.KLThungVaGang_Thoi;
+                ttg.KLThung_Thoi = tgDto.KLThung_Thoi;
+                ttg.KL_phe = tgDto.KLPhe;
+                ttg.KLGang_Thoi = tgDto.KLGang_Thoi;
+                ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
+                ttg.GhiChu = tgDto.GhiChu;
+                ttg.ID_MeThoi = tgDto.ID_MeThoi;
 
                 // Cập nhật dữ liệu chung
                 if (ttg != null)
@@ -775,7 +864,7 @@ namespace Data_Product.Controllers
                     foreach (var thungGang in tgDto.DanhSachThungGang)
                     {
                         var entity = await _context.Tbl_BM_16_GangLong
-                            .FirstOrDefaultAsync(x => x.MaThungThep == thungGang.MaThungThep);
+                            .FirstOrDefaultAsync(x => x.MaThungThep == thungGang.MaThungThep && x.ID_TrangThai != (int)TinhTrang.DaChot);
 
                         if (entity != null)
                         {
@@ -788,7 +877,7 @@ namespace Data_Product.Controllers
             }
 
             await _context.SaveChangesAsync();
-            return Ok(new { success = true, message = "Lưu thành công." });
+            return Ok(new { success = true, message = "Lưu thành công.", danhSachBiBoQua = danhSachBiBoQua });
         }
 
 
@@ -1201,5 +1290,6 @@ namespace Data_Product.Controllers
                 return memoryStream.ToArray();
             }
         }
+
     }
 }

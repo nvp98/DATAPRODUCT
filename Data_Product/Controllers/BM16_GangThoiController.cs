@@ -94,6 +94,13 @@ namespace Data_Product.Controllers
                        "where bkmis_kcshpsdq.view_dq1_lg_daura_lc4.ProductionDate = '" +
                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc4.ShiftName ='" + cakip + "'";
                     }
+                    else if (ID_LoCao == 5)
+                    {
+                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
+                       "FROM bkmis_kcshpsdq.view_dq2_lg_daura_lc5 " +
+                       "where bkmis_kcshpsdq.view_dq2_lg_daura_lc5.ProductionDate = '" +
+                        ngay + "'" + " and bkmis_kcshpsdq.view_dq2_lg_daura_lc5.ShiftName ='" + cakip + "'";
+                    }
 
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
