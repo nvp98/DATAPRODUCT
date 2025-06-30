@@ -33,7 +33,8 @@
 @{
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-    var checkQuyenBTBD = _context.Tbl_QuyenXuLy.Where(x => x.MaXL == "BTBD" && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan).Select(x=>x.ID_XuongXL).Distinct().ToList();
+    int IDTaiKhoan = TaiKhoan?.ID_TaiKhoan??0;
+    var checkQuyenBTBD = _context.Tbl_QuyenXuLy.Where(x => x.MaXL == "BTBD" && x.ID_TaiKhoan == IDTaiKhoan).Select(x => x.ID_XuongXL).Distinct().ToList();
 }
 <body>
     @if (!User.Identity.IsAuthenticated)
