@@ -501,11 +501,6 @@ namespace Data_Product.Controllers
                 {
                     return Json(new { success = false, message = "Thiếu thông tin mã phiếu hoặc danh sách thùng." });
                 }
-                //var thungs = await _context.Tbl_BM_16_GangLong.Where(t=> dsthung.Contains(t.MaThungGang)).ToListAsync();
-                // var thungs = await _context.Tbl_BM_16_GangLong.Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang));
-                //var thungs = await _context.Tbl_BM_16_GangLong
-                // .Where(t => t.MaPhieu == req.MaPhieu && req.DsMaThung.Contains(t.MaThungGang))
-                // .ToListAsync();
                 var maThungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
 
                 var thungs = await _context.Tbl_BM_16_GangLong

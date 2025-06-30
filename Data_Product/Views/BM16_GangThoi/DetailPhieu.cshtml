@@ -249,12 +249,12 @@
 												@if (PhongBan?.TenNgan != "P.QLCL")
 												{
 													<td class='text-center deleteItem'>
-														@* @if (!item.MaThungGang.EndsWith(".00"))
-													{ *@
+														@if (!item.MaThung.EndsWith(".00"))
+													{ 
 														<a class="btn btn-danger btn-sm" title="Xóa">
 															<i class="bi bi-trash"></i>
 														</a>
-														@* 	} *@
+													}
 													</td>
 													<td class='text-center copyItem'>
 														<a class="btn btn-secondary btn-sm" title="copy">
@@ -1057,7 +1057,7 @@
 			const tinhTrang = row.find('td[name="TinhTrang"] button').text().trim();
 			console.log(tinhTrang)
 			if (tinhTrang == "Đã chuyển" || chotThung == "Đã chốt" ){
-				alert ("Không được chỉnh sửa")
+				alert ("Trạng thái không phù hợp không được chỉnh sửa")
 				return;
 			}
 			const data = {
@@ -1277,7 +1277,15 @@
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(MaPhieu)
 		})
-		.then(res => res.blob())
+		.then(async res => {
+		if (!res.ok) {
+			// Lấy nội dung lỗi từ response
+			const errorText = await res.text();
+			alert("Xuất PDF thất bại: " + errorText);
+			throw new Error("Lỗi khi xuất PDF");
+		}
+		return res.blob();
+	 })
 		.then(blob => {
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement('a');
