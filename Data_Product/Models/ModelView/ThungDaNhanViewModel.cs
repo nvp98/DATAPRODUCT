@@ -43,6 +43,7 @@ namespace Data_Product.Models.ModelView
         public decimal? KL_phe { get; set; }
         public decimal? KLGang_Thoi { get; set; }
         public decimal? Tong_KLGangNhan { get; set; }
+        public string? GioChonMe { get; set; }
 
         public DateTime? NgayTaoTTG { get; set; }
 

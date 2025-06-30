@@ -17,6 +17,7 @@ namespace Data_Product.Models
         public decimal? KLGang_Thoi { get; set; }
         public decimal? KL_phe { get; set; }
         public decimal? Tong_KLGangNhan { get; set; }
+        public string? GioChonMe { get; set; }
 
         public int? ID_MeThoi { get; set; }
         public bool IsCopy { get; set; }

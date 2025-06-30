@@ -43,9 +43,18 @@ namespace Data_Product.Controllers
 
             // Lò Thổi
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var TaiKhoan = await _context.Tbl_TaiKhoan
+                         .FirstOrDefaultAsync(x => x.TenTaiKhoan == TenTaiKhoan);
 
-            var loThoiList = await _context.Tbl_LoThoi.Where(x => x.BoPhan == TaiKhoan.ID_PhongBan).ToListAsync();
+            if (TaiKhoan == null)
+            {
+                return Unauthorized();
+            }
+
+        
+            var idPhongBan = TaiKhoan.ID_PhongBan;
+
+            var loThoiList = await _context.Tbl_LoThoi.Where(x => x.BoPhan == idPhongBan).ToListAsync();
             ViewBag.LoThoiList = loThoiList;
 
             var currentYear = DateTime.Now.Year;
@@ -237,7 +246,8 @@ namespace Data_Product.Controllers
                                         Tong_KLGangNhan = ttg.Tong_KLGangNhan,
                                         ID_MeThoi = ttg.ID_MeThoi,
                                         MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
-                                        NgayTaoTTG = ttg.NgayTaoTTG
+                                        NgayTaoTTG = ttg.NgayTaoTTG,
+                                        GioChonMe = ttg.GioChonMe
                                     }
                                 ).ToListAsync();
 
@@ -393,9 +403,21 @@ namespace Data_Product.Controllers
                     MaPhieu = t.MaPhieu
                 });
 
-                if (t.T_ID_TrangThai == (int)TinhTrang.DaNhan)
+                if (t.T_ID_TrangThai == (int)TinhTrang.DaNhan )
                 {
-                   
+                   if((t.ChuyenDen == "DUC1" || t.ChuyenDen == "DUC2") && t.MaThungThep == null)
+                   {
+                        // Thùng DUC chưa nhận -> cập nhật sang Đã nhận
+                        t.T_ID_TrangThai = (int)TinhTrang.DaNhan;
+                        t.MaThungThep = maThungThep;
+                        t.ID_LoThoi = payload.idLoThoi;
+                        t.T_Ca = payload.idCa;
+                        t.NgayLuyenThep = payload.ngayNhan;
+                        t.T_ID_Kip = kip.ID_Kip;
+                        t.ID_TTG = idThungTG;
+
+                        continue;
+                   }
                     // 2. Tạo bản sao
                     var clone = new Tbl_BM_16_GangLong
                     {
@@ -811,6 +833,7 @@ namespace Data_Product.Controllers
                             NgayNhan = tgDto.NgayNhan,
                             CaNhan = tgDto.CaNhan,
                             ID_LoThoi = tgDto.ID_LoThoi,
+                            GioChonMe = tgDto.GioChonMe,
                             ID_NguoiNhan = TaiKhoan.ID_TaiKhoan,
                             NgayTaoTTG = DateTime.Now,
                             IsCopy = true
@@ -838,13 +861,14 @@ namespace Data_Product.Controllers
                     continue;
                 }
 
-                ttg.KLThungVaGang_Thoi = tgDto.KLThungVaGang_Thoi;
-                ttg.KLThung_Thoi = tgDto.KLThung_Thoi;
-                ttg.KL_phe = tgDto.KLPhe;
-                ttg.KLGang_Thoi = tgDto.KLGang_Thoi;
-                ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
-                ttg.GhiChu = tgDto.GhiChu;
-                ttg.ID_MeThoi = tgDto.ID_MeThoi;
+                //ttg.KLThungVaGang_Thoi = tgDto.KLThungVaGang_Thoi;
+                //ttg.KLThung_Thoi = tgDto.KLThung_Thoi;
+                //ttg.KL_phe = tgDto.KLPhe;
+                //ttg.KLGang_Thoi = tgDto.KLGang_Thoi;
+                //ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
+                //ttg.GhiChu = tgDto.GhiChu;
+                //ttg.ID_MeThoi = tgDto.ID_MeThoi;
+                //ttg.GioChonMe = tgDto.GioChonMe;
 
                 // Cập nhật dữ liệu chung
                 if (ttg != null)
@@ -856,6 +880,7 @@ namespace Data_Product.Controllers
                     ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
                     ttg.GhiChu = tgDto.GhiChu;
                     ttg.ID_MeThoi = tgDto.ID_MeThoi;
+                    ttg.GioChonMe = tgDto.GioChonMe;
                 }
 
                 // Nếu là thùng gốc =>> cập nhật danh sách thùng gang

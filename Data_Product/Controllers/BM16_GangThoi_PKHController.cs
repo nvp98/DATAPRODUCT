@@ -400,6 +400,7 @@ namespace Data_Product.Controllers
                                 KLGang_Thoi = ttg.KLGang_Thoi,
                                 KL_phe = ttg.KL_phe,
                                 Tong_KLGangNhan = ttg.Tong_KLGangNhan,
+                                GioChonMe = ttg.GioChonMe
                             }).ToListAsync();
 
             var maTTGs = gocData.Where(x => !string.IsNullOrEmpty(x.MaThungTG)).Select(x => x.MaThungTG).Distinct();
@@ -435,7 +436,7 @@ namespace Data_Product.Controllers
                     clone.KL_phe = copy.KL_phe;
                     clone.ID_MeThoi = methoi?.ID;
                     clone.MaMeThoi = methoi?.MaMeThoi;
-
+                    clone.GioChonMe = copy.GioChonMe;
                     gocData.Insert(insertIndex, clone);
                     insertIndex++; 
                     i++; 
@@ -526,6 +527,7 @@ namespace Data_Product.Controllers
                 KLGang_Thoi = null,
                 KL_phe = null,
                 Tong_KLGangNhan = null,
+                GioChonMe = null
             };
         }
 

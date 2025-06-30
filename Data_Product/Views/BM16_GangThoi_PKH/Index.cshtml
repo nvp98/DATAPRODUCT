@@ -368,6 +368,7 @@
                         <th>KL phế (T)</th>
                         <th>KL vào lò thổi (T)</th>
                         <th>Mẻ</th>
+                        <th>Giờ chọn mẻ</th>
                         <th>Tình trạng LT</th>
                         <th>BP Nhận</th>
                         <th>Người nhận</th>
@@ -397,7 +398,7 @@
                         <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="6"></td>
+                        <td colspan="7"></td>
                     </tr>
 
                     <tr style="height: 50px;">
@@ -419,7 +420,7 @@
                         <td id="IDTongAllKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="6"></td>
+                        <td colspan="7"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -656,6 +657,7 @@
                         row.append(`<td rowspan="${rowspan}" class="KLPhe">${item.kL_phe?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}" class="KL_GangVaoLoThoi">${item.klGang_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.maMeThoi || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.gioChonMe || ''}</td>`);
                         isFirstRow = false;
                     }
 
@@ -696,7 +698,7 @@
                 item.t_KLThungVaGang == null || item.t_KLThungChua == null ||
                 item.t_KLGangLong == null || item.iD_TTG == null || item.soThungTG == null ||
                 item.klThungVaGang_Thoi == null || item.klThung_Thoi == null ||
-                item.klGang_Thoi == null || item.kL_phe == null || item.iD_MeThoi == null
+                item.klGang_Thoi == null || item.kL_phe == null || item.iD_MeThoi == null || item.gioChonMe == ""
             ) {
                 return false;
             }
