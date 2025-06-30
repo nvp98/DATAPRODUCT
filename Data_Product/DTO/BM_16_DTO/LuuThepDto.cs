@@ -38,6 +38,7 @@
         public decimal? KLPhe { get; set; }
         public decimal? Tong_KLGangNhan { get; set; }
         public int? ID_MeThoi { get; set; }
+        public string? GioChonMe { get; set; }
         public string? MaThungTG_Copy { get; set; }
 
         public List<ThungGangConDto> DanhSachThungGang { get; set; }

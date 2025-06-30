@@ -170,5 +170,8 @@ namespace Data_Product.Models
         public int? ID_NguoiXacNhan { get; set; }
         [NotMapped]
         public bool? IsCopy { get; set; }
+
+        [NotMapped]
+        public string? GioChonMe { get; set; }
     }
 }
