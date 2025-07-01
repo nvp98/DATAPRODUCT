@@ -97,7 +97,7 @@ namespace Data_Product.Controllers
             ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
 
             // Query gốc, chưa gọi ToListAsync
-            var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x=> checkQuyenBTBD.Contains(x.ID_Xuong_SX))
+            var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x=> x.ID_NhanVien_BTBD == TaiKhoan.ID_TaiKhoan)
                         join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan
                         where !a.IsDelete
                         select new Tbl_NhatKy_SanXuat
@@ -275,14 +275,15 @@ namespace Data_Product.Controllers
                                   TenCa = a.TenCa
                               }).ToListAsync();
             ViewBag.IDKip = new SelectList(CaKip, "ID_Kip", "TenCa");
-
+            var nvBTBD = _context.Tbl_QuyenXuLy.Where(x => x.ID_XuongXL == TaiKhoan.ID_PhanXuong && x.MaXL == "BTBD").Select(x => x.ID_TaiKhoan).ToList();
+            ViewBag.IDNhanVienBTBD = new SelectList(NhanVien.Where(x=>nvBTBD.Contains(x.ID_TaiKhoan)), "ID_TaiKhoan", "HoVaTen");
             return PartialView();
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Tbl_NhatKy_SanXuat _DO, IFormCollection formCollection, IFormFile FileDinhKem)
         {
-            //int IDTaiKhoan = 0;
+            int IDTaiKhoanBTBD = 0;
             int IDKip = 0;
             string XacNhan = "";
             string Luu = "";
@@ -293,7 +294,10 @@ namespace Data_Product.Controllers
             List<Tbl_NhatKy_SanXuat_ChiTiet> Tbl_NhatKy_SanXuat_ChiTiet = new List<Tbl_NhatKy_SanXuat_ChiTiet>();
             try
             {
-                //IDTaiKhoan = Convert.ToInt32(formCollection["IDTaiKhoan"]);
+                if (formCollection["IDNhanVienBTBD"].ToString() != null)
+                {
+                    IDTaiKhoanBTBD = Convert.ToInt32(formCollection["IDNhanVienBTBD"]);
+                }
                 IDKip = Convert.ToInt32(formCollection["IDKip"]);
                 XacNhan = formCollection["luu"];
                 ID_Day = formCollection["ID_Day"];
@@ -314,6 +318,11 @@ namespace Data_Product.Controllers
                     TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra lại ca kíp làm việc');</script>";
                     return RedirectToAction("Create", "BM_NhatKy_SanXuat");
                 }
+                if (IDTaiKhoanBTBD == 0)
+                {
+                    TempData["msgSuccess"] = "<script>alert('Vui lòng chọn nhân viên xử lý BTBD');</script>";
+                    return RedirectToAction("Create", "BM_NhatKy_SanXuat");
+                }
                 string cakip = ID_Kip.TenCa + ID_Kip.TenKip;
                 string checkPhieu = $"NKSX-{cakip}-{ThongTin_BP?.TenNgan}";
                 var sttHomNay = _context.Tbl_NhatKy_SanXuat.Where(x=>x.SoPhieu.Contains(checkPhieu)).Count() + 1;
@@ -332,6 +341,7 @@ namespace Data_Product.Controllers
                     NgayTao = DateTime.Now,
                     SoPhieu = soPhieu,
                     IsDelete = false,
+                    ID_NhanVien_BTBD = IDTaiKhoanBTBD
                 };
                 //if(XacNhan != null)
                 //{
@@ -421,7 +431,8 @@ namespace Data_Product.Controllers
                                }).ToListAsync();
             ViewBag.TenKip = res.Kip;
             ViewBag.ID_Day = res.NgayDungSX.ToString("yyyy-MM-dd");
-
+            var nvBTBD = _context.Tbl_QuyenXuLy.Where(x => x.ID_XuongXL == TaiKhoan.ID_PhanXuong && x.MaXL == "BTBD").Select(x => x.ID_TaiKhoan).ToList();
+            ViewBag.IDNhanVienBTBD = new SelectList(NhanVien.Where(x => nvBTBD.Contains(x.ID_TaiKhoan)), "ID_TaiKhoan", "HoVaTen",res.ID_NhanVien_BTBD);
             return PartialView(res);
         }
 
@@ -429,7 +440,7 @@ namespace Data_Product.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Tbl_NhatKy_SanXuat _DO, IFormCollection formCollection, IFormFile FileDinhKem)
         {
-            //int IDTaiKhoan = 0;
+            int IDTaiKhoanBTBD = 0;
             int IDKip = 0;
             string XacNhan = "";
             string Luu = "";
@@ -440,7 +451,10 @@ namespace Data_Product.Controllers
             List<Tbl_NhatKy_SanXuat_ChiTiet> Tbl_NhatKy_SanXuat_ChiTiet = new List<Tbl_NhatKy_SanXuat_ChiTiet>();
             try
             {
-                //IDTaiKhoan = Convert.ToInt32(formCollection["IDTaiKhoan"]);
+                if (formCollection["IDNhanVienBTBD"].ToString() != null)
+                {
+                    IDTaiKhoanBTBD = Convert.ToInt32(formCollection["IDNhanVienBTBD"]);
+                }
                 IDKip = Convert.ToInt32(formCollection["IDKip"]);
                 XacNhan = formCollection["xacnhan"];
                 ID_Day = formCollection["ID_Day"];
@@ -463,17 +477,17 @@ namespace Data_Product.Controllers
                 //}
 
                 var NhatKy = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == _DO.ID);
-                //NhatKy.NgayDungSX = date;
+                NhatKy.ID_NhanVien_BTBD = IDTaiKhoanBTBD;
                 //NhatKy.ID_Kip = ID_Kip.ID_Kip;
                 //NhatKy.Ca = ID_Kip.TenCa;
                 //NhatKy.Kip = ID_Kip.TenKip;
 
                 //kiem tra neu hieu chinh
                 NhatKy.TinhTrang = 0; // Gửi dữ liệu
-                if (XacNhan =="0")
-                {
-                    NhatKy.ID_NhanVien_BTBD = null;
-                }
+                //if (XacNhan =="0")
+                //{
+                //    NhatKy.ID_NhanVien_BTBD = null;
+                //}
                 _context.SaveChanges(); // update Nhật ký
                 // xóa danh sách chitiet cũ 
                 var listchitiet = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == _DO.ID).ToList();

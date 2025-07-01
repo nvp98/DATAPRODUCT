@@ -160,6 +160,14 @@
                                         </span>
                                     </button>
                                 </div><!-- End Recent Sales -->
+                                <div class="row pt-2" style="border-bottom: 0.8px solid #E8E8E8;background-color: #F9F9F9;">
+                                    <label for="colFormLabel" class="col-auto col-form-label"> Nhân viên xử lý Bảo trì bảo dưỡng:</label>
+                                    <div class="col-auto">
+                                        <span style="color:black; font-size:14px;">
+                                            @Html.DropDownList("IDNhanVienBTBD", null, "----- Chọn đại diện BTBD -----", new { id = "IDNhanVienBTBD", name = "IDNhanVienBTBD", @class = "marginTB5 form-control ",required = "required" })
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                 
