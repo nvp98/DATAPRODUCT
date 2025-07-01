@@ -150,7 +150,8 @@ namespace Data_Product.Controllers
         {
             const int pageSize = 20;
             if (page < 1) page = 1;
-
+            var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
+            ViewBag.LoCaoList = new SelectList(loCaos, "ID", "TenLoCao");
             var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayTaoPhieu)
                 .Select(p => new PhieuViewModel
                 {
@@ -192,8 +193,13 @@ namespace Data_Product.Controllers
 
             if (!string.IsNullOrEmpty(locao))
             {
-                string tenLocao = locao.ToLower();
-                query = query.Where(s => s.TenLoCao.ToLower().Contains(tenLocao));
+                if (int.TryParse(locao, out int locaoId))
+                {
+                    query = query.Where(s => _context.Tbl_LoCao
+                                              .Where(lc => lc.ID == locaoId)
+                                              .Select(lc => lc.TenLoCao)
+                                              .FirstOrDefault() == s.TenLoCao);
+                }
             }
 
             int resCount = await query.CountAsync();

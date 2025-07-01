@@ -163,9 +163,9 @@
 						<div class="row w-100 justify-content-end mb-3">
 							<div class="row">
 								<div class="col-6">
-									<p class="fw-bold text-danger" style="font-size:16px">
+								@* 	<p class="fw-bold text-danger" style="font-size:16px">
 										Dữ liệu BK-MIS chỉ được cập nhật/làm mới đối với các thùng <u>CHƯA CHUYỂN</u> và <u>CHƯA XÁC NHẬN</u>
-									</p>
+									</p> *@
 								</div>
 								<div class="col-6">
 								@if (PhongBan?.TenNgan == "P.QLCL")
@@ -182,12 +182,12 @@
 										<i class="bi bi-arrow-clockwise"></i>
 										<span class="small pt-2 ps-1 text-white">Làm mới</span>
 									</button>
-									<button type="button" class="btn btn-success me-2 btnchuyenthung">
+									@* <button type="button" class="btn btn-success me-2 btnchuyenthung">
 										<i class="bi bi-arrow-right-circle"></i> Chuyển
 									</button>
 									<button type="button" class="btn btn-danger btnthuhoi">
 										<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
-									</button>
+									</button> *@
 
 									<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel" type="button">
 										Xuất Excel
@@ -472,102 +472,102 @@
 			});
 
 			// Nút chuyển thùng
-			$('.btnchuyenthung').click(function() {
+			// $('.btnchuyenthung').click(function() {
 				
-				const maPhieu = $('#PhieuID').val() || 0;
-				const dsMaThung =[];
-				$('.chon-thung-checkbox:checked').each(function() {
-					const row = $(this).closest('tr');				
-					const maThung = row.find('td[name="maThung"]').text().trim();
-					const daChuyen = row.find('td[name="TinhTrang"] button').find('button').hasClass('btn-success');
+			// 	const maPhieu = $('#PhieuID').val() || 0;
+			// 	const dsMaThung =[];
+			// 	$('.chon-thung-checkbox:checked').each(function() {
+			// 		const row = $(this).closest('tr');				
+			// 		const maThung = row.find('td[name="maThung"]').text().trim();
+			// 		const daChuyen = row.find('td[name="TinhTrang"] button').find('button').hasClass('btn-success');
 
-					if (daChuyen)
-						{
-							alert(`Thùng ${maThung} đã được chuyển trước đó`);
-							return false;
-						}
+			// 		if (daChuyen)
+			// 			{
+			// 				alert(`Thùng ${maThung} đã được chuyển trước đó`);
+			// 				return false;
+			// 			}
 
-					if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
-					else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
-					else if (row.find('input[name="VanChuyenDUC1"]').is(':checked')) chuyenDen = "DUC1";
-					else if (row.find('input[name="VanChuyenDUC2"]').is(':checked')) chuyenDen = "DUC2";
+			// 		if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
+			// 		else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
+			// 		else if (row.find('input[name="VanChuyenDUC1"]').is(':checked')) chuyenDen = "DUC1";
+			// 		else if (row.find('input[name="VanChuyenDUC2"]').is(':checked')) chuyenDen = "DUC2";
 
 
-					dsMaThung.push({
-						MaThungGang:maThung,
-						ChuyenDen:chuyenDen
-					});
-				});
+			// 		dsMaThung.push({
+			// 			MaThungGang:maThung,
+			// 			ChuyenDen:chuyenDen
+			// 		});
+			// 	});
 				
-				if (dsMaThung.length === 0)
-					{
-						alert('Vui lòng chọn ít nhất một thùng');
-						return;
-					}
+			// 	if (dsMaThung.length === 0)
+			// 		{
+			// 			alert('Vui lòng chọn ít nhất một thùng');
+			// 			return;
+			// 		}
 
-				if (confirm(`Bạn có chắc chắn muốn chuyển ${dsMaThung.length} thùng đã chọn?`))
-				{
-					const requestData = {
-						MaPhieu: maPhieu,
-						DsMaThung: dsMaThung
-					};
-					//console.log('requestData',requestData)
-					chuyenThung(requestData);
-				}
-				});
+			// 	if (confirm(`Bạn có chắc chắn muốn chuyển ${dsMaThung.length} thùng đã chọn?`))
+			// 	{
+			// 		const requestData = {
+			// 			MaPhieu: maPhieu,
+			// 			DsMaThung: dsMaThung
+			// 		};
+			// 		//console.log('requestData',requestData)
+			// 		chuyenThung(requestData);
+			// 	}
+			// 	});
 			
-			// Nút thu hồi thùng
-			$('.btnthuhoi').click(function()
-			{
-				const maPhieu = $('#PhieuID').val() || 0;
-				const selectedMaThungs = [];
-				let hasError = false;
-				$('.chon-thung-checkbox:checked').each(function () {
-					const row = $(this).closest('tr');
-					const maThung = row.find('td[name="maThung"]').text().trim();
-					const daChuyen = row.find('td[name="TinhTrang"] button').text().trim();
-					const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
+			// // Nút thu hồi thùng
+			// $('.btnthuhoi').click(function()
+			// {
+			// 	const maPhieu = $('#PhieuID').val() || 0;
+			// 	const selectedMaThungs = [];
+			// 	let hasError = false;
+			// 	$('.chon-thung-checkbox:checked').each(function () {
+			// 		const row = $(this).closest('tr');
+			// 		const maThung = row.find('td[name="maThung"]').text().trim();
+			// 		const daChuyen = row.find('td[name="TinhTrang"] button').text().trim();
+			// 		const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
 
-					if (daChuyen !== "Đã chuyển") {
-						alert(`Thùng ${maThung} chưa chuyển, không thể thu hồi`);
-						hasError = true;
-						return false; // thoát each
-					}
+			// 		if (daChuyen !== "Đã chuyển") {
+			// 			alert(`Thùng ${maThung} chưa chuyển, không thể thu hồi`);
+			// 			hasError = true;
+			// 			return false; // thoát each
+			// 		}
 
-					if (tinhTrang !== "Chờ xử lý") {
-						alert(`Thùng ${maThung} không ở trạng thái 'Chờ xử lý', không thể thu hồi`);
-						hasError = true;
-						return false; // thoát each
-					}
+			// 		if (tinhTrang !== "Chờ xử lý") {
+			// 			alert(`Thùng ${maThung} không ở trạng thái 'Chờ xử lý', không thể thu hồi`);
+			// 			hasError = true;
+			// 			return false; // thoát each
+			// 		}
 
-					if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
-					else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
-					else if (row.find('input[name="VanChuyenDUC1"]').is(':checked')) chuyenDen = "DUC1";
-					else if (row.find('input[name="VanChuyenDUC2"]').is(':checked')) chuyenDen = "DUC2";
+			// 		if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
+			// 		else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
+			// 		else if (row.find('input[name="VanChuyenDUC1"]').is(':checked')) chuyenDen = "DUC1";
+			// 		else if (row.find('input[name="VanChuyenDUC2"]').is(':checked')) chuyenDen = "DUC2";
 
-				  selectedMaThungs.push({
-						MaThungGang: maThung,
-						ChuyenDen: chuyenDen
-					});
-				});
-				if (hasError) return;
-				if (selectedMaThungs.length === 0)
-				{
-					alert('Vui lòng chọn ít nhất một thùng để thu hồi');
-					return;
-				}
+			// 	  selectedMaThungs.push({
+			// 			MaThungGang: maThung,
+			// 			ChuyenDen: chuyenDen
+			// 		});
+			// 	});
+			// 	if (hasError) return;
+			// 	if (selectedMaThungs.length === 0)
+			// 	{
+			// 		alert('Vui lòng chọn ít nhất một thùng để thu hồi');
+			// 		return;
+			// 	}
 
-				if (confirm(`Bạn có chắc chắn muốn thu hồi ${selectedMaThungs.length} thùng đã chọn?`))
-				{
-					const requestData = {
-						MaPhieu: maPhieu,
-						DsMaThung: selectedMaThungs
-					};
-					//console.log('====thu hoi===',requestData)
-					thuHoiThung(requestData);
+			// 	if (confirm(`Bạn có chắc chắn muốn thu hồi ${selectedMaThungs.length} thùng đã chọn?`))
+			// 	{
+			// 		const requestData = {
+			// 			MaPhieu: maPhieu,
+			// 			DsMaThung: selectedMaThungs
+			// 		};
+			// 		//console.log('====thu hoi===',requestData)
+			// 		thuHoiThung(requestData);
 					
-				}
-			});
+			// 	}
+			// });
 
 			// xác nhận thùng
 			$('.btnxacnhan').click(function () {
@@ -665,47 +665,47 @@
 				});
 				// ===== Function==========
 
-			// Hàm gọi API chuyển thùng
-			function chuyenThung(dsthung)
-			{
-				$.ajax({
-					url: '@Url.Action("ChuyenThung", "BM16_GangThoi")',
-					type: 'POST',
-					contentType: 'application/json',
-					data: JSON.stringify(dsthung),
-					success: function(response) {
-						if (response.success) {
-							alert(response.message);
-							location.reload();
-						} else {
-							alert(response.message);
-						}
-					},
-					error: function() {
-						alert('Có lỗi xảy ra khi gửi yêu cầu');
-					}
-				});
-			 }
-			function thuHoiThung(dsMaThung)
-			{
-				$.ajax({
-					url: '@Url.Action("ThuHoiThung", "BM16_GangThoi")',
-					type: 'POST',
-					contentType: 'application/json',
-					data: JSON.stringify(dsMaThung),
-					success: function (response) {
-						   showAlert(response.message, response.success ? 'success' : 'danger');
-							if (response.success) {
-							  setTimeout(() => {
-								location.reload();
-							  }, 2000); // Đợi 2s cho người dùng đọc alert
-							}
-						  },
-						  error: function () {
-							showAlert('Có lỗi xảy ra khi gửi yêu cầu thu hồi thùng', 'danger');
-						  }
-						});
-			}
+			// // Hàm gọi API chuyển thùng
+			// function chuyenThung(dsthung)
+			// {
+			// 	$.ajax({
+			// 		url: '@Url.Action("ChuyenThung", "BM16_GangThoi")',
+			// 		type: 'POST',
+			// 		contentType: 'application/json',
+			// 		data: JSON.stringify(dsthung),
+			// 		success: function(response) {
+			// 			if (response.success) {
+			// 				alert(response.message);
+			// 				location.reload();
+			// 			} else {
+			// 				alert(response.message);
+			// 			}
+			// 		},
+			// 		error: function() {
+			// 			alert('Có lỗi xảy ra khi gửi yêu cầu');
+			// 		}
+			// 	});
+			//  }
+			// function thuHoiThung(dsMaThung)
+			// {
+			// 	$.ajax({
+			// 		url: '@Url.Action("ThuHoiThung", "BM16_GangThoi")',
+			// 		type: 'POST',
+			// 		contentType: 'application/json',
+			// 		data: JSON.stringify(dsMaThung),
+			// 		success: function (response) {
+			// 			   showAlert(response.message, response.success ? 'success' : 'danger');
+			// 				if (response.success) {
+			// 				  setTimeout(() => {
+			// 					location.reload();
+			// 				  }, 2000); // Đợi 2s cho người dùng đọc alert
+			// 				}
+			// 			  },
+			// 			  error: function () {
+			// 				showAlert('Có lỗi xảy ra khi gửi yêu cầu thu hồi thùng', 'danger');
+			// 			  }
+			// 			});
+			// }
 			function showAlert(message, type) {
 				const alertHtml = `
 					<div class="alert alert-${type} alert-dismissible fade show" role="alert">
@@ -741,7 +741,7 @@
 				let maxIndex = 0;
 				$("#dataTable tbody td[name='maThung']").each(function () {
 					let ma = $(this).text().trim();
-					let match = ma.match(/(\d{3})\.00$/); // match số cuối
+					let match = ma.match(/(\d{3})\.00$/);
 					if (match) {
 						let num = parseInt(match[1]);
 						if (num > maxIndex) {
