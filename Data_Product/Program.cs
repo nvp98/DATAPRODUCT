@@ -1,5 +1,6 @@
 ﻿using Data_Product.Controllers;
 using Data_Product.Repositorys;
+using Data_Product.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,9 @@ builder.Services.AddSession();
 builder.Services.AddDbContext<DataContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString") ?? throw new InvalidOperationException("Connection string 'ConnectionString' not found.")));
 
+
+//Đăng ký BackgroundService tự động tạo phiếu
+builder.Services.AddHostedService<TaoPhieuTuDongBackgroundService>();
 var app = builder.Build();
 
 // Thêm Middleware cho localization
