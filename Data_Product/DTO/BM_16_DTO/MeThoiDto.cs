@@ -4,7 +4,7 @@
     {
         public int id_LoThoi { get; set; }
         public string searchText { get; set; }
-        //public List<int> idsDaChon { get; set; } = new();
+        public DateTime ngayLamViec { get; set; }
     }
     public class TaoMeThoiDto
     {

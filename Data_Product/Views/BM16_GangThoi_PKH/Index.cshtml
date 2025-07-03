@@ -547,9 +547,9 @@
         // render card trạng thái
          function renderStatusCard(tinhTrang) {
             const statusMap = {
-                1: { label: "Chưa chuyển", bgClass: "bg-chua-chuyen" },
+                1: { label: "Chưa xử lý", bgClass: "bg-chua-chuyen" },
                 2: { label: "Chờ xử lý", bgClass: "bg-cho-xu-ly" },
-                3: { label: "Đã chuyển", bgClass: "bg-da-chuyen" },
+                3: { label: "Đã xử lý", bgClass: "bg-da-chuyen" },
                 4: { label: "Đã nhận", bgClass: "bg-da-nhan" },
                 5: { label: "Đã chốt", bgClass: "bg-da-chot" },
             };
@@ -603,7 +603,7 @@
 
                     const isCopy = item.isCopy;
 
-                    const row = $(`<tr data-id="${item.id}" data-idtrangthai="${item.iD_TrangThai}"></tr>`);
+                    const row = $(`<tr data-id="${item.id}" data-idtrangthai="${item.iD_TrangThai}" data-mathungtg=${item.maThungTG}></tr>`);
                     const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
                     const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
@@ -695,10 +695,11 @@
 
             if (
                 item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 ||
+                item.kL_XeGoong == null || item.g_KLThungChua == null || item.g_KLThungVaGang == null || item.g_KLGangLong == null || item.chuyenDen == null || item.gio_NM == null ||
                 item.t_KLThungVaGang == null || item.t_KLThungChua == null ||
                 item.t_KLGangLong == null || item.iD_TTG == null || item.soThungTG == null ||
                 item.klThungVaGang_Thoi == null || item.klThung_Thoi == null ||
-                item.klGang_Thoi == null || item.kL_phe == null || item.iD_MeThoi == null || item.gioChonMe == ""
+                item.klGang_Thoi == null || item.kL_phe == null || item.iD_MeThoi == null || item.gioChonMe == null
             ) {
                 return false;
             }
@@ -827,48 +828,6 @@
          }
 
        
-         // logic chot thung
-        $('#btnChotThung').click(function () {
-              let selectedIds = [];
-              let hasLocked = false;
-              $('#tblDuLieu tbody tr').each(function () {
-                  const checkbox = $(this).find('.cbx-chotThung');
-                  if (checkbox.is(':checked')) {
-                      const id = $(this).data('id');
-                      const idTrangThai = $(this).data('idtrangthai');
-                      if (idTrangThai == 5) {
-                        hasLocked = true;
-                        return false; 
-                      }
-                      selectedIds.push({id: id});
-                  }
-              });
-              if (hasLocked) {
-                  alert("Vui lòng không chọn các thùng đã chốt.");
-                  Search();
-                  return;
-              }
-              if (selectedIds.length === 0) {
-                  alert("Vui lòng chọn ít nhất 1 dòng.");
-                  Search();
-                  return;
-              }
-              $.ajax({
-                  url: "/BM16_GangThoi_PKH/ChotThung",
-                  type: "POST",
-                  contentType: "application/json",
-                  data: JSON.stringify(selectedIds),
-                  processData: false,
-                  success: function (res) {
-                      alert("Đã chốt thùng thành công")
-                      // render lai
-                      Search();
-                  },
-                  error: function () {
-                      alert("Lỗi khi nhận dữ liệu!");
-                  }
-              });
-        });
 
         $('#btnHuyChotThung').click(function () {
               let selectedIds = [];

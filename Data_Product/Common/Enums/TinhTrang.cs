@@ -4,13 +4,13 @@ namespace Data_Product.Common.Enums
 {
     public enum TinhTrang
     {
-        [Display(Name = "Chưa chuyển")]
+        [Display(Name = "Chưa xử lý")]
         ChuaChuyen = 1,
         
         [Display(Name = "Chờ xử lý")]
         ChoXuLy = 2,
         
-        [Display(Name = "Đã chuyển")]
+        [Display(Name = "Đã xử lý")]
         DaChuyen = 3,
         
         [Display(Name = "Đã nhận")]

@@ -1,0 +1,461 @@
+﻿@model IEnumerable<Data_Product.Models.ModelView.BM_16_LoSanXuatModelView>
+@inject Data_Product.Repositorys.DataContext _context
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+   
+    var pager = ViewBag.Pager as Pager;
+    string search = ViewBag.Search as string ?? "";
+
+}
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-12">
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        DANH SÁCH LÒ SẢN XUẤT
+                                    </b>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 d-flex flex-row justify-content-start" style="padding: 2%  2%  2% 0%;gap: 20px;padding: 20px 0px 10px 20px;">
+                                <div class="col-md-5">
+                                    <input type="text" id="txtsearch" name="" placeholder="Tìm kiếm" class="form-control">
+                                </div>
+                                <div class="col-md-2" style="text-align:left;">
+                                    <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
+                                        <i class="bi bi-search"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Tìm kiếm
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-6 d-flex flex-row justify-content-end" style=" gap: 20px;padding: 20px 20px 10px 20px;">
+                                <button type="button" class="btn btn-primary" id="btnCreate">
+                                    <i class="bi bi-plus-lg"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        <i></i><span style="color: white;">Thêm mới</span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding-top: 30px;">
+                        <div class="table-responsive" style="">
+                            <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu" cellpadding="0">
+                                <thead class="table-light sticky-top bg-white" style="z-index: 2; font-size: 14px;">
+                                    <tr>
+                                        <th class="text-center" width="30px" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Tên lò</th>
+                                        <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Bộ phận</th>
+                                        <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">Mã lò</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tài khoản</th>
+                                        <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
+                                        <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+
+                        </div>
+                        <div class="container" style="margin:0px; padding:1% 0% 0% 0%;">
+                            <nav class="py-2">
+                                <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="modal fade" id="modalForm" tabindex="-1">
+    <div class="modal-dialog" style="padding-top:1.5%;">
+        <div class="modal-content" style="max-width: none; width: 800px;">
+            <div class="modal-header" style="background-color: #F9F9F9;">
+                <h5 id="ModalTitle">Thông tin lò sản xuất</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formLoSanXuat">
+                    <input type="hidden" id="ID" name="ID" value="0" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên lò</label>
+                        <input type="text" class="form-control" name="TenLo" id="TenLo" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Bộ phận</label>
+                        <select name="ID_BoPhan" id="IDPhongBan" class="form-control" required>
+                            <option value="">--- Chọn bộ phận ---</option>
+                            @foreach (var item in ViewBag.PBList as SelectList)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mã lò</label>
+                        <input type="number" class="form-control" name="MaLo" id="MaLo" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select name="IsActived" id="IsActived" class="form-control">
+                            <option value="true" selected>Đang hoạt động</option>
+                            <option value="false">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tìm và thêm tài khoản</label>
+                        <select id="selectTaiKhoan" class="form-control" style="width: 100%;">
+                         </select>
+                    </div>
+                    <div id="taiKhoanList" class="row mt-2">
+                        <!-- Các tài khoản được chọn sẽ render tại đây -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" id="btnSubmit" class="btn btn-primary">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    let currentPage = 1;
+    const pageSize = 20;
+
+    function Search(){
+        const searchText = $('#txtsearch').val().trim() || null;
+        const dto = {
+            PageSize : pageSize,
+            PageNumber : currentPage,
+            SearchText : searchText
+        }
+
+        $.ajax({
+            url: '/BM_16_LoSanXuat/Search',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(dto),
+            success: function (res) {
+                renderTable(res.data);
+                renderPagination(res.totalRecords);
+            },
+            error: function (err) {
+                alert("Lỗi khi tìm kiếm dữ liệu");
+            }
+        });
+    }
+    function renderTable(data){
+        const tbody = $('#tblDuLieu tbody');
+
+        tbody.empty();
+
+        if (!data || data.length === 0) {
+                tbody.append(`<tr><td colspan="7" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                            </td></tr>`);
+                return;
+            }
+        let RowNo = 1;
+         data.forEach(item => {
+             let htmlListTaiKhoan = '';
+             if(item.listTaiKhoan.length > 0){
+                 item.listTaiKhoan.forEach(taiKhoan => {
+                     htmlListTaiKhoan += `
+                            <div>
+                                <p>${taiKhoan.tenTaiKhoan} - ${taiKhoan.hoVaTen}</p>
+                            </div>
+                         `;
+                 })
+
+             }
+             const html =`
+                 <tr >
+                    <td class="text-center align-middle">${RowNo}</td>
+                    <td class="align-middle">${item.tenLo}</td>
+                    <td class="align-middle">${item.boPhan}</td>
+                    <td class="align-middle">${item.maLo}</td>
+                    <td class="align-middle">
+                        ${htmlListTaiKhoan}
+                    </td>
+                    <td class="text-center align-middle">
+                        ${item.isActived ? "Đang hoạt động" : "Dừng hoạt động"}
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-warning btn-edit" data-id="${item.id}" title="Sửa">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                    </td>
+                </tr>
+                `;
+            tbody.append(html);
+            RowNo++;
+         })
+    }
+
+    function renderPagination(totalRecords) {
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        const pagination = $('#pagination');
+        pagination.empty();
+
+        const createPageItem = (page, label = page, isActive = false, isDisabled = false) => {
+            return `
+                <li class="page-item ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" data-page="${page}">${label}</a>
+                </li>
+            `;
+        };
+
+        pagination.append(createPageItem(currentPage - 1, '«', false, currentPage === 1));
+
+        for (let i = 1; i <= totalPages; i++) {
+            pagination.append(createPageItem(i, i, i === currentPage));
+        }
+
+        pagination.append(createPageItem(currentPage + 1, '»', false, currentPage === totalPages));
+
+        $('#pagination .page-link').on('click', function () {
+            const page = parseInt($(this).data('page'));
+            if (!isNaN(page) && page !== currentPage) {
+                currentPage = page;
+                Search();
+            }
+        });
+    }
+
+    
+
+    $("#IDPhongBan").chosen({
+            width: "100%"
+        });
+        
+
+    // Mở popup tạo mới
+    $('#btnCreate').click(function () {
+        const modal = new bootstrap.Modal(document.getElementById('modalForm'));
+        $('#ModalTitle').text("Tạo mới lò sản xuất");
+        resetForm();
+        modal.show();
+    });
+
+    function renderTaiKhoanSelected(taiKhoanList) {
+        const container = $('#taiKhoanList');
+        container.empty();
+
+        selectedTaiKhoanIds = new Set(); 
+
+        taiKhoanList.forEach(tk => {
+            selectedTaiKhoanIds.add(tk.id); // <- Thêm vào tập hợp ID
+            const html = `<div class="col-md-4 mb-2 tai-khoan-item" data-id="${tk.id}">
+                <div class="d-flex justify-content-between align-items-center border p-2 rounded">
+                    <span>${tk.tenTaiKhoan} - ${tk.hoVaTen}</span>
+                    <button type="button" class="btn btn-sm btn-danger btn-remove" data-id="${tk.id}">&times;</button>
+                </div>
+            </div>`;
+            container.append(html);
+        });
+    }
+
+    $(document).on('click', '.btn-edit', function () {
+        const Id = parseInt($(this).data('id'));
+
+        // Gọi API để lấy thông tin
+        $.ajax({
+            url: `/BM_16_LoSanXuat/GetById`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(Id),
+            success: function (res) {
+                const data = res.item;
+                if (data) {
+                    // Gán dữ liệu vào form trong modal
+                    $('#ID').val(data.id)
+                    $('#TenLo').val(data.tenLo);
+                    $('#MaLo').val(data.maLo);
+
+                    const idBoPhan = data.iD_BoPhan.toString();
+                    $('#IDPhongBan').val(idBoPhan);
+
+                    // Cập nhật Chosen
+                    $('#IDPhongBan').trigger('chosen:updated');
+
+                    $('#IsActived').val(data.isActived.toString()).trigger('change');
+
+                    // Clear danh sách tài khoản cũ và render lại
+                    renderTaiKhoanSelected(data.listTaiKhoan || []);
+
+                    // Hiển thị modal
+                    $('#modalForm').modal('show');
+                }
+            },
+            error: function () {
+                alert("Không lấy được dữ liệu.");
+            }
+        });
+    });
+    // Reset form
+    function resetForm() {
+        $('#formLoSanXuat')[0].reset();
+        $('#ID').val(0);
+        $('#IDPhongBan').val('').trigger('chosen:updated');
+        $('#IsActived').val("true");
+        $('#selectTaiKhoan').val(null).trigger('change');
+        selectedTaiKhoanIds.clear();
+        $('#taiKhoanList').empty();
+    }
+
+    let selectedTaiKhoanIds = new Set();
+
+    function renderTaiKhoan(id, text) {
+        if (selectedTaiKhoanIds.has(id)) return;
+
+        selectedTaiKhoanIds.add(id);
+        const html = `
+            <div class="col-md-4 mb-2 tai-khoan-item" data-id="${id}">
+                <div class="d-flex justify-content-between align-items-center border p-2 rounded">
+                    <span>${text}</span>
+                    <button type="button" class="btn btn-sm btn-danger btn-remove" data-id="${id}">&times;</button>
+                </div>
+            </div>
+        `;
+        $('#taiKhoanList').append(html);
+    }
+
+    $("#selectTaiKhoan").select2({
+        dropdownParent: $('#modalForm'),
+        placeholder: 'Nhập mã hoặc tên nhân viên...',
+        minimumInputLength: 2,
+        width: '100%',
+        ajax: {
+            url: '/TaiKhoan/FilterNhanVien',
+            type: 'POST',
+            contentType: 'application/json',
+            delay: 300,
+            data: function (params) {
+                        const dto = {
+                            searchText: params.term || "",
+                        }
+                    return JSON.stringify(dto);
+            },
+            processResults: data => ({
+                results: data.map(x => ({
+                    id: x.id,
+                    text: x.text
+                }))
+            }),
+            cache: true
+        }
+    });
+
+    $("#selectTaiKhoan").on('select2:select', function (e) {
+        const data = e.params.data;
+        renderTaiKhoan(data.id, data.text);
+        $("#selectTaiKhoan").val(null).trigger('change'); // clear select2
+    });
+
+    $("#taiKhoanList").on('click', '.btn-remove', function () {
+        const id = $(this).data('id');
+        selectedTaiKhoanIds.delete(id);
+        $(this).closest('.tai-khoan-item').remove();
+    });
+
+    $("#btn-search").on('click', function() {
+        Search();
+    })
+
+    $('#btnSubmit').click(function (e) {
+        e.preventDefault();
+
+        const tenLo = $('#TenLo').val().trim();
+        const maLo = $('#MaLo').val().trim();
+        const idBoPhan = $('#IDPhongBan').val();
+        const isActived = $('#IsActived').val();
+        // Validate
+        if (!tenLo) {
+            alert("Vui lòng nhập Tên lò");
+            $('#TenLo').focus();
+            return;
+        }
+
+        if (!maLo || isNaN(maLo)) {
+            alert("Vui lòng nhập Mã lò hợp lệ");
+            $('#MaLo').focus();
+            return;
+        }
+
+        if (!idBoPhan) {
+            alert("Vui lòng chọn Bộ phận");
+            $('#IDPhongBan').focus();
+            return;
+        }
+
+        const taiKhoanIds = Array.from(selectedTaiKhoanIds);
+
+
+        const payload = {
+            ID: $('#ID').val(),
+            TenLo: tenLo,
+            MaLo:maLo,
+            ID_BoPhan: idBoPhan,
+            IsActived: isActived === "true",
+            TaiKhoanIds: taiKhoanIds
+        };
+
+        $.ajax({
+            url: '/BM_16_LoSanXuat/SaveOrUpdate',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function (res) {
+                alert('Lưu thành công!');
+                $('#modalForm').modal('hide');
+                Search(); // reload lại danh sách
+            },
+            error: function () {
+                alert('Có lỗi xảy ra.');
+            }
+        });
+    });
+    $(document).ready(function () {
+        Search();
+
+        
+    });
+</script>

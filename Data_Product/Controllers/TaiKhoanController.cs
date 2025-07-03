@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using Data_Product.Common;
+using Data_Product.DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using DocumentFormat.OpenXml.InkML;
@@ -682,5 +683,28 @@ namespace Data_Product.Controllers
             }
 
         }
+
+        [HttpPost]
+        public async Task<IActionResult> FilterNhanVien([FromBody] SearchTaiKhoanTextDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.searchText))
+                return Ok(new List<object>());
+
+
+            var result = await _context.Tbl_TaiKhoan
+                .Where(x =>
+                    x.TenTaiKhoan.Contains(dto.searchText) ||
+                    x.HoVaTen.Contains(dto.searchText))
+                .Select(x => new
+                {
+                    id = x.ID_TaiKhoan,
+                    text = x.TenTaiKhoan + " - " + x.HoVaTen
+                })
+                .Take(50)
+                .ToListAsync();
+
+            return Ok(result);
+        }
+
     }
 }
