@@ -43,6 +43,59 @@ namespace Data_Product.Controllers
             return Ok(data);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CheckChotThung([FromBody] List<ChotThungDto> selectedIds)
+        {
+            if (selectedIds == null || selectedIds.Count == 0)
+                return BadRequest("Danh sách ID trống.");
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            if (TaiKhoan == null) return Unauthorized();
+
+            var Ids = selectedIds
+                                .Select(x => x.id)
+                                .ToList();
+
+            // Lấy tất cả các thùng cần xử lý
+            var thungs = await _context.Tbl_BM_16_GangLong
+                                       .Where(x => Ids.Contains(x.ID) && x.T_ID_TrangThai == (int)TinhTrang.DaNhan)
+                                       .ToListAsync();
+            if (thungs.Count == 0) return NotFound("Không tìm thấy thùng nào.");
+
+            var idTTGs = thungs.Select(x => x.ID_TTG).Distinct().ToList();
+
+            // Lấy tất cả thùng trung gian liên quan
+            var allTTGs = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => idTTGs.Contains(x.ID))
+                .ToListAsync();
+
+            var maThungTGs = allTTGs.Select(x => x.MaThungTG).Distinct().ToList();
+
+            // Lấy toàn bộ các thùng trung gian liên quan theo MaThungTG (gốc và bản sao)
+            var relatedTTGs = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => maThungTGs.Contains(x.MaThungTG))
+                .ToListAsync();
+
+            var invalidThungs = relatedTTGs
+                .Where(item =>
+                    item.KLThungVaGang_Thoi == null ||
+                    item.KLThung_Thoi == null ||
+                    item.KL_phe == null ||
+                    item.KLGang_Thoi == null ||
+                    item.ID_MeThoi == null ||
+                    item.GioChonMe == null
+                )
+                .Select(x => new { x.MaThungTG }) 
+                .ToList();
+
+            if (invalidThungs.Any())
+            {
+                return Ok(new { isValid = false, invalidThungs });
+            }
+
+            return Ok(new { isValid = true });
+        }
 
         [HttpPost]
         public async Task<IActionResult> ChotThung([FromBody] List<ChotThungDto> selectedIds)

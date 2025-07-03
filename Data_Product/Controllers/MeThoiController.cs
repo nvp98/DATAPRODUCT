@@ -27,6 +27,7 @@ namespace Data_Product.Controllers
         {
             var query = _context.Tbl_MeThoi
                     .Where(x => x.ID_LoThoi == dto.id_LoThoi &&
+                    //x.NgayTao.Year == dto.ngayLamViec.Year && 
                     x.ID_TrangThai == (int)TinhTrang.ChoXuLy &&
                     x.Is_Delete == false);
 
@@ -102,7 +103,7 @@ namespace Data_Product.Controllers
                     var meThoi = new Tbl_MeThoi
                     {
                         MaMeThoi = maMeThoi,
-                        NgayTao = DateTime.Now,
+                        NgayTao = payload.ngayTao,
                         ID_LoThoi = payload.id_LoThoi,
                         ID_TrangThai = (int)TinhTrang.ChoXuLy,
                         ID_NguoiTao = TaiKhoan.ID_TaiKhoan

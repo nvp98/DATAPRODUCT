@@ -30,14 +30,6 @@
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
-    Pager pager = new Pager();
-    int pageNo = 0;
-    if (ViewBag.Pager != null)
-    {
-        pager = ViewBag.Pager;
-        pageNo = pager.CurrentPage;
-    }
 }
 <style>
     html, body {
@@ -122,8 +114,8 @@
     }
 
     .filter-item {
-        margin-top: 5px;
-        height: 40px;
+        margin-top: 3px;
+        height: 35px;
     }
 
     .btn {
@@ -252,9 +244,6 @@
                                         <label for="TuNgayLamViec" class="col-sm-5 col-form-label">Từ Ngày: </label>
                                         <div class="col-sm-7">
                                             <input type="date" class="form-control form-control-sm" id="ID_TuNgayLamViec" name="TuNgayLamViec"
-                                                   min="@ViewBag.MinDate"
-                                                   max="@ViewBag.MaxDate"
-                                                   value="@ViewBag.DefaultDate"
                                                    onkeydown="return false;">
                                         </div>
                                     </div>
@@ -264,9 +253,6 @@
                                         <label for="DenNgayLamViec" class="col-sm-5 col-form-label">Đến Ngày: </label>
                                         <div class="col-sm-7">
                                             <input type="date" class="form-control form-control-sm" id="ID_DenNgayLamViec" name="DenNgayLamViec"
-                                                   min="@ViewBag.MinDate"
-                                                   max="@ViewBag.MaxDate"
-                                                   value="@ViewBag.DefaultDate"
                                                    onkeydown="return false;">
                                         </div>
                                     </div>
@@ -328,6 +314,14 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="MaThungGang" class="col-sm-5 col-form-label">Mã thùng gang:</label>
+                                        <div class="col-sm-7">
+                                            <input class="form-control form-control-sm" type="text" id="IDMaThungGang" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -351,9 +345,7 @@
                                     <div class="row mb-3">
                                         <label for="ngayLamViec" class="col-sm-4 col-form-label">Ngày làm việc: </label>
                                         <div class="col-sm-8">
-                                            <input type="date" class="form-control form-control-sm" id="IDNgayNhan" name="ngayLamViec" min="@ViewBag.MinDate"
-                                                   max="@ViewBag.MaxDate"
-                                                   value="@ViewBag.DefaultDate"
+                                            <input type="date" class="form-control form-control-sm" id="IDNgayNhan" name="ngayLamViec" 
                                                    onkeydown="return false;">
                                         </div>
                                     </div>
@@ -450,7 +442,7 @@
                                     <th>KL phế (T)</th>
                                     <th>KL vào lò thổi </th>
                                     <th>Mẻ thổi</th>
-                                    <th>Giờ</th>
+                                    <th>Giờ thổi</th>
                                     <th style="min-width: 150px;">Ghi chú</th>
                                 </tr>
                             </thead>
@@ -561,6 +553,7 @@
     $(".selectChuyenDen").chosen({
         width: "100%"
     });
+    
 </script>
     <script type="text/javascript">
         let pendingPayload = null;
@@ -573,9 +566,9 @@
         // render card trạng thái
         function renderStatusCard(tinhTrang) {
             const statusMap = {
-                1: { label: "Chưa chuyển", bgClass: "bg-chua-chuyen" },
+                1: { label: "Chưa xử lý", bgClass: "bg-chua-chuyen" },
                 2: { label: "Chờ xử lý", bgClass: "bg-cho-xu-ly" },
-                3: { label: "Đã chuyển", bgClass: "bg-da-chuyen" },
+                3: { label: "Đã Xử lý", bgClass: "bg-da-chuyen" },
                 4: { label: "Đã nhận", bgClass: "bg-da-nhan" },
                 5: { label: "Đã chốt", bgClass: "bg-da-chot" },
             };
@@ -713,7 +706,7 @@
                 });
             });
             initSelectMeThoiInTable();
-            const IDLoThoi = $('#IDLoThoi').val() || null;
+            // const IDLoThoi = $('#IDLoThoi').val() || null;
             // SearchMeThoi(IDLoThoi);
             sumKLGangNhan();
             sumKLGangThoi();
@@ -780,6 +773,7 @@
             const IDLoCao = $('#IDLoCao').val() || null;
             const IDChuyenDen = $('#IDChuyenDen').val() || null;
             const IDTinhTrang = $('#IDTinhTrang').val() || null;
+            const IDMaThungGang = $('#IDMaThungGang').val().trim() || null;
 
 
             const payload = {
@@ -788,7 +782,8 @@
                 ID_TrangThai: IDTinhTrang,
                 ID_Locao: IDLoCao,
                 ChuyenDen: IDChuyenDen,
-                G_Ca: IDCaLamViec
+                G_Ca: IDCaLamViec,
+                maThungGang : IDMaThungGang
             };
 
             $.ajax({
@@ -968,6 +963,7 @@
                         data: function (params) {
                             const dto = {
                                 id_LoThoi: $('#IDLoThoi').val(),
+                                ngayLamViec: $('#IDNgayNhan').val(),
                                 searchText: params.term || "",
                                 // idsDaChon: getAllSelectedMeThoiIds()
                             }
@@ -1470,7 +1466,7 @@
                         });
                         $("#huyNhanThung-content").html(html);
                     } else if(res.truongHop === 1) {
-                        alert('Có thùng đã được vừa mới chốt. Vui lòng kiểm tra lại');
+                        alert('Có thùng thép sinh ra từ mã gang này đã được chốt. Vui lòng kiểm tra lại, hoặc liên hệ Phòng kế Hoạch hỗ trợ');
                         ReLoad();
                     }
                     else {
@@ -1674,7 +1670,7 @@
                     KLPhe: null,
                     Tong_KLGangNhan: 0,
                     ID_MeThoi: null,
-                    GioChonMe: '',
+                    GioChonMe: null,
                     DanhSachThungGang: []
                 };
 
@@ -1688,9 +1684,9 @@
                 parent.Tong_KLGangNhan = parseFloat($row.find('.tong_KL_GangNhan').text()) || 0;
                 const idMeThoiVal = $row.find('.selectMeThoi').val();
                 parent.ID_MeThoi = idMeThoiVal ? parseInt(idMeThoiVal) : null;
-                parent.GioChonMe = $row.find('.GioChonMe').val()?.trim();
+                parent.GioChonMe = $row.find('.GioChonMe').val()?.trim() != "" ? $row.find('.GioChonMe').val()?.trim() : null;
 
-                if((parent.ID_MeThoi && parent.GioChonMe == "") || (!parent.ID_MeThoi && parent.GioChonMe != "")){
+                if((parent.ID_MeThoi && !parent.GioChonMe) || (!parent.ID_MeThoi && parent.GioChonMe)){
                     isValidLuu = false;
                 }
 
@@ -1750,9 +1746,9 @@
                 return;
             }
             const dsThungTG = getTableData();
-
+            console.log(dsThungTG)
              if(!isValidLuu){
-                alert("Phải nhập đồng bộ mẻ thổi và giờ. Vui lòng kiểm tra lại");
+                alert("Phải nhập đồng bộ mẻ thổi và giờ thổi. Vui lòng kiểm tra lại");
                 isValidLuu = true;
                 return;
             }

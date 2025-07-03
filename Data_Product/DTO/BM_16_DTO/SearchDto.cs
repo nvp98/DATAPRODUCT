@@ -31,6 +31,7 @@
         public int? ID_Locao { get; set; }
         public List<string>? ChuyenDen { get; set; }
         public int? G_Ca { get; set; }
+        public string? MaThungGang { get; set; }
     }
 
 
