@@ -165,7 +165,7 @@ namespace Data_Product.Models
         [NotMapped]
         public decimal? Tong_KLGangNhan { get; set; }
 
-        public bool? XacNhan { get; set; }
+        public bool? XacNhan { get; set; } = false;
 
         public int? ID_NguoiXacNhan { get; set; }
         [NotMapped]

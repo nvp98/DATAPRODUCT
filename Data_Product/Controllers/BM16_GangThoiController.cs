@@ -505,7 +505,7 @@ namespace Data_Product.Controllers
                 DenDuc2 = t.ChuyenDen == "DUC2",
                 GioNM = t.Gio_NM,
                 GhiChu = t.G_GhiChu,
-                DaChuyen = t.G_ID_TrangThai==1, 
+                TrangThaiGang = t.G_ID_TrangThai == 1, 
                 TrangThai = t.ID_TrangThai,
                 NguoiLuu = t.G_ID_NguoiLuu.HasValue && nguoiLuuDict.ContainsKey(t.G_ID_NguoiLuu.Value)
                 ? nguoiLuuDict[t.G_ID_NguoiLuu.Value]
@@ -535,7 +535,7 @@ namespace Data_Product.Controllers
                     x.DenDuc2,
                     x.GioNM,
                     x.GhiChu,
-                    x.DaChuyen,
+                    x.TrangThaiGang,
                     x.TrangThai,
                     x.NguoiLuu,
                     x.NguoiNhanList,
@@ -852,16 +852,16 @@ namespace Data_Product.Controllers
             return Ok("Đã cập nhật thành công.");
         }
         [HttpPost]
-        public async Task <IActionResult> CapNhatThungChuaChuyen([FromBody] CapNhatRequest req)
+        public async Task <IActionResult> CapNhatThung([FromBody] CapNhatRequest req)
         {
             if (req == null || string.IsNullOrEmpty(req.MaPhieu) || req.DsMaThung == null || !req.DsMaThung.Any())
             {
                 return BadRequest("Danh sách cập nhật rỗng.");
             }
-            //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
+            //ChuaXuLy = 1, ChoXuLy = 2, DaXuLy = 3, DaNhan = 4, DaChot = 5
             foreach (var item in req.DsMaThung)
             {
-                var thung =  _context.Tbl_BM_16_GangLong
+                var thung = _context.Tbl_BM_16_GangLong
                     .FirstOrDefault(x => x.MaPhieu == req.MaPhieu 
                         && x.MaThungGang == item.MaThungGang 
                         && x.BKMIS_SoMe == item.BKMIS_SoMe
@@ -891,7 +891,7 @@ namespace Data_Product.Controllers
             {
                 return BadRequest("Danh sách số mẻ cần xóa bị trống.");
             }
-            //ChuaChuyen = 1, ChoXuLy = 2, DaChuyen = 3, DaNhan = 4, DaChot = 5
+            //ChuaXuLy = 1, ChoXuLy = 2, DaXuLy = 3, DaNhan = 4, DaChot = 5
             try
             {
                 var thungCanXoa = await _context.Tbl_BM_16_GangLong
