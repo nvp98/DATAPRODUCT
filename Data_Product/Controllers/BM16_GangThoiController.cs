@@ -217,11 +217,21 @@ namespace Data_Product.Controllers
                 );
 
 
-            var idPhongBan = TaiKhoan.ID_PhongBan;
+            // Danh sách lò cao cuối cùng
+            List<Tbl_LoCao> loCaos = new();
 
-            var loCaos =  await _context.Tbl_LoCao.Where(x => x.ID_PhongBan == idPhongBan && quyenGroup[idPhongBan].Contains(x.ID)).ToListAsync();
+            foreach (var kvp in quyenGroup)
+            {
+                int idBoPhan = kvp.Key;
+                var dsMaLo = kvp.Value;
 
-             return new SelectList(loCaos, "ID", "TenLoCao");
+                var loCaoTrongBoPhan = await _context.Tbl_LoCao
+                    .Where(x => x.ID_PhongBan == idBoPhan && dsMaLo.Contains(x.ID))
+                    .ToListAsync();
+
+                loCaos.AddRange(loCaoTrongBoPhan);
+            }
+            return new SelectList(loCaos, "ID", "TenLoCao");
         }
         public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, string ca,string locao, int page = 1)
         {
@@ -230,7 +240,11 @@ namespace Data_Product.Controllers
             var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
             var loCaoList = await GetLoCaoList();
             ViewBag.LoCaoList = loCaoList;
-            var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayTaoPhieu)
+            var data = new List<PhieuViewModel>();
+            var pager = new Pager();
+            if (loCaoList.Any())
+            {
+                var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayTaoPhieu)
                 .Select(p => new PhieuViewModel
                 {
                     MaPhieu = p.MaPhieu,
@@ -250,55 +264,56 @@ namespace Data_Product.Controllers
                                 .FirstOrDefault(),
                 });
 
-            // Lọc theo Mã Phiếu (chuỗi)
-            if (!string.IsNullOrEmpty(maPhieu))
-            {
-                string maPhieuLower = maPhieu.ToLower();
-                query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
-            }
-
-            // Lọc theo ngày
-            if (ngay.HasValue)
-            {
-                query = query.Where(s => s.NgayTaoPhieu.Date == ngay.Value.Date);
-            }
-
-            // Lọc theo Ca (chuỗi)
-            if (!string.IsNullOrEmpty(ca))
-            {
-                string caLower = ca.ToLower();
-                query = query.Where(s => s.TenCa.ToLower() == caLower);
-            }
-
-            if (!string.IsNullOrEmpty(locao))
-            {
-                if (int.TryParse(locao, out int locaoId))
+                // Lọc theo Mã Phiếu (chuỗi)
+                if (!string.IsNullOrEmpty(maPhieu))
                 {
-                    query = query.Where(s => _context.Tbl_LoCao
-                                              .Where(lc => lc.ID == locaoId)
-                                              .Select(lc => lc.TenLoCao)
-                                              .FirstOrDefault() == s.TenLoCao);
+                    string maPhieuLower = maPhieu.ToLower();
+                    query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
                 }
 
-
-            }
-            else 
-            {
-                if (loCaoList.Any())
+                // Lọc theo ngày
+                if (ngay.HasValue)
                 {
-                    var idList = loCaoList.Items.Cast<Tbl_LoCao>().Select(x => x.ID).ToList();
-                    query = query.Where(s => idList.Contains(s.ID_LoCao));
+                    query = query.Where(s => s.NgayTaoPhieu.Date == ngay.Value.Date);
                 }
+
+                // Lọc theo Ca (chuỗi)
+                if (!string.IsNullOrEmpty(ca))
+                {
+                    string caLower = ca.ToLower();
+                    query = query.Where(s => s.TenCa.ToLower() == caLower);
+                }
+
+                if (!string.IsNullOrEmpty(locao))
+                {
+                    if (int.TryParse(locao, out int locaoId))
+                    {
+                        query = query.Where(s => _context.Tbl_LoCao
+                                                  .Where(lc => lc.ID == locaoId)
+                                                  .Select(lc => lc.TenLoCao)
+                                                  .FirstOrDefault() == s.TenLoCao);
+                    }
+
+
+                }
+                else
+                {
+                    if (loCaoList.Any())
+                    {
+                        var idList = loCaoList.Items.Cast<Tbl_LoCao>().Select(x => x.ID).ToList();
+                        query = query.Where(s => idList.Contains(s.ID_LoCao));
+                    }
+                }
+
+                int resCount = await query.CountAsync();
+
+                data = await query
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync();
+                pager = new Pager(resCount, page, pageSize);
             }
 
-            int resCount = await query.CountAsync();
-
-            var data = await query
-                        .Skip((page - 1) * pageSize)
-                        .Take(pageSize)
-                        .ToListAsync();
-
-            var pager = new Pager(resCount, page, pageSize);
             ViewBag.Pager = pager;
 
             // Truyền lại giá trị tìm kiếm cho view

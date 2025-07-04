@@ -73,7 +73,16 @@ namespace Data_Product.Controllers
 
             var idPhongBan = TaiKhoan.ID_PhongBan;
 
-            var loThoiList = await _context.Tbl_LoThoi.Where(x => x.BoPhan == idPhongBan && quyenGroup[idPhongBan].Contains(x.ID)).ToListAsync();
+            List<Tbl_LoThoi> loThoiList = new List<Tbl_LoThoi>();
+            if (quyenGroup.TryGetValue(idPhongBan, out var maLoList))
+            {
+                loThoiList = await _context.Tbl_LoThoi.Where(x => x.BoPhan == idPhongBan && quyenGroup[idPhongBan].Contains(x.ID)).ToListAsync();
+            }
+            else
+            {
+                loThoiList = new List<Tbl_LoThoi>(); // hoặc giữ rỗng nếu không có quyền
+            }
+
             ViewBag.LoThoiList = loThoiList;
 
             return View();
