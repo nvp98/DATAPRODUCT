@@ -827,7 +827,66 @@
              });
          }
 
-       
+       // logic chot thung
+        $('#btnChotThung').click(function () {
+              let selectedIds = [];
+              let hasLocked = false;
+              $('#tblDuLieu tbody tr').each(function () {
+                  const checkbox = $(this).find('.cbx-chotThung');
+                  if (checkbox.is(':checked')) {
+                      const id = $(this).data('id');
+                      const idTrangThai = $(this).data('idtrangthai');
+                      if (idTrangThai == 5) {
+                        hasLocked = true;
+                        return false;
+                      }
+                      selectedIds.push({id: id});
+                  }
+              });
+              if (hasLocked) {
+                  alert("Vui lòng không chọn các thùng đã chốt.");
+                  Search();
+                  return;
+              }
+              if (selectedIds.length === 0) {
+                  alert("Vui lòng chọn ít nhất 1 dòng.");
+                  Search();
+                  return;
+              }
+              $.ajax({
+                  url: "/BM16_GangThoi_PKH/CheckChotThung",
+                  type: "POST",
+                  contentType: "application/json",
+                  data: JSON.stringify(selectedIds),
+                  processData: false,
+                  success: function (res) {
+                      if(res.isValid){
+                          $.ajax({
+                              url: "/BM16_GangThoi_PKH/ChotThung",
+                              type: "POST",
+                              contentType: "application/json",
+                              data: JSON.stringify(selectedIds),
+                              processData: false,
+                              success: function (res) {
+                                  alert("Đã chốt thùng thành công")
+                                  // render lai
+                                  Search();
+                              },
+                              error: function () {
+                                  alert("Lỗi khi nhận dữ liệu!");
+                              }
+                          });
+                      } else{
+                          alert("Vui lòng kiểm tra dữ liệu các thùng trung gian copy");
+                      }
+                  },
+                  error: function () {
+                      alert("Lỗi khi nhận dữ liệu!");
+                  }
+              });
+              
+              
+        });
 
         $('#btnHuyChotThung').click(function () {
               let selectedIds = [];
