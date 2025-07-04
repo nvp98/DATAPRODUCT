@@ -188,13 +188,47 @@ namespace Data_Product.Controllers
 
             return Json(CaKip);
         }
+        public async Task<SelectList> GetLoCaoList()
+        {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = await _context.Tbl_TaiKhoan
+                         .FirstOrDefaultAsync(x => x.TenTaiKhoan == TenTaiKhoan);
 
+            if (TaiKhoan == null)
+            {
+                return new SelectList(Enumerable.Empty<object>());
+            }
+
+            var quyenLo = await (from map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan
+                                 join lo in _context.Tbl_BM_16_LoSanXuat on map.ID_LoSanXuat equals lo.ID
+                                 where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan
+                                 select new
+                                 {
+                                     ID_BoPhan = lo.ID_BoPhan,
+                                     MaLo = lo.MaLo
+                                 }).ToListAsync();
+
+            // Group theo ID_BoPhan
+            var quyenGroup = quyenLo
+                .GroupBy(x => x.ID_BoPhan)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.MaLo).Distinct().ToList()
+                );
+
+
+            var idPhongBan = TaiKhoan.ID_PhongBan;
+
+            var loCaos =  await _context.Tbl_LoCao.Where(x => x.ID_PhongBan == idPhongBan && quyenGroup[idPhongBan].Contains(x.ID)).ToListAsync();
+
+             return new SelectList(loCaos, "ID", "TenLoCao");
+        }
         public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, string ca,string locao, int page = 1)
         {
             const int pageSize = 20;
             if (page < 1) page = 1;
             var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
-            ViewBag.LoCaoList = new SelectList(loCaos, "ID", "TenLoCao");
+            ViewBag.LoCaoList = await GetLoCaoList();
             var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayTaoPhieu)
                 .Select(p => new PhieuViewModel
                 {
@@ -303,8 +337,8 @@ namespace Data_Product.Controllers
         [HttpGet]
         public async Task< IActionResult> TaoPhieu()
         {
-            var loCaoList = await _context.Tbl_LoCao.ToListAsync();
-            ViewBag.LoCaoList = loCaoList;
+            
+            ViewBag.LoCaoList = await GetLoCaoList();
             return View();
         }
         [HttpPost]
