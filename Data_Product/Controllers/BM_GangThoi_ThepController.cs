@@ -510,7 +510,6 @@ namespace Data_Product.Controllers
                     {
                         // Thùng chưa nhận ->  cập nhật sang Đã nhận
                         t.T_ID_TrangThai = (int)TinhTrang.DaNhan;
-                        t.G_ID_TrangThai = (int)TinhTrang.DaNhan;
                         t.MaThungThep = maThungThep;
                         t.ID_LoThoi = payload.idLoThoi;
                         t.T_Ca = payload.idCa;
