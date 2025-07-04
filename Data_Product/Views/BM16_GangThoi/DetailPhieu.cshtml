@@ -299,7 +299,7 @@
 													}
 													else
 													{
-														<button type="button" class="btn btn-success btn-sm">Đã nhận</button>
+														<button type="button" class="btn btn-success btn-sm">Đã xử lý</button>
 													}
 												</td>
 												<td class="toggle-col">
@@ -801,44 +801,32 @@
 				});
 				return maxIndex;
 			}
-		function loadThemSoMeMoi() {
-			let ngay = $("#ID_Day").val();
-			let idLoCao = $("#ID_Locao").val();
-			let idKip = $("#ID_Kip").val();
-			let idca = $("#IDCa").val();
+	function loadThemSoMeMoi() {
+		let ngay = $("#ID_Day").val();
+		let idLoCao = $("#ID_Locao").val();
+		let idKip = $("#ID_Kip").val();
+		let idca = $("#IDCa").val();
+		let tableBody = $("#dataTable tbody");
+		let soMeHienTai = [];
 
-			let tableBody = $("#dataTable tbody");
-			let soMeHienTai = [];
+		// Lấy danh sách mẻ hiện tại
+		tableBody.find("tr").each(function () {
+			let maThung = $(this).find("td[name='maThung']").text().trim();
+			let soMe = $(this).find("td[name='soMe']").text().trim();
 
-			// Lấy danh sách mẻ hiện tại
-			tableBody.find("tr").each(function () {
-				let maThung = $(this).find("td[name='maThung']").text().trim();
-				let soMe = $(this).find("td[name='soMe']").text().trim();
-				let tinhTrang = $(this).find("td[name='TinhTrang'] button").text().trim();
-				let chotThung = $(this).find("td[name='ChotThung'] button").text().trim();
-				// console.log('tinhTrang',tinhTrang)
-				// console.log('chotThung',chotThung)
-				if (soMe) {
-					soMeHienTai.push({
-						maThung:maThung,
-						soMe: soMe,
-						tinhTrang: tinhTrang,
-						chotThung: chotThung
-					});
-				}
-			});
-			console.log('soMeHienTai',soMeHienTai)
-			let lastIndex = getLastThungIndex();
-			let updateList = [];
-			let listSoMeHienTai = soMeHienTai.map(x => x.soMe);
+			if (soMe) {
+				soMeHienTai.push({ maThung: maThung, soMe: soMe });
+			}
+		});
+
+		let lastIndex = getLastThungIndex();
+		let listSoMeHienTai = soMeHienTai.map(x => x.soMe);
+
 		$.ajax({
 			url: "/BM16_GangThoi/GetSoMeGangBKMis",
 			type: "GET",
 			data: { ngay, ID_LoCao: idLoCao, IDKip: idKip },
 			success: function (data) {
-				let soMeMoi = data.map(item => item.testPatternCode || "");
-				let soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
-
 				$.ajax({
 					url: "/XeGoong/KLXeLoCao",
 					type: "GET",
@@ -848,10 +836,9 @@
 
 						data.forEach(item => {
 							let soMe = item.testPatternCode || "";
-							//let matched = soMeHienTai.find(x => x.soMe === soMe);
-							let allMatched = soMeHienTai.filter(x => x.soMe === soMe);
-							//console.log('matched:', matched);
-							if (allMatched.length === 0) {
+							let existed = listSoMeHienTai.includes(soMe);
+
+							if (!existed) {
 								lastIndex++;
 								let maThung = generateMaThung(ngay, idLoCao, idca, lastIndex);
 								let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
@@ -860,8 +847,8 @@
 
 								let row = `
 									<tr class="row-new" data-new="true" data-so-me="${soMe}">
-									<td class='text-center deleteItem'><a class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a></td>
-										<td class='text-center copyItem'><a class="btn btn-secondary btn-sm"><i class="bi bi-copy"></i></a></td>						
+										<td class='text-center deleteItem'><a class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a></td>
+										<td class='text-center copyItem'><a class="btn btn-secondary btn-sm"><i class="bi bi-copy"></i></a></td>
 										<td name="maThung">${maThung}</td>
 										<td name="soMe">${soMe}</td>
 										<td name="ThungSo">${thungSo}</td>
@@ -878,84 +865,17 @@
 										<td><input type="time" name="GioNM" class="form-control"></td>
 										<td><textarea name="GhiChu" class="form-control" style="width: 100px;"></textarea></td>
 										<td><input type="checkbox" class="chon-thung-checkbox"/></td>
-										<td></td>
-										<td></td>
-										<td class="toggle-col"></td>
-											<td></td>
+										<td></td><td></td><td class="toggle-col"></td><td></td>
 									</tr>`;
 								tableBody.append(row);
-							} else {
-
-								allMatched.forEach(matched => {
-								if (matched.tinhTrang === "Chưa xử lý" &&
-									(matched.chotThung === "Chưa xử lý" || matched.chotThung === "Chờ xử lý")) {
-
-									updateList.push({
-										MaThungGang: matched.maThung,
-										BKMIS_SoMe: soMe,
-										BKMIS_PhanLoai: item.classifyName || "",
-										BKMIS_Gio: item.patterntime || ""
-									});
-									console.log('updateList',updateList)
-								}
-							});
 							}
 						});
-
-							// Gửi mẻ cần cập nhật
-						if (updateList.length > 0) {
-							const maPhieu = $('#PhieuID').val()?.trim();
-								const requestData = {
-									maPhieu: maPhieu,
-									DsMaThung: updateList
-								};
-							$.ajax({
-								url: "/BM16_GangThoi/CapNhatThung",
-								type: "POST",
-								contentType: "application/json",
-								data: JSON.stringify(requestData),
-								success: function () {
-									alert("Đã cập nhật");
-								},
-								error: function () {
-									alert("Lỗi khi cập nhật thùng.");
-								}
-							});
-						}
-
-						// Gửi mẻ cần xóa
-						if (soMeCanXoa.length > 0) {
-							const maPhieu = $('#PhieuID').val()?.trim();
-								const requestData = {
-									maPhieu: maPhieu,
-									soMes: soMeCanXoa
-								};
-					//console.log('requestData',requestData)
-							$.ajax({
-								url: "/BM16_GangThoi/XoaNhungSoMeKhongConTrongBK",
-								type: "POST",
-								contentType: "application/json",
-								data: JSON.stringify(requestData),
-								success: function () {
-									alert(" Đã xóa các số mẻ không còn trong danh sách mới.");
-									// Xóa dòng tương ứng trên UI
-									tableBody.find("tr").each(function () {
-										let soMe = $(this).find("td[name='soMe']").text().trim();
-										if (soMeCanXoa.includes(soMe)) {
-											$(this).remove();
-										}
-									});
-								},
-								error: function () {
-									alert(" Lỗi khi xóa số mẻ cũ.");
-								}
-							});
-						}
 					}
 				});
 			}
 		});
 	}
+
 
 		////==================///////////
 		function saveGangThoiVaoPhieu() {
@@ -1417,23 +1337,23 @@
 			});
 		}
 
-	 $(document).ready(function () {
-		$.ajax({
-			url: '/BM16_GangThoi/GetCurrentCaKip', // Đổi TenController thành tên controller thật của bạn
-			type: 'GET',
-			success: function (data) {
-			console.log("Dữ liệu trả về:", data); // Xem toàn bộ mảng
-			if (data.length > 0) {
-				console.log("Ca kíp hiện tại:", data[0].TenKip);
-				$("#tenKip").text(data[0].TenKip);
-			} else {
-				$("#tenKip").text("Không tìm thấy ca kíp.");
-			}
-			}
-	,
-			error: function (xhr, status, error) {
-				console.error("Lỗi khi lấy ca/kíp:", error);
-			}
-		});
-	});
+	//  $(document).ready(function () {
+	// 	$.ajax({
+	// 		url: '/BM16_GangThoi/GetCurrentCaKip', // Đổi TenController thành tên controller thật của bạn
+	// 		type: 'GET',
+	// 		success: function (data) {
+	// 		console.log("Dữ liệu trả về:", data); // Xem toàn bộ mảng
+	// 		if (data.length > 0) {
+	// 			console.log("Ca kíp hiện tại:", data[0].TenKip);
+	// 			$("#tenKip").text(data[0].TenKip);
+	// 		} else {
+	// 			$("#tenKip").text("Không tìm thấy ca kíp.");
+	// 		}
+	// 		}
+	// ,
+	// 		error: function (xhr, status, error) {
+	// 			console.error("Lỗi khi lấy ca/kíp:", error);
+	// 		}
+	// 	});
+	// });
 </script>
