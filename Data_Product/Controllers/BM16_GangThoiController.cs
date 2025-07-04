@@ -228,13 +228,15 @@ namespace Data_Product.Controllers
             const int pageSize = 20;
             if (page < 1) page = 1;
             var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
-            ViewBag.LoCaoList = await GetLoCaoList();
+            var loCaoList = await GetLoCaoList();
+            ViewBag.LoCaoList = loCaoList;
             var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayTaoPhieu)
                 .Select(p => new PhieuViewModel
                 {
                     MaPhieu = p.MaPhieu,
                     NgayTaoPhieu = p.NgayTaoPhieu,
                     ThoiGianTao = p.ThoiGianTao.ToString("HH:mm:ss"),
+                    ID_LoCao = p.ID_Locao,
                     TenNguoiTao = _context.Tbl_TaiKhoan
                                     .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
                                     .Select(tk => tk.HoVaTen).FirstOrDefault(),
@@ -276,6 +278,16 @@ namespace Data_Product.Controllers
                                               .Where(lc => lc.ID == locaoId)
                                               .Select(lc => lc.TenLoCao)
                                               .FirstOrDefault() == s.TenLoCao);
+                }
+
+
+            }
+            else 
+            {
+                if (loCaoList.Any())
+                {
+                    var idList = loCaoList.Items.Cast<Tbl_LoCao>().Select(x => x.ID).ToList();
+                    query = query.Where(s => idList.Contains(s.ID_LoCao));
                 }
             }
 
@@ -385,11 +397,9 @@ namespace Data_Product.Controllers
                 var maxIndex = await _context.Tbl_BM_16_Phieu
                 .OrderByDescending(x => x.ID)
                 .Select(x => x.ID)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync();          
 
-                int nextPhieu = maxIndex + 1;
-
-                var maPhieu = "GL" + "-" + "LG" + "-" + "L" + model.ID_Locao + cakip + model.NgayPhieuGang.ToString("yyMMdd") + nextPhieu.ToString("D4");
+                var maPhieu = "GL" + "-" + "LG" + "-" + "L" + model.ID_Locao + cakip + model.NgayPhieuGang.ToString("yyMMdd");
 
                 var phieu = new Tbl_BM_16_Phieu
                 {
@@ -416,6 +426,12 @@ namespace Data_Product.Controllers
                 {
                     var chuyenDen = thung.ChuyenDen ?? "";
 
+                    bool duDuLieu = thung.KL_XeGoong != null &&
+                                    thung.G_KLThungChua != null &&
+                                    thung.G_KLThungVaGang != null &&
+                                    thung.G_KLGangLong != null &&
+                                    !string.IsNullOrEmpty(thung.ChuyenDen) &&
+                                    thung.Gio_NM != null;
                     var thungGang = new Tbl_BM_16_GangLong
                     {
                         MaPhieu = maPhieu,
@@ -432,14 +448,14 @@ namespace Data_Product.Controllers
                         ChuyenDen = thung.ChuyenDen ?? "",
                         Gio_NM = thung.Gio_NM,
                         G_GhiChu = thung.G_GhiChu,
-                        G_ID_TrangThai = 1/* (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 1*/,
+                        G_ID_TrangThai = duDuLieu ? 3 : 1,
                         NgayTao = model.NgayPhieuGang,
                         G_ID_NguoiLuu = idNhanVienTao,
                         ID_Locao = model.ID_Locao,
                         G_ID_Kip = model.ID_Kip,
                         G_Ca = soCa,
-                        //T_ID_TrangThai = 2 /*(chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2*/,
-                        ID_TrangThai = 1/* (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 2 : 1*/,
+                        T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2,
+                        ID_TrangThai = 1,
                         T_copy = false,
                     };
 
@@ -828,8 +844,8 @@ namespace Data_Product.Controllers
                         G_ID_NguoiLuu = idNhanVienLuu,
                         ID_Locao = req.ID_Locao,
                         G_ID_Kip = req.ID_Kip,
-                        //T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 3 : 2,
-                        T_ID_TrangThai = 2,
+                        T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2,
+                       // T_ID_TrangThai = 2,
                         G_Ca = soCa,
                         ID_TrangThai = 1,
                         T_copy = false,
@@ -866,7 +882,7 @@ namespace Data_Product.Controllers
                 if (string.IsNullOrEmpty(item.MaThungGang)) continue;
                 var thung = await _context.Tbl_BM_16_GangLong
                     .FirstOrDefaultAsync(x => x.MaPhieu == item.MaPhieu && x.MaThungGang == item.MaThungGang);
-                //var chuyenDen = item.ChuyenDen ?? "";
+                var chuyenDen = item.ChuyenDen ?? "";
 
                 if (thung != null)
                 {
@@ -878,7 +894,21 @@ namespace Data_Product.Controllers
                     thung.Gio_NM = item.Gio_NM;
                     thung.ChuyenDen = item.ChuyenDen;
                     thung.G_ID_NguoiLuu = idNhanVienLuu;
+                    if (chuyenDen == "DUC1" || chuyenDen == "DUC2")
+                    {
+                        thung.T_ID_TrangThai = 4; // Đã nhận
+                    }
+                    bool duDuLieu = item.KL_XeGoong != null &&
+                          item.G_KLThungChua != null &&
+                          item.G_KLThungVaGang != null &&
+                          item.G_KLGangLong != null &&
+                          item.ChuyenDen !=null &&
+                          item.Gio_NM != null;
 
+                    if (duDuLieu)
+                    {
+                        thung.G_ID_TrangThai = 3; // Đã xử lý
+                    }
                 }
             }
 

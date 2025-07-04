@@ -116,8 +116,9 @@
 												<option value="">-- Lò cao --</option>
 												@foreach (var locao in ViewBag.LoCaoList)
 												{
-													<option value="@locao.ID">@locao.TenLoCao</option>
+													<option value="@locao.Value">@locao.Text</option>
 												}
+
 											</select>
 										</div>
 									</div>

@@ -21,6 +21,7 @@ namespace Data_Product.DTO.BM_16_DTO
         public string? TenCa { get; set; }
         public string? TenLoCao { get; set; } 
         public String? ThoiGianTao { get; set; }
+        public int ID_LoCao { get; set; }
     }
     public class BBGN_GangLong_ViewModel
     {

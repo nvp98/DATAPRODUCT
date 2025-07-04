@@ -12,7 +12,7 @@ namespace Data_Product.Services
         private readonly ILogger<TaoPhieuTuDongBackgroundService> _logger;
         private readonly IConfiguration _configuration;
 
-        public TaoPhieuTuDongBackgroundService( IServiceProvider serviceProvider, ILogger<TaoPhieuTuDongBackgroundService> logger, IConfiguration configuration)
+        public TaoPhieuTuDongBackgroundService(IServiceProvider serviceProvider, ILogger<TaoPhieuTuDongBackgroundService> logger, IConfiguration configuration)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
@@ -25,20 +25,40 @@ namespace Data_Product.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("========== [Lần chạy #{demLanChay}] ==========", demLanChay);
-                GhiLogFile($"========== [Lần chạy #{demLanChay}] ==========");
-                _logger.LogInformation("===> [TaoPhieuTuDong] Bắt đầu lúc: {time}", DateTime.Now);
-                GhiLogFile($"========== [TaoPhieuTuDong] Bắt đầu lúc: {DateTime.Now}");
-                await TaoPhieuVaNapThungAsync();
+                try
+                {
+                    _logger.LogInformation("========== [Lần chạy #{demLanChay}] ==========", demLanChay);
+                    GhiLogFile($"========== [Lần chạy #{demLanChay}] ==========");
 
-                _logger.LogInformation("===> [TaoPhieuTuDong] Hoàn thành lúc: {time}", DateTime.Now);
-                GhiLogFile($"========== [TaoPhieuTuDong] Hoàn thành lúc:: {DateTime.Now}");
-                _logger.LogInformation("====================================================");
+                    _logger.LogInformation("===> [TaoPhieuTuDong] Bắt đầu lúc: {time}", DateTime.Now);
+                    GhiLogFile($"========== [TaoPhieuTuDong] Bắt đầu lúc: {DateTime.Now}");
+
+                    await TaoPhieuVaNapThungAsync();
+
+                    _logger.LogInformation("===> [TaoPhieuTuDong] Hoàn thành lúc: {time}", DateTime.Now);
+                    GhiLogFile($"========== [TaoPhieuTuDong] Hoàn thành lúc: {DateTime.Now}");
+                    _logger.LogInformation("====================================================");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Đã xảy ra lỗi trong quá trình tạo phiếu tự động.");
+                    GhiLogFile($"[ERROR] {DateTime.Now} - {ex.Message}\n{ex.StackTrace}");
+                }
 
                 demLanChay++;
                 _logger.LogInformation($"[Loop Tick] {DateTime.Now}");
-                await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
+
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
+                }
+                catch (TaskCanceledException)
+                {
+                    // Bỏ qua nếu token bị hủy trong thời gian chờ
+                    break;
+                }
             }
+
         }
 
         //private async Task TaoPhieuVaNapThungAsync()
@@ -171,6 +191,7 @@ namespace Data_Product.Services
             if (kip == null)
             {
                 _logger.LogWarning("Không tìm thấy ca/kíp cho {ngay}", ngayLamViec);
+                GhiLogFile($"Không tìm thấy ca/kíp cho ngày {ngayLamViec}");
                 return;
             }
 
@@ -246,6 +267,7 @@ namespace Data_Product.Services
                         Gio_NM = null,
                         ChuyenDen = null,
                         G_ID_TrangThai = 1,
+                        T_ID_TrangThai = 2,
                         ID_TrangThai = 1,
                         NgayLuyenGang = ngayLamViec,
                         NgayTao = DateTime.Now,
@@ -340,17 +362,17 @@ namespace Data_Product.Services
         }
         private void GhiLogFile(string message)
         {
-            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            Directory.CreateDirectory(logDir); // Tạo thư mục nếu chưa có
+            string basePath = AppContext.BaseDirectory; // Luôn trỏ đúng thư mục đang chạy, ổn định hơn
+            string logDir = Path.Combine(basePath, "logs");
+            Directory.CreateDirectory(logDir); // Tạo thư mục nếu chưa tồn tại
 
             string filePath = Path.Combine(logDir, $"log_{DateTime.Now:yyyyMMdd}.txt");
-
             string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {message}";
 
             File.AppendAllText(filePath, logEntry + Environment.NewLine);
+
+
         }
 
-
     }
-
 }
