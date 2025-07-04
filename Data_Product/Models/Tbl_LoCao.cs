@@ -7,5 +7,6 @@ namespace Data_Product.Models
         [Key]
         public int ID { get; set; }
         public string TenLoCao { get; set; }
+        public int ID_PhongBan { get; set; }
     }
 }

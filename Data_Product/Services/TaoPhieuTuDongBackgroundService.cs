@@ -26,16 +26,18 @@ namespace Data_Product.Services
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("========== [Lần chạy #{demLanChay}] ==========", demLanChay);
+                GhiLogFile($"========== [Lần chạy #{demLanChay}] ==========");
                 _logger.LogInformation("===> [TaoPhieuTuDong] Bắt đầu lúc: {time}", DateTime.Now);
-
+                GhiLogFile($"========== [TaoPhieuTuDong] Bắt đầu lúc: {DateTime.Now}");
                 await TaoPhieuVaNapThungAsync();
 
                 _logger.LogInformation("===> [TaoPhieuTuDong] Hoàn thành lúc: {time}", DateTime.Now);
+                GhiLogFile($"========== [TaoPhieuTuDong] Hoàn thành lúc:: {DateTime.Now}");
                 _logger.LogInformation("====================================================");
 
                 demLanChay++;
-
-                await Task.Delay(TimeSpan.FromMinutes(3), stoppingToken);
+                _logger.LogInformation($"[Loop Tick] {DateTime.Now}");
+                await Task.Delay(TimeSpan.FromMinutes(15), stoppingToken);
             }
         }
 
@@ -165,6 +167,7 @@ namespace Data_Product.Services
             var kip = await _context.Tbl_Kip.FirstOrDefaultAsync(x =>
                 x.NgayLamViec.Value.Date == ngayLamViec && x.TenCa == tenCa);
 
+            GhiLogFile($"[INFO] Tìm thấy ca/kíp: Ngày {ngayLamViec:yyyy-MM-dd}, Ca {kip.TenCa}, Kíp {kip.TenKip}, ID_Kip {kip.ID_Kip}");
             if (kip == null)
             {
                 _logger.LogWarning("Không tìm thấy ca/kíp cho {ngay}", ngayLamViec);
@@ -224,6 +227,7 @@ namespace Data_Product.Services
                         else
                         {
                             _logger.LogInformation("Bỏ qua thùng đã xác nhận hoặc chuyển: {code}", thung.TestPatternCode);
+                            GhiLogFile($"[INFO] Bỏ qua thùng đã xác nhận hoặc chuyển: {thung.TestPatternCode}");
                         }
                         continue;
                     }
@@ -259,6 +263,7 @@ namespace Data_Product.Services
 
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("Đã nạp/cập nhật {count} thùng cho phiếu {maPhieu}", danhSachThung.Count, maPhieu);
+                GhiLogFile($"[INFO] Đã nạp/cập nhật {danhSachThung.Count} thùng cho phiếu {maPhieu}");
             }
         }
         private async Task<List<Bkmis_view>> GetSoMeGangFromBKMIS(int idLoCao, string caKipCode, string ngay, string connectionString)
@@ -286,6 +291,7 @@ namespace Data_Product.Services
                            $"AND bkmis_kcshpsdq.{table}.ShiftName = '{caKipCode}'";
 
             _logger.LogInformation("Thực thi truy vấn MySQL: {query}", query);
+            GhiLogFile($"Thực thi truy vấn MySQL: {query}");
 
             try
             {
@@ -310,10 +316,12 @@ namespace Data_Product.Services
                 }
 
                 _logger.LogInformation("Đã đọc {count} dòng từ BKMIS bảng {table}", result.Count, table);
+                GhiLogFile($"[INFO] Đã đọc {result.Count} dòng từ BKMIS bảng {table}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi đọc dữ liệu BKMIS từ bảng {table}", table);
+                GhiLogFile($"[ERROR] Lỗi khi đọc dữ liệu BKMIS từ bảng {table} | Exception: {ex.Message}");
             }
 
             return result;
@@ -329,6 +337,17 @@ namespace Data_Product.Services
             var sttFormatted = stt.ToString("D3");
 
             return $"{dd}{mm}{yy}L{loCao}{caChar}{sttFormatted}.00";
+        }
+        private void GhiLogFile(string message)
+        {
+            string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            Directory.CreateDirectory(logDir); // Tạo thư mục nếu chưa có
+
+            string filePath = Path.Combine(logDir, $"log_{DateTime.Now:yyyyMMdd}.txt");
+
+            string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {message}";
+
+            File.AppendAllText(filePath, logEntry + Environment.NewLine);
         }
 
 
