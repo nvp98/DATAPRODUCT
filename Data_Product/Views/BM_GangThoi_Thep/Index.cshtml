@@ -1222,15 +1222,33 @@
                     setTimeout(() => $select.select2('close'), 100);
                 }, 100);
             });
-            ReLoad();
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(NgayNhan && IDCaNhan && IDLoThoi){
+                SearchThungDaNhanTheoUser();
+            }
         });
 
         $("#IDCaNhan").on('change', function () {
-            ReLoad();
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(NgayNhan && IDCaNhan && IDLoThoi){
+                SearchThungDaNhanTheoUser();
+            }
         });
 
         $("#IDNgayNhan").on('change', function () {
-            ReLoad();
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(NgayNhan && IDCaNhan && IDLoThoi){
+                SearchThungDaNhanTheoUser();
+            }
         });
 
         function updateTongKLGangNhan(maThungTG) {
@@ -1750,13 +1768,11 @@
                 return;
             }
             const dsThungTG = getTableData();
-            console.log(dsThungTG)
              if(!isValidLuu){
                 alert("Phải nhập đồng bộ mẻ thổi và giờ thổi. Vui lòng kiểm tra lại");
                 isValidLuu = true;
                 return;
             }
-            console.log('payload',dsThungTG);
             $.ajax({
                 url: "/BM_GangThoi_Thep/Luu",
                 type: "POST",
