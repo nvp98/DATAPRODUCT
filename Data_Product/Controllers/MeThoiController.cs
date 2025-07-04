@@ -36,12 +36,8 @@ namespace Data_Product.Controllers
                 query = query.Where(x => x.MaMeThoi.Contains(dto.searchText));
             }
 
-            var now = DateTime.Now;
-            var startOfYear = new DateTime(now.Year, 1, 1);
-            var startOfNextYear = startOfYear.AddYears(1);
 
             var result = await query
-                .Where(x => x.NgayTao >= startOfYear && x.NgayTao < startOfNextYear)
                 .OrderBy(x => x.MaMeThoi)
                 .Take(50)
                 .Select(x => new { id = x.ID, maMeThoi = x.MaMeThoi })

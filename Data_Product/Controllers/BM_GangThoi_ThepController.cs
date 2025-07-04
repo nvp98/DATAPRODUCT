@@ -69,6 +69,7 @@ namespace Data_Product.Controllers
                     g => g.Select(x => x.MaLo).Distinct().ToList()
                 );
 
+            
 
             var idPhongBan = TaiKhoan.ID_PhongBan;
 

@@ -127,7 +127,9 @@
 
                     <div class="mb-3">
                         <label class="form-label">Mã lò</label>
-                        <input type="number" class="form-control" name="MaLo" id="MaLo" required />
+                        <select class="form-control" id="MaLo">
+                            <option value="">-- Chọn Lò --</option>
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -266,7 +268,44 @@
             width: "100%"
         });
         
+    $("#IDPhongBan").on('change', function () {
+           const idPhongBan = $(this).val();
+           if(idPhongBan){
+               $.ajax({
+                    url: '/BM_16_LoSanXuat/GetDropdownCon',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(idPhongBan),
+                    success: function (res) {
+                        renderSelect('MaLo',res);
+                    },
+                    error: function (err) {
+                        alert("Lỗi khi tìm kiếm dữ liệu");
+                    }
+                });
+           }
+    });
 
+    function renderSelect(selectId, data, includeDefault = true, defaultText = "-- Chọn Lò --") {
+        const $select = $('#' + selectId);
+        $select.empty();
+
+        if (includeDefault) {
+            $select.append($('<option>', {
+                value: '',
+                text: defaultText
+            }));
+        }
+
+        if (data && data.length > 0) {
+            data.forEach(item => {
+                $select.append($('<option>', {
+                    value: item.value,
+                    text: item.text
+                }));
+            });
+        }
+    }
     // Mở popup tạo mới
     $('#btnCreate').click(function () {
         const modal = new bootstrap.Modal(document.getElementById('modalForm'));
@@ -304,17 +343,21 @@
             data: JSON.stringify(Id),
             success: function (res) {
                 const data = res.item;
+                const loDropDown = res.loDropdown;
                 if (data) {
                     // Gán dữ liệu vào form trong modal
                     $('#ID').val(data.id)
                     $('#TenLo').val(data.tenLo);
-                    $('#MaLo').val(data.maLo);
 
                     const idBoPhan = data.iD_BoPhan.toString();
                     $('#IDPhongBan').val(idBoPhan);
 
                     // Cập nhật Chosen
                     $('#IDPhongBan').trigger('chosen:updated');
+
+                    renderSelect('MaLo', loDropDown);
+                    $('#MaLo').val(data.maLo).trigger('change');
+                    // $('#MaLo').val(data.maLo);
 
                     $('#IsActived').val(data.isActived.toString()).trigger('change');
 
@@ -448,14 +491,14 @@
                 $('#modalForm').modal('hide');
                 Search(); // reload lại danh sách
             },
-            error: function () {
-                alert('Có lỗi xảy ra.');
+            error: function (error) {
+                const message = error.responseJSON?.message || error.responseText || 'Có lỗi xảy ra.';
+                alert('Lỗi: ' + message);
             }
         });
     });
+
     $(document).ready(function () {
         Search();
-
-        
     });
 </script>
