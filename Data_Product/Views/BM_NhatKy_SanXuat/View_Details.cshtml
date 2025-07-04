@@ -87,6 +87,31 @@
                                     Đề nghị hiệu chỉnh
                                 </button>
                             }
+                            @if (Model.TinhTrang == 1)
+                            {
+                                <a class="btn btn-success" href="@Url.Action("ExportToExcelPhieu", "BM_NhatKy_SanXuat", new { IDNKSX = Model.ID })">
+                                    <i class="fas fa-file-excel"></i> Xuất Excel
+                                </a>
+                                @if(Model.FileBB != null)
+                                {
+                                    <button class="btn btn-warning">
+                                        <a href="@Model.FileBB" target="_blank">
+                                            <i class="bi bi-filetype-pdf" style="color: white;"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                Xem pdf
+                                            </span>
+                                        </a>
+                                    </button>
+                                }
+                                <button class="btn btn-info">
+                                    <a href="@Url.Action("GenerateAndSavePdf", "BM_NhatKy_SanXuat", new { id = Model.ID })">
+                                        <i class="bi bi-filetype-pdf" style="color: white;"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Xuất PDF
+                                        </span>
+                                    </a>
+                                </button>
+                            }
                         </div>
                        
                     </div>

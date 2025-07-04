@@ -178,7 +178,7 @@
                                     <label for="colFormLabel" class="col-auto col-form-label"> Nhân viên xử lý Bảo trì bảo dưỡng:</label>
                                     <div class="col-auto">
                                         <span style="color:black; font-size:14px;">
-                                            @Html.DropDownList("IDNhanVienBTBD", null, "----- Chọn đại diện BTBD -----", new { id = "IDNhanVienBTBD", name = "IDNhanVienBTBD", @class = "marginTB5 form-control ",required = "required" })
+                                            @Html.DropDownList("IDNhanVienBTBD", null, new { id = "IDNhanVienBTBD", name = "IDNhanVienBTBD", @class = "marginTB5 form-control ",required = "required" })
                                         </span>
                                     </div>
                                 </div>
@@ -217,11 +217,12 @@
 
                                             let tableBody = document.querySelector("#dataTable tbody");
                                             document.querySelectorAll("#dataTable tbody tr").forEach(row => {
-                                                row.style.display = "none"; // Ẩn dòng
-                                                row.querySelectorAll("input, select").forEach(el => {
-                                                    el.removeAttribute("required");
-                                                    el.value = "";
-                                                }); // Xóa required tránh lỗi khi submit
+                                                //row.style.display = "none"; // Ẩn dòng
+                                                //row.querySelectorAll("input, select").forEach(el => {
+                                                //    el.removeAttribute("required");
+                                                //    el.value = "";
+                                                //}); // Xóa required tránh lỗi khi submit
+                                                row.remove(); // Xóa hẳn dòng khỏi DOM
                                             });
 
                                             const locao = [

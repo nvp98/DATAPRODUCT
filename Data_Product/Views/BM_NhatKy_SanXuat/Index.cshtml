@@ -79,6 +79,7 @@
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Số Phiếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Kíp làm việc</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Ngày dừng sản xuất</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhân viên xử lý BTBD</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
                                     </tr>
@@ -108,7 +109,7 @@
                                             else
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("Edit", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>
@@ -117,6 +118,7 @@
                                                 @item.Ca@item.Kip
                                             </td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayDungSX.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.HoTen_NhanVien_BTBD</td>
                                             @if (item.TinhTrang == 0)
                                             {
                                                 <td class="text-center" style="font-size:14px;">

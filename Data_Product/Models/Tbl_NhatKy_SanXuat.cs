@@ -10,6 +10,8 @@ namespace Data_Product.Models
         public int ID_NhanVien_SX { get; set; }
         public int ID_PhongBan_SX { get; set; }
         public int ID_Xuong_SX { get; set; }
+        [NotMapped]
+        public string TenXuong_SX { get; set; }
         public string SoPhieu { get; set; }
         public DateTime NgayTao { get; set; }
         public DateTime NgayDungSX { get; set; }
@@ -20,6 +22,9 @@ namespace Data_Product.Models
         public bool IsDelete { get; set; }
         public bool? IsLock { get; set; } = false;
         public int? ID_NhanVien_BTBD { get; set; }
+        public string? FileBB { get; set; }
+        [NotMapped]
+        public string HoTen_NhanVien_BTBD { get; set; }
         [NotMapped]
         public int TinhTrangCheckPhieu { get; set; }
         [NotMapped]
