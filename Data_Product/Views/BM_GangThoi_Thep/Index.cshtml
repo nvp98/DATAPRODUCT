@@ -1222,12 +1222,16 @@
                     setTimeout(() => $select.select2('close'), 100);
                 }, 100);
             });
+            ReLoad();
         });
 
-        // $('#IDtbXuLySoLieu').on('select2:select', '.selectMeThoi', function () {
-        //     $(this).data('selected-manually', true); Đánh dấu là đã chọn thủ công
-        //     filterSelectMeThoi(); Gọi lại hàm lọc để ẩn option đã chọn ở select khác
-        // });
+        $("#IDCaNhan").on('change', function () {
+            ReLoad();
+        });
+
+        $("#IDNgayNhan").on('change', function () {
+            ReLoad();
+        });
 
         function updateTongKLGangNhan(maThungTG) {
             let tong = 0;

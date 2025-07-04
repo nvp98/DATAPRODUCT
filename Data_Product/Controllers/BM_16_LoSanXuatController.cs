@@ -27,6 +27,13 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> GetDropdownCon([FromBody] int idPhongBan)
+        {
+            var result = await getDropDownByIBoPhan(idPhongBan);
+            return Ok(result);
+        }
+
+        [HttpPost]
         public async Task<IActionResult> Search([FromBody] SearchLoSanXuatDto dto)
         {
             try
@@ -38,25 +45,27 @@ namespace Data_Product.Controllers
                     query = query.Where(x => x.TenLo.Contains(dto.SearchText));
                 }
 
-                var danhsach = await (from lo in query
-                                    join map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan on lo.ID equals map.ID_LoSanXuat
-                                    join tk in _context.Tbl_TaiKhoan on map.ID_TaiKhoan equals tk.ID_TaiKhoan
-                                    join phongBan in _context.Tbl_PhongBan on lo.ID_BoPhan equals phongBan.ID_PhongBan
-                                    select new
-                                    {
-                                        Lo = lo,
-                                        TaiKhoan = new TaiKhoanViewModel
-                                        {
-                                            ID = tk.ID_TaiKhoan,
-                                            TenTaiKhoan = tk.TenTaiKhoan,
-                                            HoVaTen = tk.HoVaTen
-                                        },
-                                        ID_BoPhan = phongBan.ID_PhongBan,
-                                        BoPhan = phongBan.TenPhongBan,
-                                    }).ToListAsync();
+                var loSanXuatList = await (from lo in query
+                                           join phongBan in _context.Tbl_PhongBan on lo.ID_BoPhan equals phongBan.ID_PhongBan
+                                           join map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan on lo.ID equals map.ID_LoSanXuat into gmap
+                                           from map in gmap.DefaultIfEmpty()
+                                           join tk in _context.Tbl_TaiKhoan on map.ID_TaiKhoan equals tk.ID_TaiKhoan into gtk
+                                           from tk in gtk.DefaultIfEmpty()
+                                           select new
+                                           {
+                                               Lo = lo,
+                                               TaiKhoan = tk != null ? new TaiKhoanViewModel
+                                               {
+                                                   ID = tk.ID_TaiKhoan,
+                                                   TenTaiKhoan = tk.TenTaiKhoan,
+                                                   HoVaTen = tk.HoVaTen
+                                               } : null,
+                                               ID_BoPhan = phongBan.ID_PhongBan,
+                                               BoPhan = phongBan.TenPhongBan
+                                           }).ToListAsync();
 
-                // Gom nhóm theo lò
-                var grouped = danhsach
+                // Gom nhóm theo Lo ID
+                var grouped = loSanXuatList
                     .GroupBy(x => x.Lo.ID)
                     .Select(g => new BM_16_LoSanXuatModelView
                     {
@@ -66,9 +75,9 @@ namespace Data_Product.Controllers
                         ID_BoPhan = g.First().ID_BoPhan,
                         BoPhan = g.First().BoPhan,
                         IsActived = g.First().Lo.IsActived,
-                        ListTaiKhoan = g.Select(x => x.TaiKhoan).ToList()
+                        ListTaiKhoan = g.Where(x => x.TaiKhoan != null).Select(x => x.TaiKhoan).Distinct().ToList()
                     })
-                    .OrderBy(x => x.ID)
+                    .OrderBy(x => x.ID_BoPhan).ThenBy(x => x.MaLo)
                     .ToList();
 
                 int totalPages = (int)Math.Ceiling((decimal)grouped.Count / dto.PageSize);
@@ -85,6 +94,7 @@ namespace Data_Product.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> SaveOrUpdate([FromBody] LoSanXuatPayloadDTO dto)
@@ -104,6 +114,21 @@ namespace Data_Product.Controllers
 
                 if (dto.ID == null || dto.ID == 0)
                 {
+                    // Kiểm tra trùng MaLo + ID_BoPhan
+                    bool isDuplicate = await _context.Tbl_BM_16_LoSanXuat
+                        .AnyAsync(x => x.MaLo == dto.MaLo && x.ID_BoPhan == dto.ID_BoPhan);
+
+                    if (isDuplicate)
+                        return BadRequest("Đã tồn tại lò sản xuất với Mã lò và Bộ phận này.");
+
+                    //  Kiểm tra trùng TenLo + ID_BoPhan
+                    bool isTenLoDuplicate = await _context.Tbl_BM_16_LoSanXuat
+                        .AnyAsync(x => x.TenLo == dto.TenLo && x.ID_BoPhan == dto.ID_BoPhan);
+
+                    if (isTenLoDuplicate)
+                        return BadRequest(new { success = false, message = "Đã tồn tại lò sản xuất với Tên lò và Bộ phận này." });
+
+
                     // Tạo mới
                     entity = new Tbl_BM_16_LoSanXuat
                     {
@@ -117,6 +142,19 @@ namespace Data_Product.Controllers
                 }
                 else
                 {
+                    // Kiểm tra trùng với bản ghi khác
+                    bool isMaLoDuplicate = await _context.Tbl_BM_16_LoSanXuat
+                        .AnyAsync(x => x.ID != dto.ID && x.MaLo == dto.MaLo && x.ID_BoPhan == dto.ID_BoPhan);
+
+                    if (isMaLoDuplicate)
+                        return BadRequest(new { success = false, message = "Mã lò đã được dùng ở Bộ phận này." });
+
+                    bool isTenLoDuplicate = await _context.Tbl_BM_16_LoSanXuat
+                        .AnyAsync(x => x.ID != dto.ID && x.TenLo == dto.TenLo && x.ID_BoPhan == dto.ID_BoPhan);
+
+                    if (isTenLoDuplicate)
+                        return BadRequest(new { success = false, message = "Tên lò đã được dùng ở Bộ phận này." });
+
                     // Cập nhật
                     entity = await _context.Tbl_BM_16_LoSanXuat.FindAsync(dto.ID);
                     if (entity == null) return NotFound();
@@ -186,12 +224,49 @@ namespace Data_Product.Controllers
                                                }).ToListAsync();
                 }
 
-                return Ok(new { success = true, item });
+                var loList = await getDropDownByIBoPhan(item.ID_BoPhan);
+
+                return Ok(new
+                {
+                    success = true,
+                    item,
+                    loDropdown = loList
+                });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
+        }
+
+        public async Task<List<SelectListItem>> getDropDownByIBoPhan(int idBoPhan)
+        {
+            List<SelectListItem> loList = new();
+            switch (idBoPhan)
+            {
+                case 63: // Lò Cao
+                    loList = await _context.Tbl_LoCao
+                        .Where(x => x.ID_PhongBan == idBoPhan)
+                        .Select(x => new SelectListItem
+                        {
+                            Value = x.ID.ToString(),
+                            Text = x.TenLoCao
+                        }).ToListAsync();
+                    break;
+
+                case 60:
+                case 61:
+                    loList = await _context.Tbl_LoThoi
+                        .Where(x => x.BoPhan == idBoPhan)
+                        .Select(x => new SelectListItem
+                        {
+                            Value = x.ID.ToString(),
+                            Text = x.TenLoThoi
+                        }).ToListAsync();
+                    break;
+            }
+
+            return loList;
         }
     }
 }
