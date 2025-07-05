@@ -405,6 +405,7 @@
                         <table class="table table-bordered text-center align-middle table-hover" id="IDtbKhuVucNhanThung">
                             <thead class ="table-light sticky-top bg-white" style="z-index: 2">
                                 <tr>
+                                    <th>Giờ BKMis</th>
                                     <th>Giờ NM</th>
                                     <th>Mã thùng gang</th>
                                     <th>Lò cao</th>
@@ -442,7 +443,7 @@
                                     <th>KL phế (T)</th>
                                     <th>KL vào lò thổi </th>
                                     <th>Mẻ thổi</th>
-                                    <th>Giờ thổi</th>
+                                    <th>Giờ bắt đầu thổi</th>
                                     <th style="min-width: 150px;">Ghi chú</th>
                                 </tr>
                             </thead>
@@ -729,6 +730,7 @@
 
                 const html = `
                 <tr data-id="${item.id}" data-mathung="${item.maThungGang}">
+                        <td>${item.bkmiS_Gio}</td>
                         <td>${item.gio_NM ?? ''}</td>
                         <td>${item.maThungGang ?? ''}</td>
                         <td>${item.iD_Locao ?? ''}</td>
@@ -831,8 +833,8 @@
                     dataThungDaNhan = data;
 
                     if(data.length !== 0){
-
-                        checkShowBtnPDF(data);
+                        // TODO PDF
+                        // checkShowBtnPDF(data);
                     } else{
                         $("#BtnXuatPhieuPDF").css("display","none");
                     }

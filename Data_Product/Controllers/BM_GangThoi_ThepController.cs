@@ -150,6 +150,7 @@ namespace Data_Product.Controllers
                                  {
                                      ID = a.ID,
                                      MaThungGang = a.MaThungGang,
+                                     BKMIS_Gio = a.BKMIS_Gio,
                                      BKMIS_ThungSo = a.BKMIS_ThungSo,
                                      NgayLuyenGang = a.NgayLuyenGang,
                                      ChuyenDen = a.ChuyenDen,
@@ -201,6 +202,7 @@ namespace Data_Product.Controllers
                     x.ID,
                     x.MaThungGang,
                     x.BKMIS_ThungSo,
+                    x.BKMIS_Gio,
                     x.NgayLuyenGang,
                     x.ChuyenDen,
                     x.G_KLGangLong,

@@ -1308,7 +1308,7 @@ namespace Data_Product.Controllers
 
                 // Join dữ liệu người chuyển
                 var chiTietGangLong = (from thung in data
-                                       join user in _context.Tbl_TaiKhoan on thung.G_ID_NguoiChuyen equals user.ID_TaiKhoan into g_user
+                                       join user in _context.Tbl_TaiKhoan on thung.G_ID_NguoiLuu equals user.ID_TaiKhoan into g_user
                                        from user in g_user.DefaultIfEmpty()
                                        join phongBan in _context.Tbl_PhongBan on user.ID_PhongBan equals phongBan.ID_PhongBan into g_phongBan
                                        from phongBan in g_phongBan.DefaultIfEmpty()
