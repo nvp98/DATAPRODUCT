@@ -214,7 +214,7 @@ namespace Data_Product.Services
                     phieu = new Tbl_BM_16_Phieu
                     {
                         MaPhieu = maPhieu,
-                        NgayTaoPhieu = DateTime.Today,
+                        NgayTaoPhieu =ngayLamViec,
                         ThoiGianTao = DateTime.Now,
                         ID_Locao = idLoCao,
                         ID_Kip = idKip,
@@ -226,7 +226,9 @@ namespace Data_Product.Services
                     _logger.LogInformation("Tạo phiếu: {maPhieu}", maPhieu);
                 }
 
-                var danhSachThung = await GetSoMeGangFromBKMIS(idLoCao, caKipCode, ngayStr, connectionString);
+               // var danhSachThung = await GetSoMeGangFromBKMIS(idLoCao, caKipCode, ngayStr, connectionString);
+                var danhSachThungGet = await GetSoMeGangFromBKMIS(idLoCao, caKipCode, ngayStr, connectionString);
+                var danhSachThung = danhSachThungGet.OrderBy(x => x.TestPatternCode).ToList();
 
                 var thungDaCoDict = await _context.Tbl_BM_16_GangLong
                     .Where(x => x.MaPhieu == maPhieu)
@@ -270,7 +272,7 @@ namespace Data_Product.Services
                         T_ID_TrangThai = 2,
                         ID_TrangThai = 1,
                         NgayLuyenGang = ngayLamViec,
-                        NgayTao = DateTime.Now,
+                        NgayTao = ngayLamViec,
                         ID_Locao = idLoCao,
                         G_ID_Kip = idKip,
                         G_Ca = soCa,
