@@ -63,6 +63,23 @@ namespace Data_Product.Controllers
                                        .ToListAsync();
             if (thungs.Count == 0) return NotFound("Không tìm thấy thùng nào.");
 
+            // Kiểm tra số liệu thùng gang thiếu
+            var invalidThungsGang = thungs
+                .Where(x =>
+                    x.KL_XeGoong == null ||
+                    x.G_KLThungVaGang == null ||
+                    x.G_KLThungChua == null ||
+                    x.G_KLGangLong == null ||
+                    x.ChuyenDen == null ||
+                    x.Gio_NM == null ||
+                    x.T_KLThungVaGang == null ||
+                    x.T_KLThungChua == null ||
+                    x.T_KLGangLong == null ||
+                    x.ID_TTG == null
+                )
+                .Select(x => new { x.ID, x.MaThungGang }) 
+                .ToList();
+
             var idTTGs = thungs.Select(x => x.ID_TTG).Distinct().ToList();
 
             // Lấy tất cả thùng trung gian liên quan
@@ -77,7 +94,7 @@ namespace Data_Product.Controllers
                 .Where(x => maThungTGs.Contains(x.MaThungTG))
                 .ToListAsync();
 
-            var invalidThungs = relatedTTGs
+            var invalidThungsTTG = relatedTTGs
                 .Where(item =>
                     item.KLThungVaGang_Thoi == null ||
                     item.KLThung_Thoi == null ||
@@ -89,9 +106,14 @@ namespace Data_Product.Controllers
                 .Select(x => new { x.MaThungTG }) 
                 .ToList();
 
-            if (invalidThungs.Any())
+            if (invalidThungsTTG.Any() || invalidThungsGang.Any())
             {
-                return Ok(new { isValid = false, invalidThungs });
+                return Ok(new
+                {
+                    isValid = false,
+                    invalidThungsTTG,
+                    invalidThungsGang
+                });
             }
 
             return Ok(new { isValid = true });

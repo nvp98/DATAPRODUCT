@@ -322,6 +322,14 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="BKMisThungSo" class="col-sm-5 col-form-label">Thùng số:</label>
+                                        <div class="col-sm-7">
+                                            <input class="form-control form-control-sm" type="number" id="IDBKMisThungSo" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -776,6 +784,7 @@
             const IDChuyenDen = $('#IDChuyenDen').val() || null;
             const IDTinhTrang = $('#IDTinhTrang').val() || null;
             const IDMaThungGang = $('#IDMaThungGang').val().trim() || null;
+            const IDBKMisThungSo = $('#IDBKMisThungSo').val() || null;
 
 
             const payload = {
@@ -785,7 +794,8 @@
                 ID_Locao: IDLoCao,
                 ChuyenDen: IDChuyenDen,
                 G_Ca: IDCaLamViec,
-                maThungGang : IDMaThungGang
+                MaThungGang : IDMaThungGang,
+                BKMIS_ThungSo: IDBKMisThungSo
             };
 
             $.ajax({
