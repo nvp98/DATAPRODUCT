@@ -371,7 +371,7 @@
                         <th>Giờ chọn mẻ</th>
                         <th>Tình trạng LT</th>
                         <th>BP Nhận</th>
-                        <th>Người nhận</th>
+                        <th style="min-width: 150px;">Người nhận</th>
                         <th>Chọn thùng</th>
                         <th>Tình trạng</th>
                     </tr>
@@ -490,14 +490,14 @@
 
         // tinh sum
        function TongKLGangLong(){
-           let total = 0;
-        $("#tblDuLieu .G_KL_GangLong").each(function () {
-               const value = parseFloat($(this).text());
-               if (!isNaN(value)) {
-                   total += value;
-               }
-           });
-          $("#IDTongKLGangLong").text(total.toFixed(2));
+            let total = 0;
+            $("#tblDuLieu .G_KL_GangLong").each(function () {
+                   const value = parseFloat($(this).text());
+                   if (!isNaN(value)) {
+                       total += value;
+                   }
+               });
+            $("#IDTongKLGangLong").text(total.toFixed(2));
        }
 
        function TongKLGangLongThep(){
@@ -567,7 +567,47 @@
             `;
         }
 
-         function getDayOnly(dateString) {
+        function renderStatusPKH(item) {
+            if (item.iD_TrangThai === 5) return renderStatusCard(item.iD_TrangThai);
+
+            const isValidValue = val => val !== null && val !== undefined;
+
+            const commonFields = [
+                item.t_ID_TrangThai === 4,
+                item.g_ID_TrangThai === 3,
+                isValidValue(item.iD_TTG),
+                isValidValue(item.soThungTG),
+                isValidValue(item.klThungVaGang_Thoi),
+                isValidValue(item.klThung_Thoi),
+                isValidValue(item.klGang_Thoi),
+                isValidValue(item.kL_phe),
+                isValidValue(item.iD_MeThoi),
+                isValidValue(item.gioChonMe),
+            ];
+
+            if (item.isCopy) {
+                const isValid = commonFields.every(Boolean);
+                return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+            } else {
+                const additionalFields = [
+                    isValidValue(item.kL_XeGoong),
+                    isValidValue(item.g_KLThungChua),
+                    isValidValue(item.g_KLThungVaGang),
+                    isValidValue(item.g_KLGangLong),
+                    isValidValue(item.chuyenDen),
+                    isValidValue(item.gio_NM),
+                    isValidValue(item.t_KLThungVaGang),
+                    isValidValue(item.t_KLThungChua),
+                    isValidValue(item.t_KLGangLong),
+                ];
+
+                const isValid = [...commonFields, ...additionalFields].every(Boolean);
+                return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+            }
+        }
+
+
+        function getDayOnly(dateString) {
             if (!dateString) return "";
 
             const date = new Date(dateString);
@@ -595,7 +635,7 @@
             $("#IDTongKLVaoLoThoi").text('0.00');
             
             
-            data.forEach(group => {
+            data.forEach((group, groupIndex) => {
                 const rowspan = group.length;
                 let isFirstRow = true;
 
@@ -603,10 +643,12 @@
 
                     const isCopy = item.isCopy;
 
-                    const row = $(`<tr data-id="${item.id}" data-idtrangthai="${item.iD_TrangThai}" data-mathungtg=${item.maThungTG}></tr>`);
+                    const row = $(`<tr data-group-id="${groupIndex}" data-id="${item.id}" data-idtrangthai="${item.iD_TrangThai}" data-mathungtg=${item.maThungTG}></tr>`);
                     const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
-                    const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
+
+                    const tinhTrangHTML = renderStatusPKH(item);
+
                     const ngayLG = getDayOnly(item.ngayTao);
                     const ngayLT = getDayOnly(item.ngayLuyenThep);
                     const isShow = checkCondition(item);
@@ -617,7 +659,7 @@
                     row.append(`<td  class="hide-col">${item.maThungGang ?? ''}</td>`);
                     row.append(`<td>${item.iD_Locao ?? ''}</td>`);
                     row.append(`<td ${item.t_copy || isCopy ? 'style="color: red;"' : ''}>${item.bkmiS_SoMe ?? ''}</td>`);
-                    row.append(`<td ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
+                    row.append(`<td style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
                     row.append(`<td>${item.bkmiS_Gio ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
 
@@ -651,24 +693,28 @@
                     if (isFirstRow) {
                         row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
-                        row.append(`<td rowspan="${rowspan}">${item.soThungTG ?? ''}</td>`);
+                        row.append(`<td style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" rowspan="${rowspan}">${item.soThungTG ?? ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.klThungVaGang_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.klThung_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}" class="KLPhe">${item.kL_phe?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}" class="KL_GangVaoLoThoi">${item.klGang_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.maMeThoi || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.gioChonMe || ''}</td>`);
-                        isFirstRow = false;
+                        
                     }
 
                     row.append(`<td>${tinhTrangLTHTML}</td>`);
                     row.append(`<td>${item.tenPhongBan ?? ''}</td>`);
                     row.append(`<td>${item.hoVaTen ?? ''}</td>`);
-                    row.append(`<td>
+                    if(isFirstRow){
+                        row.append(`<td rowspan="${rowspan}">
                                     ${ isShow ? `<input type="checkbox" class="cbx-chotThung" />`
                                         : ''
                                     }
                                   </td>`);
+                        isFirstRow = false;
+                    }
+                    
                      row.append(`<td>${tinhTrangHTML}</td>`);
                      tbody.append(row);
                 });
@@ -687,6 +733,9 @@
         }
 
         function checkCondition(item){
+            if(item.isCopy){
+                return false;
+            }
             const isDUC = item.chuyenDen === "DUC1" || item.chuyenDen === "DUC2";
 
             if (isDUC && item.t_ID_TrangThai === 4 && item.g_ID_TrangThai === 3) {
@@ -829,79 +878,102 @@
 
        // logic chot thung
         $('#btnChotThung').click(function () {
-              let selectedIds = [];
-              let hasLocked = false;
-              $('#tblDuLieu tbody tr').each(function () {
-                  const checkbox = $(this).find('.cbx-chotThung');
-                  if (checkbox.is(':checked')) {
-                      const id = $(this).data('id');
-                      const idTrangThai = $(this).data('idtrangthai');
-                      if (idTrangThai == 5) {
+            let selectedIds = [];
+            let hasLocked = false;
+
+            // Duyệt qua tất cả các checkbox đã chọn
+            $('.cbx-chotThung:checked').each(function () {
+                const $row = $(this).closest('tr');
+                const groupId = $row.data('group-id');
+
+                // Lấy tất cả các hàng trong cùng group
+                const rowsInGroup = $(`tr[data-group-id="${groupId}"]`);
+
+                rowsInGroup.each(function () {
+                    const id = $(this).data('id');
+                    const idTrangThai = $(this).data('idtrangthai');
+
+                    if (idTrangThai == 5) {
                         hasLocked = true;
-                        return false;
-                      }
-                      selectedIds.push({id: id});
-                  }
-              });
-              if (hasLocked) {
-                  alert("Vui lòng không chọn các thùng đã chốt.");
-                  Search();
-                  return;
-              }
-              if (selectedIds.length === 0) {
-                  alert("Vui lòng chọn ít nhất 1 dòng.");
-                  Search();
-                  return;
-              }
-              $.ajax({
-                  url: "/BM16_GangThoi_PKH/CheckChotThung",
-                  type: "POST",
-                  contentType: "application/json",
-                  data: JSON.stringify(selectedIds),
-                  processData: false,
-                  success: function (res) {
-                      if(res.isValid){
-                          $.ajax({
-                              url: "/BM16_GangThoi_PKH/ChotThung",
-                              type: "POST",
-                              contentType: "application/json",
-                              data: JSON.stringify(selectedIds),
-                              processData: false,
-                              success: function (res) {
-                                  alert("Đã chốt thùng thành công")
-                                  // render lai
-                                  Search();
-                              },
-                              error: function () {
-                                  alert("Lỗi khi nhận dữ liệu!");
-                              }
-                          });
-                      } else{
-                          alert("Vui lòng kiểm tra dữ liệu các thùng trung gian copy");
-                      }
-                  },
-                  error: function () {
-                      alert("Lỗi khi nhận dữ liệu!");
-                  }
-              });
-              
-              
+                        return false; // thoát each trong group
+                    }
+
+                    selectedIds.push({ id: id });
+                });
+
+                if (hasLocked) return false; // thoát each checkbox
+            });
+
+            if (hasLocked) {
+                alert("Vui lòng không chọn các thùng đã chốt.");
+                Search();
+                return;
+            }
+
+            if (selectedIds.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 dòng.");
+                Search();
+                return;
+            }
+
+            $.ajax({
+                url: "/BM16_GangThoi_PKH/CheckChotThung",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedIds),
+                processData: false,
+                success: function (res) {
+                    if (res.isValid) {
+                        $.ajax({
+                            url: "/BM16_GangThoi_PKH/ChotThung",
+                            type: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify(selectedIds),
+                            processData: false,
+                            success: function (res) {
+                                alert("Đã chốt thùng thành công");
+                                Search(); 
+                            },
+                            error: function () {
+                                alert("Lỗi khi nhận dữ liệu!");
+                            }
+                        });
+                    } else {
+                        alert("Vui lòng kiểm tra dữ liệu các thùng");
+                        Search();
+                    }
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
         });
 
         $('#btnHuyChotThung').click(function () {
               let selectedIds = [];
               let hasLocked = false;
-              $('#tblDuLieu tbody tr').each(function () {
-                  const checkbox = $(this).find('.cbx-chotThung');
-                  if (checkbox.is(':checked')) {
-                      const id = $(this).data('id');
-                      const idTrangThai = $(this).data('idtrangthai');
-                      if (idTrangThai == 2) {
-                        hasLocked = true;
-                        return false;
-                      }
-                      selectedIds.push({id: id});
-                  }
+
+               // Duyệt qua tất cả các checkbox đã chọn
+              $('.cbx-chotThung:checked').each(function () {
+                    const $row = $(this).closest('tr');
+                    const groupId = $row.data('group-id');
+
+                    // Lấy tất cả các hàng trong cùng group
+                    const rowsInGroup = $(`tr[data-group-id="${groupId}"]`);
+
+                    rowsInGroup.each(function () {
+                        const id = $(this).data('id');
+                        const idTrangThai = $(this).data('idtrangthai');
+
+                        if (idTrangThai == 2) {
+                            hasLocked = true;
+                            return false; // thoát each trong group
+                        }
+
+                        selectedIds.push({ id: id });
+                    });
+
+                    if (hasLocked) return false; // thoát each checkbox
               });
               if (hasLocked) {
                   alert("Vui lòng không chọn các thùng chưa chốt.");
@@ -918,7 +990,7 @@
                   url: "/BM16_GangThoi_PKH/HuyChotThung",
                   type: "POST",
                   contentType: "application/json",
-                    data: JSON.stringify(selectedIds),
+                  data: JSON.stringify(selectedIds),
                   processData: false,
                   success: function (res) {
                       alert("Đã Hủy chốt thùng thành công")

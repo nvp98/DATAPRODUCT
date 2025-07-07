@@ -129,6 +129,11 @@ namespace Data_Product.Controllers
                     query = query.Where(x => x.MaThungGang.Contains(payload.MaThungGang));
                 }
 
+                if (!string.IsNullOrEmpty(payload.BKMIS_ThungSo))
+                {
+                    query = query.Where(x => x.BKMIS_ThungSo.Contains(payload.BKMIS_ThungSo));
+                }
+
                 if (payload.TuNgay.HasValue && payload.DenNgay.HasValue)
                 {
                     var tuNgay = payload.TuNgay.Value.Date;
@@ -145,7 +150,7 @@ namespace Data_Product.Controllers
                                  join trangThai in _context.Tbl_BM_16_TrangThai on a.T_ID_TrangThai equals trangThai.ID
                                  join loCao in _context.Tbl_LoCao on a.ID_Locao equals loCao.ID
                                  where a.T_copy == false
-                                 orderby a.NgayTao descending
+                                 orderby a.BKMIS_Gio descending, a.MaThungGang descending
                                  select new Tbl_BM_16_GangLong
                                  {
                                      ID = a.ID,
