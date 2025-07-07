@@ -29,6 +29,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Data_Product.Models.ModelView;
 using Mysqlx;
 using Org.BouncyCastle.Ocsp;
+using System.Text.RegularExpressions;
 
 
 namespace Data_Product.Controllers
@@ -129,6 +130,10 @@ namespace Data_Product.Controllers
                     Console.WriteLine("Lỗi: " + ex.Message);
                 }
             }
+            dvt = dvt
+        .Where(x => !string.IsNullOrEmpty(x.TestPatternCode) && x.TestPatternCode.Length > 9)
+                .OrderBy(x => int.Parse(x.TestPatternCode.Substring(9)))
+                .ToList();
 
             return Json(dvt);
         }
@@ -470,7 +475,7 @@ namespace Data_Product.Controllers
                         G_ID_Kip = model.ID_Kip,
                         G_Ca = soCa,
                         T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2,
-                        ID_TrangThai = 1,
+                        ID_TrangThai = 2,
                         T_copy = false,
                     };
 
@@ -862,7 +867,7 @@ namespace Data_Product.Controllers
                         T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2,
                        // T_ID_TrangThai = 2,
                         G_Ca = soCa,
-                        ID_TrangThai = 1,
+                        ID_TrangThai = 2,
                         T_copy = false,
                     };
                      _context.Tbl_BM_16_GangLong.Add(gangThoi);
@@ -973,19 +978,34 @@ namespace Data_Product.Controllers
             //ChuaXuLy = 1, ChoXuLy = 2, DaXuLy = 3, DaNhan = 4, DaChot = 5
             try
             {
-                var thungCanXoa = await _context.Tbl_BM_16_GangLong
-                     .Where(x => x.MaPhieu == req.MaPhieu &&
-                                 req.SoMes.Contains(x.BKMIS_SoMe) &&
-                                 (x.G_ID_TrangThai == 1 || x.ID_TrangThai == 1))
-                     .ToListAsync();
+                var allThung = await _context.Tbl_BM_16_GangLong
+                    .Where(x => x.MaPhieu == req.MaPhieu && req.SoMes.Contains(x.BKMIS_SoMe))
+                    .ToListAsync();
+
+                // Những thùng được phép xóa
+                var thungCanXoa = allThung
+      .Where(x => (x.XacNhan == false || x.XacNhan == null) && (x.G_ID_TrangThai == 1 || x.ID_TrangThai == 1))
+      .ToList();
+
+                // Những số mẻ không được xóa (đã xác nhận hoặc trạng thái khác)
+                var soMesKhongXoaDuoc = allThung
+                    .Where(x => !thungCanXoa.Contains(x))
+                    .Select(x => x.BKMIS_SoMe)
+                    .Distinct()
+                    .ToList();
+
                 if (thungCanXoa.Any())
                 {
                     _context.Tbl_BM_16_GangLong.RemoveRange(thungCanXoa);
                     await _context.SaveChangesAsync();
-                    return Ok(new { success = true, message = "Đã xóa thành công." });
                 }
 
-                return Ok(new { success = true, message = "Không có thùng nào cần xóa." });
+                return Ok(new
+                {
+                    success = true,
+                    message = thungCanXoa.Any() ? "Đã xóa thành công." : "Không có thùng nào cần xóa.",
+                    soMesKhongXoaDuoc = soMesKhongXoaDuoc
+                });
             }
             catch (Exception ex)
             {

@@ -228,7 +228,10 @@ namespace Data_Product.Services
 
                // var danhSachThung = await GetSoMeGangFromBKMIS(idLoCao, caKipCode, ngayStr, connectionString);
                 var danhSachThungGet = await GetSoMeGangFromBKMIS(idLoCao, caKipCode, ngayStr, connectionString);
-                var danhSachThung = danhSachThungGet.OrderBy(x => x.TestPatternCode).ToList();
+                var danhSachThung = danhSachThungGet
+                   .OrderBy(x => int.Parse(x.TestPatternCode.Substring(9))) // giả sử số bắt đầu từ vị trí 9
+                   .ToList();
+
 
                 var thungDaCoDict = await _context.Tbl_BM_16_GangLong
                     .Where(x => x.MaPhieu == maPhieu)
@@ -270,7 +273,7 @@ namespace Data_Product.Services
                         ChuyenDen = null,
                         G_ID_TrangThai = 1,
                         T_ID_TrangThai = 2,
-                        ID_TrangThai = 1,
+                        ID_TrangThai = 2,
                         NgayLuyenGang = ngayLamViec,
                         NgayTao = ngayLamViec,
                         ID_Locao = idLoCao,
