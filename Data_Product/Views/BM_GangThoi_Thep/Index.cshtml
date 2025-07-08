@@ -1632,7 +1632,7 @@
 
             // Gắn vào payload đã lưu trước đó
             if (pendingPayload) {
-                pendingPayload.thungTrungGian = soThung.toString();
+                pendingPayload.thungTrungGian = parseFloat(soThung).toString();
 
                 guiNhan(pendingPayload);
 

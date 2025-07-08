@@ -244,7 +244,7 @@ namespace Data_Product.Controllers
 
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
         {
-            var query = _context.Tbl_BM_16_GangLong.AsQueryable();
+            var query = _context.Tbl_BM_16_GangLong.OrderByDescending(x => x.NgayTao).ThenBy(x => x.ID_Locao).ThenByDescending(x => x.G_Ca).ThenByDescending(x => x.MaThungGang).ThenBy(x => x.MaThungThep).AsQueryable();
             decimal sumKLGang = 0;
             decimal sumKLGangLongThep = 0;
             decimal sumKLGangNhan = 0;
@@ -362,19 +362,19 @@ namespace Data_Product.Controllers
                  sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
             }
 
-            if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
-            {
-                query = query.OrderByDescending(x => x.NgayLuyenThep)
-                                .ThenBy(x => x.MaThungGang)
-                                .ThenBy(x => x.MaThungThep);
+            //if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
+            //{
+            //    query = query.OrderByDescending(x => x.NgayLuyenThep)
+            //                    .ThenBy(x => x.MaThungGang)
+            //                    .ThenBy(x => x.MaThungThep);
 
-            }
-            else
-            {
-                query = query.OrderByDescending(x => x.NgayTao)
-                                    .ThenBy(x => x.MaThungGang)
-                                    .ThenBy(x => x.MaThungThep);
-            }
+            //}
+            //else
+            //{
+            //    query = query.OrderByDescending(x => x.NgayTao)
+            //                        .ThenBy(x => x.MaThungGang)
+            //                        .ThenBy(x => x.MaThungThep);
+            //}
             // Tổng số bản ghi
             var totalRecords = await query.CountAsync();
 
@@ -422,7 +422,7 @@ namespace Data_Product.Controllers
                             join methoi in _context.Tbl_MeThoi on ttg.ID_MeThoi equals methoi.ID into g_mt
                             from methoi in g_mt.DefaultIfEmpty()
 
-                            orderby a.NgayTao descending, a.MaThungGang, a.MaThungThep
+                            //orderby a.NgayTao descending, a.G_Ca, a.MaThungGang, a.MaThungThep
                             select new Tbl_BM_16_GangLong
                             {
                                 ID = a.ID,
@@ -520,7 +520,7 @@ namespace Data_Product.Controllers
             var test = gocData;
             var groupedData = gocData
                                 .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
-                                .OrderByDescending(g => g.Max(x => x.NgayTao))
+                                //.OrderByDescending(g => g.Max(x => x.NgayTao))
                                 .Select(g => g.ToList())
                                 .ToList();
 
@@ -760,11 +760,14 @@ namespace Data_Product.Controllers
                                     worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.MaMeThoi;
                                     colIndex++;
 
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.GioChonMe;
+                                    colIndex++;
+
                                     isFirst = false;
                                 }
                                 else
                                 {
-                                    colIndex += 8; // Skip các cột merge
+                                    colIndex += 9; // Skip các cột merge
                                 }
 
                                 var tinhTrangT_cell = worksheet.Cell(row, colIndex++);
@@ -819,8 +822,8 @@ namespace Data_Product.Controllers
                         worksheet.Cell(sumRow, 31).Style.Font.SetBold();
                         worksheet.Cell(sumRow, 31).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Merge các cột AF -> AJ (32 -> 36)
-                        var mergeRange3 = worksheet.Range(sumRow, 32, sumRow, 36);
+                        // Merge các cột AF -> AJ (32 -> 37)
+                        var mergeRange3 = worksheet.Range(sumRow, 32, sumRow, 37);
                         mergeRange3.Merge();
                         mergeRange3.Value = "";
                         mergeRange3.Style.Fill.BackgroundColor = XLColor.White;
@@ -840,13 +843,13 @@ namespace Data_Product.Controllers
                         worksheet.Cell(sumAllRow, 14).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge các cột O -> U (15 -> 21)
-                        var mergeRangeAll = worksheet.Range(sumAllRow, 15, sumAllRow, 36);
+                        var mergeRangeAll = worksheet.Range(sumAllRow, 15, sumAllRow, 37);
                         mergeRangeAll.Merge();
                         mergeRangeAll.Value = "";
                         mergeRangeAll.Style.Fill.BackgroundColor = XLColor.White;
 
                         // Format toàn bảng
-                        var usedRange = worksheet.Range($"A7:AJ{sumAllRow}");
+                        var usedRange = worksheet.Range($"A7:AK{sumAllRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
