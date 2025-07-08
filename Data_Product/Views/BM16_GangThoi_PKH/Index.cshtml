@@ -233,7 +233,6 @@
                                     <label class="form-label">Tình trạng chốt:</label>
                                     <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
                                         <option value="">-- Tình trạng --</option>
-                                        <option value="1">Chưa chuyển</option>
                                         <option value="2">Chờ xử lý</option>
                                         <option value="5">Đã chốt</option>
                                     </select>
@@ -368,12 +367,14 @@
                         <th>KL phế (T)</th>
                         <th>KL vào lò thổi (T)</th>
                         <th>Mẻ</th>
-                        <th>Giờ chọn mẻ</th>
+                        <th>Giờ bắt đầu thổi</th>
                         <th>Tình trạng LT</th>
                         <th>BP Nhận</th>
                         <th style="min-width: 150px;">Người nhận</th>
                         <th>Chọn thùng</th>
                         <th>Tình trạng</th>
+                        <th class="hide-col">KL chênh lệch</th>
+                        <th class="hide-col">Tỷ lệ chênh lệch</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -398,7 +399,13 @@
                         <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="7"></td>
+                        <td colspan="7" class="space-4"></td>
+                        <td class="hide-col" id="IDTongKLChenhLech" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td class="hide-col" id="IDTongPhanTramChenhLech" style="font-weight: 600">
+                            0.00
+                        </td>
                     </tr>
 
                     <tr style="height: 50px;">
@@ -420,7 +427,13 @@
                         <td id="IDTongAllKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="7"></td>
+                        <td colspan="7" class="space-4"></td>
+                        <td class="hide-col" id="IDTongAllKLChenhLech" style="font-weight: 600">
+                            0.0
+                        </td>
+                        <td class="hide-col" id="IDTongAllPhanTramChenhLech" style="font-weight: 600">
+                            0.0
+                        </td>
                     </tr>
                 </tfoot>
             </table>
@@ -544,6 +557,30 @@
           $("#IDTongKLGangNhan").text(total.toFixed(2));
        }
 
+        function renderTongKLChenhLech(idGang, idThep, idKQ){
+            const g_KL = parseInt($(`#${idGang}`).text().trim());
+            const t_KL = parseInt($(`#${idThep}`).text().trim());
+
+            if (!isNaN(g_KL) && !isNaN(t_KL)) {
+                let total = KLChenhLech(g_KL, t_KL);
+                $(`#${idKQ}`).text(total !== null ? total : '');
+            } else {
+                $(`#${idKQ}`).text('');
+            }
+        }
+
+        function renderTongPhanTramChenhLech(idGang, idThep, idKQ){
+            const g_KL = parseInt($(`#${idGang}`).text().trim());
+            const t_KL = parseInt($(`#${idThep}`).text().trim());
+
+            if (!isNaN(g_KL) && !isNaN(t_KL)) {
+                let total = PhanTramChenhLech(g_KL, t_KL);
+                $(`#${idKQ}`).text(total !== null ? total + '%' : '');
+            } else {
+                $(`#${idKQ}`).text('');
+            }
+        }
+
         // render card trạng thái
          function renderStatusCard(tinhTrang) {
             const statusMap = {
@@ -606,6 +643,29 @@
             }
         }
 
+        function KLChenhLech(g_KLGangLong, t_KLGangLong) {
+            if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
+                return parseFloat(t_KLGangLong - g_KLGangLong).toFixed(2);
+            }
+            return null; 
+        }
+
+        function PhanTramChenhLech(g_KLGangLong, t_KLGangLong) {
+            if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
+                const klChenh = KLChenhLech(g_KLGangLong, t_KLGangLong);
+
+                if (klChenh !== null) {
+                    const goc = parseFloat(t_KLGangLong);
+                    const result = (parseFloat(klChenh) / goc) * 100;
+
+                    if (!isNaN(result)) {
+                        return result.toFixed(1); 
+                    }
+                }
+            }
+            return '0.0'; 
+        }
+
 
         function getDayOnly(dateString) {
             if (!dateString) return "";
@@ -652,6 +712,9 @@
                     const ngayLG = getDayOnly(item.ngayTao);
                     const ngayLT = getDayOnly(item.ngayLuyenThep);
                     const isShow = checkCondition(item);
+                    const klChenh = KLChenhLech(item.g_KLGangLong, item.t_KLGangLong);
+                    const ptChenh = PhanTramChenhLech(item.g_KLGangLong, item.t_KLGangLong);
+
 
                     row.append(`<td>${ngayLG ?? ''}</td>`);
                     row.append(`<td>${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>`);
@@ -716,6 +779,17 @@
                     }
                     
                      row.append(`<td>${tinhTrangHTML}</td>`);
+                    if (klChenh !== '0.00') {
+                        row.append(`<td class="hide-col">${klChenh ?? ''}</td>`);
+                    } else {
+                        row.append('<td class="hide-col"></td>');
+                    }
+
+                    if (ptChenh !== '0.0') {
+                        row.append(`<td class="hide-col">${ptChenh ? ptChenh + '%' : ''}</td>`);
+                    } else {
+                        row.append('<td class="hide-col"></td>');
+                    }
                      tbody.append(row);
                 });
                 TongKLGangLong();
@@ -723,6 +797,8 @@
                 TongKLVaoLoThoi();
                 TongKLPhe();
                 TongKLGangNhan();
+                renderTongKLChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongKLChenhLech');
+                renderTongPhanTramChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongPhanTramChenhLech');
                 applyColumnVisibility();
             });
              $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toFixed(2) : $("#IDTongKLGangLong").text().trim());
@@ -730,6 +806,8 @@
              $("#IDTongAllKLGangNhan").text(res.sumKLGangNhan !== 0 ? res.sumKLGangNhan.toFixed(2) : $("#IDTongKLGangNhan").text().trim());
              $("#IDTongAllKLPhe").text(res.sumKLPhe !== 0 ? res.sumKLPhe.toFixed(2) : $("#IDTongKLPhe").text().trim());
              $("#IDTongAllKLVaoLoThoi").text(res.sumKLVaoLoThoi !== 0 ? res.sumKLVaoLoThoi.toFixed(2) : $("#IDTongKLVaoLoThoi").text().trim());
+             renderTongKLChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllKLChenhLech');
+             renderTongPhanTramChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllPhanTramChenhLech');
         }
 
         function checkCondition(item){
@@ -824,10 +902,13 @@
             };
         }
 
+
         function renderPagination(totalRecords) {
             const totalPages = Math.ceil(totalRecords / pageSize);
             const pagination = $('#pagination');
             pagination.empty();
+
+            if (totalPages <= 1) return; // Không cần phân trang nếu chỉ có 1 trang
 
             const createPageItem = (page, label = page, isActive = false, isDisabled = false) => {
                 return `
@@ -837,14 +918,52 @@
                 `;
             };
 
+            // << Prev
             pagination.append(createPageItem(currentPage - 1, '«', false, currentPage === 1));
 
-            for (let i = 1; i <= totalPages; i++) {
+            let startPage, endPage;
+
+            if (totalPages <= 5) {
+                startPage = 1;
+                endPage = totalPages;
+            } else {
+                if (currentPage <= 3) {
+                    startPage = 1;
+                    endPage = 4;
+                } else if (currentPage >= totalPages - 2) {
+                    startPage = totalPages - 3;
+                    endPage = totalPages;
+                } else {
+                    startPage = currentPage - 1;
+                    endPage = currentPage + 1;
+                }
+            }
+
+            // First page and ellipsis
+            if (startPage > 1) {
+                pagination.append(createPageItem(1, '1', false));
+                if (startPage > 2) {
+                    pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                }
+            }
+
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
                 pagination.append(createPageItem(i, i, i === currentPage));
             }
 
+            // Last page and ellipsis
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                }
+                pagination.append(createPageItem(totalPages, totalPages, false));
+            }
+
+            // >> Next
             pagination.append(createPageItem(currentPage + 1, '»', false, currentPage === totalPages));
 
+            // Click event
             $('#pagination .page-link').on('click', function () {
                 const page = parseInt($(this).data('page'));
                 if (!isNaN(page) && page !== currentPage) {
@@ -853,7 +972,6 @@
                 }
             });
         }
-
 
          // Search 
          function Search() {
@@ -1042,7 +1160,7 @@
             $('.space-2').attr('colspan', isHidden ? 5 : 10);
 
             $('.space-3').attr('colspan', isHidden ? 4 : 9);
-            $('.space-4').attr('colspan', isHidden ? 17 : 23);
+            $('.space-4').attr('colspan', isHidden ? 7 : 7);
         }
 
         // xu ly khi load
