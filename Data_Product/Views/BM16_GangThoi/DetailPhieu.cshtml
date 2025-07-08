@@ -215,6 +215,8 @@
 										<th rowspan="2">Thùng số</th>
 										<th rowspan="2">Giờ</th>
 										<th rowspan="2">Phân loại</th>
+										<th rowspan="2">KL thùng + xe</th>
+										<th rowspan="2">KL thùng & gang + xe</th>
 										<th rowspan="2">KL xe goong</th>
 										<th rowspan="2">KL thùng</th>
 										<th rowspan="2">KL thùng & gang lỏng</th>
@@ -274,16 +276,24 @@
 												<td name="Gio">@item.GioNhaMay</td>
 												<td name="PhanLoai">@item.PhanLoai</td>
 												<td>
+													<input type="number" name="KhoiLuongThungXe" step="0.01" class="form-control"
+														   style="width: 100px; padding: 4px;" />
+												</td>
+												<td>
+													<input type="number" name="KLThungGangXe" step="0.01" class="form-control"
+														   style="width: 100px; padding: 4px;" />
+												</td>
+												<td>
 													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;" />
 												</td>
 												<td>
-													<input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung" style="width: 100px; padding: 4px;">
+													<input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung" style="width: 100px; padding: 4px;" disabled>
 												</td>
 												<td>
-													<input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung_GangLong" style="width: 100px; padding: 4px;">
+													<input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung_GangLong" style="width: 100px; padding: 4px;" disabled>
 												</td>
 												<td>
-													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;">
+													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;" disabled>
 												</td>
 												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") /></td>
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") /></td>
@@ -594,7 +604,7 @@
 						MaPhieu: maPhieu,
 						DsMaThung: selectedMaThungs
 					};
-					console.log ('requestData',requestData);
+					//console.log ('requestData',requestData);
 					XacNhanThung(requestData); // Gọi API
 				}
 			});
@@ -760,6 +770,7 @@
 
 						if (hasNewRows) {
 							saveGangThoiVaoPhieu(); // Lưu thùng mới
+							location.reload();
 						}
 						else if (hasChangedRows) {
 							const danhSachThung = getDanhSachThung(); // chỉ lấy các dòng đã sửa
@@ -1104,10 +1115,13 @@
 						contentType: "application/json",
 						data: JSON.stringify({ maPhieu, soMes: soMeCanXoa }),
 						success: function (res) {
-							console.log(res.message);
+							const danhSachKhongXoa = res.soMesKhongXoaDuoc || [];
+
 							tableBody.find("tr").each(function () {
 								const soMe = $(this).find("td[name='soMe']").text().trim();
-								if (soMeCanXoa.includes(soMe)) {
+
+								// Chỉ xóa nếu không thuộc danh sách không được xóa
+								if (soMeCanXoa.includes(soMe) && !danhSachKhongXoa.includes(soMe)) {
 									$(this).remove();
 								}
 							});
@@ -1230,17 +1244,36 @@
 				}
 			});
 		}
-		$(document).on("input", "input[name='KhoiLuongThung'], input[name='KLThungGangLong']", function () {
-			let row = $(this).closest("tr");
+		// $(document).on("input", "input[name='KhoiLuongThung'], input[name='KLThungGangLong']", function () {
+		// 	let row = $(this).closest("tr");
 
-			let klThung = parseFloat(row.find("input[name='KhoiLuongThung']").val()) || 0;
-			//console.log("====",klThung)
-			let klThungGL = parseFloat(row.find("input[name='KLThungGangLong']").val()) || 0;
-			//console.log("==klThungGL==",klThungGL)
-			let klGLCR = klThungGL - klThung;
-			//console.log("==klGLCR==",klGLCR)
-			row.find("input[name='KLGangLong']").val(klGLCR > 0 ? klGLCR.toFixed(2) : 0);
-		});
+		// 	let klThung = parseFloat(row.find("input[name='KhoiLuongThung']").val()) || 0;
+		// 	//console.log("====",klThung)
+		// 	let klThungGL = parseFloat(row.find("input[name='KLThungGangLong']").val()) || 0;
+		// 	//console.log("==klThungGL==",klThungGL)
+		// 	let klGLCR = klThungGL - klThung;
+		// 	//console.log("==klGLCR==",klGLCR)
+		// 	row.find("input[name='KLGangLong']").val(klGLCR > 0 ? klGLCR.toFixed(2) : 0);
+		// });
+		$(document).on("input", "input[name='KhoiLuongThungXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
+		let row = $(this).closest("tr");
+
+		let klThungXe = parseFloat(row.find("input[name='KhoiLuongThungXe']").val()) || 0;
+		let klThungGangXe = parseFloat(row.find("input[name='KLThungGangXe']").val()) || 0;
+		let klXeGoong = parseFloat(row.find("input[name='KhoiLuongXeGoong']").val()) || 0;
+
+		// KL thùng = KL thùng + xe - KL xe goong
+		let klThung = klThungXe - klXeGoong;
+		row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
+
+		// KL thùng & gang = KL thùng & gang + xe - KL xe goong
+		let klThungGang = klThungGangXe - klXeGoong;
+		row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
+
+		// KL gang lỏng = KL thùng & gang - KL thùng
+		let klGangLong = klThungGang - klThung;
+		row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
+	});
 
 		$(document).ready(function() {
 			function tinhTongKL() {
@@ -1573,12 +1606,20 @@
 				success: function () {
 					alert("Đã cập nhật thành công!");
 					$('#dataTable tbody tr').removeAttr('data-changed');
+					location.reload();
 				},
 				error: function (xhr) {
 					alert("Lỗi khi cập nhật: " + (xhr.responseText || "Không xác định"));
 				}
 			});
 		}
+			// Chỉ cho chọn 1 checkbox vận chuyển trong mỗi dòng
+	$("#dataTable").on("change", "input[name^='VanChuyen']", function () {
+		const $row = $(this).closest("tr");
+		if ($(this).is(":checked")) {
+			$row.find("input[name^='VanChuyen']").not(this).prop("checked", false);
+		}
+	});
 
 	//  $(document).ready(function () {
 	// 	$.ajax({

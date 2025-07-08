@@ -240,7 +240,7 @@ namespace Data_Product.Controllers
         }
         public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, string ca,string locao, int page = 1)
         {
-            const int pageSize = 20;
+            const int pageSize = 10;
             if (page < 1) page = 1;
             var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
             var loCaoList = await GetLoCaoList();
@@ -843,6 +843,12 @@ namespace Data_Product.Controllers
                    .FirstOrDefaultAsync();
 
                     int? soCa = int.TryParse(tenCaStr, out int result) ? result : null;
+                    bool duDuLieu = item.KL_XeGoong != null &&
+                       item.G_KLThungChua != null &&
+                       item.G_KLThungVaGang != null &&
+                       item.G_KLGangLong != null &&
+                       item.ChuyenDen != null &&
+                       item.Gio_NM != null;
                     var gangThoi = new Tbl_BM_16_GangLong
                     {
                         MaPhieu = req.MaPhieu,
@@ -859,7 +865,7 @@ namespace Data_Product.Controllers
                         ChuyenDen = item.ChuyenDen ?? "",
                         Gio_NM =    item.Gio_NM,
                         G_GhiChu = item.G_GhiChu,
-                        G_ID_TrangThai = 1,
+                        G_ID_TrangThai = duDuLieu ? 1 :3,
                         NgayTao = req.NgayPhieuGang,
                         G_ID_NguoiLuu = idNhanVienLuu,
                         ID_Locao = req.ID_Locao,
@@ -1105,7 +1111,19 @@ namespace Data_Product.Controllers
                     .ThenBy(x => x.MaThungSuffix)
                     .Select(x => x.Thung)
                     .ToList();
+                // Lấy thông tin dòng đầu tiên (vì tất cả chung MaPhieu)
+                var firstItem = dsachthung.First();
+                var ngayLuyen = firstItem.NgayLuyenGang?.ToString("dd/MM/yyyy") ?? "";
+                var ca = firstItem.G_Ca?.ToString() ?? "";
 
+                // Lấy tên Kíp và Lò cao
+                var tenKip = firstItem.G_ID_Kip.HasValue
+                    ? await _context.Tbl_Kip.Where(k => k.ID_Kip == firstItem.G_ID_Kip.Value).Select(k => k.TenKip).FirstOrDefaultAsync()
+                    : "";
+
+                var tenLoCao = firstItem.ID_Locao.HasValue
+                    ? await _context.Tbl_LoCao.Where(l => l.ID == firstItem.ID_Locao.Value).Select(l => l.TenLoCao).FirstOrDefaultAsync()
+                    : "";
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "template_QTGNGL.xlsx");
                 using (var ms = new MemoryStream())
                 {
@@ -1113,6 +1131,12 @@ namespace Data_Product.Controllers
                     {
                         var worksheet = workbook.Worksheet("Sheet1");
 
+
+                        var infoRange = worksheet.Range("A5:R5");
+                        infoRange.Merge();
+                        infoRange.Value = $"Ngày luyện: {ngayLuyen} - Ca: {ca} - Kíp: {tenKip} - Lò cao: {tenLoCao}";
+                        infoRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        infoRange.Style.Font.SetBold();
                         // Xóa dữ liệu cũ (nếu có)
                         var lastRow = Math.Max(worksheet.LastRowUsed()?.RowNumber() ?? 8, 8);
                         if (lastRow >= 9)

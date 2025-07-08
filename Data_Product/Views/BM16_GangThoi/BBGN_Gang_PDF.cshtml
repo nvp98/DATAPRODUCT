@@ -114,13 +114,15 @@
                         <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">KL thùng</th>
                         <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL thùng & gang lỏng (tấn)</th>
                         <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL gang lỏng cân ray (tấn)</th>
-                        <th colspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Vận chuyển đến</th>
+                        <th colspan="4" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Vận chuyển đến</th>
                         <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">Phân loại</th>
                         <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 20%;">Ghi chú <br /> <span style="font-weight: 400;">(Thùng tồn tại trong kíp tại NM.LT)</span></th>
                     </tr>
                     <tr>
                         <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px;width: 4%;">NM.HRC1</th>
                         <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 4%;">NM.HRC2</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px;width: 4%;">ĐÚC1</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 4%;">ĐÚC2</th>
                     </tr>
 
                 </thead>
@@ -183,6 +185,32 @@
                                 }
                             </td>
                             <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; padding: 7px 0;">
+                                @if (item.ChuyenDen == "DUC1")
+                                {
+                                    if (item.KR == true)
+                                    {
+                                        @:KR
+                                    }
+                                    else
+                                    {
+                                        @:x
+                                    }
+                                }
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; padding: 7px 0;">
+                                @if (item.ChuyenDen == "DUC2")
+                                {
+                                    if (item.KR == true)
+                                    {
+                                        @:KR
+                                    }
+                                    else
+                                    {
+                                        @:x
+                                    }
+                                }
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; padding: 7px 0;">
                                 @item.BKMIS_PhanLoai
                             </td>
                             <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; padding: 7px 0;">
@@ -197,7 +225,7 @@
                             Tổng khối lượng
                         </td>
                         <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600; padding: 7px 0;">@total</td>
-                        <td colspan="4" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 7px 0;"></td>
+                        <td colspan="6" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 7px 0;"></td>
                     </tr>
                 </tfoot>
             </table>
