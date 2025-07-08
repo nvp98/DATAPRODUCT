@@ -4,7 +4,9 @@ using Data_Product.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Quartz;
 using System.Globalization;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,8 +31,28 @@ builder.Services.AddDbContext<DataContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString") ?? throw new InvalidOperationException("Connection string 'ConnectionString' not found.")));
 
 
-//Đăng ký BackgroundService tự động tạo phiếu
-builder.Services.AddHostedService<TaoPhieuTuDongBackgroundService>();
+////Đăng ký BackgroundService tự động tạo phiếu
+//builder.Services.AddHostedService<TaoPhieuTuDongBackgroundService>();
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionJobFactory();
+
+    // Đăng ký Job
+    var jobKey = new JobKey("TaoPhieuTuDongJob");
+    q.AddJob<TaoPhieuTuDongJob>(opts => opts.WithIdentity(jobKey));
+
+    // Tạo Trigger: chạy mỗi 15 phút
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("TaoPhieuTuDongJob-trigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInMinutes(5)
+            .RepeatForever()
+        ));
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
 var app = builder.Build();
 
 // Thêm Middleware cho localization
