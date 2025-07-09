@@ -751,10 +751,12 @@
 				$(document).ready(function () {
 					// Đánh dấu dòng thay đổi khi người dùng nhập liệu
 					$('#dataTable tbody').on('change', 'input, textarea', function () {
-						$(this).closest('tr').attr('data-changed', 'true');
-							if (!$row.attr('data-new')) {
-								$row.attr('data-changed', 'true');
-							}
+						const $row = $(this).closest('tr');
+
+						// Chỉ gán data-changed nếu KHÔNG phải dòng mới
+						if (!$row.is('[data-new="true"]')) {
+							$row.attr('data-changed', 'true');
+						}
 					});
 
 					// Gọi hàm xử lý phù hợp khi nhấn nút "Lưu"
@@ -1288,11 +1290,11 @@
 
 			let tongRow = `
 				<tr class="tong-row" style="font-weight:bold; background-color:#f0f0f0;">
-					<td colspan="4"></td>
+					<td colspan="3"></td>
 					<td>${soLuongMe}</td>
-					<td colspan="6"></td>
+					<td colspan="8"></td>
 					<td>${tong.toFixed(2)}</td>
-					<td colspan="15"></td>
+					<td colspan="14"></td>
 				</tr>
 			`;
 
@@ -1507,15 +1509,15 @@
 				$("#dataTable tbody").append(clonedRow);
 			}
 			});
-		$(document).ready(function() {
-		  $('#modalKLThung, #modalKLThungGangLong').on('input', function() {
-			const klThung = parseFloat($('#modalKLThung').val()) || 0;
-			const klThungVaGang = parseFloat($('#modalKLThungGangLong').val()) || 0;
-			const klGangLong = klThungVaGang - klThung;
+		// $(document).ready(function() {
+		//   $('#modalKLThung, #modalKLThungGangLong').on('input', function() {
+		// 	const klThung = parseFloat($('#modalKLThung').val()) || 0;
+		// 	const klThungVaGang = parseFloat($('#modalKLThungGangLong').val()) || 0;
+		// 	const klGangLong = klThungVaGang - klThung;
 
-			$('#modalKLGangLong').val(klGangLong.toFixed(2));
-		  });
-		});
+		// 	$('#modalKLGangLong').val(klGangLong.toFixed(2));
+		//   });
+		// });
 
 	function ExportToPDF(){
 		// value cac field
