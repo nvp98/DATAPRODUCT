@@ -1022,7 +1022,7 @@
                     total += value;
                 }
             });
-        $("#IDTongKLGangNhan").text(total.toFixed(2));
+            $("#IDTongKLGangNhan").text(total.toFixed(2));
         }
 
         // Hàm kiểm tra có giá trị âm hay không
@@ -1286,7 +1286,7 @@
         }
 
         // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
-        $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong, .KhoiLuongThung', function () {
+        $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong, .KhoiLuongThung, .KLPhe', function () {
             const $row = $(this).closest('tr');
             const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
             const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
@@ -1298,13 +1298,7 @@
                 $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
             }
 
-            // Nếu cả 2 đều là số hợp lệ
-            if (!isNaN(KLThungVaGangLong) && !isNaN(KLThung)) {
-                const result = KLThungVaGangLong - KLThung;
-                $row.find('.KLGangLong').text(result.toFixed(2));
-            } else {
-                $row.find('.KLGangLong').text("0.00");
-            }
+            tinhKLGangLong($row);
 
             // === Cập nhật tổng KLGangLong cho cùng thùng trung gian ===
             const maThungTG = $row.closest('tr').attr('data-mathungtg')
@@ -1333,8 +1327,27 @@
             } else {
                 $row.find('.KLVaoLoThoi').text("0.00");
             }
+          
         });
 
+
+        function tinhKLGangLong($row) {
+            const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
+            const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
+            const KLPhe = parseFloat($row.find('.KLPhe').val());
+
+            let KLGangLong = 0;
+
+            if (!isNaN(KLThungVaGangLong) && !isNaN(KLThung)) {
+                KLGangLong = KLThungVaGangLong - KLThung;
+
+                if (!isNaN(KLPhe)) {
+                    KLGangLong -= KLPhe;
+                }
+            }
+
+            $row.find('.KLGangLong').text(KLGangLong.toFixed(2));
+        }
 
         function applyColumnVisibility() {
             const display = isHidden ? 'none' : 'table-cell';
@@ -1802,6 +1815,35 @@
             });
         });
 
+        function UpdateNgayNhan(ID_TuNgayLamViec) {
+            const ngayNhanInput = $('#IDNgayNhan');
+            const ngayBatDauStr = $(`#${ID_TuNgayLamViec}`).val();
+
+            if (!ngayBatDauStr) return;
+
+            const minDate = new Date(ngayBatDauStr);
+            const maxDate = new Date(ngayBatDauStr);
+            maxDate.setDate(maxDate.getDate() + 2);
+
+            const minStr = minDate.toISOString().split('T')[0];
+            const maxStr = maxDate.toISOString().split('T')[0];
+
+            // Cập nhật min và max attribute cho input
+            ngayNhanInput.attr('min', minStr);
+            ngayNhanInput.attr('max', maxStr);
+
+            // Kiểm tra giá trị hiện tại
+            const currentValue = ngayNhanInput.val();
+            if (currentValue) {
+                const currentDate = new Date(currentValue);
+
+                // Nếu ngày nhận nằm ngoài khoảng [minDate, maxDate], thì reset
+                if (currentDate < minDate || currentDate > maxDate) {
+                    ngayNhanInput.val('');
+                }
+            }
+        }
+
 
         $('#ID_TuNgayLamViec').on('change', function () {
             const ngayBatDau = $(this).val();
@@ -1815,6 +1857,8 @@
             if (!ngayKetThuc || new Date(ngayKetThuc) < new Date(ngayBatDau)) {
                 ngayKetThucInput.val(ngayBatDau);
             }
+            UpdateNgayNhan('ID_TuNgayLamViec');
+            
         });
 
         $('#ID_DenNgayLamViec').on('change', function () {
@@ -1831,6 +1875,7 @@
              const today = new Date().toISOString().split("T")[0];
             $('#ID_TuNgayLamViec').val(today);
             $('#ID_DenNgayLamViec').val(today);
+            UpdateNgayNhan('ID_TuNgayLamViec');
             SearchLT(); // call hàm search
         });
 </script>

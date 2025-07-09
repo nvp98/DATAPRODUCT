@@ -33,6 +33,10 @@ namespace Data_Product.Controllers
             // Lò Thổi
             var loThoiList = await _context.Tbl_LoThoi.ToListAsync();
             ViewBag.LoThoiList = loThoiList;
+
+            var PhanTram = await _context.Tbl_BM_16_PhanTramDuc.Where(x => x.ID == 1).FirstOrDefaultAsync();
+            ViewBag.PhanTram = PhanTram.PhanTram;
+
             return View();
         }
 
@@ -118,6 +122,27 @@ namespace Data_Product.Controllers
 
             return Ok(new { isValid = true });
         }
+
+        [HttpPost]
+        public async Task<IActionResult> LuuPhanTram([FromBody] int percent)
+        {
+            if (percent == null) return BadRequest("Không có dữ liệu.");
+            try
+            {
+                var phantram = await _context.Tbl_BM_16_PhanTramDuc.Where(x => x.ID == 1).FirstOrDefaultAsync();
+                if(phantram == null) return BadRequest("Không có dữ liệu.");
+
+                phantram.PhanTram = percent;
+
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+            }
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> ChotThung([FromBody] List<ChotThungDto> selectedIds)

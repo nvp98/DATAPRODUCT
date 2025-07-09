@@ -90,6 +90,54 @@
     .rotate-icon.rotated {
         transform: rotate(180deg);
     }
+    /* Cố định cột đầu tiên đến cột thứ 8 */
+    .sticky-col-1, .sticky-col-2, .sticky-col-3, .sticky-col-4, .sticky-col-5,
+    .sticky-col-6, .sticky-col-7, .sticky-col-8 {
+        position: sticky;
+        z-index: 2;
+        background-color: #f8f9fa;
+    }
+   
+    /* ngay */
+    .sticky-col-1 { 
+        left: 0;
+        z-index: 1;
+    }
+    /* ca */
+    .sticky-col-2 {
+        left: 68px;
+        z-index: 1;
+    }
+    /* Kip */
+    .sticky-col-3 {
+        left: 123px; 
+        z-index: 1;
+    }
+    /* Ma thung gang */
+    .sticky-col-4 {
+        left: 183px; 
+        z-index: 1;
+    }
+    /* lo cao */
+    .sticky-col-5 {
+        left: 183px;
+        z-index: 1;
+    }
+    /* so me */
+    .sticky-col-6 {
+        left: 237px;
+        z-index: 1;
+    }
+    /* thung so */
+    .sticky-col-7 {
+        left: 353px; 
+        z-index: 1;
+    }
+    /* gio */
+    .sticky-col-8 {
+        left: 422px; 
+        z-index: 1;
+    }
 
     #fixed-pagination {
         position: absolute;
@@ -335,15 +383,15 @@
             <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu" style="min-width: 1500px;">
                 <thead class="table-light sticky-top bg-white" style="z-index: 2">
                     <tr>
-                        <th>Ngày LG</th>
-                        <th>Ca LG</th>
-                        <th>Kíp LG</th>
-                        <th class="hide-col">Mã thùng gang</th>
-                        <th>Lò cao</th>
-                        <th>Số mẻ</th>
-                        <th>Thùng số</th>
-                        <th>Giờ</th>
-                        <th class="hide-col">Phân loại</th>
+                        <th class="sticky-col-1" style="min-width: 68px;">Ngày LG</th>
+                        <th class="sticky-col-2" style="min-width: 55px;">Ca LG</th>
+                        <th class="sticky-col-3" style="min-width: 60px;">Kíp LG</th>
+                        <th class="hide-col sticky-col-4" style="min-width: 116px;">Mã thùng gang</th>
+                        <th class="sticky-col-5" style="min-width: 54px;">Lò cao</th>
+                        <th class="sticky-col-6" style="min-width: 116px;">Số mẻ</th>
+                        <th class="sticky-col-7" style="min-width: 69px;">Thùng số</th>
+                        <th class="sticky-col-8" style="min-width: 53px;">Giờ</th>
+                        <th class="hide-col" style="min-width: 70px;">Phân loại</th>
                         <th>KL xe goong</th>
                         <th>KL thùng</th>
                         <th>KL thùng và gang</th>
@@ -371,6 +419,7 @@
                         <th>Tình trạng LT</th>
                         <th>BP Nhận</th>
                         <th style="min-width: 150px;">Người nhận</th>
+                        <th><input style="width: 45px; margin-bottom: 3px;" type="number" name="name" min="0" max="100" value="@ViewBag.PhanTram" id="percentDuc" /> <button style="border: none;" id="btn-percent"><i class="bi bi-floppy2"></i></button><br /> KL Đúc</th>
                         <th>Chọn thùng</th>
                         <th>Tình trạng</th>
                         <th class="hide-col">KL chênh lệch</th>
@@ -399,7 +448,7 @@
                         <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="7" class="space-4"></td>
+                        <td colspan="8" class="space-4"></td>
                         <td class="hide-col" id="IDTongKLChenhLech" style="font-weight: 600">
                             0.00
                         </td>
@@ -427,7 +476,7 @@
                         <td id="IDTongAllKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="7" class="space-4"></td>
+                        <td colspan="8" class="space-4"></td>
                         <td class="hide-col" id="IDTongAllKLChenhLech" style="font-weight: 600">
                             0.0
                         </td>
@@ -666,6 +715,56 @@
             return '0.0'; 
         }
 
+        function KhoiLuongDuc(g_KLGangLong, t_KLGangLong){
+            const percent = parseInt($("#percentDuc").val());
+            if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
+                const result = parseFloat(g_KLGangLong - t_KLGangLong) / 100 * percent;
+                if (!isNaN(result)) {
+                        return result.toFixed(1);
+                }
+            }
+            return null;
+        }
+
+        $("#percentDuc").on('change', function () {
+           $("#tblDuLieu tr").each(function () {
+               const g_KLGangLong = parseFloat($(this).find(".G_KL_GangLong").text());
+               const t_KLGangLong = parseFloat($(this).find(".T_KLGangLong").text());
+               if (!isNaN(g_KLGangLong) && !isNaN(t_KLGangLong)) {
+                    // Tính kết quả
+                    const ketqua = KhoiLuongDuc(g_KLGangLong, t_KLGangLong);
+
+                    // Hiển thị kết quả ra ô .KLDuc
+                    if (ketqua !== null) {
+                        $(this).find(".KLDuc").text(ketqua);
+                    } else {
+                        $(this).find(".KLDuc").text('');
+                    }
+               }
+           });
+        })
+
+        $("#btn-percent").click(function() {
+            const percent = parseInt($("#percentDuc").val());
+            if(percent < 0 || percent > 100){
+                alert('Phần trăm không được nhỏ hơn 0 và lớn hơn 100')
+                return ;
+            }
+            $.ajax({
+                url: '/BM16_GangThoi_PKH/LuuPhanTram',
+                 method: 'POST',
+                 contentType: 'application/json',
+                 data: JSON.stringify(percent),
+                 success: function (res) {
+                     // window.ReLoad();
+                     Search();
+                     alert("Lưu thành công");
+                 },
+                 error: function (err) {
+                     alert("Lỗi khi tìm kiếm dữ liệu");
+                 }
+             });
+        })
 
         function getDayOnly(dateString) {
             if (!dateString) return "";
@@ -714,17 +813,17 @@
                     const isShow = checkCondition(item);
                     const klChenh = KLChenhLech(item.g_KLGangLong, item.t_KLGangLong);
                     const ptChenh = PhanTramChenhLech(item.g_KLGangLong, item.t_KLGangLong);
+                    const klDuc = KhoiLuongDuc(item.g_KLGangLong, item.t_KLGangLong);
 
-
-                    row.append(`<td>${ngayLG ?? ''}</td>`);
-                    row.append(`<td>${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>`);
-                    row.append(`<td>${item.g_TenKip ?? ''}</td>`);
-                    row.append(`<td  class="hide-col">${item.maThungGang ?? ''}</td>`);
-                    row.append(`<td>${item.iD_Locao ?? ''}</td>`);
-                    row.append(`<td ${item.t_copy || isCopy ? 'style="color: red;"' : ''}>${item.bkmiS_SoMe ?? ''}</td>`);
-                    row.append(`<td style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
-                    row.append(`<td>${item.bkmiS_Gio ?? ''}</td>`);
-                    row.append(`<td  class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-1">${ngayLG ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-2">${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>`);
+                    row.append(`<td class="sticky-col-3">${item.g_TenKip ?? ''}</td>`);
+                    row.append(`<td class="hide-col sticky-col-4">${item.maThungGang ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-5">${item.iD_Locao ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-6" ${item.t_copy || isCopy ? 'style="color: red;"' : ''}>${item.bkmiS_SoMe ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-7" style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-8">${item.bkmiS_Gio ?? ''}</td>`);
+                    row.append(`<td class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
 
                     if(item.t_copy == true || isCopy){
                         row.append(`<td></td>`);
@@ -769,6 +868,7 @@
                     row.append(`<td>${tinhTrangLTHTML}</td>`);
                     row.append(`<td>${item.tenPhongBan ?? ''}</td>`);
                     row.append(`<td>${item.hoVaTen ?? ''}</td>`);
+                    row.append(`<td style="color: ${klDuc < 0 ? 'red;':''}" class="KLDuc">${klDuc ?? ''}</td>`);
                     if(isFirstRow){
                         row.append(`<td rowspan="${rowspan}">
                                     ${ isShow ? `<input type="checkbox" class="cbx-chotThung" />`
@@ -778,7 +878,7 @@
                         isFirstRow = false;
                     }
                     
-                     row.append(`<td>${tinhTrangHTML}</td>`);
+                    row.append(`<td>${tinhTrangHTML}</td>`);
                     if (klChenh !== '0.00') {
                         row.append(`<td class="hide-col">${klChenh ?? ''}</td>`);
                     } else {
@@ -980,7 +1080,7 @@
              dto.PageNumber = currentPage;
 
              $.ajax({
-              url: '/BM16_GangThoi_PKH/Search',
+                url: '/BM16_GangThoi_PKH/Search',
                  method: 'POST',
                  contentType: 'application/json',
                  data: JSON.stringify(dto),
@@ -1160,7 +1260,19 @@
             $('.space-2').attr('colspan', isHidden ? 5 : 10);
 
             $('.space-3').attr('colspan', isHidden ? 4 : 9);
-            $('.space-4').attr('colspan', isHidden ? 7 : 7);
+            $('.space-4').attr('colspan', isHidden ? 8 : 8);
+
+            if(!isHidden){
+                $(".sticky-col-5").css("left", "299px");
+                $(".sticky-col-6").css("left", "353px");
+                $(".sticky-col-7").css("left", "469px");
+                $(".sticky-col-8").css("left", "538px");
+            }else{
+                $(".sticky-col-5").css("left", "183px");
+                $(".sticky-col-6").css("left", "237px");
+                $(".sticky-col-7").css("left", "353px");
+                $(".sticky-col-8").css("left", "422px");
+            }
         }
 
         // xu ly khi load
