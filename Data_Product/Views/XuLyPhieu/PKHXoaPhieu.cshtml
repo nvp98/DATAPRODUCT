@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<Data_Product.Models.Tbl_XuLyXoaPhieu>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 @using Data_Product.Repositorys;
+@using System.Security.Claims;
 @inject Data_Product.Repositorys.DataContext _context
 
 
@@ -27,6 +28,11 @@
         pager = ViewBag.Pager;
         pageNo = pager.CurrentPage;
     }
+
+}
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
 
 }
 <div class="app-main__outer">
@@ -110,8 +116,13 @@
                                     @foreach (var item_ in Model)
                                     {
                                         var item = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == item_.ID_BBGN).FirstOrDefault();
-
-                                        <tr>
+                                        var checkColor = _context.Tbl_PKHXuLyPhieu.Where(x => x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && x.ID_BBGN == item.ID_BBGN).FirstOrDefault();
+                                        string mau = "";
+                                        if (TaiKhoan.ID_PhongBan == GlobalVariables.ID_PKH || TaiKhoan.ID_Quyen == 1)
+                                        {
+                                            mau = checkColor != null ? "table-success" : "";
+                                        }
+                                        <tr class="@mau">
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 @RowNo@{
                                                     RowNo++;

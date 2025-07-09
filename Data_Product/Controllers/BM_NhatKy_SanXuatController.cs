@@ -192,7 +192,7 @@ namespace Data_Product.Controllers
             var phongBanThem = (TaiKhoan.PhongBan_Them ?? "").Split(',');
             if (TaiKhoan.ID_Quyen == 9 || TaiKhoan.ID_Quyen == 10 ||  quyenThem.Contains("9") || quyenThem.Contains("10"))
             {
-                dsPhongBan = dsPhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan || dsPhongBanXL.Contains(x.ID_PhongBan) || phongBanThem.Contains(x.TenNgan)).ToList();
+                dsPhongBan = dsPhongBan.Where(x =>x.ID_PhongBan == TaiKhoan.ID_PhongBan || dsPhongBanXL.Any(k => k == x.ID_PhongBan) ||  phongBanThem.Any(a=>a.Contains(x?.TenNgan??""))).ToList();
             }
 
             ViewBag.IDPhongBan = new SelectList(dsPhongBan, "ID_PhongBan", "TenPhongBan", IDPhongBan);
