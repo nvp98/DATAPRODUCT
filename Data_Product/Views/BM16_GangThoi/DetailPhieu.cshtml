@@ -32,70 +32,55 @@
 	} */
 	/* Container và table cần thiết lập overflow */
 	.table-container {
-		overflow-x: auto;
-		position: relative;
+	overflow-x: auto;
+	position: relative;
 	}
 
 	table {
-		border-collapse: collapse;
+	border-collapse: collapse;
 	}
 
-	/* Sticky header chung */
-	.sticky-header {
+	/* Bắt đầu từ cột đầu tiên cần sticky */
+	.sticky-col {
 		position: sticky;
-		left: 0;
 		z-index: 10;
+		background-color: white;
 	}
 
-	/* Cột Mã thùng (cột đầu tiên trong nhóm sticky) */
-	th:nth-child(3), /* Vị trí thực tế của Mã thùng */
-	td:nth-child(3) {
-		position: sticky;
-		left: 0;
-		z-index: 10;
-		width: 123.17px;
-	}
+		/* Cột 1 - Mã thùng */
+		.sticky-col.ma-thung {
+			left: 0;
+			width: 123.17px;
+		}
 
-	/* Cột Số mẻ */
-	th:nth-child(4),
-	td:nth-child(4) {
-		position: sticky;
-		left: 123.17px;
-		z-index: 10;
-		width: 123.06px;
-	}
+		/* Cột 2 - Số mẻ */
+		.sticky-col.so-me {
+			left: 123.17px;
+			width: 123.06px;
+		}
 
-	/* Cột Thùng số */
-	th:nth-child(5),
-	td:nth-child(5) {
-		position: sticky;
-		left: 246.23px; /* Tổng width của Mã thùng + Số mẻ */
-		z-index: 10;
-		width: 56.7px;
-	}
+		/* Cột 3 - Thùng số */
+		.sticky-col.thung-so {
+			left: 246.23px;
+			width: 56.7px;
+		}
 
-	/* Cột Giờ */
-	th:nth-child(6),
-	td:nth-child(6) {
-		position: sticky;
-		left: 302.93px; /* Tổng width các cột trước */
-		z-index: 10;
-		width: 48.89px;
-	}
+		/* Cột 4 - Giờ */
+		.sticky-col.gio {
+			left: 302.93px;
+			width: 48.89px;
+		}
 
-	/* Cột Phân loại */
-	th:nth-child(7),
-	td:nth-child(7) {
-		position: sticky;
-		left: 351.82px; /* Tổng width các cột trước */
-		z-index: 10;
-		width: 48.13px;
-	}
+		/* Cột 5 - Phân loại */
+		.sticky-col.phan-loai {
+			left: 351.82px;
+			width: 48.13px;
+		}
 
-	/* Đảm bảo header có z-index cao hơn */
+	/* Đảm bảo header nổi trên */
 	thead th {
 		z-index: 20 !important;
-}
+	}
 </style>
 @if (TempData["msgSuccess"] != null)
 {
@@ -163,40 +148,40 @@
 						<div class="row w-100 justify-content-end mb-3">
 							<div class="row">
 								<div class="col-6">
-								@* 	<p class="fw-bold text-danger" style="font-size:16px">
+									@* 	<p class="fw-bold text-danger" style="font-size:16px">
 										Dữ liệu BK-MIS chỉ được cập nhật/làm mới đối với các thùng <u>CHƯA CHUYỂN</u> và <u>CHƯA XÁC NHẬN</u>
 									</p> *@
 								</div>
 								<div class="col-6">
-								@if (PhongBan?.TenNgan == "P.QLCL")
-								{
-									<button type="button" class="btn btn-info btnxacnhan">
-										<i class="bi-check2-square"></i> Xác nhận
-									</button>
-								} else 
-								{
-									<button type="button" id="btnLuuThungMoi" class="btn btn-primary">
-										<i class="bi bi-save"></i> Lưu
-									</button>
-									<button type="button" class="btn btn-secondary" id="btnLamMoi">
-										<i class="bi bi-arrow-clockwise"></i>
-										<span class="small pt-2 ps-1 text-white">Làm mới</span>
-									</button>
-									@* <button type="button" class="btn btn-success me-2 btnchuyenthung">
+									@if (PhongBan?.TenNgan == "P.QLCL")
+									{
+										<button type="button" class="btn btn-info btnxacnhan">
+											<i class="bi-check2-square"></i> Xác nhận
+										</button>
+									} else 
+									{
+										<button type="button" id="btnLuuThungMoi" class="btn btn-primary">
+											<i class="bi bi-save"></i> Lưu
+										</button>
+										<button type="button" class="btn btn-secondary" id="btnLamMoi">
+											<i class="bi bi-arrow-clockwise"></i>
+											<span class="small pt-2 ps-1 text-white">Làm mới</span>
+										</button>
+										@* <button type="button" class="btn btn-success me-2 btnchuyenthung">
 										<i class="bi bi-arrow-right-circle"></i> Chuyển
 									</button>
 									<button type="button" class="btn btn-danger btnthuhoi">
 										<i class="bi bi-arrow-counterclockwise"></i> Thu hồi
 									</button> *@
 
-									<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel" type="button">
-										Xuất Excel
-									</button>
-									<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
-									<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
-										Ẩn/Hiện
-									</button>
-								}
+										<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel" type="button">
+											Xuất Excel
+										</button>
+										<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
+										<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
+											Ẩn/Hiện
+										</button>
+									}
 								</div>
 							</div>
 						</div>
@@ -208,15 +193,15 @@
 										{
 											<th rowspan="2">Xóa</th>
 											<th rowspan="2">Copy</th>
-										@* 	<th rowspan="2">Chỉnh sửa</th> *@
+											@* 	<th rowspan="2">Chỉnh sửa</th> *@
 										}
-										<th rowspan="2">Mã thùng</th>
-										<th rowspan="2">Số mẻ</th>
-										<th rowspan="2">Thùng số</th>
-										<th rowspan="2">Giờ</th>
-										<th rowspan="2">Phân loại</th>
-										<th rowspan="2">KL thùng + xe</th>
-										<th rowspan="2">KL thùng & gang + xe</th>
+										<th rowspan="2" class="sticky-col ma-thung">Mã thùng</th>
+										<th rowspan="2" class="sticky-col so-me">Số mẻ</th>
+										<th rowspan="2" class="sticky-col thung-so">Thùng số</th>
+										<th rowspan="2" class="sticky-col gio">Giờ</th>
+										<th rowspan="2" class="sticky-col phan-loai">Phân loại</th>
+										<th rowspan="2">KL thùng & gang & xe</th>
+										<th rowspan="2">KL thùng & xe</th>
 										<th rowspan="2">KL xe goong</th>
 										<th rowspan="2">KL thùng</th>
 										<th rowspan="2">KL thùng & gang lỏng</th>
@@ -224,10 +209,13 @@
 										<th colspan="4">Vận chuyển đến</th>
 										<th rowspan="2">Giờ NM</th>
 										<th rowspan="2">Ghi chú</th>
-										<th rowspan="2">
-											<div style="font-size: 12px;">Chọn thùng</div>
-											<input type="checkbox" id="selectAll" class="form-check-input" style="width: 20px; height: 20px;" title="Chọn tất cả">
-										</th>
+										@if (PhongBan?.TenNgan == "P.QLCL")
+										{
+											<th rowspan="2">
+												<div style="font-size: 12px;">Chọn thùng</div>
+												<input type="checkbox" id="selectAll" class="form-check-input" style="width: 20px; height: 20px;" title="Chọn tất cả">
+											</th>
+										}
 										<th rowspan="2">Tình trạng</th>
 										<th rowspan="2" class="toggle-col">Nơi nhận </th>
 										<th rowspan="2" class="toggle-col">Người chỉnh sửa </th>
@@ -253,11 +241,11 @@
 												{
 													<td class='text-center deleteItem'>
 														@if (!item.MaThung.EndsWith(".00"))
-													{ 
-														<a class="btn btn-danger btn-sm" title="Xóa">
-															<i class="bi bi-trash"></i>
-														</a>
-													}
+														{ 
+															<a class="btn btn-danger btn-sm" title="Xóa">
+																<i class="bi bi-trash"></i>
+															</a>
+														}
 													</td>
 													<td class='text-center copyItem'>
 														<a class="btn btn-secondary btn-sm" title="copy">
@@ -270,19 +258,19 @@
 														</a>
 												    </td> *@
 												}
-												<td name="maThung">@item.MaThung</td>
-												<td name="soMe">@item.SoMe</td>
-												<td name="ThungSo">@item.ThuTuThung</td>
-												<td name="Gio">@item.GioNhaMay</td>
-												<td name="PhanLoai">@item.PhanLoai</td>
+												<td name="maThung" class="sticky-col ma-thung">@item.MaThung</td>
+												<td name="soMe" class="sticky-col so-me">@item.SoMe</td>
+												<td name="ThungSo" class="sticky-col thung-so">@item.ThuTuThung</td>
+												<td name="Gio" class="sticky-col gio">@item.GioNhaMay</td>
+												<td name="PhanLoai" class="sticky-col phan-loai">@item.PhanLoai</td>
 												<td>
-													<input type="number" name="KhoiLuongThungXe" step="0.01" class="form-control"
+													<input type="number" name="KLThungGangXe" step="0.01" class="form-control" value="@item.KL_XeThungVaGang"
 														   style="width: 100px; padding: 4px;" />
 												</td>
 												<td>
-													<input type="number" name="KLThungGangXe" step="0.01" class="form-control"
-														   style="width: 100px; padding: 4px;" />
-												</td>
+													<input type="number" name="KLThungVaXe" step="0.01" class="form-control" value="@item.KL_XeVaThung"
+													style="width: 100px; padding: 4px;" />
+												</td>									
 												<td>
 													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;" />
 												</td>
@@ -293,7 +281,7 @@
 													<input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung_GangLong" style="width: 100px; padding: 4px;" disabled>
 												</td>
 												<td>
-													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;" disabled>
+													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;"disabled>
 												</td>
 												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") /></td>
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") /></td>
@@ -301,7 +289,10 @@
 												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") /></td>
 												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM"></td>
 												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;">@item.GhiChu</textarea></td>
-												<td><input type="checkbox" class="chon-thung-checkbox" /></td>
+												@if (PhongBan?.TenNgan == "P.QLCL")
+												{
+													<td><input type="checkbox" class="chon-thung-checkbox" /></td>
+												}
 												<td name="TinhTrang">
 													@if (item.TrangThaiGang)
 													{
@@ -761,6 +752,9 @@
 					// Đánh dấu dòng thay đổi khi người dùng nhập liệu
 					$('#dataTable tbody').on('change', 'input, textarea', function () {
 						$(this).closest('tr').attr('data-changed', 'true');
+							if (!$row.attr('data-new')) {
+								$row.attr('data-changed', 'true');
+							}
 					});
 
 					// Gọi hàm xử lý phù hợp khi nhấn nút "Lưu"
@@ -770,7 +764,6 @@
 
 						if (hasNewRows) {
 							saveGangThoiVaoPhieu(); // Lưu thùng mới
-							location.reload();
 						}
 						else if (hasChangedRows) {
 							const danhSachThung = getDanhSachThung(); // chỉ lấy các dòng đã sửa
@@ -1060,9 +1053,11 @@
 									<td name="ThungSo">${thungSo}</td>
 									<td name="Gio">${time}</td>
 									<td name="PhanLoai">${phanLoai}</td>
-									<td><input type="number" name="KhoiLuongXeGoong" class="form-control" value="${klxe}" style="width: 100px;" required></td>
-									<td><input name="KhoiLuongThung" type="number" class="form-control" style="width: 100px;" required></td>
-									<td><input name="KLThungGangLong" type="number" class="form-control" style="width: 100px;" required></td>
+									<td><input type="number" name="KLThungGangXe" class="form-control"  style="width: 100px;"></td>
+									<td><input name="KLThungVaXe" type="number" class="form-control" style="width: 100px;"></td>
+									<td><input type="number" name="KhoiLuongXeGoong" class="form-control" value="${klxe}" style="width: 100px;"></td>
+									<td><input name="KhoiLuongThung" type="number" class="form-control" style="width: 100px;"></td>
+									<td><input name="KLThungGangLong" type="number" class="form-control" style="width: 100px;"></td>
 									<td><input name="KLGangLong" type="number" class="form-control" style="width: 100px;"></td>
 									<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input"></td>
 									<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input"></td>
@@ -1158,7 +1153,8 @@
 								vanChuyenDUC1 ? "DUC1" :
 								vanChuyenDUC2 ? "DUC2" :
 								null;
-
+				let khoiLuongThungGangXe = parseFloat(row.find("input[name='KLThungGangXe']").val());
+				let khoiLuongThungXe = parseFloat(row.find("input[name='KLThungVaXe']").val());
 				let khoiLuongXe = parseFloat(row.find("input[name='KhoiLuongXeGoong']").val());
 				let khoiLuongThung = parseFloat(row.find("input[name='KhoiLuongThung']").val());
 				let klThungGangLong = parseFloat(row.find("input[name='KLThungGangLong']").val());
@@ -1205,6 +1201,8 @@
 					BKMIS_Gio: row.find("td[name='Gio']").text().trim(),
 					BKMIS_PhanLoai: row.find("td[name='PhanLoai']").text().trim(),
 					KL_XeGoong: parseFloat(row.find("input[name='KhoiLuongXeGoong']").val()) || null,
+					G_KLXeThungVaGang: parseFloat(row.find("input[name='KLThungGangXe']").val()) || null,
+					G_KLXeVaThung: parseFloat(row.find("input[name='KLThungVaXe']").val()) || null,
 					G_KLThungChua: parseFloat(row.find("input[name='KhoiLuongThung']").val()) || null,
 					G_KLThungVaGang: parseFloat(row.find("input[name='KLThungGangLong']").val()) || null,
 					G_KLGangLong: parseFloat(row.find("input[name='KLGangLong']").val()) || null,
@@ -1212,7 +1210,7 @@
 					Gio_NM : row.find("input[name='GioNM']").val() || null,
 					G_GhiChu: row.find("textarea[name='GhiChu']").val()
 				});
-				
+				//console.log('danhSachThung',danhSachThung)	
 			});
 				if (!isValidAll) {
 				alert("Vui lòng kiểm tra lại các ô dữ liệu bị đánh dấu đỏ.");
@@ -1255,10 +1253,10 @@
 		// 	//console.log("==klGLCR==",klGLCR)
 		// 	row.find("input[name='KLGangLong']").val(klGLCR > 0 ? klGLCR.toFixed(2) : 0);
 		// });
-		$(document).on("input", "input[name='KhoiLuongThungXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
+		$(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
 		let row = $(this).closest("tr");
 
-		let klThungXe = parseFloat(row.find("input[name='KhoiLuongThungXe']").val()) || 0;
+		let klThungXe = parseFloat(row.find("input[name='KLThungVaXe']").val()) || 0;
 		let klThungGangXe = parseFloat(row.find("input[name='KLThungGangXe']").val()) || 0;
 		let klXeGoong = parseFloat(row.find("input[name='KhoiLuongXeGoong']").val()) || 0;
 
@@ -1581,6 +1579,8 @@
 				BKMIS_Gio: row.find('td[name="Gio"]').text().trim(),
 				BKMIS_PhanLoai: row.find('td[name="PhanLoai"]').text().trim(),
 				KL_XeGoong: parseFloat(row.find('input[name="KhoiLuongXeGoong"]').val()) || null,
+				G_KLXeThungVaGang: parseFloat(row.find("input[name='KLThungGangXe']").val()) || null,
+				G_KLXeVaThung: parseFloat(row.find("input[name='KLThungVaXe']").val()) || null,
 				G_KLThungChua: parseFloat(row.find('input[name="KhoiLuongThung"]').val()) || null,
 				G_KLThungVaGang: parseFloat(row.find('input[name="KLThungGangLong"]').val()) || null,
 				G_KLGangLong: parseFloat(row.find('input[name="KLGangLong"]').val()) || null,
@@ -1621,23 +1621,4 @@
 		}
 	});
 
-	//  $(document).ready(function () {
-	// 	$.ajax({
-	// 		url: '/BM16_GangThoi/GetCurrentCaKip', // Đổi TenController thành tên controller thật của bạn
-	// 		type: 'GET',
-	// 		success: function (data) {
-	// 		console.log("Dữ liệu trả về:", data); // Xem toàn bộ mảng
-	// 		if (data.length > 0) {
-	// 			console.log("Ca kíp hiện tại:", data[0].TenKip);
-	// 			$("#tenKip").text(data[0].TenKip);
-	// 		} else {
-	// 			$("#tenKip").text("Không tìm thấy ca kíp.");
-	// 		}
-	// 		}
-	// ,
-	// 		error: function (xhr, status, error) {
-	// 			console.error("Lỗi khi lấy ca/kíp:", error);
-	// 		}
-	// 	});
-	// });
 </script>

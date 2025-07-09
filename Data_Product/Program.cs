@@ -46,7 +46,7 @@ builder.Services.AddQuartz(q =>
         .ForJob(jobKey)
         .WithIdentity("TaoPhieuTuDongJob-trigger")
         .WithSimpleSchedule(x => x
-            .WithIntervalInMinutes(5)
+            .WithIntervalInMinutes(20)
             .RepeatForever()
         ));
 });

@@ -258,7 +258,7 @@ namespace Data_Product.Controllers
                     ID_LoCao = p.ID_Locao,
                     TenNguoiTao = _context.Tbl_TaiKhoan
                                     .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
-                                    .Select(tk => tk.HoVaTen).FirstOrDefault(),
+                                    .Select(tk => tk.TenTaiKhoan + " "+ "-"+" "+ tk.HoVaTen ).FirstOrDefault(),
                     TenCa = _context.Tbl_Kip
                                 .Where(k => k.ID_Kip == p.ID_Kip)
                                 .Select(k => k.TenKip)
@@ -323,7 +323,7 @@ namespace Data_Product.Controllers
 
             // Truyền lại giá trị tìm kiếm cho view
             ViewBag.MaPhieu = maPhieu;
-            ViewBag.Ngay = ngay?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
             ViewBag.Ca = ca;
             ViewBag.TenLoCao = locao;
 
@@ -565,6 +565,8 @@ namespace Data_Product.Controllers
                 ThuTuThung = t.BKMIS_ThungSo,
                 GioNhaMay = t.BKMIS_Gio,
                 PhanLoai = t.BKMIS_PhanLoai,
+                KL_XeThungVaGang = t.G_KLXeThungVaGang,
+                KL_XeVaThung = t.G_KLXeVaThung,
                 KL_XeGoong = t.KL_XeGoong,
                 KL_Thung = t.G_KLThungChua,
                 KL_Thung_GangLong = t.G_KLThungVaGang,
@@ -595,6 +597,8 @@ namespace Data_Product.Controllers
                     x.ThuTuThung,
                     x.GioNhaMay,
                     x.PhanLoai,
+                    x.KL_XeThungVaGang,
+                    x.KL_XeVaThung,
                     x.KL_XeGoong,
                     x.KL_Thung,
                     x.KL_Thung_GangLong,
@@ -645,7 +649,7 @@ namespace Data_Product.Controllers
         //            return Json(new { success = false, message = "Không tìm thấy thùng nào" });
         //        }
         //        var thungKhongHopLe = thungs.Where(t => t.G_ID_TrangThai != 1).ToList();
-               
+
         //        if (thungKhongHopLe.Any())
         //        {
         //            var maThungs = string.Join(", ", thungKhongHopLe.Select(t => t.MaThungGang));
@@ -806,49 +810,37 @@ namespace Data_Product.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveThung([FromBody] SaveThungDto req)
         {
-            //if (!ModelState.IsValid)
-            //{
-            //    return BadRequest(ModelState);
-            //}
             if (req == null || req.DanhSachThung == null || !req.DanhSachThung.Any())
-            {
-                return  BadRequest("Dữ liệu không hợp lệ.");
-            }
+                return BadRequest("Dữ liệu không hợp lệ.");
+
             try
             {
                 var phieu = await _context.Tbl_BM_16_Phieu.FirstOrDefaultAsync(p => p.MaPhieu == req.MaPhieu);
+                if (phieu == null) return NotFound("Không tìm thấy phiếu.");
 
                 var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-                if (string.IsNullOrEmpty(tenTaiKhoan))
-                    return Unauthorized("Phiên đăng nhập không hợp lệ.");
+                if (string.IsNullOrEmpty(tenTaiKhoan)) return Unauthorized("Phiên đăng nhập không hợp lệ.");
 
                 var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
-                if (taiKhoan == null)
-                    return Unauthorized("Tài khoản không tồn tại.");
+                if (taiKhoan == null) return Unauthorized("Tài khoản không tồn tại.");
 
                 int idNhanVienLuu = taiKhoan.ID_TaiKhoan;
 
-                if (phieu == null)
-                {
-                    return NotFound("Không tìm thấy phiếu.");
-                }
-                // Thêm các dòng gang thỏi vào phiếu này
-                //ChuaXuLy = 1, ChoXuLy = 2, DaXuLy = 3, DaNhan = 4, DaChot = 5
+                var tenCaStr = await _context.Tbl_Kip
+                    .Where(k => k.ID_Kip == req.ID_Kip)
+                    .Select(k => k.TenCa)
+                    .FirstOrDefaultAsync();
+                int? soCa = int.TryParse(tenCaStr, out int ca) ? ca : null;
+
                 foreach (var item in req.DanhSachThung)
                 {
-                    var chuyenDen = item.ChuyenDen ?? "";
-                    var tenCaStr = await _context.Tbl_Kip
-                   .Where(k => k.ID_Kip == req.ID_Kip)
-                   .Select(k => k.TenCa)
-                   .FirstOrDefaultAsync();
-
-                    int? soCa = int.TryParse(tenCaStr, out int result) ? result : null;
                     bool duDuLieu = item.KL_XeGoong != null &&
-                       item.G_KLThungChua != null &&
-                       item.G_KLThungVaGang != null &&
-                       item.G_KLGangLong != null &&
-                       item.ChuyenDen != null &&
-                       item.Gio_NM != null;
+                        item.G_KLThungChua != null &&
+                        item.G_KLThungVaGang != null &&
+                        item.G_KLGangLong != null &&
+                        item.ChuyenDen != null &&
+                        item.Gio_NM != null;
+
                     var gangThoi = new Tbl_BM_16_GangLong
                     {
                         MaPhieu = req.MaPhieu,
@@ -858,34 +850,37 @@ namespace Data_Product.Controllers
                         BKMIS_Gio = item.BKMIS_Gio,
                         BKMIS_PhanLoai = item.BKMIS_PhanLoai,
                         KL_XeGoong = item.KL_XeGoong,
-                        NgayLuyenGang = DateTime.Now,
+                        G_KLXeThungVaGang = item.G_KLXeThungVaGang,
+                        G_KLXeVaThung = item.G_KLXeVaThung,
                         G_KLThungChua = item.G_KLThungChua,
                         G_KLThungVaGang = item.G_KLThungVaGang,
                         G_KLGangLong = item.G_KLGangLong,
                         ChuyenDen = item.ChuyenDen ?? "",
-                        Gio_NM =    item.Gio_NM,
+                        Gio_NM = item.Gio_NM,
                         G_GhiChu = item.G_GhiChu,
-                        G_ID_TrangThai = duDuLieu ? 1 :3,
+                        G_ID_TrangThai = duDuLieu ? 3 : 1,
                         NgayTao = req.NgayPhieuGang,
                         G_ID_NguoiLuu = idNhanVienLuu,
                         ID_Locao = req.ID_Locao,
                         G_ID_Kip = req.ID_Kip,
-                        T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2,
-                       // T_ID_TrangThai = 2,
                         G_Ca = soCa,
+                        T_ID_TrangThai = (item.ChuyenDen == "DUC1" || item.ChuyenDen == "DUC2") ? 4 : 2,
                         ID_TrangThai = 2,
                         T_copy = false,
+                        NgayLuyenGang = DateTime.Now
                     };
-                     _context.Tbl_BM_16_GangLong.Add(gangThoi);
-                    await _context.SaveChangesAsync();
-                }
-            }
-            catch (Exception)
-            {
 
-                throw;
+                    _context.Tbl_BM_16_GangLong.Add(gangThoi);
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
             }
-            return Json(new { success = true, });
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lưu thùng gang.");
+                return StatusCode(500, "Có lỗi xảy ra trong quá trình lưu dữ liệu.");
+            }
         }
 
         [HttpPost]
@@ -913,6 +908,8 @@ namespace Data_Product.Controllers
                 if (thung != null)
                 {
                     thung.KL_XeGoong = item.KL_XeGoong;
+                    thung.G_KLXeThungVaGang = item.G_KLXeThungVaGang;
+                    thung.G_KLXeVaThung = item.G_KLXeVaThung;
                     thung.G_KLThungChua = item.G_KLThungChua;
                     thung.G_KLThungVaGang = item.G_KLThungVaGang;
                     thung.G_KLGangLong = item.G_KLGangLong;
@@ -934,6 +931,10 @@ namespace Data_Product.Controllers
                     if (duDuLieu)
                     {
                         thung.G_ID_TrangThai = 3; // Đã xử lý
+                    }
+                    else
+                    {
+                        thung.G_ID_TrangThai = 1;
                     }
                 }
             }
