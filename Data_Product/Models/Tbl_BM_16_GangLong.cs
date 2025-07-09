@@ -31,6 +31,11 @@ namespace Data_Product.Models
         public decimal? KL_XeGoong { get; set; }
 
         public DateTime? NgayLuyenGang { get; set; }
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? G_KLXeVaThung { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? G_KLXeThungVaGang { get; set; }
 
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? G_KLThungChua { get; set; }

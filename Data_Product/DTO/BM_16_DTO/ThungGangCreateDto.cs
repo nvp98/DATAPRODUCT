@@ -16,8 +16,12 @@ namespace Data_Product.DTO.BM_16_DTO
         public string? BKMIS_Gio { get; set; }
       
         public string? BKMIS_PhanLoai { get; set; }
-       
+
         public decimal? KL_XeGoong { get; set; }
+
+        public decimal? G_KLXeThungVaGang { get; set; }
+
+        public decimal? G_KLXeVaThung { get; set; }
         
         public decimal? G_KLThungChua { get; set; }
        
