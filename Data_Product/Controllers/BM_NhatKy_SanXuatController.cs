@@ -242,7 +242,7 @@ namespace Data_Product.Controllers
             {
                 if (TaiKhoan.ID_Quyen != 8)
                 {
-                    query = query.Where(x => x.ID_PhongBan_SX == TaiKhoan.ID_PhongBan  || ListPBInt.Contains(x.ID_PhongBan_SX) || x.ID_NhanVien_BTBD == TaiKhoan.ID_TaiKhoan);
+                    query = query.Where(x => x.ID_PhongBan_SX == TaiKhoan.ID_PhongBan || dsPhongBanXL.Any(k => k == x.ID_PhongBan_SX) || ListPBInt.Any(k =>k ==x.ID_PhongBan_SX) || x.ID_NhanVien_BTBD == TaiKhoan.ID_TaiKhoan);
                 }
             }
 
