@@ -547,7 +547,7 @@ namespace Data_Product.Controllers
             // Tạo dictionary ID -> Họ và tên người lưu
             var nguoiLuuDict = await _context.Tbl_TaiKhoan
                 .Where(x => idNguoiLuuList.Contains(x.ID_TaiKhoan))
-                .ToDictionaryAsync(x => x.ID_TaiKhoan, x => x.HoVaTen);
+                .ToDictionaryAsync(x => x.ID_TaiKhoan, x => x.TenTaiKhoan + "-" + x.HoVaTen);
             // Gom nhóm theo MaThungGang, nhóm tiếp theo theo tên user đếm số lần nhận
             var userStats = thungUserList
                 .GroupBy(x => x.MaThungGang)
