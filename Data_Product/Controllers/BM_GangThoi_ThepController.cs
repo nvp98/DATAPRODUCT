@@ -143,7 +143,7 @@ namespace Data_Product.Controllers
                 }
                 else
                 {
-                    query = query.Take(50);
+                    query = query.Take(150);
                 }
 
                 var res = await (from a in query
