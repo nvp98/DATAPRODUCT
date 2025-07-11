@@ -499,6 +499,8 @@
      let isHidden = true;
      let currentPage = 1;
      const pageSize = 20;
+     let danhSachThung = [];
+
     // reset cacs filter search
         function clearFilter(ids = []) {
           ids.forEach(id => {
@@ -715,34 +717,60 @@
             return '0.0'; 
         }
 
-        function KhoiLuongDuc(g_KLGangLong, t_KLGangLong){
+        function KhoiLuongDuc(maThungGang){
             const percent = parseInt($("#percentDuc").val());
-            if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
-                const result = parseFloat(g_KLGangLong - t_KLGangLong) / 100 * percent;
+            const danhsachThung = danhSachThung;
+
+            const flatData = danhsachThung.flat();
+
+            const grouped = {};
+
+            flatData.forEach(item => {
+              const key = item.maThungGang;
+
+              if (!grouped[key]) {
+                grouped[key] = {
+                  maThungGang: key,
+                  sum_g_KLGangLong: 0,
+                  sum_t_KLGangLong: 0
+                };
+              }
+
+              if (item.t_copy === false) {
+                  grouped[key].sum_g_KLGangLong += Number(item.g_KLGangLong) || 0;
+              }
+              grouped[key].sum_t_KLGangLong += Number(item.t_KLGangLong) || 0;
+            });
+
+            const record = grouped[maThungGang];
+
+
+            if (record) {
+                 const result = parseFloat(record.sum_g_KLGangLong - record.sum_t_KLGangLong) / 100 * percent;
                 if (!isNaN(result)) {
                         return result.toFixed(1);
                 }
-            }
-            return null;
+            } else {
+              return null; // hoặc bạn có thể throw Error nếu muốn
+    }
         }
 
-        $("#percentDuc").on('change', function () {
-           $("#tblDuLieu tr").each(function () {
-               const g_KLGangLong = parseFloat($(this).find(".G_KL_GangLong").text());
-               const t_KLGangLong = parseFloat($(this).find(".T_KLGangLong").text());
-               if (!isNaN(g_KLGangLong) && !isNaN(t_KLGangLong)) {
-                    // Tính kết quả
-                    const ketqua = KhoiLuongDuc(g_KLGangLong, t_KLGangLong);
-
-                    // Hiển thị kết quả ra ô .KLDuc
-                    if (ketqua !== null) {
-                        $(this).find(".KLDuc").text(ketqua);
-                    } else {
-                        $(this).find(".KLDuc").text('');
-                    }
-               }
-           });
-        })
+        // $("#percentDuc").on('change', function () {
+        //    $("#tblDuLieu tr").each(function () {
+        //        const chuyenDen = $(this).find(".ChuyenDen").text().trim();
+        //        if(chuyenDen == 'DUC1' || chuyenDen == 'DUC2'){
+        //            const g_KLGangLong = parseFloat($(this).find(".G_KL_GangLong").text());
+        //            const t_KLGangLong = parseFloat($(this).find(".T_KLGangLong").text());
+        //            if (!isNaN(g_KLGangLong) && !isNaN(t_KLGangLong)) {
+        //                 if (ketqua !== null) {
+        //                     $(this).find(".KLDuc").text(ketqua);
+        //                 } else {
+        //                     $(this).find(".KLDuc").text('');
+        //                 }
+        //            }
+        //        }
+        //    });
+        // })
 
         $("#btn-percent").click(function() {
             const percent = parseInt($("#percentDuc").val());
@@ -793,6 +821,8 @@
             $("#IDTongKLPhe").text('0.00');
             $("#IDTongKLVaoLoThoi").text('0.00');
             
+
+            
             
             data.forEach((group, groupIndex) => {
                 const rowspan = group.length;
@@ -813,7 +843,8 @@
                     const isShow = checkCondition(item);
                     const klChenh = KLChenhLech(item.g_KLGangLong, item.t_KLGangLong);
                     const ptChenh = PhanTramChenhLech(item.g_KLGangLong, item.t_KLGangLong);
-                    const klDuc = KhoiLuongDuc(item.g_KLGangLong, item.t_KLGangLong);
+
+                    const klDuc = (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') && item.t_copy === false ? KhoiLuongDuc(item.maThungGang) : null;
 
                     row.append(`<td class="sticky-col-1">${ngayLG ?? ''}</td>`);
                     row.append(`<td class="sticky-col-2">${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>`);
@@ -836,7 +867,7 @@
                         row.append(`<td>${item.g_KLThungChua ?? ''}</td>`);
                         row.append(`<td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>`);
                     }
-                    row.append(`<td  class="hide-col">${item.chuyenDen ?? ''}</td>`);
+                    row.append(`<td  class="hide-col ChuyenDen">${item.chuyenDen ?? ''}</td>`);
                     row.append(`<td  class="hide-col">
                                     ${item.kr === true ?
                                         `<input type="checkbox" ${item.kr ? "checked" : ""} onclick="return false;" style="pointer-events: none;"/>`
@@ -1085,6 +1116,7 @@
                  contentType: 'application/json',
                  data: JSON.stringify(dto),
                  success: function (res) {
+                     danhSachThung = res.data;
                     renderTable(res);
                     renderPagination(res.totalRecords);
                  },
