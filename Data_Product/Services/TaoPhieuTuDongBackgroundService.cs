@@ -194,7 +194,7 @@ namespace Data_Product.Services
                 2 => "view_dq1_lg_daura_lc2",
                 3 => "view_dq1_lg_daura_lc3",
                 4 => "view_dq1_lg_daura_lc4",
-                5 => "view_dq2_lg_daura_lc5",
+                5 => "view_dq2_kqganglocao",
                 _ => ""
             };
 

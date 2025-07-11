@@ -99,9 +99,9 @@ namespace Data_Product.Controllers
                     else if (ID_LoCao == 5)
                     {
                         query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName " +
-                       "FROM bkmis_kcshpsdq.view_dq2_lg_daura_lc5 " +
-                       "where bkmis_kcshpsdq.view_dq2_lg_daura_lc5.ProductionDate = '" +
-                        ngay + "'" + " and bkmis_kcshpsdq.view_dq2_lg_daura_lc5.ShiftName ='" + cakip + "'";
+                       "FROM bkmis_kcshpsdq.view_dq2_kqganglocao " +
+                       "where bkmis_kcshpsdq.view_dq2_kqganglocao.ProductionDate = '" +
+                        ngay + "'" + " and bkmis_kcshpsdq.view_dq2_kqganglocao.ShiftName ='" + cakip + "'";
                     }
 
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
@@ -920,6 +920,10 @@ namespace Data_Product.Controllers
                     if (chuyenDen == "DUC1" || chuyenDen == "DUC2")
                     {
                         thung.T_ID_TrangThai = 4; // Đã nhận
+                    }
+                    else
+                    {
+                        thung.T_ID_TrangThai = 2;
                     }
                     bool duDuLieu = item.KL_XeGoong != null &&
                           item.G_KLThungChua != null &&
