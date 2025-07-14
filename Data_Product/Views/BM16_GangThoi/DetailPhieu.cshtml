@@ -760,20 +760,38 @@
 					});
 
 					// Gọi hàm xử lý phù hợp khi nhấn nút "Lưu"
-					$("#btnLuuThungMoi").click(function () {
-						const hasNewRows = $("#dataTable tbody tr[data-new='true']").length > 0;
-						const hasChangedRows = $("#dataTable tbody tr[data-changed='true']").length > 0;
+						$("#btnLuuThungMoi").click(function () {
+						const newRows = $("#dataTable tbody tr[data-new='true']");
+						const changedRows = $("#dataTable tbody tr[data-changed='true']");
+						const hasNewRows = newRows.length > 0;
+						const hasChangedRows = changedRows.length > 0;
 
-						if (hasNewRows) {
-							saveGangThoiVaoPhieu(); // Lưu thùng mới
-						}
-						else if (hasChangedRows) {
-							const danhSachThung = getDanhSachThung(); // chỉ lấy các dòng đã sửa
+						// Nếu có cả dòng mới và dòng chỉnh sửa
+						if (hasNewRows && hasChangedRows) {
+							const danhSachThung = getDanhSachThung();
 							if (danhSachThung.length === 0) {
 								alert("Không có thay đổi nào để lưu!");
 								return;
 							}
-							editGangThoiTrongPhieu(danhSachThung); // cập nhật thùng cũ
+
+							// Lưu thùng mới trước
+							saveGangThoiVaoPhieu(() => {
+								// Sau khi lưu xong, tiếp tục cập nhật dòng cũ
+								editGangThoiTrongPhieu(danhSachThung);
+							});
+						}
+						else if (hasNewRows) {
+							saveGangThoiVaoPhieu(() => {
+								location.reload(); // reload sau khi lưu xong nếu không cần edit
+							});
+						}
+						else if (hasChangedRows) {
+							const danhSachThung = getDanhSachThung();
+							if (danhSachThung.length === 0) {
+								alert("Không có thay đổi nào để lưu!");
+								return;
+							}
+							editGangThoiTrongPhieu(danhSachThung);
 						}
 						else {
 							alert("Không có dữ liệu mới hoặc thay đổi để lưu.");
@@ -1132,7 +1150,7 @@
 		});
 	}
 
-		function saveGangThoiVaoPhieu() {
+		function saveGangThoiVaoPhieu(callback) {
 			let phieuID = $("#PhieuID").val();
 			let idLoCao = $("#ID_Locao").val();
 			let idKip = $("#ID_Kip").val();
@@ -1218,7 +1236,10 @@
 				alert("Vui lòng kiểm tra lại các ô dữ liệu bị đánh dấu đỏ.");
 				return;
 			}
-
+				if (danhSachThung.length === 0) {
+				if (typeof callback === "function") callback(); // tiếp tục nếu không có dòng mới
+				return;
+			}
 			// Tạo object gửi lên controller
 			const dataToSend = {
 				MaPhieu: phieuID,
@@ -1236,9 +1257,9 @@
 				contentType: "application/json",
 				data: JSON.stringify(dataToSend),
 				success: function (res) {
-					alert(res.message || "Lưu thành công!");
-					location.reload();
-				},
+			alert("Lưu thành công");
+			if (typeof callback === "function") callback(); // tiếp tục gọi cập nhật
+		},
 				error: function (err) {
 					alert("Lỗi khi lưu: " + err.responseText);
 				}
