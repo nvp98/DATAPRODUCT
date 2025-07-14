@@ -33,6 +33,7 @@
 @{
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
 
 }
 <body>
@@ -211,14 +212,14 @@
                                     <span>Phân quyền lò sản xuất</span>
                                 </a>
                             </li>
-                          @*  <li>
+                            @*  <li>
                                 <a class="nav-link collapsed" href="@Url.Action("Index", "Locao")">
                                     <i class="bi bi-circle"></i>
                                     <span>Lo cao</span>
                                 </a>
                             </li>*@
 
-                           @* <li>
+                            @* <li>
                                 <a class="nav-link collapsed" href="@Url.Action("Index", "KLxethung")">
                                     <i class="bi bi-circle"></i>
                                     <span>KL xe thùng</span>
@@ -309,7 +310,7 @@
                                     <span>BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
                                 </a>
                             </li>
-                           @* <li>
+                            @* <li>
                                 <a class="nav-link collapsed" href="@Url.Action("Index_Started","BM")">
                                     <i class="bi bi-circle"></i>
                                     <span>BM.16</span>
@@ -321,13 +322,15 @@
                                     <span>BM.12/QT.05 Nhật ký sản xuất </span>
                                 </a>
                             </li>
-                            <li>
-                                <a class="nav-link collapsed" href="@Url.Action("Danhsachphieu","BM16_GangThoi")">
-                                    <i class="bi bi-circle"></i>
-                                    <span>Quy trình giao nhận Gang lỏng - Luyện gang </span>
-                                </a>
-                            </li>
-
+                            @if (TaiKhoan != null && (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 11))
+                            {
+                                <li>
+                                    <a class="nav-link collapsed" href="@Url.Action("Danhsachphieu","BM16_GangThoi")">
+                                        <i class="bi bi-circle"></i>
+                                        <span>Quy trình giao nhận Gang lỏng - Luyện gang </span>
+                                    </a>
+                                </li>
+                            }
                         </ul>
                     </li>
                     <!-- End Contact Page Nav -->
@@ -343,12 +346,16 @@
                                     <span>BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
                                 </a>
                             </li>
-                            <li>
-                                <a class="nav-link collapsed" href="@Url.Action("Danhsachphieu","BM16_GangThoi")">
+                            @if (PhongBan?.TenNgan == "P.QLCL")
+                            {
+                                <li>
+                                    <a class="nav-link collapsed" href="@Url.Action("Danhsachphieu","BM16_GangThoi")">
                                     <i class="bi bi-circle"></i>
                                     <span>Quy trình giao nhận Gang lỏng - Luyện gang </span>
                                 </a>
                             </li>
+                            }
+
                            @* <li>
                                 <a class="nav-link collapsed" href="@Url.Action("Index","XulyphieuBM")">
                                     <i class="bi bi-circle"></i>
@@ -439,7 +446,7 @@
                     <!-- End F.A.Q Page Nav -->
                 }
                 List<string> QuyenQLBBGN = new List<string> { "1", "2", "3", "4", "7", "8" };
-                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || TaiKhoan.ID_Quyen == 4 || TaiKhoan.ID_Quyen == 8 || QuyenQLBBGN.Any(value => ListQuyen.Contains(value)))
+                if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 7 || TaiKhoan.ID_Quyen == 4 || TaiKhoan.ID_Quyen == 8 || TaiKhoan.ID_Quyen == 12|| QuyenQLBBGN.Any(value => ListQuyen.Contains(value)))
                 {
 
                     <li class="nav-item1">

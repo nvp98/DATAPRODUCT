@@ -238,7 +238,7 @@ namespace Data_Product.Controllers
             }
             return new SelectList(loCaos, "ID", "TenLoCao");
         }
-        public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, string ca,string locao, int page = 1)
+        public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, DateTime? ngaypg, string ca,string locao, int page = 1)
         {
             const int pageSize = 10;
             if (page < 1) page = 1;
@@ -249,11 +249,15 @@ namespace Data_Product.Controllers
             var pager = new Pager();
             if (loCaoList.Any())
             {
-                var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayTaoPhieu)
+                //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
+                    var query = _context.Tbl_BM_16_Phieu
+                        .OrderByDescending(p => p.NgayPhieuGang.Date) // Ngày mới trước
+                            .ThenByDescending(p => p.ThoiGianTao)
                 .Select(p => new PhieuViewModel
                 {
                     MaPhieu = p.MaPhieu,
                     NgayTaoPhieu = p.NgayTaoPhieu,
+                    NgayPhieuGang =p.NgayPhieuGang,
                     ThoiGianTao = p.ThoiGianTao.ToString("HH:mm:ss"),
                     ID_LoCao = p.ID_Locao,
                     TenNguoiTao = _context.Tbl_TaiKhoan
@@ -275,7 +279,11 @@ namespace Data_Product.Controllers
                     string maPhieuLower = maPhieu.ToLower();
                     query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
                 }
-
+                // Lọc theo ngày phiếu gang
+                if (ngaypg.HasValue)
+                {
+                    query = query.Where(s => s.NgayPhieuGang.Date == ngaypg.Value.Date);
+                }
                 // Lọc theo ngày
                 if (ngay.HasValue)
                 {
@@ -324,6 +332,7 @@ namespace Data_Product.Controllers
             // Truyền lại giá trị tìm kiếm cho view
             ViewBag.MaPhieu = maPhieu;
             ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.NgayPG = ngaypg?.ToString("dd-MM-yyyy") ?? "";
             ViewBag.Ca = ca;
             ViewBag.TenLoCao = locao;
 
