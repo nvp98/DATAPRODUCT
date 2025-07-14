@@ -135,8 +135,8 @@
                     <div class="mb-3">
                         <label class="form-label">Trạng thái</label>
                         <select name="IsActived" id="IsActived" class="form-control">
-                            <option value="true" selected>Đang hoạt động</option>
-                            <option value="false">Ngừng hoạt động</option>
+                            <option value="true" selected>Mở khóa</option>
+                            <option value="false">Khóa</option>
                         </select>
                     </div>
 
@@ -208,6 +208,9 @@
                  })
 
              }
+             const statusHtml = item.isActived ? `
+                <p>Đang sử dụng</p>
+             `: `<p style="color: red;">Đã khóa</p>`;
              const html =`
                  <tr >
                     <td class="text-center align-middle">${RowNo}</td>
@@ -218,7 +221,7 @@
                         ${htmlListTaiKhoan}
                     </td>
                     <td class="text-center align-middle">
-                        ${item.isActived ? "Đang hoạt động" : "Dừng hoạt động"}
+                        ${statusHtml}
                     </td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-warning btn-edit" data-id="${item.id}" title="Sửa">

@@ -54,7 +54,7 @@ namespace Data_Product.Controllers
 
             var quyenLo = await (from map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan
                                  join lo in _context.Tbl_BM_16_LoSanXuat on map.ID_LoSanXuat equals lo.ID
-                                 where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan
+                                 where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && lo.IsActived == true
                                  select new
                                  {
                                      ID_BoPhan = lo.ID_BoPhan,
@@ -141,10 +141,9 @@ namespace Data_Product.Controllers
 
                     query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
                 }
-                else
-                {
-                    query = query.Take(150);
-                }
+                
+                query = query.Take(150);
+                
 
                 var res = await (from a in query
                                  join trangThai in _context.Tbl_BM_16_TrangThai on a.T_ID_TrangThai equals trangThai.ID
@@ -160,6 +159,7 @@ namespace Data_Product.Controllers
                                      NgayLuyenGang = a.NgayLuyenGang,
                                      ChuyenDen = a.ChuyenDen,
                                      Gio_NM = a.Gio_NM,
+                                     G_Ca = a.G_Ca,
                                      G_KLGangLong = a.G_KLGangLong,
                                      KR = a.KR,
                                      ID_TrangThai = a.ID_TrangThai,
@@ -219,6 +219,7 @@ namespace Data_Product.Controllers
                     x.ID_Locao,
                     x.TenLoCao,
                     x.NgayTao,
+                    x.G_Ca,
                     NguoiNhanList = userStats.ContainsKey(x.MaThungGang)
                                 ? userStats[x.MaThungGang]
                                 : new List<string>()

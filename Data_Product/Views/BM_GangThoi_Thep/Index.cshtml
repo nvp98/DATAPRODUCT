@@ -804,11 +804,82 @@
                 contentType: 'application/json',
                 data: JSON.stringify(payload),
                 success: function (data) {
-                    renderTableNhanThung(data);
+                    const dataSorted = sortData(data)
+                    renderTableNhanThung(dataSorted);
                 },
                 error: function (err) {
                     alert("Lỗi khi tìm kiếm dữ liệu");
                 }
+            });
+        }
+
+            // Hỗ trợ parse cả "09:30" và "09H30"
+        function parseMixedTimeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            let parts;
+
+            if (timeStr.includes(':')) {
+                parts = timeStr.split(':');
+            } else if (timeStr.includes('H')) {
+                parts = timeStr.split('H');
+            } else {
+                return 0;
+            }
+
+            const hours = parseInt(parts[0], 10) || 0;
+            const minutes = parseInt(parts[1], 10) || 0;
+            return hours * 60 + minutes;
+        }
+
+        // Hàm tạo key sắp xếp
+        function convertToSortKey(item) {
+            const date = new Date(item.ngayTao);
+            const timeMins = parseMixedTimeToMinutes(item.bkmiS_Gio);
+            const ca = item.g_Ca;
+
+            const sortDateValue = -date.getTime(); // Ngày giảm dần
+            const caValue = (ca === 2) ? 0 : 1;     // Ca đêm trước ca ngày
+
+            let subGroup = 0;
+            let sortTimeValue = 0;
+
+            if (ca === 2) {
+                if (timeMins < 480) {
+                    // Giờ sáng hôm sau (00:00–07:59)
+                    subGroup = 0;
+                } else {
+                    // Giờ tối hôm trước (20:00–23:59)
+                    subGroup = 1;
+                }
+                sortTimeValue = -timeMins; // Giảm dần
+            } else {
+                sortTimeValue = -timeMins; // Ca ngày cũng giảm dần
+            }
+
+            return {
+                sortDateValue,
+                caValue,
+                subGroup,
+                sortTimeValue
+            };
+        }
+
+        // Hàm sắp xếp chính
+        function sortData(data) {
+            return data.sort((a, b) => {
+                const sa = convertToSortKey(a);
+                const sb = convertToSortKey(b);
+
+                if (sa.sortDateValue !== sb.sortDateValue)
+                    return sa.sortDateValue - sb.sortDateValue;
+
+                if (sa.caValue !== sb.caValue)
+                    return sa.caValue - sb.caValue;
+
+                if (sa.caValue === 0 && sa.subGroup !== sb.subGroup)
+                    return sa.subGroup - sb.subGroup;
+
+                return sa.sortTimeValue - sb.sortTimeValue;
             });
         }
 

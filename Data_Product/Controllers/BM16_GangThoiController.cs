@@ -206,7 +206,7 @@ namespace Data_Product.Controllers
 
             var quyenLo = await (from map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan
                                  join lo in _context.Tbl_BM_16_LoSanXuat on map.ID_LoSanXuat equals lo.ID
-                                 where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan
+                                 where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && lo.IsActived == true
                                  select new
                                  {
                                      ID_BoPhan = lo.ID_BoPhan,
