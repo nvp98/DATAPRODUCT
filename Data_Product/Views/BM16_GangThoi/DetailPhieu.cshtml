@@ -200,8 +200,8 @@
 										<th rowspan="2" class="sticky-col thung-so">Thùng số</th>
 										<th rowspan="2" class="sticky-col gio">Giờ</th>
 										<th rowspan="2" class="sticky-col phan-loai">Phân loại</th>
-										<th rowspan="2">KL thùng & gang & xe</th>
 										<th rowspan="2">KL thùng & xe</th>
+										<th rowspan="2">KL thùng & gang & xe</th>
 										<th rowspan="2">KL xe goong</th>
 										<th rowspan="2">KL thùng</th>
 										<th rowspan="2">KL thùng & gang lỏng</th>
@@ -264,13 +264,13 @@
 												<td name="Gio" class="sticky-col gio">@item.GioNhaMay</td>
 												<td name="PhanLoai" class="sticky-col phan-loai">@item.PhanLoai</td>
 												<td>
-													<input type="number" name="KLThungGangXe" step="0.01" class="form-control" value="@item.KL_XeThungVaGang"
+													<input type="number" name="KLThungVaXe" step="0.01" class="form-control" value="@item.KL_XeVaThung"
 														   style="width: 100px; padding: 4px;" />
 												</td>
 												<td>
-													<input type="number" name="KLThungVaXe" step="0.01" class="form-control" value="@item.KL_XeVaThung"
-													style="width: 100px; padding: 4px;" />
-												</td>									
+													<input type="number" name="KLThungGangXe" step="0.01" class="form-control" value="@item.KL_XeThungVaGang"
+														   style="width: 100px; padding: 4px;" />
+												</td>																				
 												<td>
 													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;" />
 												</td>
@@ -1055,8 +1055,8 @@
 									<td name="ThungSo">${thungSo}</td>
 									<td name="Gio">${time}</td>
 									<td name="PhanLoai">${phanLoai}</td>
-									<td><input type="number" name="KLThungGangXe" class="form-control"  style="width: 100px;"></td>
 									<td><input name="KLThungVaXe" type="number" class="form-control" style="width: 100px;"></td>
+									<td><input type="number" name="KLThungGangXe" class="form-control"  style="width: 100px;"></td>									
 									<td><input type="number" name="KhoiLuongXeGoong" class="form-control" value="${klxe}" style="width: 100px;"></td>
 									<td><input name="KhoiLuongThung" type="number" class="form-control" style="width: 100px;"></td>
 									<td><input name="KLThungGangLong" type="number" class="form-control" style="width: 100px;"></td>

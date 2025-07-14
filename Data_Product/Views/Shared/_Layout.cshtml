@@ -146,10 +146,11 @@
                 {
                     ListQuyen = TaiKhoan.Quyen_Them.Split(',').Select(item => item.Trim()).ToList();
                 }
+                <li class="nav-heading">Quản trị hệ thống</li>
                 List<string> valuesToCheck = new List<string> { "1" };
                 if (TaiKhoan.ID_Quyen == 1 || valuesToCheck.Any(value => ListQuyen.Contains(value)))
                 {
-                    <li class="nav-heading">Quản trị hệ thống</li>
+
                     <li class="nav-item">
                         <a class="nav-link collapsed" href="@Url.Action("Index", "Home")">
                             <i class="bi bi-houses"></i>
@@ -322,20 +323,20 @@
                                     <span>BM.12/QT.05 Nhật ký sản xuất </span>
                                 </a>
                             </li>
-                            @if (TaiKhoan != null && (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 11))
-                            {
+                       @*      @if (TaiKhoan != null && (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 11))
+                            { *@
                                 <li>
                                     <a class="nav-link collapsed" href="@Url.Action("Danhsachphieu","BM16_GangThoi")">
                                         <i class="bi bi-circle"></i>
                                         <span>Quy trình giao nhận Gang lỏng - Luyện gang </span>
                                     </a>
                                 </li>
-                            }
+                        @*     } *@
                         </ul>
                     </li>
                     <!-- End Contact Page Nav -->
-
-                    <li class="nav-item1">
+                }
+                <li class="nav-item1">
                         <a class="nav-link collapsed" data-bs-target="#icons-bieumau1" data-bs-toggle="collapse" href="#">
                             <i class="bi bi-hospital"></i><span>Việc đến tôi </span><i class="bi bi-chevron-down ms-auto"></i>
                         </a>
@@ -375,7 +376,7 @@
                    
 
 
-                }
+              
                 List<string> QuyenKH = new List<string> { "1", "3" };
                 <li class="nav-heading" style="margin-top: 25px;">Kiểm soát phiếu</li>
                 if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 3 || QuyenKH.Any(value => ListQuyen.Contains(value)))
