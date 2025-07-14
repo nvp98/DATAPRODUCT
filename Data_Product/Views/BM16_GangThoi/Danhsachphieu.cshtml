@@ -73,6 +73,11 @@
         background-color: #218838;
     }
 
+    .hidden {
+        display: none;
+    }
+
+
 </style>
 <div class="app-main__outer">
 	<div class="app-main__inner" style="display:block; padding-bottom: 0px;">
@@ -99,14 +104,26 @@
 
                       <form method="get" asp-action="Danhsachphieu" asp-controller="BM16_GangThoi" class="row g-2 align-items-center mb-3">
                     <div class="col-auto">
+                         <label class="form-label small mb-1" for="maPhieu">Mã Phiếu</label>
                         <input type="text" name="maPhieu" class="form-control form-control-sm" placeholder="Mã Phiếu" value="@ViewBag.MaPhieu" />
                     </div>
-
+                            @{
+                                string ngayPGValue = "";
+                                if (!string.IsNullOrEmpty(ViewBag.NgayPG))
+                                {
+                                    DateTime parsedDate;
+                                    if (DateTime.TryParseExact(ViewBag.NgayPG, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out parsedDate))
+                                    {
+                                        ngayPGValue = parsedDate.ToString("yyyy-MM-dd");
+                                    }
+                                }
+                            }
+                            <div class="col-auto">
+                                <label class="form-label small mb-1" for="ngaypg">Ngày Luyện Gang</label>
+                                <input type="date" name="NgayPG" class="form-control form-control-sm" value="@ngayPGValue" />
+                            </div>
                     <div class="col-auto">
-                        <input type="date" name="ngay" class="form-control form-control-sm" value="@ViewBag.Ngay" />
-                    </div>
-
-                    <div class="col-auto">
+                                <label class="form-label small mb-1" for="ca">Kíp</label>
                         <select name="ca" class="form-select form-select-sm">
                             <option value="">-- Chọn Kíp --</option>
                                     <option value="A" selected="@(ViewBag.Ca == "A")">A</option>
@@ -115,7 +132,7 @@
                         </select>
                     </div>
                             <div class="col-auto">
-
+                                 <label class="form-label small mb-1" for="locao">Lò Cao</label>
                                 <select name="locao" class="form-control form-control-sm">
                                     <option value="">-- Chọn Lò Cao --</option>
                                     @foreach (var item in (SelectList)ViewBag.LoCaoList)
@@ -142,7 +159,7 @@
                                 <thead class="thead-light">
                                     <tr class="text-center align-middle">
                                         <th>Mã Phiếu</th>
-                                        <th>Ngày Tạo Phiếu</th>
+                                        <th>Ngày Luyện Gang</th>
                                         <th>Ca</th>
                                         <th>Lò Cao</th>
                                         <th>Người Tạo</th>
@@ -165,7 +182,7 @@
                                                 <td class="text-center">
                                                     <a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="text-primary">@item.MaPhieu</a>
                                                 </td>
-                                                <td class="text-center">@item.NgayTaoPhieu.ToString("dd-MM-yyyyy")</td>
+                                                <td class="text-center">@item.NgayPhieuGang.ToString("dd-MM-yyyyy")</td>                                        
                                                 <td class="text-center">@item.TenCa</td>
                                                 <td class="text-center">@item.TenLoCao</td>
                                                 <td class="text-center">@item.TenNguoiTao</td>
@@ -174,7 +191,7 @@
                                                     <a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>
                                                     @if (PhongBan?.TenNgan != "P.QLCL")
                                                     {
-                                                           <a href="javascript:void(0);" data-maphieu="@item.MaPhieu" class="btn btn-sm btn-warning btn-xoa-phieu">Xóa</a>
+                                                        <a href="javascript:void(0);" data-maphieu="@item.MaPhieu" class="btn btn-sm btn-warning btn-xoa-phieu hidden">Xóa</a>
                                                     }
                                                 </td>
                                             </tr>
