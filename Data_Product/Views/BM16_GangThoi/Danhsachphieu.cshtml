@@ -103,8 +103,7 @@
 					<div class="card-header" style="border-bottom: 0px; padding-bottom:2%">
 
                       <form method="get" asp-action="Danhsachphieu" asp-controller="BM16_GangThoi" class="row g-2 align-items-center mb-3">
-                    <div class="col-auto">
-                         <label class="form-label small mb-1" for="maPhieu">Mã Phiếu</label>
+                    <div class="col-auto">                 
                         <input type="text" name="maPhieu" class="form-control form-control-sm" placeholder="Mã Phiếu" value="@ViewBag.MaPhieu" />
                     </div>
                             @{
@@ -118,12 +117,10 @@
                                     }
                                 }
                             }
-                            <div class="col-auto">
-                                <label class="form-label small mb-1" for="ngaypg">Ngày Luyện Gang</label>
+                            <div class="col-auto">                            
                                 <input type="date" name="NgayPG" class="form-control form-control-sm" value="@ngayPGValue" />
                             </div>
                     <div class="col-auto">
-                                <label class="form-label small mb-1" for="ca">Kíp</label>
                         <select name="ca" class="form-select form-select-sm">
                             <option value="">-- Chọn Kíp --</option>
                                     <option value="A" selected="@(ViewBag.Ca == "A")">A</option>
@@ -132,7 +129,6 @@
                         </select>
                     </div>
                             <div class="col-auto">
-                                 <label class="form-label small mb-1" for="locao">Lò Cao</label>
                                 <select name="locao" class="form-control form-control-sm">
                                     <option value="">-- Chọn Lò Cao --</option>
                                     @foreach (var item in (SelectList)ViewBag.LoCaoList)

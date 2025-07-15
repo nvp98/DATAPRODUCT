@@ -71,7 +71,10 @@
                         </div>
                     </div><!-- End Sales Card -->
                     <!-- Revenue Card -->
-                    @if (TaiKhoan != null && (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 11))
+                    @{
+                        var ListQuyen = new List<int> { 1, 2,3,10, 11 };
+                    }
+                    @if (TaiKhoan != null && ListQuyen.Contains(TaiKhoan.ID_Quyen ?? -1))
                     {
                         <div class="col-xxl-3 col-md-6">
                             <div class="card info-card sales-card">
@@ -171,6 +174,8 @@
                         </div>
                     </div><!-- End Sales Card -->
                     <!-- Customers Card -->
+                       @if (TaiKhoan != null && ListQuyen.Contains(TaiKhoan.ID_Quyen ?? -1))
+                    {
                     <div class="col-xxl-3 col-md-6">
                         <div class="card info-card sales-card">
                             <div class="card-body" style="padding: 5px;">
@@ -194,6 +199,7 @@
 
                         </div>
                     </div><!-- End Sales Card -->
+                    }
                 </div>
             </div><!-- End Left side columns -->
         </div>

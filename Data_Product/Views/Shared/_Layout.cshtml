@@ -33,7 +33,9 @@
 @{
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+    var PhongBan = TaiKhoan?.ID_PhongBan != null
+      ? await _context.Tbl_PhongBan.FindAsync(TaiKhoan.ID_PhongBan)
+      : null;
 
 }
 <body>

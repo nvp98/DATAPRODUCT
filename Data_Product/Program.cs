@@ -49,6 +49,16 @@ builder.Services.AddQuartz(q =>
             .WithIntervalInMinutes(20)
             .RepeatForever()
         ));
+    q.AddTrigger(opts => opts
+       .ForJob(jobKey)
+       .WithIdentity("TaoPhieuTuDongJob-trigger-beforeDayShift")
+       .WithCronSchedule("0 55 7 * * ?")); // 07:55
+
+    // Trigger chạy lúc 19:55 tối hàng ngày (trước khi kết thúc ca ngày)
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("TaoPhieuTuDongJob-trigger-beforeNightShift")
+        .WithCronSchedule("0 55 19 * * ?")); // 19:55
 });
 
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
