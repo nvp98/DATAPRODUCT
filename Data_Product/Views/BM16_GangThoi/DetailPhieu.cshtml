@@ -107,7 +107,9 @@
 	var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
 	var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
 	var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+	bool isQLCL = PhongBan?.TenNgan == "P.QLCL";
 }
+
 @using (Html.BeginForm("TaoPhieu", "BM16_GangThoi", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
 {
 	<div class="app-main__outer">
@@ -156,7 +158,10 @@
 									@if (PhongBan?.TenNgan == "P.QLCL")
 									{
 										<button type="button" class="btn btn-info btnxacnhan">
-											<i class="bi-check2-square"></i> Xác nhận
+											<i class="bi-check2-square me-1"></i> Xác nhận
+										</button>
+										<button type="button" class="btn btn-danger btnhuyxacnhan">
+											<i class="bi bi-x-circle me-1"></i>Hủy xác nhận
 										</button>
 									} else 
 									{
@@ -236,7 +241,10 @@
 										foreach (var item in ViewBag.DanhSachThung)
 										{
 											<tr>
-
+												@{
+													bool isLocked = item.TrangThai != 1 && item.TrangThai != 2;
+													string disabledAttr = (isQLCL || isLocked) ? "disabled" : "";
+												}
 												@if (PhongBan?.TenNgan != "P.QLCL")
 												{
 													<td class='text-center deleteItem'>
@@ -265,14 +273,14 @@
 												<td name="PhanLoai" class="sticky-col phan-loai">@item.PhanLoai</td>
 												<td>
 													<input type="number" name="KLThungVaXe" step="0.01" class="form-control" value="@item.KL_XeVaThung"
-														   style="width: 100px; padding: 4px;" />
+														   style="width: 100px; padding: 4px;" @disabledAttr />
 												</td>
 												<td>
 													<input type="number" name="KLThungGangXe" step="0.01" class="form-control" value="@item.KL_XeThungVaGang"
-														   style="width: 100px; padding: 4px;" />
+														   style="width: 100px; padding: 4px;"@disabledAttr />
 												</td>																				
 												<td>
-													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;" />
+													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;"@disabledAttr />
 												</td>
 												<td>
 													<input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung" style="width: 100px; padding: 4px;" disabled>
@@ -283,12 +291,12 @@
 												<td>
 													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;"disabled>
 												</td>
-												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") /></td>
-												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") /></td>
-												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") /></td>
-												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") /></td>
-												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM"></td>
-												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;">@item.GhiChu</textarea></td>
+												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") @disabledAttr /></td>
+												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") @disabledAttr /></td>
+												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") @disabledAttr /></td>
+												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") @disabledAttr /></td>
+												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM" @disabledAttr></td>
+												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;"@disabledAttr>@item.GhiChu</textarea></td>
 												@if (PhongBan?.TenNgan == "P.QLCL")
 												{
 													<td><input type="checkbox" class="chon-thung-checkbox" /></td>
@@ -355,109 +363,7 @@
 		</div>
 	</div>
 }
-<!-- Modal -->
-@* <div class="modal fade" id="editThungModal" tabindex="-1" aria-labelledby="editThungModalLabel" aria-hidden="true">
-	<div class="modal-dialog modal-lg">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="editThungModalLabel">Chỉnh sửa thùng</h5>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-			</div>
-			<div class="modal-body">
-				<input type="hidden" id="modalMaThungHidden" />
 
-				<div class="row">
-					<!-- Cột trái -->
-					<div class="col-md-6">
-						<div class="form-group mb-3">
-							<label for="modalMaThung">Mã thùng</label>
-							<input type="text" id="modalMaThung" class="form-control" />
-						</div>
-
-						<div class="form-group mb-3">
-							<label for="modalSoMe">Số mẻ</label>
-							<input type="text" id="modalSoMe" class="form-control" />
-						</div>
-
-						<div class="form-group mb-3">
-							<label for="modalGio">Giờ</label>
-							<input type="time" id="modalGio" class="form-control" />
-						</div>
-
-						<div class="form-group mb-3">
-							<label for="modalPhanLoai">Phân loại</label>
-							<input type="text" id="modalPhanLoai" class="form-control" />
-						</div>
-
-						<div class="form-group mb-3">
-							<label for="modalKLXeGoong">KL xe goong</label>
-							<input type="number" id="modalKLXeGoong" class="form-control" step="0.01" />
-						</div>
-
-						<div class="form-group mb-3">
-							<label for="modalKLThung">KL thùng</label>
-							<input type="number" id="modalKLThung" class="form-control" step="0.01" />
-						</div>
-					</div>
-
-					<!-- Cột phải -->
-					<div class="col-md-6">
-						<div class="form-group mb-3">
-							<label for="modalKLThungGangLong">KL thùng & gang lỏng</label>
-							<input type="number" id="modalKLThungGangLong" class="form-control" step="0.01" />
-						</div>
-
-						<div class="form-group mb-3">
-							<label for="modalKLGangLong">KL gang lỏng</label>
-							<input type="number" id="modalKLGangLong" class="form-control" step="0.01" readonly />
-						</div>
-
-						<div class="form-group mb-3">
-							<label class="form-label">Vận chuyển đến</label>
-							<div class="row">
-								<div class="col-6">
-									<div class="form-check">
-										<input class="form-check-input" type="checkbox" id="checkboxHRC1">
-										<label class="form-check-label" for="checkboxHRC1">HRC1</label>
-									</div>
-									<div class="form-check">
-										<input class="form-check-input" type="checkbox" id="checkboxHRC2">
-										<label class="form-check-label" for="checkboxHRC2">HRC2</label>
-									</div>
-								</div>
-								<div class="col-6">
-									<div class="form-check">
-										<input class="form-check-input" type="checkbox" id="checkboxDUC1">
-										<label class="form-check-label" for="checkboxDUC1">Đúc 1</label>
-									</div>
-									<div class="form-check">
-										<input class="form-check-input" type="checkbox" id="checkboxDUC2">
-										<label class="form-check-label" for="checkboxDUC2">Đúc 2</label>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<div class="form-group mb-3">
-							<label for="modalGioNM">Giờ NM</label>
-							<input type="time" id="modalGioNM" class="form-control" />
-						</div>
-
-						<div class="form-group mb-3">
-							<label for="modalGhiChu">Ghi chú</label>
-							<textarea id="modalGhiChu" class="form-control" rows="2" style="resize: none;"></textarea>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="modal-footer">
-				<button type="button" id="btnLuuThung" class="btn btn-primary">Lưu</button>
-				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-			</div>
-		</div>
-	</div>
-</div> *@
 <script>
 	var soLuongMe = @(ViewBag.SoLuongMe ?? 0);
 		$(document).ready(function()
@@ -473,104 +379,7 @@
 				$('#selectAll').prop('checked', allChecked);
 			});
 
-			// Nút chuyển thùng
-			// $('.btnchuyenthung').click(function() {
-				
-			// 	const maPhieu = $('#PhieuID').val() || 0;
-			// 	const dsMaThung =[];
-			// 	$('.chon-thung-checkbox:checked').each(function() {
-			// 		const row = $(this).closest('tr');				
-			// 		const maThung = row.find('td[name="maThung"]').text().trim();
-			// 		const daChuyen = row.find('td[name="TinhTrang"] button').find('button').hasClass('btn-success');
-
-			// 		if (daChuyen)
-			// 			{
-			// 				alert(`Thùng ${maThung} đã được chuyển trước đó`);
-			// 				return false;
-			// 			}
-
-			// 		if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
-			// 		else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
-			// 		else if (row.find('input[name="VanChuyenDUC1"]').is(':checked')) chuyenDen = "DUC1";
-			// 		else if (row.find('input[name="VanChuyenDUC2"]').is(':checked')) chuyenDen = "DUC2";
-
-
-			// 		dsMaThung.push({
-			// 			MaThungGang:maThung,
-			// 			ChuyenDen:chuyenDen
-			// 		});
-			// 	});
-				
-			// 	if (dsMaThung.length === 0)
-			// 		{
-			// 			alert('Vui lòng chọn ít nhất một thùng');
-			// 			return;
-			// 		}
-
-			// 	if (confirm(`Bạn có chắc chắn muốn chuyển ${dsMaThung.length} thùng đã chọn?`))
-			// 	{
-			// 		const requestData = {
-			// 			MaPhieu: maPhieu,
-			// 			DsMaThung: dsMaThung
-			// 		};
-			// 		//console.log('requestData',requestData)
-			// 		chuyenThung(requestData);
-			// 	}
-			// 	});
 			
-			// // Nút thu hồi thùng
-			// $('.btnthuhoi').click(function()
-			// {
-			// 	const maPhieu = $('#PhieuID').val() || 0;
-			// 	const selectedMaThungs = [];
-			// 	let hasError = false;
-			// 	$('.chon-thung-checkbox:checked').each(function () {
-			// 		const row = $(this).closest('tr');
-			// 		const maThung = row.find('td[name="maThung"]').text().trim();
-			// 		const daChuyen = row.find('td[name="TinhTrang"] button').text().trim();
-			// 		const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
-
-			// 		if (daChuyen !== "Đã chuyển") {
-			// 			alert(`Thùng ${maThung} chưa chuyển, không thể thu hồi`);
-			// 			hasError = true;
-			// 			return false; // thoát each
-			// 		}
-
-			// 		if (tinhTrang !== "Chờ xử lý") {
-			// 			alert(`Thùng ${maThung} không ở trạng thái 'Chờ xử lý', không thể thu hồi`);
-			// 			hasError = true;
-			// 			return false; // thoát each
-			// 		}
-
-			// 		if (row.find('input[name="VanChuyenHRC1"]').is(':checked')) chuyenDen = "HRC1";
-			// 		else if (row.find('input[name="VanChuyenHRC2"]').is(':checked')) chuyenDen = "HRC2";
-			// 		else if (row.find('input[name="VanChuyenDUC1"]').is(':checked')) chuyenDen = "DUC1";
-			// 		else if (row.find('input[name="VanChuyenDUC2"]').is(':checked')) chuyenDen = "DUC2";
-
-			// 	  selectedMaThungs.push({
-			// 			MaThungGang: maThung,
-			// 			ChuyenDen: chuyenDen
-			// 		});
-			// 	});
-			// 	if (hasError) return;
-			// 	if (selectedMaThungs.length === 0)
-			// 	{
-			// 		alert('Vui lòng chọn ít nhất một thùng để thu hồi');
-			// 		return;
-			// 	}
-
-			// 	if (confirm(`Bạn có chắc chắn muốn thu hồi ${selectedMaThungs.length} thùng đã chọn?`))
-			// 	{
-			// 		const requestData = {
-			// 			MaPhieu: maPhieu,
-			// 			DsMaThung: selectedMaThungs
-			// 		};
-			// 		//console.log('====thu hoi===',requestData)
-			// 		thuHoiThung(requestData);
-					
-			// 	}
-			// });
-
 			// xác nhận thùng
 			$('.btnxacnhan').click(function () {
 				const maPhieu = $('#PhieuID').val() || 0;
@@ -597,6 +406,34 @@
 					};
 					//console.log ('requestData',requestData);
 					XacNhanThung(requestData); // Gọi API
+				}
+			});
+			// huy xác nhận thùng
+			$('.btnhuyxacnhan').click(function () {
+				const maPhieu = $('#PhieuID').val() || 0;
+				const selectedMaThungs = [];
+
+				$('.chon-thung-checkbox:checked').each(function () {
+					const row = $(this).closest('tr');
+					const maThung = row.find('td[name="maThung"]').text().trim();
+
+					selectedMaThungs.push({
+						MaThungGang: maThung
+					});
+				});
+
+				if (selectedMaThungs.length === 0) {
+					alert('Vui lòng chọn ít nhất một thùng để xác nhận');
+					return;
+				}
+
+				if (confirm(`Hủy xác nhận ${selectedMaThungs.length} thùng đã chọn?`)) {
+					const requestData = {
+						MaPhieu: maPhieu,
+						DsMaThung: selectedMaThungs
+					};
+					//console.log ('requestData',requestData);
+					HuyXacNhanThung(requestData); // Gọi API
 				}
 			});
 			// Ẩn/hiện cột
@@ -627,26 +464,7 @@
 				ExportToPDF();
 				})
 			});
-			//  $('#btnLuuThungMoi').click(function () {
-			// 	const danhSachThung = getDanhSachThung();
-			// 	const req = {
-			// 		MaPhieu: '@ViewBag.MaPhieu',
-			// 		DanhSachThung: danhSachThung
-			// 	};
-			// 	console.log('====req=====',req)
-			// 	$.ajax({
-			// 		url: '/BM16_GangLong/UpdateThungMulti',
-			// 		method: 'POST',
-			// 		contentType: 'application/json',
-			// 		data: JSON.stringify(req),
-			// 		success: function () {
-			// 			alert("Đã lưu toàn bộ thành công!");
-			// 		},
-			// 		error: function () {
-			// 			alert("Lỗi khi lưu.");
-			// 		}
-			// 	});
-			// });
+			
 			$(document).on("click", ".deleteItem", function () {
 				const row = $(this).closest("tr");
 				const maThung = row.find('td[name="maThung"]').text().trim();
@@ -686,67 +504,6 @@
 				}
 				});
 				// ===== Function==========
-
-			// Hàm gọi API chuyển thùng
-			// function chuyenThung(dsthung)
-			// {
-			// 	$.ajax({
-			// 		url: '@Url.Action("ChuyenThung", "BM16_GangThoi")',
-			// 		type: 'POST',
-			// 		contentType: 'application/json',
-			// 		data: JSON.stringify(dsthung),
-			// 		success: function(response) {
-			// 			if (response.success) {
-			// 				alert(response.message);
-			// 				location.reload();
-			// 			} else {
-			// 				alert(response.message);
-			// 			}
-			// 		},
-			// 		error: function() {
-			// 			alert('Có lỗi xảy ra khi gửi yêu cầu');
-			// 		}
-			// 	});
-			//  }
-			// function thuHoiThung(dsMaThung)
-			// {
-			// 	$.ajax({
-			// 		url: '@Url.Action("ThuHoiThung", "BM16_GangThoi")',
-			// 		type: 'POST',
-			// 		contentType: 'application/json',
-			// 		data: JSON.stringify(dsMaThung),
-			// 		success: function (response) {
-			// 			   showAlert(response.message, response.success ? 'success' : 'danger');
-			// 				if (response.success) {
-			// 				  setTimeout(() => {
-			// 					location.reload();
-			// 				  }, 2000); // Đợi 2s cho người dùng đọc alert
-			// 				}
-			// 			  },
-			// 			  error: function () {
-			// 				showAlert('Có lỗi xảy ra khi gửi yêu cầu thu hồi thùng', 'danger');
-			// 			  }
-			// 			});
-			// }
-			// function showAlert(message, type) {
-			// 	const alertHtml = `
-			// 		<div class="alert alert-${type} alert-dismissible fade show" role="alert">
-			// 			${message}
-			// 			<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
-			// 		</div>
-			// 		`;
-			// 	const alertContainer = document.getElementById('alertContainer');
-			// alertContainer.innerHTML = alertHtml;
-
-			// 	// Tự động ẩn sau 5 giây
-			// 	setTimeout(() => {
-			// 	const alert = alertContainer.querySelector('.alert');
-			// 	if (alert) {
-			// 		alert.classList.remove('show');
-			// 		alert.classList.add('hide');
-			// 	}
-			// 	}, 5000);
-			// }
 
 				$(document).ready(function () {
 					// Đánh dấu dòng thay đổi khi người dùng nhập liệu
@@ -825,200 +582,7 @@
 				});
 				return maxIndex;
 			}
-	// function loadThemSoMeMoi() {
-	// 	let ngay = $("#ID_Day").val();
-	// 	let idLoCao = $("#ID_Locao").val();
-	// 	let idKip = $("#ID_Kip").val();
-	// 	let idca = $("#IDCa").val();
-	// 	let tableBody = $("#dataTable tbody");
-	// 	let soMeHienTai = [];
-
-	// 	// Lấy danh sách mẻ hiện tại
-	// 	tableBody.find("tr").each(function () {
-	// 		let maThung = $(this).find("td[name='maThung']").text().trim();
-	// 		let soMe = $(this).find("td[name='soMe']").text().trim();
-
-	// 		if (soMe) {
-	// 			soMeHienTai.push({ maThung: maThung, soMe: soMe });
-	// 		}
-	// 	});
-
-	// 	let lastIndex = getLastThungIndex();
-	// 	let listSoMeHienTai = soMeHienTai.map(x => x.soMe);
-
-	// 	$.ajax({
-	// 		url: "/BM16_GangThoi/GetSoMeGangBKMis",
-	// 		type: "GET",
-	// 		data: { ngay, ID_LoCao: idLoCao, IDKip: idKip },
-	// 		success: function (data) {
-	// 			$.ajax({
-	// 				url: "/XeGoong/KLXeLoCao",
-	// 				type: "GET",
-	// 				data: { idlocao: idLoCao },
-	// 				success: function (xeData) {
-	// 					let klxe = (xeData.success && xeData.klXe) ? xeData.klXe : "";
-
-	// 					data.forEach(item => {
-	// 						let soMe = item.testPatternCode || "";
-	// 						let existed = listSoMeHienTai.includes(soMe);
-
-	// 						if (!existed) {
-	// 							lastIndex++;
-	// 							let maThung = generateMaThung(ngay, idLoCao, idca, lastIndex);
-	// 							let thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
-	// 							let phanLoai = item.classifyName || "";
-	// 							let time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
-
-	// 							let row = `
-	// 								<tr class="row-new" data-new="true" data-so-me="${soMe}">
-	// 									<td class='text-center deleteItem'><a class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a></td>
-	// 									<td class='text-center copyItem'><a class="btn btn-secondary btn-sm"><i class="bi bi-copy"></i></a></td>
-	// 									<td name="maThung">${maThung}</td>
-	// 									<td name="soMe">${soMe}</td>
-	// 									<td name="ThungSo">${thungSo}</td>
-	// 									<td name="Gio">${time}</td>
-	// 									<td name="PhanLoai">${phanLoai}</td>
-	// 									<td><input type="number" name="KhoiLuongXeGoong" class="form-control" value="${klxe}" style="width: 100px;" required></td>
-	// 									<td><input name="KhoiLuongThung" type="number" class="form-control" style="width: 100px;" required></td>
-	// 									<td><input name="KLThungGangLong" type="number" class="form-control" style="width: 100px;" required></td>
-	// 									<td><input name="KLGangLong" type="number" class="form-control" style="width: 100px;"></td>
-	// 									<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input"></td>
-	// 									<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input"></td>
-	// 									<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input"></td>
-	// 									<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input"></td>
-	// 									<td><input type="time" name="GioNM" class="form-control"></td>
-	// 									<td><textarea name="GhiChu" class="form-control" style="width: 100px;"></textarea></td>
-	// 									<td><input type="checkbox" class="chon-thung-checkbox"/></td>
-	// 									<td></td><td></td><td class="toggle-col"></td><td></td>
-	// 								</tr>`;
-	// 							tableBody.append(row);
-	// 						}
-	// 					});
-	// 				}
-	// 			});
-	// 		}
-	// 	});
-	// }
-
-
-		////==================///////////
-	// 	function loadThemSoMeMoi() {
-	// 	const ngay = $("#ID_Day").val();
-	// 	const idLoCao = $("#ID_Locao").val();
-	// 	const idKip = $("#ID_Kip").val();
-	// 	const idCa = $("#IDCa").val();
-	// 	const maPhieu = $('#PhieuID').val()?.trim();
-	// 	const tableBody = $("#dataTable tbody");
-
-	// 	const soMeHienTai = [];
-	// 	tableBody.find("tr").each(function () {
-	// 		const maThung = $(this).find("td[name='maThung']").text().trim();
-	// 		const soMe = $(this).find("td[name='soMe']").text().trim();
-	// 		if (soMe) {
-	// 			soMeHienTai.push({ maThung, soMe });
-	// 		}
-	// 	});
-
-	// 	let lastIndex = getLastThungIndex();
-	// 	const listSoMeHienTai = soMeHienTai.map(x => x.soMe);
-	// 	const updateList = [];
-
-	// 	$.get("/BM16_GangThoi/GetSoMeGangBKMis", { ngay, ID_LoCao: idLoCao, IDKip: idKip }, function (dataBK) {
-	// 		const listSoMeMoi = dataBK.map(x => x.testPatternCode);
-	// 		const soMeCanXoa = listSoMeHienTai.filter(x => !listSoMeMoi.includes(x));
-
-	// 		// Lấy khối lượng xe goòng
-	// 		$.get("/XeGoong/KLXeLoCao", { idlocao: idLoCao }, function (xeData) {
-	// 			const klxe = (xeData.success && xeData.klXe) ? xeData.klXe : "";
-
-	// 			dataBK.forEach(item => {
-	// 				const soMe = item.testPatternCode || "";
-	// 				const existed = soMeHienTai.find(x => x.soMe === soMe);
-	// 				const phanLoai = item.classifyName || "";
-	// 				const time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
-
-	// 				if (!existed) {
-	// 					// Thêm mẻ mới vào UI
-	// 					lastIndex++;
-	// 					const maThung = generateMaThung(ngay, idLoCao, idCa, lastIndex);
-	// 					const thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
-
-	// 					const row = `
-	// 						<tr class="row-new" data-new="true" data-so-me="${soMe}">
-	// 							<td class='text-center deleteItem'><a class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a></td>
-	// 							<td class='text-center copyItem'><a class="btn btn-secondary btn-sm"><i class="bi bi-copy"></i></a></td>
-	// 							<td name="maThung">${maThung}</td>
-	// 							<td name="soMe">${soMe}</td>
-	// 							<td name="ThungSo">${thungSo}</td>
-	// 							<td name="Gio">${time}</td>
-	// 							<td name="PhanLoai">${phanLoai}</td>
-	// 							<td><input type="number" name="KhoiLuongXeGoong" class="form-control" value="${klxe}" style="width: 100px;" required></td>
-	// 							<td><input name="KhoiLuongThung" type="number" class="form-control" style="width: 100px;" required></td>
-	// 							<td><input name="KLThungGangLong" type="number" class="form-control" style="width: 100px;" required></td>
-	// 							<td><input name="KLGangLong" type="number" class="form-control" style="width: 100px;"></td>
-	// 							<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input"></td>
-	// 							<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input"></td>
-	// 							<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input"></td>
-	// 							<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input"></td>
-	// 							<td><input type="time" name="GioNM" class="form-control"></td>
-	// 							<td><textarea name="GhiChu" class="form-control" style="width: 100px;"></textarea></td>
-	// 							<td><input type="checkbox" class="chon-thung-checkbox"/></td>
-	// 							<td></td><td></td><td class="toggle-col"></td><td></td>
-	// 						</tr>`;
-	// 					tableBody.append(row);
-	// 				} else {
-	// 					// Đã tồn tại => yêu cầu cập nhật nếu trạng thái cho phép (xử lý ở backend)
-	// 					updateList.push({
-	// 						MaThungGang: existed.maThung,
-	// 						BKMIS_SoMe: soMe,
-	// 						BKMIS_PhanLoai: phanLoai,
-	// 						BKMIS_Gio: item.patterntime || ""
-	// 					});
-	// 				}
-	// 			});
-
-	// 			// Gửi danh sách cần cập nhật
-	// 			if (updateList.length > 0 && maPhieu) {
-	// 				$.ajax({
-	// 					url: "/BM16_GangThoi/CapNhatThung",
-	// 					type: "POST",
-	// 					contentType: "application/json",
-	// 					data: JSON.stringify({ maPhieu, dsMaThung: updateList }),
-	// 					success: function () {
-	// 						alert("Đã cập nhật các thùng có trạng thái cho phép.");
-	// 						location.reload();
-	// 					},
-	// 					error: function () {
-	// 						alert("Lỗi khi cập nhật thùng.");
-	// 					}
-	// 				});
-	// 			}
-
-	// 			// Gửi danh sách cần xóa
-	// 			if (soMeCanXoa.length > 0 && maPhieu) {
-	// 				$.ajax({
-	// 					url: "/BM16_GangThoi/XoaNhungSoMeKhongConTrongBK",
-	// 					type: "POST",
-	// 					contentType: "application/json",
-	// 					data: JSON.stringify({ maPhieu, soMes: soMeCanXoa }),
-	// 					success: function (res) {
-	// 						console.log("Xóa:", res.message);
-	// 						// Xóa dòng trên giao diện
-	// 						tableBody.find("tr").each(function () {
-	// 							const soMe = $(this).find("td[name='soMe']").text().trim();
-	// 							if (soMeCanXoa.includes(soMe)) {
-	// 								$(this).remove();
-	// 							}
-	// 						});
-	// 					},
-	// 					error: function () {
-	// 						alert("Lỗi khi xóa các số mẻ không còn.");
-	// 					}
-	// 				});
-	// 			}
-	// 		});
-	// 	});
-	// }
+	
 		function loadThemSoMeMoi() {
 		const ngay = $("#ID_Day").val();
 		const idLoCao = $("#ID_Locao").val();
@@ -1265,17 +829,7 @@
 				}
 			});
 		}
-		// $(document).on("input", "input[name='KhoiLuongThung'], input[name='KLThungGangLong']", function () {
-		// 	let row = $(this).closest("tr");
 
-		// 	let klThung = parseFloat(row.find("input[name='KhoiLuongThung']").val()) || 0;
-		// 	//console.log("====",klThung)
-		// 	let klThungGL = parseFloat(row.find("input[name='KLThungGangLong']").val()) || 0;
-		// 	//console.log("==klThungGL==",klThungGL)
-		// 	let klGLCR = klThungGL - klThung;
-		// 	//console.log("==klGLCR==",klGLCR)
-		// 	row.find("input[name='KLGangLong']").val(klGLCR > 0 ? klGLCR.toFixed(2) : 0);
-		// });
 		$(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
 		let row = $(this).closest("tr");
 
@@ -1323,110 +877,7 @@
 			}
 			tinhTongKL();
 				});
-		// $(document).on('click', '.btn-edit-thung', function () {
-		// 	const row = $(this).closest('tr');
-		// 	const chotThung = row.find('td[name="ChotThung"] button').text().trim();
-		// 	const tinhTrang = row.find('td[name="TinhTrang"] button').text().trim();
-		// 	console.log(tinhTrang)
-		// 	if (tinhTrang == "Đã chuyển" || chotThung == "Đã chốt" ){
-		// 		alert ("Trạng thái không phù hợp không được chỉnh sửa")
-		// 		return;
-		// 	}
-		// 	const data = {
-		// 		maThung: row.find('td:eq(3)').text().trim(),
-		// 		soMe: row.find('td:eq(4)').text().trim(),
-		// 		gio: row.find('td:eq(6)').text().trim(),
-		// 		phanLoai: row.find('td:eq(7)').text().trim(),
-		// 		klXeGoong: parseFloat(row.find('td:eq(8) input').val()) || 0,
-		// 		klThung: parseFloat(row.find('td:eq(9) input').val()) || 0,
-		// 		klThungVaGang: parseFloat(row.find('td:eq(10) input').val()) || 0,
-		// 		klGangLong: parseFloat(row.find('td:eq(11) input').val()) || 0,
-		// 		gioNM: row.find('input[name="GioNM"]').val() || 0,
-		// 		ghiChu: row.find('td:eq(17)').text().trim(),
-
-		// 		chuyenDen: '',
-
-		// 	};
-		// 	//console.log ('====data edit====',data)
-		// 	// Ghép chuyển đến dựa vào checkbox:
-		// 	const den = [];
-		// 	if (row.find('td:eq(12) input').is(':checked')) den.push('HRC1');
-		// 	if (row.find('td:eq(13) input').is(':checked')) den.push('HRC2');
-		// 	if (row.find('td:eq(14) input').is(':checked')) den.push('DUC1');
-		// 	if (row.find('td:eq(15) input').is(':checked')) den.push('DUC2');
-		// 	data.chuyenDen = den.join(',');
-		// 	// Gán vào biến toàn cục
 		
-		// 	window.thungData = data;
-		// 		//console.log('==window.thungData===',window.thungData)
-		// 		//console.log('==data===',data)
-
-
-
-		// 			//console.log('==gioNM===',gioNM)
-		// 	// Đổ dữ liệu vào modal
-		// 	$('#modalMaThungHidden').val(data.maThung);
-		// 	$('#modalMaThung').val(data.maThung).prop('disabled', true);
-		// 	$('#modalSoMe').val(data.soMe).prop('disabled', true);
-		// 	$('#modalGio').val(data.gio).prop('disabled', true);
-		// 	$('#modalPhanLoai').val(data.phanLoai).prop('disabled', true);
-
-		// 	$('#modalKLGangLong').val(data.klGangLong);
-		// 	$('#modalKLThung').val(data.klThung);
-		// 	$('#modalKLThungGangLong').val(data.klThungVaGang);
-		// 	$('#modalKLXeGoong').val(data.klXeGoong).prop('disabled',true);
-		// 	$('#modalGioNM').val(data.gioNM);
-		// 	$('#modalGhiChu').val(data.ghiChu);
-
-		// 	// Set checkbox
-		// 	const cdList = data.chuyenDen.split(',');
-		// 	$('#checkboxHRC1').prop('checked', cdList.includes('HRC1'));
-		// 	$('#checkboxHRC2').prop('checked', cdList.includes('HRC2'));
-		// 	$('#checkboxDUC1').prop('checked', cdList.includes('DUC1'));
-		// 	$('#checkboxDUC2').prop('checked', cdList.includes('DUC2'));
-
-		// 	$('#editThungModal').modal('show');
-		// 	});
-		// 	$('#btnLuuThung').on('click', function () {
-		// 	if (!window.thungData) {
-		// 		alert("Không có dữ liệu thùng để lưu.");
-		// 		return;
-		// 	}
-
-		// 	// Cập nhật dữ liệu từ modal (nếu có sửa)
-		// 	window.thungData.MaThungGang = $('#modalMaThung').val().trim();
-		// 	window.thungData.KL_XeGoong = parseFloat($('#modalKLXeGoong').val()) || 0;
-		// 	window.thungData.G_KLThungChua = parseFloat($('#modalKLThung').val()) || 0;
-		// 	window.thungData.G_KLThungVaGang = parseFloat($('#modalKLThungGangLong').val()) || 0;
-		// 	window.thungData.G_KLGangLong = parseFloat($('#modalKLGangLong').val()) || 0;
-		// 	window.thungData.G_GhiChu = $('#modalGhiChu').val().trim();
-		// 	window.thungData.Gio_NM = $('#modalGioNM').val().trim();
-		// 	window.thungData.ChuyenDen = [
-		// 		$('#checkboxHRC1').is(':checked') ? 'HRC1' : '',
-		// 		$('#checkboxHRC2').is(':checked') ? 'HRC2' : '',
-		// 		$('#checkboxDUC1').is(':checked') ? 'DUC1' : '',
-		// 		$('#checkboxDUC2').is(':checked') ? 'DUC2' : ''
-		// 	].filter(x => x).join(',');
-
-		// 	$.ajax({
-		// 		url: '/BM16_GangThoi/EditThung',
-		// 		type: 'POST',
-		// 		contentType: 'application/json',
-		// 		data: JSON.stringify(window.thungData),
-		// 		success: function (res) {
-		// 			if (res.success) {
-		// 				alert( res.message);
-		// 				location.reload();
-		// 			} else {
-		// 				alert('Lỗi ' + res.message);
-		// 			}
-		// 		},
-		// 		error: function (err) {
-		// 			console.error("Lỗi gọi API EditThung:", err);
-		// 			alert('Lỗi máy chủ khi lưu.');
-		// 		}
-		// 	});
-		// });
 	function exportExcel(maPhieu) {
 			if (!maPhieu) {
 				alert("Không có mã phiếu!");
@@ -1530,15 +981,6 @@
 				$("#dataTable tbody").append(clonedRow);
 			}
 			});
-		// $(document).ready(function() {
-		//   $('#modalKLThung, #modalKLThungGangLong').on('input', function() {
-		// 	const klThung = parseFloat($('#modalKLThung').val()) || 0;
-		// 	const klThungVaGang = parseFloat($('#modalKLThungGangLong').val()) || 0;
-		// 	const klGangLong = klThungVaGang - klThung;
-
-		// 	$('#modalKLGangLong').val(klGangLong.toFixed(2));
-		//   });
-		// });
 
 	function ExportToPDF(){
 		// value cac field
@@ -1580,6 +1022,22 @@
 				},
 				error: function () {
 					alert('Lỗi khi xác nhận thùng');
+				}
+		});
+		}
+		function HuyXacNhanThung(data)
+		{
+		$.ajax({
+				url: '/BM16_GangThoi/HuyXacNhanThung',
+				type: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify(data),
+				success: function (res) {
+					alert('Hủy xác nhận thành công!');
+					location.reload();
+				},
+				error: function () {
+					alert('Thùng đã được chốt không thể hủy');
 				}
 		});
 		}
@@ -1643,5 +1101,6 @@
 			$row.find("input[name^='VanChuyen']").not(this).prop("checked", false);
 		}
 	});
+
 
 </script>

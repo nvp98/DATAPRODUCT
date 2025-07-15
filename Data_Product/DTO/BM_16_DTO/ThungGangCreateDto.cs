@@ -33,6 +33,7 @@ namespace Data_Product.DTO.BM_16_DTO
        
         public string? Gio_NM { get; set; }
         public string G_GhiChu { get; set; }
+        public int? T_ID_TrangThai { get; set; }
 
     }
 }
