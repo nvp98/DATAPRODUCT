@@ -45,37 +45,11 @@
 
                         </div>
                     </div><!-- End Sales Card -->
-                    <!-- Revenue Card -->
-
-                    <div class="col-xxl-3 col-md-6">
-                        <div class="card info-card sales-card">
-                            <div class="card-body" style="padding: 5px;">
-
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <img src="~/img/BM.png" style=" width: 45%;" alt="">
-                                    </div>
-                                    <div class="ps-1">
-                                        <a class="nav-link " href="@Url.Action("TaoPhieu", "BM01_GangLong")" style="font-size: 15px;">
-                                            <span class="text-muted small pt-2 ps-1">
-                                                <b>
-                                                    BM.01/QT.05.10 (Biên bản giao nhận khối lượng Gang lỏng)
-                                                </b>
-                                            </span>
-                                        </a>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div><!-- End Sales Card -->
-                    <!-- Revenue Card -->
-                    @{
+              @*       @{
                         var ListQuyen = new List<int> { 1, 2,3,10, 11 };
                     }
                     @if (TaiKhoan != null && ListQuyen.Contains(TaiKhoan.ID_Quyen ?? -1))
-                    {
+                    { *@
                         <div class="col-xxl-3 col-md-6">
                             <div class="card info-card sales-card">
                                 <div class="card-body" style="padding: 5px;">
@@ -100,7 +74,7 @@
 
                             </div>
                         </div><!-- End Sales Card -->
-                    }
+                @*     } *@
                     <div class="col-xxl-3 col-md-6">
                         <div class="card info-card sales-card">
                             <div class="card-body" style="padding: 5px;">
@@ -125,29 +99,6 @@
 
                         </div>
                     </div><!-- End Sales Card -->
-                    <div class="col-xxl-3 col-md-6">
-                        <div class="card info-card sales-card">
-                            <div class="card-body" style="padding: 5px;">
-
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <img src="~/img/BM.png" style=" width: 45%;" alt="">
-                                    </div>
-                                    <div class="ps-1">
-                                        <a class="nav-link " href="@Url.Action("Index", "BM")" style="font-size: 15px;">
-                                            <span class="text-muted small pt-2 ps-1">
-                                                <b>
-                                                    BM (Biên bản bổ sung giao nhận khối lượng Gang lỏng - Gang thỏi)
-                                                </b>
-                                            </span>
-                                        </a>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
                     <!-- Customers Card -->
                     <div class="col-xxl-3 col-md-6">
                         <div class="card info-card sales-card">
@@ -174,8 +125,8 @@
                         </div>
                     </div><!-- End Sales Card -->
                     <!-- Customers Card -->
-                       @if (TaiKhoan != null && ListQuyen.Contains(TaiKhoan.ID_Quyen ?? -1))
-                    {
+                 @*       @if (TaiKhoan != null && ListQuyen.Contains(TaiKhoan.ID_Quyen ?? -1))
+                    { *@
                     <div class="col-xxl-3 col-md-6">
                         <div class="card info-card sales-card">
                             <div class="card-body" style="padding: 5px;">
@@ -199,7 +150,7 @@
 
                         </div>
                     </div><!-- End Sales Card -->
-                    }
+                   @*  } *@
                 </div>
             </div><!-- End Left side columns -->
         </div>
@@ -227,55 +178,6 @@
                                             <span class="text-muted small pt-2 ps-1">
                                                 <b>
                                                     BM.11/QT.05 (Biên bản giao nhận nguyên/nhiên/vật tư)
-                                                </b>
-                                            </span>
-                                        </a>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div><!-- End Sales Card -->
-                    <!-- Revenue Card -->
-                    <div class="col-xxl-3 col-md-6">
-                        <div class="card info-card sales-card">
-                            <div class="card-body" style="padding: 5px;">
-
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <img src="~/img/BM.png" style=" width: 45%;" alt="">
-                                    </div>
-                                    <div class="ps-1">
-                                        <a class="nav-link " href="@Url.Action("BoSungPhieu", "BM01_GangLong")" style="font-size: 15px;">
-                                            <span class="text-muted small pt-2 ps-1">
-                                                <b>
-                                                    BM.01/QT.05.10 (Biên bản giao nhận khối lượng Gang lỏng)
-
-                                                </b>
-                                            </span>
-                                        </a>
-
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div><!-- End Sales Card -->
-                    <!-- Revenue Card -->
-                    <div class="col-xxl-3 col-md-6">
-                        <div class="card info-card sales-card">
-                            <div class="card-body" style="padding: 5px;">
-
-                                <div class="d-flex align-items-center">
-                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                        <img src="~/img/BM.png" style=" width: 45%;" alt="">
-                                    </div>
-                                    <div class="ps-1">
-                                        <a class="nav-link " href="@Url.Action("Index", "BM")" style="font-size: 15px;">
-                                            <span class="text-muted small pt-2 ps-1">
-                                                <b>
-                                                    BM.16/QT.05.0 (Biên bản giao nhận khối lượng Gang lỏng - Gang thỏi)
                                                 </b>
                                             </span>
                                         </a>
