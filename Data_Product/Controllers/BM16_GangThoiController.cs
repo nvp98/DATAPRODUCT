@@ -751,7 +751,7 @@ namespace Data_Product.Controllers
                 thung.G_ID_NguoiLuu = idNhanVienLuu;
 
                 //  Xử lý trạng thái chuyển đến
-                thung.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : item.T_ID_TrangThai;
+                thung.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : thung.T_ID_TrangThai;
 
                 //  Kiểm tra dữ liệu đầy đủ
                 bool duDuLieu = item.KL_XeGoong != null &&
