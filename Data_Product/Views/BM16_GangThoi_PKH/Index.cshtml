@@ -191,10 +191,13 @@
                                 DANH SÁCH THÙNG
                             </b>
                         </span>
+                        @if (TaiKhoan.ID_PhongBan == 70)
+                         {
                         <div style="display: flex; gap: 10px;">
                             <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
                             <button class="btn btn-danger btn-sm px-4 status-card" id="btnHuyChotThung"> Hủy Chốt</button>
                         </div>
+                         }
                     </div>
                 </div>
             </div>
@@ -419,7 +422,7 @@
                         <th>Tình trạng LT</th>
                         <th>BP Nhận</th>
                         <th style="min-width: 150px;">Người nhận</th>
-                        <th><input style="width: 45px; margin-bottom: 3px;" type="number" name="name" min="0" max="100" value="@ViewBag.PhanTram" id="percentDuc" /> <button style="border: none;" id="btn-percent"><i class="bi bi-floppy2"></i></button><br /> KL Đúc</th>
+                        <th><input style="width: 45px; margin-bottom: 3px;" type="number" name="name" min="0" max="100" value="@ViewBag.PhanTram" id="percentDuc" @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") /> <button @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") style="border: none;" id="btn-percent"><i class="bi bi-floppy2"></i></button><br /> KL Đúc</th>
                         <th>Chọn thùng</th>
                         <th>Tình trạng</th>
                         <th class="hide-col">KL chênh lệch</th>
