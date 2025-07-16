@@ -594,11 +594,13 @@ namespace Data_Product.Controllers
                 NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>(),
                 XacNhan = t.XacNhan,
 
-                   // Dùng để sort:
-                MaThungPrefix = t.MaThungGang.Split('.')[0],
-                MaThungSuffix = int.Parse(t.MaThungGang.Split('.')[1])
-            }).OrderBy(x => x.MaThungPrefix)
-                .ThenBy(x => x.MaThungSuffix)
+                // Dùng để sort:
+                //MaThungPrefix = t.MaThungGang.Split('.')[0],
+                //MaThungSuffix = int.Parse(t.MaThungGang.Split('.')[1])
+                GioSortKey = GetSortKeyFromTime(t.BKMIS_Gio)
+            })//.OrderBy(x => x.MaThungPrefix)
+              //  .ThenBy(x => x.MaThungSuffix)
+                 .OrderBy(x => x.GioSortKey)
                 .Select(x => new
                 {
                     x.MaThung,
@@ -637,7 +639,32 @@ namespace Data_Product.Controllers
             ViewBag.TenKip = kip?.TenKip;
             ViewBag.TenCa = kip?.TenCa;
             return View();
-        }     
+        }
+        private static int GetSortKeyFromTime(string gioStr)
+        {
+            if (string.IsNullOrWhiteSpace(gioStr))
+                return int.MaxValue; // giá trị lớn để sort cuối nếu không có giờ
+
+            // Chuẩn hóa giờ từ "21H19" => "21:19"
+            gioStr = gioStr.Replace('H', ':');
+
+            DateTime time;
+            bool parsed = DateTime.TryParseExact(gioStr, "HH:mm", null, System.Globalization.DateTimeStyles.None, out time);
+            if (!parsed)
+                return int.MaxValue;
+
+            int hour = time.Hour;
+            int minute = time.Minute;
+
+            int ca = (hour >= 20 || hour < 8) ? 0 : 1;
+
+            int timeOrder = (ca == 0)
+                ? (hour < 8 ? (hour + 24) * 60 + minute : hour * 60 + minute)
+                : hour * 60 + minute;
+
+            return ca * 10000 + timeOrder;
+        }
+
         [HttpPost]
         public async Task<IActionResult> SaveThung([FromBody] SaveThungDto req)
         {
@@ -795,7 +822,7 @@ namespace Data_Product.Controllers
                 if (thung != null)
                 {
                     thung.BKMIS_PhanLoai = item.BKMIS_PhanLoai;
-                    thung.BKMIS_Gio = item.BKMIS_Gio?.Replace("H", ":");
+                    thung.BKMIS_Gio = item.BKMIS_Gio;
                     thung.BKMIS_SoMe = item.BKMIS_SoMe;
                     thung.BKMIS_ThungSo = !string.IsNullOrEmpty(item.BKMIS_SoMe) && item.BKMIS_SoMe.Length >= 2
                     ? item.BKMIS_SoMe.Substring(item.BKMIS_SoMe.Length - 2): null;
