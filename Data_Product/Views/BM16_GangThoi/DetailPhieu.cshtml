@@ -81,6 +81,11 @@
 	thead th {
 		z-index: 20 !important;
 	}
+
+	.tooltip-error {
+		border: 2px solid #ff4d4d !important;
+		background-color: #fff !important; /* Giữ nền trắng */
+	}
 </style>
 @if (TempData["msgSuccess"] != null)
 {
@@ -831,24 +836,43 @@
 		}
 
 		$(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
-		let row = $(this).closest("tr");
+				let row = $(this).closest("tr");
 
-		let klThungXe = parseFloat(row.find("input[name='KLThungVaXe']").val()) || 0;
-		let klThungGangXe = parseFloat(row.find("input[name='KLThungGangXe']").val()) || 0;
-		let klXeGoong = parseFloat(row.find("input[name='KhoiLuongXeGoong']").val()) || 0;
+				let $klThungXeInput = row.find("input[name='KLThungVaXe']");
+				let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
+				let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
 
-		// KL thùng = KL thùng + xe - KL xe goong
-		let klThung = klThungXe - klXeGoong;
-		row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
+				let klThungXe = parseFloat($klThungXeInput.val()) || 0;
+				let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
+				let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
 
-		// KL thùng & gang = KL thùng & gang + xe - KL xe goong
-		let klThungGang = klThungGangXe - klXeGoong;
-		row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
+				let klThung = klThungXe - klXeGoong;
+				row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
 
-		// KL gang lỏng = KL thùng & gang - KL thùng
-		let klGangLong = klThungGang - klThung;
-		row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
-	});
+				let klThungGang = klThungGangXe - klXeGoong;
+				row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
+
+				let klGangLong = klThungGang - klThung;
+				row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
+
+				// Reset tooltip và màu
+				[$klThungXeInput, $klThungGangXeInput, $klXeGoongInput].forEach(function ($input) {
+					$input.removeAttr("title").removeClass("tooltip-error");
+				});
+
+				// Kiểm tra từng lỗi và gán tooltip cho từng ô
+				if (klThungXe < klXeGoong) {
+					$klThungXeInput
+						.attr("title", "KL Thùng + Xe < KL Xe Goòng")
+						.addClass("tooltip-error");
+				}
+				if (klThungGangXe < klXeGoong) {
+					$klThungGangXeInput
+						.attr("title", "KL Thùng & Gang + Xe < KL Xe Goòng")
+						.addClass("tooltip-error");
+				}				
+			});
+
 
 		$(document).ready(function() {
 			function tinhTongKL() {

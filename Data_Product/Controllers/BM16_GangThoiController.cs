@@ -789,6 +789,29 @@ namespace Data_Product.Controllers
                                 item.Gio_NM != null;
 
                 thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
+
+
+                // ==== Cập nhật các thùng T_Copy ====
+                var thungCopyList = await _context.Tbl_BM_16_GangLong
+                    .Where(x => x.MaThungGang == item.MaThungGang && x.T_copy == true && x.ID != thung.ID)
+                    .ToListAsync();
+
+                foreach (var copy in thungCopyList)
+                {
+                    copy.KL_XeGoong = item.KL_XeGoong;
+                    copy.G_KLXeThungVaGang = item.G_KLXeThungVaGang;
+                    copy.G_KLXeVaThung = item.G_KLXeVaThung;
+                    copy.G_KLThungChua = item.G_KLThungChua;
+                    copy.G_KLThungVaGang = item.G_KLThungVaGang;
+                    copy.G_KLGangLong = item.G_KLGangLong;
+                    copy.G_GhiChu = item.G_GhiChu;
+                    copy.Gio_NM = item.Gio_NM;
+                    copy.ChuyenDen = item.ChuyenDen;
+                    copy.G_ID_NguoiLuu = idNhanVienLuu;
+
+                    copy.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : copy.T_ID_TrangThai;
+                    copy.G_ID_TrangThai = duDuLieu ? 3 : 1;
+                }
             }
 
             await _context.SaveChangesAsync();
