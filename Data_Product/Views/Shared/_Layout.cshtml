@@ -302,12 +302,16 @@
                             <i class="bi bi-hospital"></i><span>Việc đến tôi </span><i class="bi bi-chevron-down ms-auto"></i>
                         </a>
                         <ul id="icons-bieumau1" class="nav-content collapse " data-bs-parent="#sidebar-nav">
+                        @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 4 || QuyenTaoYC.Any(value => value != "11" && ListQuyen.Contains(value)))
+                        {
                             <li class="nav-item">
                                 <a class="nav-link collapsed" href="@Url.Action("Index", "XuLyPhieu")">
                                     <i class="bi bi-circle"></i>
                                     <span>BM.11/QT.05 - BBGN Nguyên/Nhiên/Vật tư</span>
                                 </a>
                             </li>
+                        }
+                       
                             @if (PhongBan?.TenNgan == "P.QLCL")
                             {
                                 <li>
