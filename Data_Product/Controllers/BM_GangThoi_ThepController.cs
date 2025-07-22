@@ -131,7 +131,7 @@ namespace Data_Product.Controllers
 
                 if (!string.IsNullOrEmpty(payload.BKMIS_ThungSo))
                 {
-                    query = query.Where(x => x.BKMIS_ThungSo.Contains(payload.BKMIS_ThungSo));
+                    query = query.Where(x => x.BKMIS_ThungSo.Contains(payload.BKMIS_ThungSo));  
                 }
 
                 if (payload.TuNgay.HasValue && payload.DenNgay.HasValue)
@@ -141,7 +141,7 @@ namespace Data_Product.Controllers
 
                     query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
                 }
-                
+
                 query = query.Take(150);
                 
 
@@ -301,7 +301,7 @@ namespace Data_Product.Controllers
                                         ID_MeThoi = ttg.ID_MeThoi,
                                         MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
                                         NgayTaoTTG = ttg.NgayTaoTTG,
-                                        GioChonMe = ttg.GioChonMe
+                                        GioChonMe = ttg.GioChonMe,
                                     }
                                 ).ToListAsync();
 
@@ -326,7 +326,8 @@ namespace Data_Product.Controllers
                         ChuyenDen = x.ChuyenDen,
                         BKMIS_SoMe = x.BKMIS_SoMe,
                         BKMIS_Gio = x.BKMIS_Gio,
-                        NgayTaoG = x.NgayTao
+                        NgayTaoG = x.NgayTao,
+                        KLGangChia = x.KLGangChia
                     }
                 }).ToListAsync();
 
@@ -365,7 +366,8 @@ namespace Data_Product.Controllers
                             ChuyenDen = x.ChuyenDen,
                             BKMIS_SoMe = x.BKMIS_SoMe,
                             BKMIS_Gio = x.BKMIS_Gio,
-                            NgayTaoG = x.NgayTaoG
+                            NgayTaoG = x.NgayTaoG,
+                            KLGangChia = x.KLGangChia
                         }).ToList();
                 }
             }
@@ -427,12 +429,6 @@ namespace Data_Product.Controllers
                 var thungs = await _context.Tbl_BM_16_GangLong
                                            .Where(x => payload.selectedIds.Contains(x.ID))
                                            .ToListAsync();
-                //bool isValid = thungs.Any(x => x.ID_TrangThai == (int)TinhTrang.DaChot);
-
-                //if (isValid)
-                //{
-                //    return Ok(new { Message = "Có thùng đã được chốt.", isValid = true});
-                //}
 
                 var kip = await (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == payload.ngayNhan && x.TenCa == payload.idCa.ToString())
                                  select new Tbl_Kip
@@ -1024,6 +1020,116 @@ namespace Data_Product.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> DanhSachTheoMaThungGang([FromBody] List<int> selectedIds)
+        {
+            try
+            {
+                var danhsachThung = await (from a in _context.Tbl_BM_16_GangLong where selectedIds.Contains(a.ID) select new 
+                {
+                    a.MaThungGang,
+                    a.ID,
+                    a.T_KLGangLong
+                }).ToListAsync();
+
+                if (danhsachThung.All(x => !x.T_KLGangLong.HasValue || x.T_KLGangLong == 0))
+                {
+                    return BadRequest("Không có thùng gang nào có KL Gang lỏng cân bên HRC.");
+                }
+
+                var danhSachMaThung = danhsachThung.Select(x => x.MaThungGang).Distinct().ToList();
+
+                var listAll = await (from a in _context.Tbl_BM_16_GangLong
+                                           where danhSachMaThung.Contains(a.MaThungGang)    
+                                           select new ThungGangChiaModel
+                                           {
+                                               ID = a.ID,
+                                               MaThungGang = a.MaThungGang,
+                                               ID_Locao = a.ID_Locao,
+                                               BKMIS_ThungSo = a.BKMIS_ThungSo,
+                                               MaThungThep = a.MaThungThep,
+                                               G_KLGangLong = a.G_KLGangLong,
+                                               T_KLGangLong = a.T_KLGangLong,
+                                               T_KLThungChua = a.T_KLThungChua,
+                                               T_KLThungVaGang = a.T_KLThungVaGang,
+                                               KLGangChia = a.KLGangChia,
+                                               T_copy = a.T_copy,
+
+                                               TyLeChia = null,
+                                               KLChia = null
+                                           }).ToListAsync();
+
+                // Kiểm tra thùng gốc có G_KLGangLong
+                var listGoc = listAll.Where(x => x.T_copy == false && (x.G_KLGangLong ?? 0) != 0).ToList();
+
+                if (!listGoc.Any())
+                    return BadRequest("Không có thùng gang nào có KL Gang lỏng bên Luyện Gang hợp lệ.");
+
+                // Tính khối lượng đã rót trên từng mã thùng gang
+                var daRongTheoMa = listAll
+                    .Where(x => x.T_KLGangLong.HasValue)
+                    .GroupBy(x => x.MaThungGang)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Sum(x => x.T_KLGangLong ?? 0)
+                    );
+
+                // Tính khối lượng còn lại trên từng mã
+                var danhSachConLai = listGoc
+                    .Select(x =>
+                    {
+                        var daRong = daRongTheoMa.TryGetValue(x.MaThungGang, out var val) ? val : 0;
+                        var conLai = (x.G_KLGangLong ?? 0) - daRong;
+                        return new
+                        {
+                            MaThungGang = x.MaThungGang,
+                            KLConLai = conLai > 0 ? conLai : 0
+                        };
+                    })
+                    .Where(x => x.KLConLai > 0)
+                    .ToList();
+
+                var tongConLai = danhSachConLai.Sum(x => x.KLConLai);
+
+                if (tongConLai <= 0)
+                    return BadRequest("Không có khối lượng gang còn lại để chia.");
+
+                // Tính tổng T_KLGangLong của các thùng được chọn
+                var tongT_KLGangLongChon = listAll
+                    .Where(x => selectedIds.Contains(x.ID) && x.T_KLGangLong.HasValue)
+                    .Sum(x => x.T_KLGangLong.Value);
+
+                // Duyệt qua từng thùng được chọn
+                foreach (var item in listAll.Where(x => selectedIds.Contains(x.ID)))
+                {
+                    var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
+                    if (nguon != null)
+                    {
+                        item.TyLeChia = Math.Round((nguon.KLConLai / tongConLai) * 100, 2);
+                        item.KLChia = Math.Round((item.TyLeChia ?? 0) * tongT_KLGangLongChon / 100, 2);
+                    }
+                    else
+                    {
+                        item.TyLeChia = 0;
+                        item.KLChia = 0;
+                    }
+                }
+
+                // Gộp kết quả trả về
+                var result = new
+                {
+                    ThungGoc = listGoc,
+                    ThungDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue).ToList(),
+                    ThungAll = listAll
+                };
+
+                return Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+            }
+        }
 
         private string GenerateMaThungThep(string maThungGang, DateTime ngayNhan, int loThoiId, int? caValue, int count)
         {

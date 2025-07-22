@@ -394,6 +394,7 @@
                     </div>
                     <div class="row g-3" style="position: absolute;bottom: 10px;right: 12px;">
                         <div class="col-12 d-flex justify-content-end">
+                            <button class="btn btn-warning btn-sm px-4" id="BtnChiaGang" style="display: none">Gộp Tính KL</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnLuu">Lưu</button>
                             <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel">Xuất Excel</button>
@@ -436,6 +437,7 @@
                         <table class="table table-bordered text-center align-middle table-hover" id="IDtbXuLySoLieu">
                             <thead class="table-light sticky-top bg-white" style="z-index: 2">
                                 <tr>
+                                    <th style="display: none">Chọn thùng</th>
                                     <th class="hide-col">Mã thùng thép</th>
                                     <th>Lò cao</th>
                                     <th>Thùng số</th>
@@ -443,6 +445,7 @@
                                     <th>KL thùng & gang lỏng (T)</th>
                                     <th>KL thùng (T)</th>
                                     <th>KL gang lỏng (T)</th>
+                                    <th style="display: none">KL gang chia (T)</th>
                                     <th class="hrc2">Thao tác</th>
                                     <th>KL gang nhận (T)</th>
                                     <th>Thùng trung gian</th>
@@ -481,19 +484,19 @@
 
      
 
-    <!-- Modal form tạo mẻ thổi -->
-    <div class="modal fade" id="modalTaoMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Tạo Mẻ thổi</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-          </div>
-            <div class="modal-body" id="modalTaoMe">
-          </div>
+<!-- Modal form tạo mẻ thổi -->
+<div class="modal fade" id="modalTaoMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title">Tạo Mẻ thổi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
         </div>
-      </div>
+        <div class="modal-body" id="modalTaoMe">
+        </div>
     </div>
+    </div>
+</div>
 
 
 <!-- Modal -->
@@ -553,6 +556,115 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-danger" id="btnConfirmHuyNhan">Hủy nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="modalChiaGang" tabindex="-1" aria-labelledby="modalChiaGang" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 50%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết chia gang</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalHuyNhan"></button>
+            </div>
+            <div class="modal-body" id="chiaGangContent" style="overflow-x: hidden;">
+
+                <!-- 1. KL NM.LG -->
+                <h6 class="fw-bold">1. KL NM.LG:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblNMLG">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng gang</th>
+                            <th>Thùng số</th>
+                            <th>KL bên LG</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @* <tr>
+                            <td>2</td>
+                            <td>160725L3N009.00</td>
+                            <td>26</td>
+                            <td class="text-danger fw-bold">100</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>160725L3N009.00</td>
+                            <td>26</td>
+                            <td class="text-danger fw-bold">40</td>
+                        </tr> *@
+                    </tbody>
+                </table>
+
+                <!-- 2. KL đã rót NM.HRC -->
+                <h6 class="fw-bold mt-4">2. KL đã rót NM.HRC:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblNMLT">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng thép</th>
+                            <th>Thùng số</th>
+                            <th>KL thùng&gang</th>
+                            <th>KL thùng</th>
+                            <th>KL gang</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @* <tr>
+                            <td>2</td>
+                            <td>160725L3N009.00.16NT6.00</td>
+                            <td>26</td>
+                            <td>200</td>
+                            <td>150</td>
+                            <td class="text-danger fw-bold">50</td>
+                        </tr> *@
+                    </tbody>
+                </table>
+
+                <!-- 3. KL Chia -->
+                <h6 class="fw-bold mt-4">3. KL Chia:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblGangChia">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng thép</th>
+                            <th>Thùng số</th>
+                            <th>KL thùng&gang</th>
+                            <th>KL thùng</th>
+                            <th>KL gang</th>
+                            <th>Tỷ lệ chia</th>
+                            <th>KL chia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @* <tr>
+                            <td>2</td>
+                            <td>160725L3N009.00.16NT6.00</td>
+                            <td>26</td>
+                            <td>174</td>
+                            <td>64</td>
+                            <td class="text-danger fw-bold">56%</td>
+                            <td class="bg-warning fw-bold">61,6</td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>160725L3N009.00.16NT6.00</td>
+                            <td>26</td>
+                            <td>174</td>
+                            <td>64</td>
+                            <td class="text-danger fw-bold">44%</td>
+                            <td class="bg-warning fw-bold">48,4</td>
+                        </tr> *@
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmHuyNhan">Xác nhận</button>
             </div>
         </div>
     </div>
@@ -626,18 +738,21 @@
 
                     let row = `<tr`;
                     // Nếu là dòng đầu tiên của thùng trung gian thì thêm data-attribute
-                    if (index === 0) {
-                        row += ` data-mathungtg="${tg.maThungTG}"`;
+                    // if (index === 0) {
+                        row += ` data-mathungtg="${tg.maThungTG}" data-mathunggang="${thung.maThungGang}" data-id="${thung.id}"`;
                         if (hasCopyValue) {
                             row += ` data-mathungcopy="${tg.maThungTG_Copy}"`;
                         }
                         row += ` data-copy="${isCopy}"`;
-                    }
+                    // }
 
                     row += `>`;
                     // Cột thùng gang
                     row += `
-                        <td class="hide-col">${thung.maThungThep ?? ''}</td>
+                    <td style="display: none">
+                            <input type="checkbox" class="cbx-chiaGang" name="ChonThung" value="" ${thung.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                        </td>
+                        <td class="hide-col maThungThep">${thung.maThungThep ?? ''}</td>
                         <td>${thung.iD_LoCao ?? ''}</td>
                         <td>${thung.bkmiS_ThungSo ?? ''}</td>
                         <td>${tinhTrangHTML}</td>
@@ -670,7 +785,7 @@
                             <td class="KLGangLong">${thung.t_KLGangLong ?? '00.0'}</td>
                         `;
                     }
-
+                    row += `<td class="KLGangChia" style="display: none">${thung.klGangChia ?? ''}</td>`;
                     // Nếu là dòng đầu tiên của nhóm thì render các cột thùng trung gian với rowspan
                     if (index === 0) {
                         const actionHtml = tg.isCopy ? `<button ${disabled} class="btn-item-action btn btn-danger btn-sm btn-XoaCopy" title="Xóa">
@@ -1369,12 +1484,16 @@
                 $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
             }
 
+            const maThungTG = $row.data('mathungtg');
+
             tinhKLGangLong($row);
 
-            // === Cập nhật tổng KLGangLong cho cùng thùng trung gian ===
-            const maThungTG = $row.closest('tr').attr('data-mathungtg')
-                           || $row.closest('tr').prevAll('[data-mathungtg]').first().attr('data-mathungtg');
             if (maThungTG) {
+                // Tính lại KLGangLong cho tất cả dòng trong nhóm
+                $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).each(function () {
+                    tinhKLGangLong($(this));
+                });
+
                 updateTongKLGangNhan(maThungTG);
             }
             sumKLGangNhan();
@@ -1401,11 +1520,14 @@
           
         });
 
-
         function tinhKLGangLong($row) {
             const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
             const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
-            const KLPhe = parseFloat($row.find('.KLPhe').val());
+
+            // Lấy KLPhe từ dòng đầu tiên trong nhóm thùng trung gian
+            const maThungTG = $row.data('mathungtg');
+            const $rowGroupHead = $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).first();
+            const KLPhe = parseFloat($rowGroupHead.find('.KLPhe').val());
 
             let KLGangLong = 0;
 
@@ -1417,7 +1539,7 @@
                 }
             }
 
-            $row.find('.KLGangLong').text(KLGangLong.toFixed(2));
+            $row.find('.KLGangLong').text(!isNaN(KLGangLong) ? KLGangLong.toFixed(2) : '0.00');
         }
 
         function applyColumnVisibility() {
@@ -1710,7 +1832,7 @@
             const soThung = $('#soThung').val();
 
             if (soThung === "" || parseFloat(soThung) < 0) {
-                alert("Vui lòng nhập số thùng hợp lệ (≥ 0)");
+                alert("Vui lòng nhập số thùng hợp lệ ≥ 0");
                 return;
             }
 
@@ -1762,15 +1884,25 @@
 
             const $rows = $('#IDtbXuLySoLieu tbody tr');
 
-            for (let i = 0; i < $rows.length; i++) {
-                const $row = $($rows[i]);
-
-                // Chỉ xử lý dòng đầu tiên của một nhóm (có data-mathungtg)
+            // === Gom nhóm theo data-mathungtg ===
+            const groups = {};
+            $rows.each(function () {
+                const $row = $(this);
                 const maThungTG = $row.attr('data-mathungtg');
-                if (!maThungTG) continue;
+                if (!maThungTG) return;
 
-                const maThungTG_Copy = $row.attr('data-mathungcopy') || null;
-                const isCopy = String($row.attr('data-copy')).toLowerCase() === 'true';
+                if (!groups[maThungTG]) groups[maThungTG] = [];
+                groups[maThungTG].push($row);
+            });
+
+            let isValidLuu = true;
+
+            for (const maThungTG in groups) {
+                const groupRows = groups[maThungTG];
+                const $firstRow = groupRows[0];
+
+                const maThungTG_Copy = $firstRow.attr('data-mathungcopy') || null;
+                const isCopy = String($firstRow.attr('data-copy')).toLowerCase() === 'true';
                 const key = isCopy ? `COPY_${maThungTG_Copy}` : `ORIGIN_${maThungTG}`;
 
                 const parent = {
@@ -1792,72 +1924,142 @@
                     DanhSachThungGang: []
                 };
 
-                // Lấy dữ liệu ở dòng đầu
-                parent.SoThungTG = $row.find('td[rowspan]').eq(2).text().trim();
-                parent.GhiChu = $row.find('textarea.IDGhiChu').val()?.trim() ?? '';
-                parent.KLThung_Thoi = getNumberValue($row.find('input[name="klThung_Thoi"]').val());
-                parent.KLThungVaGang_Thoi = getNumberValue($row.find('input[name="klThungVaGang_Thoi"]').val());
-                parent.KLGang_Thoi = parseFloat($row.find('.KLVaoLoThoi').text()) || 0;
-                parent.KLPhe = getNumberValue($row.find('input[name="kl_phe"]').val()) ;
-                parent.Tong_KLGangNhan = parseFloat($row.find('.tong_KL_GangNhan').text()) || 0;
-                const idMeThoiVal = $row.find('.selectMeThoi').val();
-                parent.ID_MeThoi = idMeThoiVal ? parseInt(idMeThoiVal) : null;
-                parent.GioChonMe = $row.find('.GioChonMe').val()?.trim() != "" ? $row.find('.GioChonMe').val()?.trim() : null;
+                // Lấy dữ liệu từ dòng đầu tiên
+                parent.SoThungTG = $firstRow.find('td[rowspan]').eq(2).text().trim();
+                parent.GhiChu = $firstRow.find('textarea.IDGhiChu').val()?.trim() ?? '';
+                parent.KLThung_Thoi = getNumberValue($firstRow.find('input[name="klThung_Thoi"]').val());
+                parent.KLThungVaGang_Thoi = getNumberValue($firstRow.find('input[name="klThungVaGang_Thoi"]').val());
+                parent.KLGang_Thoi = parseFloat($firstRow.find('.KLVaoLoThoi').text()) || 0;
+                parent.KLPhe = getNumberValue($firstRow.find('input[name="kl_phe"]').val());
+                parent.Tong_KLGangNhan = parseFloat($firstRow.find('.tong_KL_GangNhan').text()) || 0;
 
-                if((parent.ID_MeThoi && !parent.GioChonMe) || (!parent.ID_MeThoi && parent.GioChonMe)){
+                const idMeThoiVal = $firstRow.find('.selectMeThoi').val();
+                parent.ID_MeThoi = idMeThoiVal ? parseInt(idMeThoiVal) : null;
+                parent.GioChonMe = $firstRow.find('.GioChonMe').val()?.trim() || null;
+
+                if ((parent.ID_MeThoi && !parent.GioChonMe) || (!parent.ID_MeThoi && parent.GioChonMe)) {
                     isValidLuu = false;
                 }
 
-                // Duyệt tiếp các dòng trong nhóm thùng trung gian
-                i++; // sang dòng thứ 2 của nhóm
-                while (i < $rows.length) {
-                    const $nextRow = $($rows[i]);
-                    const nextMaThungTG = $nextRow.attr('data-mathungtg');
-                    if (nextMaThungTG) {
-                        // nếu gặp thùng mới thì quay lại for để xử lý nhóm tiếp theo
-                        i--;
-                        break;
-                    }
-
-                    // Nếu không phải bản sao thì thêm thùng gang
-                    if (!isCopy) {
+                // Nếu không phải copy, duyệt từng dòng trong group để lấy danh sách thùng gang
+                if (!isCopy) {
+                    groupRows.forEach(($row) => {
                         const thungGang = {
-                            MaThungThep: $nextRow.find('td').eq(0).text().trim(),
-                            T_KLThungVaGang: parseFloat($nextRow.find('input[name="t_KLThungVaGang"]').val()) || null,
-                            T_KLThungChua: parseFloat($nextRow.find('input[name="t_KLThungChua"]').val()) || null,
-                            T_KLGangLong: parseFloat($nextRow.find('.KLGangLong').text()) || 0
+                            MaThungThep: $row.find('td.maThungThep').text().trim(),
+                            T_KLThungVaGang: parseFloat($row.find('input[name="t_KLThungVaGang"]').val()) || null,
+                            T_KLThungChua: parseFloat($row.find('input[name="t_KLThungChua"]').val()) || null,
+                            T_KLGangLong: parseFloat($row.find('.KLGangLong').text()) || 0
                         };
                         parent.DanhSachThungGang.push(thungGang);
-                    }
-
-                    i++;
+                    });
                 }
 
-                // Dòng đầu tiên cũng là thùng gang nếu không phải copy
-                if (!isCopy) {
-                    const thungGang = {
-                        MaThungThep: $row.find('td').eq(0).text().trim(),
-                        T_KLThungVaGang: parseFloat($row.find('input[name="t_KLThungVaGang"]').val()) || null,
-                        T_KLThungChua: parseFloat($row.find('input[name="t_KLThungChua"]').val()) || null,
-                        T_KLGangLong: parseFloat($row.find('.KLGangLong').text()) || 0
-                    };
-                    parent.DanhSachThungGang.unshift(thungGang); // thêm vào đầu
-                }
-                
+                // Gán đặc biệt cho HRC1
                 const phongBan = $('#IDPhongBan').val();
                 if (phongBan === 'HRC1' && parent.DanhSachThungGang.length > 0) {
                     const firstItem = parent.DanhSachThungGang[0];
-                    parent.KLThungVaGang_Thoi = parent.KLThungVaGang_Thoi ? parent.KLThungVaGang_Thoi : firstItem.T_KLThungVaGang;
-                    parent.KLThung_Thoi = parent.KLThung_Thoi ? parent.KLThung_Thoi : firstItem.T_KLThungChua;
+                    parent.KLThungVaGang_Thoi = parent.KLThungVaGang_Thoi ?? firstItem.T_KLThungVaGang;
+                    parent.KLThung_Thoi = parent.KLThung_Thoi ?? firstItem.T_KLThungChua;
                 }
 
                 thungTrungGianMap[key] = parent;
             }
 
-            const result = Object.values(thungTrungGianMap);
-            return result;
+            if (!isValidLuu) {
+                alert("Vui lòng nhập đầy đủ cả Mẻ thổi và Giờ chọn mẻ hoặc để trống cả 2.");
+                return;
+            }
+
+            return Object.values(thungTrungGianMap);
         }
-       
+
+        // Chia Gang
+        $('#BtnChiaGang').click(function() {
+            let selectedIds = [];
+            $('#IDtbXuLySoLieu tbody tr').each(function () {
+                const checkbox = $(this).find('.cbx-chiaGang');
+                if (checkbox.is(':checked')) {
+                    const id = $(this).data('id');
+                selectedIds.push(id);
+                }
+            });
+
+            if (selectedIds.length < 2) {
+                alert("Vui lòng chọn ít nhất 2 dòng.");
+                return;
+            }
+            $.ajax({
+                url: "/BM_GangThoi_Thep/DanhSachTheoMaThungGang",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedIds),
+                processData: false,
+                success: function (res) {
+                console.log(res);
+                if(res){
+                        const modalChiaGang = new bootstrap.Modal(document.getElementById('modalChiaGang'));
+                        modalChiaGang.show();
+
+                        const tbodyNMLG = $('#tblNMLG tbody');
+                        tbodyNMLG.empty();
+
+                        const tbodyNMLT = $('#tblNMLT tbody');
+                        tbodyNMLT.empty();
+
+                        const tbodyGangChia = $('#tblGangChia tbody');
+                        tbodyGangChia.empty();
+
+                        let htmlNMLG = ``
+                        let htmlNMLT = ``;
+                        let htmlGangChia = ``;
+
+                        res.thungGoc.forEach(item => {
+                                            htmlNMLG += `
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungGang}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td class="text-danger fw-bold">${item.g_KLGangLong ?? ''}</td>
+                                                </tr>`;
+                        });
+                        tbodyNMLG.append(htmlNMLG);
+
+                        res.thungDaCoKL.forEach(item => {
+                                    htmlNMLT += `
+                                                        <tr>
+                                                            <td>${item.iD_Locao}</td>
+                                                            <td>${item.maThungThep}</td>
+                                                            <td>${item.bkmiS_ThungSo}</td>
+                                                            <td>${item.t_KLThungVaGang ?? ''}</td>
+                                                            <td>${item.t_KLThungChua ?? ''}</td>
+                                                            <td class="text-danger fw-bold">${item.t_KLGangLong ?? ''}</td>
+                                                        </tr>`;
+                        });
+                        tbodyNMLT.append(htmlNMLT);
+
+                         res.thungAll.forEach(item => {
+                         htmlGangChia += `
+                                        <tr>
+                                            <td>${item.iD_Locao}</td>
+                                            <td>${item.maThungThep}</td>
+                                            <td>${item.bkmiS_ThungSo}</td>
+                                            <td>${item.t_KLThungVaGang ?? ''}</td>
+                                            <td>${item.t_KLThungChua ?? ''}</td>
+                                            <td>${item.t_KLGangLong ?? ''}</td>
+                                            <td class="text-danger fw-bold">${item.tyLeChia ? item.tyLeChia + "%" :''}</td>
+                                            <td class="bg-warning fw-bold">${item.klChia ?? ''}</td>
+                                        </tr>`;
+                         });
+                        tbodyGangChia.append(htmlGangChia);
+                   }
+                },
+                error: function (xhr) {
+                    console.log(xhr)
+                    alert("Lỗi: " + xhr.responseText);
+                }
+            });
+        })
+
         $('#BtnLuu').click(function () {
             if (hasNegativeValue()) {
                 alert('Khối lượng đang âm, vui lòng kiểm tra lại');
