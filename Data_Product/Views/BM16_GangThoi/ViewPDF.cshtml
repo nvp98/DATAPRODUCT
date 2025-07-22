@@ -1,0 +1,166 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+@*@model IEnumerable<Data_Product.Models.Tbl_ChiTiet_BienBanGiaoNhan>*@
+@model dynamic
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{
+
+}
+<style>
+   
+    .signature {
+        width: 50%;
+        float: left;
+        text-align: center;
+        margin-top: 30px;
+    }
+</style>
+<div style="padding:0px 30px 0px 50px">
+    <div>
+        <div class="" style="text-align: left;display: flex;margin-bottom:0">
+            <div style="flex: 0 0 50%;width:80%;  float: left; font-weight: bold; font-size: 1rem; text-transform: uppercase;">
+                <img alt="Hòa Phát Dung Quất" src="https://report.hoaphatdungquat.vn/img/logoHP.png" width="205" />
+                <div class="" style="margin-top: 0; font-weight:bold">CÔNG TY CỔ PHẦN THÉP</div>
+                <div class="" style="font-weight:bold;margin-left:10px ">HÒA PHÁT DUNG QUẤT</div>
+                <div style="width:40%;text-align:center;">
+                    @* <div style=" font-size: 10px; padding-top:0.5%;">
+                        Số: 
+                    </div> *@
+                    @* @if (ID_BBGN.ID_BBGN_Cu != null)
+                    {
+                        var ID_BBGN_Cu = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID_BBGN.ID_BBGN_Cu).FirstOrDefault();
+
+                        <div style=" font-size: 10px;">
+                            Thay thế: @ID_BBGN_Cu.SoPhieu
+                        </div>
+                    } *@
+                </div>
+            </div>
+
+            <div style="flex: 0 0 50%;width:20%; float:right;text-align:right; font-weight: bold;">
+                <span style="font-weight:bold">BM.01/QT.05.10</span>
+                <div style="margin-top:0"><span style="font-style:italic;">Ngày hiệu lực:</span>  01/09/2023</div>
+              @*   <div style="margin-top:0"><span style="font-style:italic;">Lần sửa đổi:</span> 01</div> *@
+            </div>
+        </div><!-- End Recent Sales -->
+        <div style="flex: 0 0 100%; width: 100%; margin-top:0">
+            <div style="text-align:center;margin-top:0; font-size: 1.5rem;font-weight:bold; text-transform:uppercase">
+                BIÊN BẢN GIAO NHẬN GANG LỎNG LÒ THỔI 1
+            </div>
+            <div class="text-muted small pt-0" style="text-align:center; margin-top:0;font-style: italic;">
+                @{
+                    // var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
+                    // var Date = (DateTime)ID_BBGN.ThoiGianXuLyBG;
+                }
+               @*  Kíp @ID_Kip.TenCa@ID_Kip.TenKip ngày @Date.ToString("dd") tháng @Date.ToString("MM") Năm @Date.ToString("yyyy") *@
+                @*  <i style="color:black;">
+
+                </i>*@
+            </div>
+        </div>
+      @*   <div class="col-md-12 float-left">
+            Chúng tôi gồm:
+        </div> *@
+        <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+            <div style="width:37%"> 1. Đại diện bên giao: Ông/bà: </div>
+            <div style="width:38%">Chức vụ:  </div>
+            <div style="width:25%">BP: </div>
+        </div>
+
+        <div class="col-md-12 float-left" style="margin:8px 0; display:flex;width:100%">
+            <div style="width:37%"> 2. Đại diện bên nhận: Ông/bà:</div>
+            <div style="width:38%">Chức vụ: </div>
+            <div style="width:25%">BP:</div>
+        </div>
+        <div class="col-md-12 float-left" style="margin-bottom:8px;text-align: center;">
+            Cùng nhau thống nhất lập "Biên bản giao nhận gang lỏng" của Ca 2A ngày 21/01/2025 chi tiết như sau:
+        </div>
+    </div>
+
+    <div class="card-body" style="padding-top:1%;">
+        <div class="table-responsive">
+            <table style="border-collapse: collapse; width: 100%;" cellpadding="0">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">STT</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">Lò cao</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">Mẻ</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">Thùng số</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">Thời gian</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">Số ID</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">KL thùng & gang (kg)</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">KL thùng (kg)</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">KL gang lỏng (kg)</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle;">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid black; text-align: center;">1</td>
+                        <td style="border: 1px solid black; text-align: center;">4</td>
+                        <td style="border: 1px solid black; text-align: center;">25A0562</td>
+                        <td style="border: 1px solid black; text-align: center;">53</td>
+                        <td style="border: 1px solid black; text-align: center;">20:00</td>
+                        <td style="border: 1px solid black; text-align: center;">GBF251D2275553</td>
+                        <td style="border: 1px solid black; text-align: right; padding-right: 8px;">172.00</td>
+                        <td style="border: 1px solid black; text-align: right; padding-right: 8px;">60.00</td>
+                        <td style="border: 1px solid black; text-align: right; padding-right: 8px;">112.00</td>
+                        <td style="border: 1px solid black;"></td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid black; text-align: center;">2</td>
+                        <td style="border: 1px solid black; text-align: center;">3</td>
+                        <td style="border: 1px solid black; text-align: center;">25A0563</td>
+                        <td style="border: 1px solid black; text-align: center;">50</td>
+                        <td style="border: 1px solid black; text-align: center;">20:49</td>
+                        <td style="border: 1px solid black; text-align: center;">GBF251C2090250</td>
+                        <td style="border: 1px solid black; text-align: right; padding-right: 8px;">171.00</td>
+                        <td style="border: 1px solid black; text-align: right; padding-right: 8px;">59.00</td>
+                        <td style="border: 1px solid black; text-align: right; padding-right: 8px;">112.00</td>
+                        <td style="border: 1px solid black;"></td>
+                    </tr>
+                    <!-- Thêm dữ liệu tại đây -->
+                    <tr>
+                        <td colspan="8" style="border: 1px solid black; font-weight: bold; text-align: right; padding-right: 8px;">TỔNG</td>
+                        <td style="border: 1px solid black; font-weight: bold; text-align: right; padding-right: 8px;">1789.00</td>
+                        <td style="border: 1px solid black;"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+    </div>
+    <div class="col-md-12" style="margin-bottom:8px;text-align: center;">
+        Biên bản này được lập thành bản có giá trị như nhau: NM LG và NM LT mỗi bên giữ 1 bản.
+    </div>
+
+    <div class="signature">
+        <div class="bold">NMLG</div>
+        <div>(ký, họ tên)</div>
+    </div>
+    <div class="signature">
+        <div class="bold">NM HRC1</div>
+        <div>(ký, họ tên)</div>
+    </div>
+    
+</div>

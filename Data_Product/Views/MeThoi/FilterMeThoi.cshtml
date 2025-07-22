@@ -1,0 +1,61 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model List<Data_Product.Models.Tbl_MeThoi>
+
+<div class="row">
+    <table class="table table-bordered text-center align-middle" id="tb_FilterMethoi">
+        <thead class="table-light">
+            <tr>
+                <th>Mẻ thổi</th>
+                <th>Tình trạng mẻ thổi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in Model)
+            {
+                <tr data-id="@item.ID">
+                    <td>@item.MaMeThoi</td>
+                    <td class="tinhTrangMe" data-trangthai="@item.ID_TrangThai">
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<script>
+    $(document).ready(function () {
+        // render card trạng thái
+            function renderStatusCard(tinhTrang) {
+                const statusMap = {
+                    1: { label: "Chưa chuyển", bgClass: "bg-secondary", textColor: "white" },
+                    2: { label: "Chờ xử lý", bgClass: "bg-warning", textColor: "black" },
+                    3: { label: "Đã chuyển", bgClass: "bg-success", textColor: "white" },
+                    4: { label: "Đã nhận", bgClass: "bg-success", textColor: "white" },
+                    5: { label: "Đã chốt", bgClass: "bg-success", textColor: "white" },
+                };
+
+                const { label, bgClass, textColor } = statusMap[tinhTrang] || {
+                    label: "Không rõ", bgClass: "bg-light", textColor: "black"
+                };
+
+                return `
+                    <div class="status-card ${bgClass}">
+                    <span class="status-text small pt-2 ps-1" style="color: ${textColor};">
+                            ${label}
+                        </span>
+                    </div>
+                `;
+            }
+            $('#tb_FilterMethoi tbody tr').each(function() {
+                const ID_TrangThai = $(this).find('.tinhTrangMe').data('trangthai');
+                console.log("idtrangthai ",ID_TrangThai)
+                const html = renderStatusCard(ID_TrangThai);
+                $(this).find('.tinhTrangMe').html(html);
+
+            })
+    })
+</script>

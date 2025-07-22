@@ -1,0 +1,274 @@
+﻿
+@model List<Data_Product.DTO.BM_16_DTO.PhieuViewModel>
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@inject Data_Product.Repositorys.DataContext _context
+@using System.Security.Claims;
+@if (TempData["msgSuccess"] != null)
+{
+	@Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+	@Html.Raw(TempData["msgError"])
+}
+@{
+	ViewData["Title"] = "Index";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	Pager pager = new Pager();
+	int pageNo = 0;
+	if (ViewBag.Pager != null)
+	{
+		pager = ViewBag.Pager;
+		pageNo = pager.CurrentPage;
+	}
+
+}
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+}
+@{
+    string search = ViewBag.Search as string ?? "";
+}
+<style>
+	.filter-row select, .filter-row input {
+		max-width: 200px;
+	}
+
+	table thead tr th.text-center[rowspan="3"] {
+		vertical-align: middle !important;
+		background-color: #f7f7f7 !important;
+		width: 150px !important;
+	}
+
+	table tbody tr td.text-center {
+		vertical-align: middle !important;
+	}
+
+	.table-responsive {
+		max-height: 600px;
+	}
+
+	.text-nowrap {
+		white-space: nowrap;
+	}
+
+    .custom-button {
+        background-color: #28a745;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .custom-button:hover {
+        background-color: #218838;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+
+</style>
+<div class="app-main__outer">
+	<div class="app-main__inner" style="display:block; padding-bottom: 0px;">
+		<div class="tab-content">
+			<div class="row">
+				<div class="card">
+					<div class="row" style="width:100%; height: 120px;z-index: 1;">
+						<div style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: fixed; background-color:#F9F9F9; width: -webkit-fill-available;">
+							<div class="col-8" style="text-align: left; padding: 2% 2% 2% 0%;">
+								<span class="text-muted small pt-2 ps-1">
+									<b style="color:#06428b; font-size: 15px;">
+										DANH SÁCH PHIẾU GIAO NHẬN GANG LỎNG - GANG THỎI
+									</b>
+								</span>
+							</div>
+							<div class="col-4" style="text-align: right; padding: 2% 2% 2% 0%;">
+                                <button type="button" class="custom-button" onclick="window.location.href='@Url.Action("TaoPhieu","BM16_GangThoi")'">
+							 + Thêm mới
+								</button>
+							</div>
+						</div>
+					</div>
+					<div class="card-header" style="border-bottom: 0px; padding-bottom:2%">
+
+                      <form method="get" asp-action="Danhsachphieu" asp-controller="BM16_GangThoi" class="row g-2 align-items-center mb-3">
+                    <div class="col-auto">                 
+                        <input type="text" name="maPhieu" class="form-control form-control-sm" placeholder="Mã Phiếu" value="@ViewBag.MaPhieu" />
+                    </div>
+                            @{
+                                string ngayPGValue = "";
+                                if (!string.IsNullOrEmpty(ViewBag.NgayPG))
+                                {
+                                    DateTime parsedDate;
+                                    if (DateTime.TryParseExact(ViewBag.NgayPG, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out parsedDate))
+                                    {
+                                        ngayPGValue = parsedDate.ToString("yyyy-MM-dd");
+                                    }
+                                }
+                            }
+                            <div class="col-auto">                            
+                                <input type="date" name="NgayPG" class="form-control form-control-sm" value="@ngayPGValue" />
+                            </div>
+                    <div class="col-auto">
+                        <select name="ca" class="form-select form-select-sm">
+                            <option value="">-- Chọn Kíp --</option>
+                                    <option value="A" selected="@(ViewBag.Ca == "A")">A</option>
+                                    <option value="B" selected="@(ViewBag.Ca == "B")">B</option>
+                                    <option value="C" selected="@(ViewBag.Ca == "C")">C</option>
+                        </select>
+                    </div>
+                            <div class="col-auto">
+                                <select name="locao" class="form-control form-control-sm">
+                                    <option value="">-- Chọn Lò Cao --</option>
+                                    @foreach (var item in (SelectList)ViewBag.LoCaoList)
+                                    {
+                                        if (ViewBag.TenLoCao == item.Value)
+                                        {
+                                            <option value="@item.Value" selected="selected">@item.Text</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary btn-sm">Tìm kiếm</button>
+                    </div>
+                </form>
+
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover text-nowrap align-middle">
+                                <thead class="thead-light">
+                                    <tr class="text-center align-middle">
+                                        <th>Mã Phiếu</th>
+                                        <th>Ngày Luyện Gang</th>
+                                        <th>Ca</th>
+                                        <th>Lò Cao</th>
+                                        <th>Người Tạo</th>
+                                        <th>Thời Gian Tạo</th>
+                                        <th>Thao Tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.Count == 0)
+                                    {
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted">Không có dữ liệu phù hợp</td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        foreach (var item in Model)
+                                        {
+                                            <tr>
+                                                <td class="text-center">
+                                                    <a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="text-primary">@item.MaPhieu</a>
+                                                </td>
+                                                <td class="text-center">@item.NgayPhieuGang.ToString("dd-MM-yyyyy")</td>                                        
+                                                <td class="text-center">@item.TenCa</td>
+                                                <td class="text-center">@item.TenLoCao</td>
+                                                <td class="text-center">@item.TenNguoiTao</td>
+                                                <td class="text-center">@item.ThoiGianTao</td>
+                                                <td class="text-center">
+                                                    <a href="@Url.Action("DetailPhieu","BM16_GangThoi", new { id = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>
+                                                    @if (PhongBan?.TenNgan != "P.QLCL")
+                                                    {
+                                                        <a href="javascript:void(0);" data-maphieu="@item.MaPhieu" class="btn btn-sm btn-warning btn-xoa-phieu hidden">Xóa</a>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <nav aria-label="Page navigation example">
+                            @if (pager.TotalPages > 0)
+                            {
+                                <ul class="pagination justify-content-start">
+                                    @for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
+                                    {
+                                        <li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
+                                            <a class="page-link"
+                                               asp-action="Danhsachphieu"
+                                               asp-controller="BM16_GangThoi"
+                                               asp-route-page="@pge"
+                                               asp-route-search="@search">
+                                                @pge
+                                            </a>
+                                        </li>
+                                    }
+                                    @if (pager.CurrentPage < pager.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="Danhsachphieu"
+                                               asp-controller="BM16_GangThoi"
+                                               asp-route-page="@(pager.CurrentPage + 1)"
+                                               asp-route-search="@search">
+                                                Next
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               asp-action="Danhsachphieu"
+                                               asp-controller="BM16_GangThoi"
+                                               asp-route-page="@(pager.TotalPages)"
+                                               asp-route-search="@search">
+                                                Last
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </nav>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+ $(document).ready(function() {
+    $(document).on('click', '.btn-xoa-phieu', function () {
+            const maPhieu = $(this).data('maphieu');
+           console.log ('maPhieu',maPhieu)
+            if (!confirm("Bạn có chắc chắn muốn xóa phiếu: " + maPhieu + " ?")) {
+                return;
+            }
+
+            $.ajax({
+                url: '/BM16_GangThoi/XoaPhieu',
+                type: 'POST',
+                data: { maPhieu: maPhieu },
+                success: function (res) {
+                    if (res.success) {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert("Lỗi: " + res.message);
+                    }
+                },
+                error: function (xhr) {
+                    alert("Có lỗi xảy ra: " + xhr.responseText);
+                }
+            });
+        });
+   });
+</script>
+
+

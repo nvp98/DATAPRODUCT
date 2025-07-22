@@ -1,5 +1,2043 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+@model IEnumerable<Data_Product.Models.Tbl_BM_16_GangLong>
+
 @{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
 }
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+     .isolated-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh; 
+        background-color: #ffffff;
+        border: 1px solid #dee2e6;
+        overflow: hidden; 
+        font-size: 13px;
+    }
+
+    .isolated-layout .header-fixed {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #f8f9fa;
+        padding: 10px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .isolated-layout .content {
+        flex-grow: 1;
+        min-height: 0; 
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .table-content {
+        flex-grow: 1;
+    }
+
+    .table-container {
+        overflow: auto; 
+        height: 100%; 
+        width: 100%;
+        border: 1px solid #dee2e6;
+        position: relative;
+    }
+
+    .table{
+        margin-bottom: 20px;
+    }
+
+
+    .isolated-layout .table-container::-webkit-scrollbar {
+        width: 2px;
+    }
+
+    .isolated-layout .table-container::-webkit-scrollbar-thumb {
+        background-color: #888; 
+        border-radius: 1px;
+    }
+
+    .isolated-layout .table-container::-webkit-scrollbar-thumb:hover {
+        background-color: #555; 
+    }
+
+    .isolated-layout .table-container::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+    }
+
+    .isolated-layout .table-container {
+        scrollbar-width: thin; 
+        scrollbar-color: #888 #f1f1f1; 
+    }
+
+    .isolated-layout .table-container tbody tr:hover {
+        background-color: #f1f3f5;
+    }
+
+    .col-5{
+        border-right: solid black 1px;
+    }
+
+    .filter-item {
+        margin-top: 3px;
+        height: 35px;
+    }
+
+    .btn {
+        height: 35px;
+        margin-left: 20px;
+        font-size: 12px;
+    }
+
+
+    .table_tbx {
+        border: solid grey 1px;
+        max-width: 60px;
+        border-radius: 5px;
+        padding: 5px 5px;
+    }
+
+    .status-card {
+        height: 35px;
+        width: 80px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 400;
+    }
+    .status-text{
+        padding: 0 !important;
+        font-size: 12px;
+    }
+
+    .hide-col {
+        display: none;
+    }
+    .hrc2{
+        display: none;
+    }
+
+    .select2-container--default .select2-selection--single,
+    .select2-container--default .select2-selection--multiple,
+    .select2-results__option {
+        font-size: 14px;
+    }
+
+    .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+        outline: none !important;
+        border: 1px solid gray !important;
+        box-shadow: none !important;
+    }
+
+    .select2-results__options::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .select2-results__options::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.2);
+        border-radius: 4px;
+    }
+
+    .select2-results__options::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+
+    .select2-container--default .select2-selection--single {
+        height: 32px;
+        line-height: 32px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 32px;
+        padding-left: 8px;
+    }
+
+    .btn-item-action{
+        margin-left: 0 !important;
+    }
+
+    input[readonly] {
+        background-color: #eee;
+        pointer-events: none;
+    }
+
+    .bg-chua-chuyen {
+        background-color: #6c757d;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    .bg-da-chuyen {
+        background-color: #61bd63;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .bg-da-nhan {
+        background-color: #50cbde;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .bg-cho-xu-ly {
+        background-color: #ffc107;
+        color: #212529;
+        font-weight: bold;
+    }
+
+    .bg-da-chot {
+        background-color: #1e7e34;
+        color: #ffffff;
+        font-weight: bold;
+    }
+</style>
+ <div class="isolated-layout d-flex flex-column vh-100">
+    <div class="header-fixed p-2" style="font-size: 14px; margin-bottom: 20px;">
+        <div class="container-fluid">
+            <input type="text" style="display: none" id="ID_currentUser" value="@TaiKhoan.ID_TaiKhoan" />
+            <input type="text" style="display: none" id="IDPhongBan" value="@PhongBan.TenNgan.Split('.').Last()" />
+            <div class="row">
+                <div class="col-5">
+                    <h5><strong>KHU VỰC NHẬN THÙNG</strong></h5>
+                    <hr />
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="row g-3">
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="TuNgayLamViec" class="col-sm-5 col-form-label">Từ Ngày: </label>
+                                        <div class="col-sm-7">
+                                            <input type="date" class="form-control form-control-sm" id="ID_TuNgayLamViec" name="TuNgayLamViec"
+                                                   onkeydown="return false;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="DenNgayLamViec" class="col-sm-5 col-form-label">Đến Ngày: </label>
+                                        <div class="col-sm-7">
+                                            <input type="date" class="form-control form-control-sm" id="ID_DenNgayLamViec" name="DenNgayLamViec"
+                                                   onkeydown="return false;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="CaLamViec" class="col-sm-5 col-form-label">Ca làm việc: </label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDCaLamViec" name="CaLamViec">
+                                                <option value="">-- Ca làm việc --</option>
+                                                <option value="1">Ca 1</option>
+                                                <option value="2">Ca 2</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="LoCao" class="col-sm-5 col-form-label">Lò cao:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDLoCao" name="LoCao">
+                                                <option value="">-- Lò cao --</option>
+                                                @foreach (var locao in ViewBag.LoCaoList)
+                                                {
+                                                    <option value="@locao.ID">@locao.TenLoCao</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="ChuyenDen" class="col-sm-5 col-form-label">Chuyển đến:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-control selectChuyenDen" id="IDChuyenDen" multiple>
+                                                <option value="">-- Chuyển đến --</option>
+                                                <option value="HRC1">HRC 1</option>
+                                                <option value="DUC1">Đúc 1</option>
+                                                <option value="HRC2">HRC 2</option>
+                                                <option value="DUC2">Đúc 2</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="ChuyenDen" class="col-sm-5 col-form-label">Tình trạng:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDTinhTrang" name="TinhTrang">
+                                                <option value="">-- Tình trạng --</option>
+                                                <option value="4">Đã nhận</option>
+                                                <option value="2">Chờ xử lý</option>
+                                                <option value="5">Đã chốt</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="MaThungGang" class="col-sm-5 col-form-label">Mã thùng gang:</label>
+                                        <div class="col-sm-7">
+                                            <input class="form-control form-control-sm" type="text" id="IDMaThungGang" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="BKMisThungSo" class="col-sm-5 col-form-label">Thùng số:</label>
+                                        <div class="col-sm-7">
+                                            <input class="form-control form-control-sm" type="number" id="IDBKMisThungSo" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 d-flex align-items-end">
+                        <div class="col-12 d-flex justify-content-end">
+                            <button class="btn btn-primary btn-sm px-4" id="btnSeachLG">Tìm kiếm</button>
+                            <button class="btn btn-warning btn-sm px-4" id="btnLuuKR">Lưu KR</button>
+                            <button class="btn btn-success btn-sm px-4" id="IDbtnNhanThung">Nhận</button>
+                            <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung" style="display:none">Hủy nhận</button>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-7">
+                    <h5><strong>KHU VỰC XỬ LÝ SỐ LIỆU</strong></h5>
+                    <hr />
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="row g-3">
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="ngayLamViec" class="col-sm-4 col-form-label">Ngày làm việc: </label>
+                                        <div class="col-sm-8">
+                                            <input type="date" class="form-control form-control-sm" id="IDNgayNhan" name="ngayLamViec" 
+                                                   onkeydown="return false;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="caLamViec" class="col-sm-3 col-form-label">Ca làm việc: </label>
+                                        <div class="col-sm-9">
+                                            <select class="form-select form-select-sm" id="IDCaNhan" name="CaNhan">
+                                                <option value="">-- Ca làm việc --</option>
+                                                <option value="1">Ca 1</option>
+                                                <option value="2">Ca 2</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="caLamViec" class="col-sm-4 col-form-label">Lò thổi: </label>
+                                        <div class="col-sm-8">
+                                            <select class="form-select form-select-sm" id="IDLoThoi" name="LoThoi">
+                                                <option value="">-- Lò thổi --</option>
+                                                @foreach (var lothoi in ViewBag.LoThoiList)
+                                                {
+                                                    <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
+                                    <button class="btn btn-primary btn-sm px-4" id="btnSeachThungDaNhan">Tìm kiếm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3" style="position: absolute;bottom: 10px;right: 12px;">
+                        <div class="col-12 d-flex justify-content-end">
+                            <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
+                            <button class="btn btn-warning btn-sm px-4" id="BtnLuu">Lưu</button>
+                            <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel">Xuất Excel</button>
+                            <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF" style="display:none">Xuất PDF</button>
+                            <button class="btn btn-primary" onclick="loadModalTaoMe()">Tạo Mẻ thổi</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="content flex-grow-1 px-2" style="min-height: 0; padding-bottom: 50px; margin-bottom: 15px;">
+        <div class="container-fluid h-100 table-content">
+            <div class="row" style="height: 100%; padding-bottom: 10px;">
+                <div class="col-5" style="height: 100%">
+                    <div class="table-container" role="region" aria-label="Scrollable Table 1">
+                        <table class="table table-bordered text-center align-middle table-hover" id="IDtbKhuVucNhanThung">
+                            <thead class ="table-light sticky-top bg-white" style="z-index: 2">
+                                <tr>
+                                    <th>Giờ BKMis</th>
+                                    <th>Giờ NM</th>
+                                    <th>Mã thùng gang</th>
+                                    <th>Lò cao</th>
+                                    <th>Thùng số</th>
+                                    <th>KL Gang lỏng</th>
+                                    <th>Chuyển đến</th>
+                                    <th>KR</th>
+                                    <th>Chọn thùng</th>
+                                    <th>Tình trạng</th>
+                                    <th style="min-width: 200px;">Người nhận</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-7" style="height: 100%">
+                    <div class="table-container" role="region" aria-label="Scrollable Table 2">
+                        <table class="table table-bordered text-center align-middle table-hover" id="IDtbXuLySoLieu">
+                            <thead class="table-light sticky-top bg-white" style="z-index: 2">
+                                <tr>
+                                    <th class="hide-col">Mã thùng thép</th>
+                                    <th>Lò cao</th>
+                                    <th>Thùng số</th>
+                                    <th>Trạng thái</th>
+                                    <th>KL thùng & gang lỏng (T)</th>
+                                    <th>KL thùng (T)</th>
+                                    <th>KL gang lỏng (T)</th>
+                                    <th class="hrc2">Thao tác</th>
+                                    <th>KL gang nhận (T)</th>
+                                    <th>Thùng trung gian</th>
+                                    <th>KL thùng & gang lỏng (T) </th>
+                                    <th>KL thùng (T)</th>
+                                    <th>KL phế (T)</th>
+                                    <th>KL vào lò thổi </th>
+                                    <th>Mẻ thổi</th>
+                                    <th>Giờ bắt đầu thổi</th>
+                                    <th style="min-width: 150px;">Ghi chú</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+                                <tr style="height: 50px;">
+                                    <td class="total-space" colspan="6" style="font-weight: 600; text-align: start">Tổng</td>
+                                    <td id="IDTongKLGangNhan" style="font-weight: 600">
+                                        0.00
+                                    </td>
+                                    <td colspan="4"></td>
+                                    <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
+                                        0.00
+                                    </td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+
+
+     
+
+    <!-- Modal form tạo mẻ thổi -->
+    <div class="modal fade" id="modalTaoMeThoi" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Tạo Mẻ thổi</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+          </div>
+            <div class="modal-body" id="modalTaoMe">
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="modalThungTrungGian" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalThungLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalThungLabel">Nhập Thùng Trung Gian</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng" id="btnCloseModalTrungGian"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="number" id="soThung" class="form-control" min="0" placeholder="Nhập số thùng trung gian" />
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button class="btn btn-success" id="btnXacNhanThung">Xác nhận</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa thùng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Bạn muốn xóa thùng?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="huyNhanThungModal" tabindex="-1" aria-labelledby="huyNhanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="huyNhanModalLabel">Xác nhận hủy nhận thùng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalHuyNhan"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-0" id="huyNhanThung-content"></div>
+                <p class="mb-0">Bạn muốn hủy nhận thùng này?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmHuyNhan">Hủy nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(".selectChuyenDen").chosen({
+        width: "100%"
+    });
+    
+</script>
+    <script type="text/javascript">
+        let pendingPayload = null;
+        let dataThungDaNhan = [];
+        let selectedMaThung = null;
+        let selectedMaThungHuy = null;
+        let selectedMaThungHuyTmp = null;
+        let isHidden = true;
+        let isValidLuu = true;
+        // render card trạng thái
+        function renderStatusCard(tinhTrang) {
+            const statusMap = {
+                1: { label: "Chưa xử lý", bgClass: "bg-chua-chuyen" },
+                2: { label: "Chờ xử lý", bgClass: "bg-cho-xu-ly" },
+                3: { label: "Đã Xử lý", bgClass: "bg-da-chuyen" },
+                4: { label: "Đã nhận", bgClass: "bg-da-nhan" },
+                5: { label: "Đã chốt", bgClass: "bg-da-chot" },
+            };
+
+            const { label, bgClass } = statusMap[tinhTrang] || {
+                label: "Không rõ", bgClass: "bg-light"
+            };
+
+            return `
+                <div class="status-card ${bgClass}">
+                <span class="status-text small pt-2 ps-1"">
+                        ${label}
+                    </span>
+                </div>
+            `;
+        }
+
+        function renderTableXuLySoLieu(data) {
+            const tbody = $('#IDtbXuLySoLieu tbody');
+            tbody.empty();
+
+            if (!Array.isArray(data) || data.length === 0) {
+                tbody.append(`
+                    <tr>
+                         <td colspan="16" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                        </td>
+                    </tr>
+                `);
+                sumKLGangNhan();
+                sumKLGangThoi();
+                return;
+            }
+            const phongBan = $("#IDPhongBan").val();
+            data.forEach(tg => {
+                const rowspan = tg.danhSachThungGang.length;
+                const isCopy = tg.isCopy === true || tg.isCopy === 'true';
+                const hasCopyValue = tg.maThungTG_Copy && tg.maThungTG_Copy !== 'null';
+                
+                tg.danhSachThungGang.forEach((thung, index) => {
+
+                    const tinhTrangHTML = renderStatusCard(thung.iD_TrangThai);
+
+                    const disabled = thung.iD_TrangThai === 5 ? 'disabled' : '';
+                    const disabledInputKL = thung.iD_TrangThai === 5 || phongBan === "HRC1" ? 'disabled' : '';
+
+                    let row = `<tr`;
+                    // Nếu là dòng đầu tiên của thùng trung gian thì thêm data-attribute
+                    if (index === 0) {
+                        row += ` data-mathungtg="${tg.maThungTG}"`;
+                        if (hasCopyValue) {
+                            row += ` data-mathungcopy="${tg.maThungTG_Copy}"`;
+                        }
+                        row += ` data-copy="${isCopy}"`;
+                    }
+
+                    row += `>`;
+                    // Cột thùng gang
+                    row += `
+                        <td class="hide-col">${thung.maThungThep ?? ''}</td>
+                        <td>${thung.iD_LoCao ?? ''}</td>
+                        <td>${thung.bkmiS_ThungSo ?? ''}</td>
+                        <td>${tinhTrangHTML}</td>
+                    `;
+
+                    if (tg.isCopy) {
+                        row += `
+                            <td><span></span></td>
+                            <td><span></span></td>
+                            <td><span></span></td>
+                        `;
+                    } else {
+                        row += `
+                            <td>
+                                <input class="table_tbx KhoiLuongThungVaGangLong"
+                                        type="number"
+                                        min=0
+                                        name="t_KLThungVaGang"
+                                        ${disabled}
+                                        value="${thung.t_KLThungVaGang ?? ''}"/>
+                            </td>
+                            <td>
+                                <input class="table_tbx KhoiLuongThung"
+                                        type="number"
+                                        min=0
+                                        name="t_KLThungChua"
+                                        ${disabled}
+                                        value="${thung.t_KLThungChua ?? ''}"/>
+                            </td>
+                            <td class="KLGangLong">${thung.t_KLGangLong ?? '00.0'}</td>
+                        `;
+                    }
+
+                    // Nếu là dòng đầu tiên của nhóm thì render các cột thùng trung gian với rowspan
+                    if (index === 0) {
+                        const actionHtml = tg.isCopy ? `<button ${disabled} class="btn-item-action btn btn-danger btn-sm btn-XoaCopy" title="Xóa">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>`
+                                                     : `<button ${disabled} class="btn-item-action btn btn-secondary btn-sm btn-Copy" title="copy">
+                                                                    <i class="bi bi-copy"></i>
+                                                        </button>`;
+                        row += `
+                        <td class="hrc2" rowspan="${rowspan}">
+                            ${actionHtml}
+                        </td>
+                        <td rowspan="${rowspan}" class="tong_KL_GangNhan">${tg.tong_KLGangNhan ?? 0}</td>
+                        <td rowspan="${rowspan}">${tg.soThungTG ?? ''}
+                            </td>
+                        <td rowspan="${rowspan}">
+                            <input ${disabledInputKL} class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" min=0 name="klThungVaGang_Thoi" value="${tg.klThungVaGang_Thoi ?? ''}"/>
+                            </td>
+                        <td rowspan="${rowspan}">
+                            <input ${disabledInputKL} class="table_tbx KLThungVaoLoThoi" type="number" min=0 name="klThung_Thoi" value="${tg.klThung_Thoi ?? ''}"/>
+                        </td>
+                        <td rowspan="${rowspan}">
+                            <input ${disabled} class="table_tbx KLPhe" type="number" min=0 name="kl_phe" value="${tg.kL_phe ?? ''}"/>
+                        </td>
+                        <td rowspan="${rowspan}" id="IDKLVaoLoThoi" class="KLVaoLoThoi">${tg.klGang_Thoi ?? '0.00'} </td>
+                        <td rowspan="${rowspan}">
+                            <select ${disabled} class="form-select selectMeThoi" data-selected-id="${tg.iD_MeThoi || ''}" data-selected-ma="${tg.maMeThoi || ''}">
+                                    <option value="">-- Mẻ thổi --</option>
+                            </select>
+                        </td>
+                        <td rowspan="${rowspan}">
+                            <input ${disabled} class="table_tbx GioChonMe" type="time" name="GioChonMe" min="00:00" max="23:59" value="${tg.gioChonMe ?? ''}" style="max-width: 100px;">
+                        </td>
+                        <td rowspan="${rowspan}">
+                            <textarea ${disabled} class="table_tbx IDGhiChu" type="text" name="ghiChu" id="IDGhiChu">${tg.ghiChu ?? ''}</textarea>
+                        </td>
+                        `;
+                    }
+
+                    row += '</tr>';
+                    tbody.append(row);
+                });
+            });
+            initSelectMeThoiInTable();
+            // const IDLoThoi = $('#IDLoThoi').val() || null;
+            // SearchMeThoi(IDLoThoi);
+            sumKLGangNhan();
+            sumKLGangThoi();
+            applyColumnVisibility();
+        }
+
+        
+
+        //render table Khu Vuc Nhan Thung
+        function renderTableNhanThung(data) {
+            const tbody = $('#IDtbKhuVucNhanThung tbody');
+            tbody.empty();
+            if(data.length){
+                data.forEach(item => {
+                const tinhTrangHTML = renderStatusCard(item.iD_TrangThai == 5 ? item.iD_TrangThai : item.t_ID_TrangThai);
+
+                const nguoiNhanHtml = item.nguoiNhanList.length > 0
+                    ? item.nguoiNhanList.join('<br>')
+                    : '';
+
+                const html = `
+                <tr data-id="${item.id}" data-mathung="${item.maThungGang}">
+                        <td>${item.bkmiS_Gio}</td>
+                        <td>${item.gio_NM ?? ''}</td>
+                        <td>${item.maThungGang ?? ''}</td>
+                        <td>${item.iD_Locao ?? ''}</td>
+                        <td>${item.bkmiS_ThungSo ?? ''}</td>
+                        <td>${item.g_KLGangLong ?? ''}</td>
+                        <td>${item.chuyenDen ?? ''}</td>
+                        <td>
+                            <input type="checkbox" class="cbx-luuKR" name="KR" value="${item.kr}"  ${item.kr ? "checked" : ""} ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                        </td>
+                        <td>
+                            <input type="checkbox" class="cbx-nhanThung" name="ChonThung" value="" ${item.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                        </td>
+                        <td class="status-cell" data-status="${item.iD_TrangThai == 5 ? item.iD_TrangThai : item.t_ID_TrangThai}">
+                            ${tinhTrangHTML}
+                        </td>
+                        <td class="nguoi-nhan">
+                            ${nguoiNhanHtml}
+                        </td>
+                    </tr>
+                    `;
+                tbody.append(html);
+                });
+            } else {
+               const html = `
+                    <tr>
+                        <td colspan="14" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                        </td>
+                    </tr>
+                `;
+                tbody.append(html);
+            }
+        }
+
+
+        // Search Luyen Gang de nhan thung
+        function SearchLT() {
+            // value cac field
+            const TuNgayLamViec = $('#ID_TuNgayLamViec').val() || null;
+            const DenNgayLamViec = $('#ID_DenNgayLamViec').val() || null;
+            const IDCaLamViec = $('#IDCaLamViec').val() || null;
+            const IDLoCao = $('#IDLoCao').val() || null;
+            const IDChuyenDen = $('#IDChuyenDen').val() || null;
+            const IDTinhTrang = $('#IDTinhTrang').val() || null;
+            const IDMaThungGang = $('#IDMaThungGang').val().trim() || null;
+            const IDBKMisThungSo = $('#IDBKMisThungSo').val() || null;
+
+
+            const payload = {
+                TuNgay: TuNgayLamViec,
+                DenNgay: DenNgayLamViec,
+                ID_TrangThai: IDTinhTrang,
+                ID_Locao: IDLoCao,
+                ChuyenDen: IDChuyenDen,
+                G_Ca: IDCaLamViec,
+                MaThungGang : IDMaThungGang,
+                BKMIS_ThungSo: IDBKMisThungSo
+            };
+
+            $.ajax({
+                url: '/BM_GangThoi_Thep/SearchLT',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function (data) {
+                    const dataSorted = sortData(data)
+                    renderTableNhanThung(dataSorted);
+                },
+                error: function (err) {
+                    alert("Lỗi khi tìm kiếm dữ liệu");
+                }
+            });
+        }
+
+            // Hỗ trợ parse cả "09:30" và "09H30"
+        function parseMixedTimeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            let parts;
+
+            if (timeStr.includes(':')) {
+                parts = timeStr.split(':');
+            } else if (timeStr.includes('H')) {
+                parts = timeStr.split('H');
+            } else {
+                return 0;
+            }
+
+            const hours = parseInt(parts[0], 10) || 0;
+            const minutes = parseInt(parts[1], 10) || 0;
+            return hours * 60 + minutes;
+        }
+
+        // Hàm tạo key sắp xếp
+        function convertToSortKey(item) {
+            const date = new Date(item.ngayTao);
+            const timeMins = parseMixedTimeToMinutes(item.bkmiS_Gio);
+            const ca = item.g_Ca;
+
+            const sortDateValue = -date.getTime(); // Ngày giảm dần
+            const caValue = (ca === 2) ? 0 : 1;     // Ca đêm trước ca ngày
+
+            let subGroup = 0;
+            let sortTimeValue = 0;
+
+            if (ca === 2) {
+                if (timeMins < 480) {
+                    // Giờ sáng hôm sau (00:00–07:59)
+                    subGroup = 0;
+                } else {
+                    // Giờ tối hôm trước (20:00–23:59)
+                    subGroup = 1;
+                }
+                sortTimeValue = -timeMins; // Giảm dần
+            } else {
+                sortTimeValue = -timeMins; // Ca ngày cũng giảm dần
+            }
+
+            return {
+                sortDateValue,
+                caValue,
+                subGroup,
+                sortTimeValue
+            };
+        }
+
+        // Hàm sắp xếp chính
+        function sortData(data) {
+            return data.sort((a, b) => {
+                const sa = convertToSortKey(a);
+                const sb = convertToSortKey(b);
+
+                if (sa.sortDateValue !== sb.sortDateValue)
+                    return sa.sortDateValue - sb.sortDateValue;
+
+                if (sa.caValue !== sb.caValue)
+                    return sa.caValue - sb.caValue;
+
+                if (sa.caValue === 0 && sa.subGroup !== sb.subGroup)
+                    return sa.subGroup - sb.subGroup;
+
+                return sa.sortTimeValue - sb.sortTimeValue;
+            });
+        }
+
+        function SearchThungDaNhanTheoUser(){
+            // value cac field
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(!NgayNhan){
+                alert("Vui lòng chọn Ngày Nhận"); return;
+            }
+            if(!IDCaNhan ){
+                alert("Vui lòng chọn Ca"); return;
+            }
+            if(!IDLoThoi){
+                alert("Vui lòng chọn Lò thổi"); return;
+            }
+
+            const payload = {
+                NgayLamViec: NgayNhan,
+                ID_LoThoi: IDLoThoi,
+                T_Ca: IDCaNhan
+            };
+            $.ajax({
+                url: '/BM_GangThoi_Thep/TimKiemThungDaNhan',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function (data) {
+                    // gán data vào biến global
+                    dataThungDaNhan = data;
+
+                    if(data.length !== 0){
+                        // TODO PDF
+                        // checkShowBtnPDF(data);
+                    } else{
+                        $("#BtnXuatPhieuPDF").css("display","none");
+                    }
+                   
+                    // set css cho btn PDF
+                    renderTableXuLySoLieu(data);
+                },
+                error: function (err) {
+                    alert("Lỗi khi tìm kiếm dữ liệu");
+                }
+            });
+        }
+
+        function checkShowBtnPDF(data) {
+            const coTrangThai5 = data.some(thung =>
+                Array.isArray(thung.danhSachThungGang) &&
+                thung.danhSachThungGang.some(item => item.iD_TrangThai === 5)
+            );
+
+            if (coTrangThai5) {
+                $('#BtnXuatPhieuPDF').show();
+            } else {
+                $('#BtnXuatPhieuPDF').hide();
+            }
+        }
+
+        function ExportToExcel(){
+            // value cac field
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(!NgayNhan){
+                alert("Vui lòng chọn Ngày Nhận"); return;
+            }
+            if(!IDCaNhan ){
+                alert("Vui lòng chọn Ca"); return;
+            }
+            if(!IDLoThoi){
+                alert("Vui lòng chọn Lò thổi"); return;
+            }
+
+            const payload = {
+                NgayLamViec: NgayNhan,
+                ID_LoThoi: IDLoThoi,
+                T_Ca: IDCaNhan
+            };
+            
+            fetch('/BM_GangThoi_Thep/ExportToExcel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+                return response.blob();
+            }).then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "QTGN Gang lỏng - Thép.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }).catch(err => {
+                alert("Lỗi: " + err.message);
+            });
+        }
+
+        function ExportToPDF(){
+            // value cac field
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(!NgayNhan){
+                alert("Vui lòng chọn Ngày Nhận"); return;
+            }
+            if(!IDCaNhan ){
+                alert("Vui lòng chọn Ca"); return;
+            }
+            if(!IDLoThoi){
+                alert("Vui lòng chọn Lò thổi"); return;
+            }
+
+            const payload = {
+                NgayLamViec: NgayNhan,
+                ID_LoThoi: IDLoThoi,
+                T_Ca: IDCaNhan
+            };
+
+            fetch('/BM_GangThoi_Thep/ExportToPDF', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'QTGN Gang long - Thep.pdf';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+        }
+
+        function initSelectMeThoiInTable() {
+            $('.selectMeThoi').each(function () {
+                const $select = $(this);
+                const selectedId = $select.data('selected-id');
+                const selectedMa = $select.data('selected-ma');
+
+                // Nếu có giá trị đã chọn từ trước thì thêm vào
+                if (selectedId && selectedMa && !$select.find(`option[value="${selectedId}"]`).length) {
+                    $select.append(new Option(selectedMa, selectedId, true, true));
+                }
+
+                $select.select2({
+                    placeholder: '-- Mẻ thổi --',
+                    minimumInputLength: 0,
+                    ajax: {
+                        url: '/MeThoi/FilterMeThoi',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        delay: 300,
+                        data: function (params) {
+                            const dto = {
+                                id_LoThoi: $('#IDLoThoi').val(),
+                                ngayLamViec: $('#IDNgayNhan').val(),
+                                searchText: params.term || "",
+                                // idsDaChon: getAllSelectedMeThoiIds()
+                            }
+                            return JSON.stringify(dto);
+                        },
+                        processResults: function (data) {
+                            // return dữ liệu cho select2
+                            const results = data.map(x => ({ id: x.id, text: x.maMeThoi }));
+                            // setTimeout(() => filterSelectMeThoi(), 0); gọi sau khi load
+                            return { results };
+                        },
+                        cache: true
+                    },
+                    width: '100%'
+                });
+            });
+        }
+
+        function getAllSelectedMeThoiIds() {
+                const ids = [];
+                $('.selectMeThoi').each(function () {
+                    const val = $(this).val();
+                    if (val) ids.push(parseInt(val));
+                });
+                return ids;
+            }
+         // tinh sum
+        function sumKLGangThoi(){
+            let total = 0;
+            $("#IDtbXuLySoLieu .KLVaoLoThoi").each(function () {
+                const value = parseFloat($(this).text());
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+            $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
+        }
+
+        function sumKLGangNhan(){
+            let total = 0;
+            $("#IDtbXuLySoLieu .tong_KL_GangNhan").each(function () {
+                const value = parseFloat($(this).text());
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+            $("#IDTongKLGangNhan").text(total.toFixed(2));
+        }
+
+        // Hàm kiểm tra có giá trị âm hay không
+        function hasNegativeValue() {
+            let hasNegative = false;
+
+            $('#IDtbXuLySoLieu tbody tr').each(function () {
+                const row = $(this);
+                const KLVaoLoThoi = parseFloat(row.find('.KLVaoLoThoi').text().trim());
+                const KLGangLong = parseFloat(row.find('.KLGangLong').text().trim());
+
+                if (KLVaoLoThoi < 0 || KLGangLong < 0) {
+                    hasNegative = true;
+                    return false; // Thoát khỏi vòng each
+                }
+            });
+
+            return hasNegative;
+        }
+
+        function filterSelectMeThoi() {
+            const selectedValues = [];
+
+            // Thu thập tất cả các giá trị đã chọn
+            $('.selectMeThoi').each(function () {
+                const $select = $(this);
+                const manual = $select.data('selected-manually');
+                const val = manual ? $select.val() : $select.data('catch-value');
+                if (val) selectedValues.push(val);
+            });
+
+            // Với mỗi select, remove hoặc disable các option trùng
+            $('.selectMeThoi').each(function () {
+                const $select = $(this);
+                const currentVal = $select.val();
+
+                const newOptions = [];
+
+                $select.find('option').each(function () {
+                    const val = $(this).val();
+                    const text = $(this).text();
+
+                    // Không trùng hoặc đang được chọn thì giữ
+                    if (!val || val === currentVal || !selectedValues.includes(val)) {
+                        newOptions.push(new Option(text, val, val === currentVal, val === currentVal));
+                    }
+                });
+
+                // Clear & rebuild lại select
+                $select.empty().append(newOptions).trigger('change.select2');
+            });
+        }
+
+
+        // copy thùng trung gian
+        $(document).on('click', '.btn-Copy', function () {
+            const maThungTG = $(this).closest("tr").data("mathungtg");
+
+            if (!maThungTG) return;
+
+            $.ajax({
+                url: '/BM_GangThoi_Thep/CheckValidCopyThungTG',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(maThungTG),
+                success: function (res) {
+                    if(res.isValid){
+                        // Tìm dòng gốc
+                        const indexGoc = dataThungDaNhan.findIndex(x => x.maThungTG === maThungTG && !x.isCopy);
+                        if (indexGoc === -1) return;
+
+                        // Lấy thùng gốc
+                        const tgGoc = dataThungDaNhan[indexGoc];
+
+                        // Tạo bản sao (deep copy)
+                        const GenMaThung = Date.now().toString(32);
+                        const tgCopy = JSON.parse(JSON.stringify(tgGoc));
+                        tgCopy.isCopy = true;
+                        tgCopy.maThungTG = maThungTG;
+                        tgCopy.maThungTG_Copy =`${maThungTG}${GenMaThung}`
+                        tgCopy.tong_KLGangNhan = null;
+                        tgCopy.klThungVaGang_Thoi = null;
+                        tgCopy.klThung_Thoi = null;
+                        tgCopy.kL_phe  = null;
+                        tgCopy.klGang_Thoi  = null;
+                        tgCopy.iD_MeThoi  = null;
+                        tgCopy.maMeThoi  = null;
+                        tgCopy.ghiChu  = null;
+                        tgCopy.gioChonMe = null;
+
+                        // Tìm vị trí sau tất cả bản sao hoặc thùng con cùng maThungTG
+                        let insertAfter = indexGoc;
+                        for (let i = indexGoc + 1; i < dataThungDaNhan.length; i++) {
+                            const item = dataThungDaNhan[i];
+
+                            // Nếu là bản sao hoặc thùng con có liên quan đến thùng gốc
+                            if (
+                                (item.isCopy && item.maThungTG === maThungTG) ||
+                                (item.maThungTG && item.maThungTG.startsWith(maThungTG))
+                            ) {
+                                insertAfter = i;
+                            } else {
+                                break; // Ngừng nếu không còn dòng liên quan
+                            }
+                        }
+
+                        // Chèn bản sao vào đúng vị trí
+                        dataThungDaNhan.splice(insertAfter + 1, 0, tgCopy);
+
+                        // Gọi hàm render lại bảng
+                        renderTableXuLySoLieu(dataThungDaNhan);
+                    } else {
+                        alert("Thùng đã chốt. Vui lòng kiểm tra lại");
+                        ReLoad();
+                    }
+                
+                },
+                error: function (err) {
+                    alert("Lỗi khi tìm kiếm dữ liệu");
+                }
+            });
+
+            
+        });
+
+
+        // xóa thùng copy
+        $(document).on("click", ".btn-XoaCopy", function () {
+            const row = $(this).closest("tr");
+            const maThungTG_Copy = row.data("mathungcopy");
+
+            const index = dataThungDaNhan.findIndex(d => d.maThungTG_Copy === maThungTG_Copy && d.isCopy);
+
+            if (index !== -1) {
+                selectedMaThung = maThungTG_Copy;
+
+                $.ajax({
+                    url: '/BM_GangThoi_Thep/CheckValidXoaThungTGCopy',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(selectedMaThung),
+                    success: function (res) {
+                        if(res.isValid){
+                            // Hiện modal
+                            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                            modal.show();
+                        } else {
+                            alert("Thùng đã chốt. Vui lòng kiểm tra lại");
+                            ReLoad();
+                        }
+                    },
+                    error: function () {
+                        alert("Lỗi khi tìm kiếm dữ liệu");
+                    }
+                });
+
+               
+            }
+        });
+
+        // xac nhan Xoa
+        $('#confirmDelete').click(function () {
+            if(selectedMaThung){
+                $.ajax({
+                    url: '/BM_GangThoi_Thep/XoaThungCopy',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(selectedMaThung),
+                    success: function (data) {
+                        alert("Đã xóa thành công");
+                        SearchThungDaNhanTheoUser();
+                    },
+                    error: function () {
+                        alert("Lỗi khi tìm kiếm dữ liệu");
+                    }
+                });
+                 // Ẩn modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+                modal.hide();
+                selectedMaThung = null;
+            }
+        });
+
+        // xuaat excel
+        $("#BtnXuatPhieuExcel").click(function() {
+            ExportToExcel();
+        })
+
+        $("#BtnXuatPhieuPDF").click(function() {
+            ExportToPDF();
+        })
+
+        // search Me thoi
+        $("#IDLoThoi").on('change', function () {
+            $('.selectMeThoi').each(function () {
+                const $select = $(this);
+
+                // Reset
+                $select.val(null).empty().trigger('change');
+
+                // Trick mở và gõ ký tự giả
+                $select.select2('open');
+
+                // Gõ ký tự giả để trigger search (nếu cần)
+                setTimeout(() => {
+                    $('.select2-search__field').val(' ').trigger('input');
+
+                    // Đóng lại nếu bạn muốn không hiện dropdown
+                    setTimeout(() => $select.select2('close'), 100);
+                }, 100);
+            });
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(NgayNhan && IDCaNhan && IDLoThoi){
+                SearchThungDaNhanTheoUser();
+            }
+        });
+
+        $("#IDCaNhan").on('change', function () {
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(NgayNhan && IDCaNhan && IDLoThoi){
+                SearchThungDaNhanTheoUser();
+            }
+        });
+
+        $("#IDNgayNhan").on('change', function () {
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(NgayNhan && IDCaNhan && IDLoThoi){
+                SearchThungDaNhanTheoUser();
+            }
+        });
+
+        function updateTongKLGangNhan(maThungTG) {
+            let tong = 0;
+
+            // Duyệt toàn bộ các dòng trong bảng
+            $('#IDtbXuLySoLieu tr').each(function () {
+                const $tr = $(this);
+                const currentMa = $tr.attr('data-mathungtg')
+                               || $tr.prevAll('[data-mathungtg]').first().attr('data-mathungtg');
+
+                if (currentMa === maThungTG) {
+                    const val = parseFloat($tr.find('.KLGangLong').text());
+                    if (!isNaN(val)) {
+                        tong += val;
+                    }
+                }
+            });
+
+            // Gán tổng vào ô trong dòng đầu tiên có data-mathungtg tương ứng
+            const $mainRow = $('#IDtbXuLySoLieu tr[data-mathungtg="' + maThungTG + '"]');
+            $mainRow.find('.tong_KL_GangNhan').text(tong.toFixed(2));
+        }
+
+        // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
+        $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong, .KhoiLuongThung, .KLPhe', function () {
+            const $row = $(this).closest('tr');
+            const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
+            const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
+            
+            
+            const phongBan = $("#IDPhongBan").val();
+            if(phongBan === "HRC1"){
+                $row.find('.KLThungVaGangLongVaoLoThoi').val(KLThungVaGangLong).trigger('input');
+                $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
+            }
+
+            tinhKLGangLong($row);
+
+            // === Cập nhật tổng KLGangLong cho cùng thùng trung gian ===
+            const maThungTG = $row.closest('tr').attr('data-mathungtg')
+                           || $row.closest('tr').prevAll('[data-mathungtg]').first().attr('data-mathungtg');
+            if (maThungTG) {
+                updateTongKLGangNhan(maThungTG);
+            }
+            sumKLGangNhan();
+        });
+
+        // Tính khối lượng vào lò thổi khi nhập vào KL Thùng & gang lỏng vào lò thổi
+        $('#IDtbXuLySoLieu').on('input', '.KLThungVaGangLongVaoLoThoi, .KLThungVaoLoThoi, .KLPhe', function () {
+            const $row = $(this).closest('tr');
+            const KLThungVaGangLongVaoLoThoi = parseFloat($row.find('.KLThungVaGangLongVaoLoThoi').val());
+            const KLThungVaoLoThoi = parseFloat($row.find('.KLThungVaoLoThoi').val());
+            const KL_phe = parseFloat($row.find('.KLPhe').val());
+
+            if (
+                !isNaN(KLThungVaGangLongVaoLoThoi) &&
+                !isNaN(KLThungVaoLoThoi) &&
+                !isNaN(KL_phe)
+            ) {
+                const result = KLThungVaGangLongVaoLoThoi - KLThungVaoLoThoi - KL_phe;
+                $row.find('.KLVaoLoThoi').text(result.toFixed(2));
+                sumKLGangThoi();
+            } else {
+                $row.find('.KLVaoLoThoi').text("0.00");
+            }
+          
+        });
+
+
+        function tinhKLGangLong($row) {
+            const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
+            const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
+            const KLPhe = parseFloat($row.find('.KLPhe').val());
+
+            let KLGangLong = 0;
+
+            if (!isNaN(KLThungVaGangLong) && !isNaN(KLThung)) {
+                KLGangLong = KLThungVaGangLong - KLThung;
+
+                if (!isNaN(KLPhe)) {
+                    KLGangLong -= KLPhe;
+                }
+            }
+
+            $row.find('.KLGangLong').text(KLGangLong.toFixed(2));
+        }
+
+        function applyColumnVisibility() {
+            const display = isHidden ? 'none' : 'table-cell';
+       
+            // Cột cần ẩn/hiện
+            $('.hide-col').css('display', display);
+
+            // Cột cần ẩn/hiện
+            const phongBan = $("#IDPhongBan").val();
+
+            if( phongBan == "HRC2"){
+                $('.hrc2').css('display', display);
+                $('.total-space').attr('colspan', isHidden ? 6 : 8);
+            } else {
+                // Nếu bạn có cột tổng cuối bảng cần cập nhật colspan
+                $('.total-space').attr('colspan', isHidden ? 6 : 7);
+            }
+
+        }
+
+        // event An/Hien ma Thùng Thép
+        $('#BtnAnHien').click(function() {
+            isHidden = !isHidden;
+            
+            applyColumnVisibility();
+        });
+
+
+        // Btn search LT
+        $('#btnSeachLG').click(function () {
+            SearchLT();
+        });
+
+        // Btn search Thung Da Nhan
+        $('#btnSeachThungDaNhan').click(function () {
+            SearchThungDaNhanTheoUser();
+        });
+
+            // Luu KR
+        $('#btnLuuKR').click(function () {
+            let selectedList = [];
+           
+            $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+                const mathung = $(this).data('mathung');
+                const checkbox = $(this).find('.cbx-luuKR');
+                let isChecked = false;
+                if (checkbox.is(':checked')) {
+                    isChecked = true;
+                }
+                selectedList.push({maThungGang: mathung, isChecked: isChecked});
+            });
+
+            if (!selectedList[0].maThungGang) {
+                alert("Vui lòng chọn ít nhất 1 dòng.");
+                return;
+            }
+            $.ajax({
+                url: "/BM_GangThoi_Thep/LuuKR",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedList),
+                processData: false,
+                success: function (res) {
+                    if(res.isValid){
+                        alert("Lưu KR thành công!");
+                    }
+                    // else{
+                    //     alert("Có thùng vừa mới được chốt. Vui lòng kiểm tra lại");
+                    // }
+                    // ReLoad();
+                }
+            });
+        });
+
+        // logic huy nhan thung
+        // Khi checkbox thay đổi
+        $(document).on('change', '.cbx-nhanThung', function () {
+            let showButton = false;
+            $('.cbx-nhanThung:checked').each(function () {
+                const row = $(this).closest('tr');
+                const status = parseInt(row.find('.status-cell').data('status'));
+                if (status === 4) { // 4 = Đã nhận
+                    showButton = true;
+                    return false;
+                }
+            });
+            if (showButton) {
+                $('#IDbtnHuyNhanThung').show();
+            } else {
+                $('#IDbtnHuyNhanThung').hide();
+            }
+        });
+
+        $('#IDbtnHuyNhanThung').click(function () {
+
+            const selectedRows = $('.cbx-nhanThung:checked');
+            if (selectedRows.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 dòng.");
+                return;
+            }
+
+            let isValid = true;
+            const invalidMaThungs = [];
+            const selectedMaThung = [];
+
+            selectedRows.each(function () {
+                const row = $(this).closest('tr');
+                const status = parseInt(row.find('.status-cell').data('status'));
+                const maThung = row.data('mathung');
+
+                if (status !== 4) { // 4 = Đã nhận
+                    isValid = false;
+                    invalidMaThungs.push(maThung);
+                }
+
+                selectedMaThung.push(maThung);
+
+            });
+
+            if (!isValid) {
+                alert('Chỉ được hủy những thùng đã nhận.\nCác thùng không hợp lệ: ' + invalidMaThungs.join(', '));
+                return;
+            }
+
+            selectedMaThungHuy = selectedMaThung;
+            selectedMaThungHuyTmp = selectedMaThung;
+
+            modalXacNhanHuy();
+
+        });
+
+        function modalXacNhanHuy(){
+            const selectedMaThungHuy = selectedMaThungHuyTmp;
+            $.ajax({
+                url: "/BM_GangThoi_Thep/GetThungHuyNhan",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedMaThungHuy),
+                success: function (res) {
+                    const data = res.data;
+                    if(data.length && res.truongHop === 2){
+                        const modal = new bootstrap.Modal(document.getElementById('huyNhanThungModal'));
+                        modal.show();
+
+                        let html ='';
+                        data.forEach(item => {
+                        const solan = item.soLanDaNhan.length;
+                        html += `<div>
+                                <p>Thùng ${item.maThungGang} đã được nhận - ${solan} lần</p>
+                            `;
+                            item.soLanDaNhan.forEach(lan =>{
+                                const ngay = new Date(lan.ngay);
+                                const day = ngay.getDate().toString().padStart(2, '0');
+                                const month = (ngay.getMonth() + 1).toString().padStart(2, '0');
+                                const year = ngay.getFullYear();
+                                const ngayFormatted = `${day}/${month}/${year}`;
+
+                                let stt = 1;
+                                    html += `<p>${stt}. Ca ${lan.ca} ngày ${ngayFormatted} - ${lan.soLan} lần</p>`;
+                                stt++;
+                            })
+                            html += `</div>`;
+                        });
+                        $("#huyNhanThung-content").html(html);
+                    } else if(res.truongHop === 1) {
+                        alert('Có thùng thép sinh ra từ mã gang này đã được chốt. Vui lòng kiểm tra lại, hoặc liên hệ Phòng kế Hoạch hỗ trợ');
+                        ReLoad();
+                    }
+                    else {
+                        alert('Có thùng bạn chưa nhận nên không thể hủy nhận. Vui lòng kiểm tra lại');
+                        ReLoad();
+                    }
+                    selectedMaThungHuyTmp = null;
+                }
+            });
+        }
+
+        function ReLoad(){
+             SearchLT();
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDCaNhan = $('#IDCaNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+
+            if(NgayNhan && IDCaNhan && IDLoThoi){
+                SearchThungDaNhanTheoUser();
+            }
+        }
+
+        // xac nhan Modal
+        $('#btnConfirmHuyNhan').click(function () {
+            const payload = {
+                selectedMaThungs : selectedMaThungHuy,
+                idNguoiHuyNhan: $('#ID_currentUser').val()
+            };
+
+            $.ajax({
+                url: "/BM_GangThoi_Thep/HuyNhan",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+                success: function (res) {
+                    if(res.success){
+                        // render lai
+                        ReLoad();
+                        selectedMaThungHuy = null;
+                    }
+                }
+            });
+            // Tắt modal sau khi gửi
+            const modal = bootstrap.Modal.getInstance(document.getElementById('huyNhanThungModal'));
+            modal.hide();
+        });
+
+         // logic nhan thung
+        $('#IDbtnNhanThung').click(function () {
+            let selectedIds = [];
+            $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+                const checkbox = $(this).find('.cbx-nhanThung');
+                if (checkbox.is(':checked')) {
+                    const id = $(this).data('id');
+                    selectedIds.push(id);
+                }
+            });
+
+            if (selectedIds.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 dòng.");
+                return;
+            }
+
+            // ID current user
+            const ID_currentUser = $('#ID_currentUser').val();
+
+            const NgayNhan = $('#IDNgayNhan').val();
+            const IDCaNhan = $('#IDCaNhan').val();
+            const IDLoThoi = $('#IDLoThoi').val();
+
+            if(!NgayNhan){
+                alert("Vui lòng chọn Ngày Nhận"); return;
+            }
+            if(!IDCaNhan ){
+                alert("Vui lòng chọn Ca"); return;
+            }
+            if(!IDLoThoi){
+                alert("Vui lòng chọn Lò thổi"); return;
+            }
+
+            const payload = {
+                selectedIds,
+                ngayNhan: NgayNhan,
+                idCa: IDCaNhan,
+                idLoThoi: IDLoThoi,
+                idNguoiNhan: ID_currentUser
+            }
+
+            $.ajax({
+                url: "/BM_GangThoi_Thep/CheckNhan",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedIds),
+                processData: false,
+                success: function (res) {
+                    if(res.isValid){
+                        const phongBan = $('#IDPhongBan').val();
+
+                        if (phongBan === "HRC2") {
+                            // Gán payload tạm
+                            pendingPayload = payload;
+
+                            const modalThungTrungGian = new bootstrap.Modal(document.getElementById('modalThungTrungGian'));
+                            modalThungTrungGian.show();
+                        } else {
+                            // Gửi luôn nếu không cần nhập thùng trung gian
+                            guiNhan(payload);
+                        }
+                    } else{
+                        alert('Có thùng đã được chốt, vui lòng kiểm tra lại');
+                        ReLoad();
+                    }
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
+
+        });
+
+        // xac nhan Modal
+        $('#btnXacNhanThung').click(function () {
+            const soThung = $('#soThung').val();
+
+            if (soThung === "" || parseFloat(soThung) < 0) {
+                alert("Vui lòng nhập số thùng hợp lệ (≥ 0)");
+                return;
+            }
+
+            // Gắn vào payload đã lưu trước đó
+            if (pendingPayload) {
+                pendingPayload.thungTrungGian = parseFloat(soThung).toString();
+
+                guiNhan(pendingPayload);
+
+                // Xóa để tránh dùng lại sau
+                pendingPayload = null;
+                $('#soThung').val(null)
+
+                // Tắt modal sau khi gửi
+                $('#btnCloseModalTrungGian').click();
+            }
+        });
+
+        function guiNhan(payload){
+             $.ajax({
+                url: "/BM_GangThoi_Thep/Nhan",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+                processData: false,
+                success: function (res) {
+                    ReLoad();
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
+        }
+
+        function getNumberValue(val) {
+            return val !== "" ? parseFloat(val) : null;
+        }
+
+        function getTableData() {
+            const thungTrungGianMap = {};
+
+            const NgayNhan = $('#IDNgayNhan').val();
+            const IDCaNhan = $('#IDCaNhan').val();
+            const IDLoThoi = $('#IDLoThoi').val();
+
+            if (!NgayNhan) { alert("Vui lòng chọn Ngày Nhận"); return; }
+            if (!IDCaNhan) { alert("Vui lòng chọn Ca"); return; }
+            if (!IDLoThoi) { alert("Vui lòng chọn Lò thổi"); return; }
+
+            const $rows = $('#IDtbXuLySoLieu tbody tr');
+
+            for (let i = 0; i < $rows.length; i++) {
+                const $row = $($rows[i]);
+
+                // Chỉ xử lý dòng đầu tiên của một nhóm (có data-mathungtg)
+                const maThungTG = $row.attr('data-mathungtg');
+                if (!maThungTG) continue;
+
+                const maThungTG_Copy = $row.attr('data-mathungcopy') || null;
+                const isCopy = String($row.attr('data-copy')).toLowerCase() === 'true';
+                const key = isCopy ? `COPY_${maThungTG_Copy}` : `ORIGIN_${maThungTG}`;
+
+                const parent = {
+                    MaThungTG: maThungTG,
+                    MaThungTG_Copy: maThungTG_Copy,
+                    IsCopy: isCopy,
+                    NgayNhan,
+                    CaNhan: IDCaNhan,
+                    ID_LoThoi: IDLoThoi,
+                    SoThungTG: '',
+                    GhiChu: '',
+                    KLThung_Thoi: null,
+                    KLThungVaGang_Thoi: null,
+                    KLGang_Thoi: null,
+                    KLPhe: null,
+                    Tong_KLGangNhan: 0,
+                    ID_MeThoi: null,
+                    GioChonMe: null,
+                    DanhSachThungGang: []
+                };
+
+                // Lấy dữ liệu ở dòng đầu
+                parent.SoThungTG = $row.find('td[rowspan]').eq(2).text().trim();
+                parent.GhiChu = $row.find('textarea.IDGhiChu').val()?.trim() ?? '';
+                parent.KLThung_Thoi = getNumberValue($row.find('input[name="klThung_Thoi"]').val());
+                parent.KLThungVaGang_Thoi = getNumberValue($row.find('input[name="klThungVaGang_Thoi"]').val());
+                parent.KLGang_Thoi = parseFloat($row.find('.KLVaoLoThoi').text()) || 0;
+                parent.KLPhe = getNumberValue($row.find('input[name="kl_phe"]').val()) ;
+                parent.Tong_KLGangNhan = parseFloat($row.find('.tong_KL_GangNhan').text()) || 0;
+                const idMeThoiVal = $row.find('.selectMeThoi').val();
+                parent.ID_MeThoi = idMeThoiVal ? parseInt(idMeThoiVal) : null;
+                parent.GioChonMe = $row.find('.GioChonMe').val()?.trim() != "" ? $row.find('.GioChonMe').val()?.trim() : null;
+
+                if((parent.ID_MeThoi && !parent.GioChonMe) || (!parent.ID_MeThoi && parent.GioChonMe)){
+                    isValidLuu = false;
+                }
+
+                // Duyệt tiếp các dòng trong nhóm thùng trung gian
+                i++; // sang dòng thứ 2 của nhóm
+                while (i < $rows.length) {
+                    const $nextRow = $($rows[i]);
+                    const nextMaThungTG = $nextRow.attr('data-mathungtg');
+                    if (nextMaThungTG) {
+                        // nếu gặp thùng mới thì quay lại for để xử lý nhóm tiếp theo
+                        i--;
+                        break;
+                    }
+
+                    // Nếu không phải bản sao thì thêm thùng gang
+                    if (!isCopy) {
+                        const thungGang = {
+                            MaThungThep: $nextRow.find('td').eq(0).text().trim(),
+                            T_KLThungVaGang: parseFloat($nextRow.find('input[name="t_KLThungVaGang"]').val()) || null,
+                            T_KLThungChua: parseFloat($nextRow.find('input[name="t_KLThungChua"]').val()) || null,
+                            T_KLGangLong: parseFloat($nextRow.find('.KLGangLong').text()) || 0
+                        };
+                        parent.DanhSachThungGang.push(thungGang);
+                    }
+
+                    i++;
+                }
+
+                // Dòng đầu tiên cũng là thùng gang nếu không phải copy
+                if (!isCopy) {
+                    const thungGang = {
+                        MaThungThep: $row.find('td').eq(0).text().trim(),
+                        T_KLThungVaGang: parseFloat($row.find('input[name="t_KLThungVaGang"]').val()) || null,
+                        T_KLThungChua: parseFloat($row.find('input[name="t_KLThungChua"]').val()) || null,
+                        T_KLGangLong: parseFloat($row.find('.KLGangLong').text()) || 0
+                    };
+                    parent.DanhSachThungGang.unshift(thungGang); // thêm vào đầu
+                }
+                
+                const phongBan = $('#IDPhongBan').val();
+                if (phongBan === 'HRC1' && parent.DanhSachThungGang.length > 0) {
+                    const firstItem = parent.DanhSachThungGang[0];
+                    parent.KLThungVaGang_Thoi = parent.KLThungVaGang_Thoi ? parent.KLThungVaGang_Thoi : firstItem.T_KLThungVaGang;
+                    parent.KLThung_Thoi = parent.KLThung_Thoi ? parent.KLThung_Thoi : firstItem.T_KLThungChua;
+                }
+
+                thungTrungGianMap[key] = parent;
+            }
+
+            const result = Object.values(thungTrungGianMap);
+            return result;
+        }
+       
+        $('#BtnLuu').click(function () {
+            if (hasNegativeValue()) {
+                alert('Khối lượng đang âm, vui lòng kiểm tra lại');
+                return;
+            }
+            const dsThungTG = getTableData();
+             if(!isValidLuu){
+                alert("Phải nhập đồng bộ mẻ thổi và giờ thổi. Vui lòng kiểm tra lại");
+                isValidLuu = true;
+                return;
+            }
+            $.ajax({
+                url: "/BM_GangThoi_Thep/Luu",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(dsThungTG),
+                processData: false,
+                success: function (res) {
+                    alert("Lưu thành công!");
+                    isValidLuu = true;
+                    ReLoad();
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
+        });
+
+        function UpdateNgayNhan(ID_TuNgayLamViec) {
+            const ngayNhanInput = $('#IDNgayNhan');
+            const ngayBatDauStr = $(`#${ID_TuNgayLamViec}`).val();
+
+            if (!ngayBatDauStr) return;
+
+            const minDate = new Date(ngayBatDauStr);
+            const maxDate = new Date(ngayBatDauStr);
+            maxDate.setDate(maxDate.getDate() + 2);
+
+            const minStr = minDate.toISOString().split('T')[0];
+            const maxStr = maxDate.toISOString().split('T')[0];
+
+            // Cập nhật min và max attribute cho input
+            ngayNhanInput.attr('min', minStr);
+            ngayNhanInput.attr('max', maxStr);
+
+            // Kiểm tra giá trị hiện tại
+            const currentValue = ngayNhanInput.val();
+            if (currentValue) {
+                const currentDate = new Date(currentValue);
+
+                // Nếu ngày nhận nằm ngoài khoảng [minDate, maxDate], thì reset
+                if (currentDate < minDate || currentDate > maxDate) {
+                    ngayNhanInput.val('');
+                }
+            }
+        }
+
+
+        $('#ID_TuNgayLamViec').on('change', function () {
+            const ngayBatDau = $(this).val();
+            const ngayKetThucInput = $('#ID_DenNgayLamViec');
+            const ngayKetThuc = ngayKetThucInput.val();
+
+            // Cập nhật min cho ô ngày kết thúc
+            ngayKetThucInput.attr('min', ngayBatDau);
+
+            // Nếu chưa chọn ngày kết thúc hoặc đang nhỏ hơn ngày bắt đầu → gán lại
+            if (!ngayKetThuc || new Date(ngayKetThuc) < new Date(ngayBatDau)) {
+                ngayKetThucInput.val(ngayBatDau);
+            }
+            UpdateNgayNhan('ID_TuNgayLamViec');
+            
+        });
+
+        $('#ID_DenNgayLamViec').on('change', function () {
+            const ngayKetThuc = $(this).val();
+            const ngayBatDauInput = $('#ID_TuNgayLamViec');
+
+            // Cập nhật max cho ô ngày bắt đầu
+            ngayBatDauInput.attr('max', ngayKetThuc);
+        });
+
+        // xu ly khi load
+        $(document).ready(function () {
+            // render tim kiem ban dau
+             const today = new Date().toISOString().split("T")[0];
+            $('#ID_TuNgayLamViec').val(today);
+            $('#ID_DenNgayLamViec').val(today);
+            UpdateNgayNhan('ID_TuNgayLamViec');
+            SearchLT(); // call hàm search
+        });
+</script>
+
+<script>
+    
+    // open modal tao me
+    function loadModalTaoMe() {
+        const NgayNhan = $('#IDNgayNhan').val() || null;
+        const IDLoThoi = $('#IDLoThoi').val() || null;
+
+        if(!NgayNhan){
+            alert("Vui lòng chọn Ngày Nhận"); return;
+        }
+
+        if(!IDLoThoi){
+            alert("Vui lòng chọn Lò thổi"); return;
+        }
+        var modal = new bootstrap.Modal(document.getElementById('modalTaoMeThoi'));
+        modal.show();
+
+        $.ajax({
+            url: '/MeThoi/TaoMeThoi', 
+            type: 'GET',
+            success: function (html) {
+                $('#modalTaoMe').html(html);
+            },
+            error: function () {
+                $('#modalTaoMe').html('<div class="text-danger">Không thể tải nội dung.</div>');
+            }
+        });
+    }
+
+
+    // tao me
+    function submitTaoMe() {
+        const myMap = new Map([
+            [1, 'A'],
+            [2, 'B'],
+            [3, 'C'],
+            [4, 'D'],
+            [5, 'E'],
+            [6, 'F'],
+            [7, 'G'],
+            [8, 'H']
+        ]);
+
+        const soLuong = $('#formSoLuong').val();
+        const ngayTao = $('#IDNgayNhan').val() || null;
+        const IDLoThoi = $('#IDLoThoi').val() || null;
+        const IDCaNhan = $('#IDCaNhan').val() || null;
+
+        if(!ngayTao){
+            alert("Vui lòng chọn Ngày Nhận"); return;
+        }
+       
+        if(!IDLoThoi){
+            alert("Vui lòng chọn Lò thổi"); return;
+        }
+
+        if(!soLuong ){
+            alert("Vui lòng nhập số lượng mẻ thổi muốn tạo"); return;
+        }
+        if(parseInt(soLuong) < 1 ||parseInt(soLuong) > 20){
+            alert("Vui lòng nhập số lượng trong khoảng 1 đến 20"); return;
+        }
+        
+
+        $.ajax({
+            url: '/MeThoi/TaoMeThoi',
+            method: 'POST',
+            contentType: 'application/json',
+            processData: false,
+            data: JSON.stringify({
+                maLoThoi: myMap.get(parseInt(IDLoThoi)),
+                soLuong: parseInt(soLuong),
+                id_LoThoi: parseInt(IDLoThoi),
+                ngayTao: ngayTao
+            }),
+            success: function (res) {
+                $('#btnDongModalTaoMeThoi').click();
+                    alert("Tạo mẻ thổi thành công!");
+                // window.location.reload();
+
+                if(NgayNhan && IDCaNhan && IDLoThoi){
+                    SearchThungDaNhanTheoUser();
+                }
+            },
+            error: function (err) {
+                alert("Tạo mẻ thổi thất bại")
+            }
+        });
+    }
+</script>
