@@ -155,6 +155,7 @@ namespace Data_Product.Controllers
                                      ID = a.ID,
                                      MaThungGang = a.MaThungGang,
                                      BKMIS_Gio = a.BKMIS_Gio,
+                                     BKMIS_SoMe = a.BKMIS_SoMe,
                                      BKMIS_ThungSo = a.BKMIS_ThungSo,
                                      NgayLuyenGang = a.NgayLuyenGang,
                                      ChuyenDen = a.ChuyenDen,
@@ -208,6 +209,7 @@ namespace Data_Product.Controllers
                     x.MaThungGang,
                     x.BKMIS_ThungSo,
                     x.BKMIS_Gio,
+                    x.BKMIS_SoMe,
                     x.NgayLuyenGang,
                     x.ChuyenDen,
                     x.G_KLGangLong,
@@ -1028,9 +1030,27 @@ namespace Data_Product.Controllers
                 var danhsachThung = await (from a in _context.Tbl_BM_16_GangLong where selectedIds.Contains(a.ID) select new 
                 {
                     a.MaThungGang,
+                    a.BKMIS_ThungSo,
                     a.ID,
                     a.T_KLGangLong
                 }).ToListAsync();
+
+                bool hasDuplicateMaThungGang = danhsachThung.GroupBy(x => x.MaThungGang)
+                                                            .Any(g => g.Count() > 1);
+
+                if (hasDuplicateMaThungGang)
+                {
+                    return BadRequest("Các mã thùng gang phải khác nhau.");
+                }
+
+                bool isAllThungSoSame = danhsachThung.Select(x => x.BKMIS_ThungSo)
+                                                    .Distinct()
+                                                    .Count() == 1;
+
+                if (!isAllThungSoSame)
+                {
+                    return BadRequest("Các thùng gang phải có cùng thùng số.");
+                }
 
                 if (danhsachThung.All(x => !x.T_KLGangLong.HasValue || x.T_KLGangLong == 0))
                 {
@@ -1060,10 +1080,17 @@ namespace Data_Product.Controllers
                                            }).ToListAsync();
 
                 // Kiểm tra thùng gốc có G_KLGangLong
-                var listGoc = listAll.Where(x => x.T_copy == false && (x.G_KLGangLong ?? 0) != 0).ToList();
+                bool allGocHaveKL = listAll
+                    .Where(x => x.T_copy == false)
+                    .All(x => (x.G_KLGangLong ?? 0) != 0);
 
-                if (!listGoc.Any())
-                    return BadRequest("Không có thùng gang nào có KL Gang lỏng bên Luyện Gang hợp lệ.");
+                if (!allGocHaveKL)
+                {
+                    return BadRequest("Có ít thùng gang không có KL Gang lỏng bên Luyện Gang hợp lệ.");
+                }
+
+                // Nếu qua kiểm tra thì lấy danh sách thùng gốc để xử lý tiếp
+                var listGoc = listAll.Where(x => x.T_copy == false).ToList();
 
                 // Tính khối lượng đã rót trên từng mã thùng gang
                 var daRongTheoMa = listAll

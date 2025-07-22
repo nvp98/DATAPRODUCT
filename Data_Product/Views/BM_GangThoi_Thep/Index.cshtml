@@ -16,7 +16,7 @@
 @{
     var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
     var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault().TenNgan.Split('.').Last();
 }
 
 @if (TempData["msgSuccess"] != null)
@@ -231,7 +231,7 @@
     <div class="header-fixed p-2" style="font-size: 14px; margin-bottom: 20px;">
         <div class="container-fluid">
             <input type="text" style="display: none" id="ID_currentUser" value="@TaiKhoan.ID_TaiKhoan" />
-            <input type="text" style="display: none" id="IDPhongBan" value="@PhongBan.TenNgan.Split('.').Last()" />
+            <input type="text" style="display: none" id="IDPhongBan" value="@PhongBan" />
             <div class="row">
                 <div class="col-5">
                     <h5><strong>KHU VỰC NHẬN THÙNG</strong></h5>
@@ -394,7 +394,7 @@
                     </div>
                     <div class="row g-3" style="position: absolute;bottom: 10px;right: 12px;">
                         <div class="col-12 d-flex justify-content-end">
-                            <button class="btn btn-warning btn-sm px-4" id="BtnChiaGang" style="display: none">Gộp Tính KL</button>
+                            <button class="btn btn-warning btn-sm px-4" id="BtnChiaGang">Gộp Tính KL</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnLuu">Lưu</button>
                             <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel">Xuất Excel</button>
@@ -416,6 +416,7 @@
                                 <tr>
                                     <th>Giờ BKMis</th>
                                     <th>Giờ NM</th>
+                                    <th>BKMis Số mẻ</th>
                                     <th>Mã thùng gang</th>
                                     <th>Lò cao</th>
                                     <th>Thùng số</th>
@@ -437,7 +438,7 @@
                         <table class="table table-bordered text-center align-middle table-hover" id="IDtbXuLySoLieu">
                             <thead class="table-light sticky-top bg-white" style="z-index: 2">
                                 <tr>
-                                    <th style="display: none">Chọn thùng</th>
+                                    <th class="hide-col">Chọn thùng</th>
                                     <th class="hide-col">Mã thùng thép</th>
                                     <th>Lò cao</th>
                                     <th>Thùng số</th>
@@ -445,7 +446,7 @@
                                     <th>KL thùng & gang lỏng (T)</th>
                                     <th>KL thùng (T)</th>
                                     <th>KL gang lỏng (T)</th>
-                                    <th style="display: none">KL gang chia (T)</th>
+                                    <th class="hide-col">KL gang chia (T)</th>
                                     <th class="hrc2">Thao tác</th>
                                     <th>KL gang nhận (T)</th>
                                     <th>Thùng trung gian</th>
@@ -462,11 +463,11 @@
                             </tbody>
                             <tfoot>
                                 <tr style="height: 50px;">
-                                    <td class="total-space" colspan="6" style="font-weight: 600; text-align: start">Tổng</td>
+                                    <td class="total-space" colspan="@(PhongBan == "HRC2" ? "6" : "5")" style="font-weight: 600; text-align: start">Tổng</td>
                                     <td id="IDTongKLGangNhan" style="font-weight: 600">
                                         0.00
                                     </td>
-                                    <td colspan="4"></td>
+                                    <td class="total-space-2" colspan="@(PhongBan == "HRC2" ? "4" : "5")"></td>
                                     <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                                         0.00
                                     </td>
@@ -584,18 +585,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @* <tr>
-                            <td>2</td>
-                            <td>160725L3N009.00</td>
-                            <td>26</td>
-                            <td class="text-danger fw-bold">100</td>
-                        </tr>
-                        <tr>
-                            <td>5</td>
-                            <td>160725L3N009.00</td>
-                            <td>26</td>
-                            <td class="text-danger fw-bold">40</td>
-                        </tr> *@
                     </tbody>
                 </table>
 
@@ -613,14 +602,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @* <tr>
-                            <td>2</td>
-                            <td>160725L3N009.00.16NT6.00</td>
-                            <td>26</td>
-                            <td>200</td>
-                            <td>150</td>
-                            <td class="text-danger fw-bold">50</td>
-                        </tr> *@
                     </tbody>
                 </table>
 
@@ -640,24 +621,6 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @* <tr>
-                            <td>2</td>
-                            <td>160725L3N009.00.16NT6.00</td>
-                            <td>26</td>
-                            <td>174</td>
-                            <td>64</td>
-                            <td class="text-danger fw-bold">56%</td>
-                            <td class="bg-warning fw-bold">61,6</td>
-                        </tr>
-                        <tr>
-                            <td>5</td>
-                            <td>160725L3N009.00.16NT6.00</td>
-                            <td>26</td>
-                            <td>174</td>
-                            <td>64</td>
-                            <td class="text-danger fw-bold">44%</td>
-                            <td class="bg-warning fw-bold">48,4</td>
-                        </tr> *@
                     </tbody>
                 </table>
 
@@ -749,7 +712,7 @@
                     row += `>`;
                     // Cột thùng gang
                     row += `
-                    <td style="display: none">
+                        <td class="hide-col">
                             <input type="checkbox" class="cbx-chiaGang" name="ChonThung" value="" ${thung.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
                         </td>
                         <td class="hide-col maThungThep">${thung.maThungThep ?? ''}</td>
@@ -785,7 +748,7 @@
                             <td class="KLGangLong">${thung.t_KLGangLong ?? '00.0'}</td>
                         `;
                     }
-                    row += `<td class="KLGangChia" style="display: none">${thung.klGangChia ?? ''}</td>`;
+                    row += `<td class="hide-col KLGangChia">${thung.klGangChia ?? ''}</td>`;
                     // Nếu là dòng đầu tiên của nhóm thì render các cột thùng trung gian với rowspan
                     if (index === 0) {
                         const actionHtml = tg.isCopy ? `<button ${disabled} class="btn-item-action btn btn-danger btn-sm btn-XoaCopy" title="Xóa">
@@ -855,6 +818,7 @@
                 <tr data-id="${item.id}" data-mathung="${item.maThungGang}">
                         <td>${item.bkmiS_Gio}</td>
                         <td>${item.gio_NM ?? ''}</td>
+                        <td>${item.bkmiS_SoMe ?? ''}</td>
                         <td>${item.maThungGang ?? ''}</td>
                         <td>${item.iD_Locao ?? ''}</td>
                         <td>${item.bkmiS_ThungSo ?? ''}</td>
@@ -1553,10 +1517,12 @@
 
             if( phongBan == "HRC2"){
                 $('.hrc2').css('display', display);
-                $('.total-space').attr('colspan', isHidden ? 6 : 8);
+                $('.total-space').attr('colspan', isHidden ? 6 : 7);
+                $('.total-space-2').attr('colspan', isHidden ? 4 : 7);
             } else {
                 // Nếu bạn có cột tổng cuối bảng cần cập nhật colspan
-                $('.total-space').attr('colspan', isHidden ? 6 : 7);
+                $('.total-space').attr('colspan', isHidden ? 5 : 7);
+                $('.total-space-2').attr('colspan', isHidden ? 5 : 6);
             }
 
         }
@@ -2150,6 +2116,16 @@
             $('#ID_DenNgayLamViec').val(today);
             UpdateNgayNhan('ID_TuNgayLamViec');
             SearchLT(); // call hàm search
+
+
+            // if( phongBan == "HRC2"){
+            //     $('.hrc2').css('display', display);
+            //     $('.total-space').attr('colspan',  6 );
+            //     $('.total-space-2').attr('colspan', 4 );
+            // } else {
+            //     $('.total-space').attr('colspan',  5 );
+            //     $('.total-space-2').attr('colspan', 5 );
+            // }
         });
 </script>
 
