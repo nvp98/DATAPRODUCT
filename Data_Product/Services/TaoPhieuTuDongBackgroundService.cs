@@ -3,6 +3,7 @@ using Data_Product.Repositorys;
 using MySql.Data.MySqlClient;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
+using Microsoft.Data.SqlClient;
 
 namespace Data_Product.Services
 {
@@ -214,25 +215,50 @@ namespace Data_Product.Services
 
             try
             {
-                using var conn = new MySqlConnection(connectionString);
-                await conn.OpenAsync();
-
-                using var cmd = new MySqlCommand(query, conn);
-                using var reader = await cmd.ExecuteReaderAsync();
-
-                while (await reader.ReadAsync())
+                using (var connection = new MySqlConnection(connectionString))
                 {
-                    result.Add(new Bkmis_view
+                    await connection.OpenAsync();
+
+                    using (var command = new MySqlCommand(query, connection))
+                    using (var reader = await command.ExecuteReaderAsync())
                     {
-                        TestPatternCode = reader["TestPatternCode"]?.ToString(),
-                        ClassifyName = reader["ClassifyName"]?.ToString(),
-                        ProductionDate = reader["ProductionDate"]?.ToString(),
-                        ShiftName = reader["ShiftName"]?.ToString(),
-                        InputTime = reader["InputTime"]?.ToString(),
-                        Patterntime = reader["Patterntime"]?.ToString(),
-                        TestPatternName = reader["TestPatternName"]?.ToString(),
-                    });
-                }
+                        while (await reader.ReadAsync())
+                        {
+                            result.Add(new Bkmis_view
+                            {
+                                TestPatternCode = reader["TestPatternCode"]?.ToString(),
+                                ClassifyName = reader["ClassifyName"]?.ToString(),
+                                ProductionDate = reader["ProductionDate"]?.ToString(),
+                                ShiftName = reader["ShiftName"]?.ToString(),
+                                InputTime = reader["InputTime"]?.ToString(),
+                                Patterntime = reader["Patterntime"]?.ToString(),
+                                TestPatternName = reader["TestPatternName"]?.ToString(),
+                            });
+                        }
+                    } // reader được đóng ở đây
+                } // connection được đóng ở đây
+
+                //using var conn = new MySqlConnection(connectionString);
+                //await conn.OpenAsync();
+
+                //using var cmd = new MySqlCommand(query, conn);
+                //using var reader = await cmd.ExecuteReaderAsync();
+
+
+
+                //while (await reader.ReadAsync())
+                //{
+                //    result.Add(new Bkmis_view
+                //    {
+                //        TestPatternCode = reader["TestPatternCode"]?.ToString(),
+                //        ClassifyName = reader["ClassifyName"]?.ToString(),
+                //        ProductionDate = reader["ProductionDate"]?.ToString(),
+                //        ShiftName = reader["ShiftName"]?.ToString(),
+                //        InputTime = reader["InputTime"]?.ToString(),
+                //        Patterntime = reader["Patterntime"]?.ToString(),
+                //        TestPatternName = reader["TestPatternName"]?.ToString(),
+                //    });
+                //}
 
                 _logger.LogInformation("Đã đọc {count} dòng từ BKMIS bảng {table}", result.Count, table);
                 GhiLogFile($"[INFO] Đã đọc {result.Count} dòng từ BKMIS bảng {table}");
