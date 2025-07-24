@@ -750,9 +750,13 @@ namespace Data_Product.Controllers
                         // Nếu tồn tại thì cập nhật dữ liệu
                         nvDb.PhongBan_API = nvApi.phongban;
                         nvDb.Xuong_API = nvApi.phanxuong;
-                        if(nvApi.tinhtranglamviec == 0)
+                        if(nvApi.tinhtranglamviec == "0")
                         {
                             nvDb.ID_TrangThai = 0;
+                        }
+                        else
+                        {
+                            nvDb.ID_TrangThai = 1;
                         }
                         _context.SaveChanges();
                     }

@@ -14,7 +14,7 @@
             public string sodienthoai { get; set; }
             public string email { get; set; }
             public string ngayvaolam { get; set; }
-            public int tinhtranglamviec { get; set; }
+            public string tinhtranglamviec { get; set; }
             public string ngaynghiviec { get; set; }
             public string phongban { get; set; }
             public string maphongban { get; set; }
