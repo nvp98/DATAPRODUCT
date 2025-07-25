@@ -39,7 +39,7 @@ namespace Data_Product.Controllers
 
             var result = await query
                 .OrderBy(x => x.MaMeThoi)
-                .Take(50)
+                .Take(100)
                 .Select(x => new { id = x.ID, maMeThoi = x.MaMeThoi })
                 .ToListAsync();
 

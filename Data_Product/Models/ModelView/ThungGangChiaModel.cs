@@ -11,6 +11,7 @@
         public decimal? T_KLGangLong { get; set; }
         public decimal? T_KLThungChua { get; set; }
         public decimal? T_KLThungVaGang { get; set; }
+        public decimal? KL_Phe { get; set; }
         public decimal? KLGangChia { get; set; }
         public bool? T_copy { get; set; }
 
