@@ -681,7 +681,9 @@ namespace Data_Product.Controllers
                                 worksheet.Cell(row, colIndex++).Value = item.G_Ca == 1 ? "N" : item.G_Ca == 2 ? "Đ" : "";
                                 worksheet.Cell(row, colIndex++).Value = item.G_TenKip;
                                 worksheet.Cell(row, colIndex++).Value = item.MaThungGang;
-                                worksheet.Cell(row, colIndex++).Value = item.ID_Locao;
+                                var LoCaocell = worksheet.Cell(row, colIndex++);
+                                LoCaocell.Value = item.ID_Locao;
+                                LoCaocell.Style.NumberFormat.NumberFormatId = 0;
 
                                 var cellSoMe = worksheet.Cell(row, colIndex++);
                                 cellSoMe.Value = item.BKMIS_SoMe;

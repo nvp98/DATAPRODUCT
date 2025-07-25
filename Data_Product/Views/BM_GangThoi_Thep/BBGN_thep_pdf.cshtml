@@ -70,7 +70,7 @@
                 } else
                 {
                     @:Từ 20 giờ 00 ngày @firstItem.NgayLuyenThep?.ToString("dd/MM") đến 08 giờ 00 ngày @firstItem.NgayLuyenThep?.AddDays(1).ToString("dd/MM/yyyy")
-                } *@
+                }  *@
             </div>
         </div>
         <br />
@@ -201,7 +201,7 @@
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 5%;">Thùng trung gian</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL thùng & gang lỏng (T)</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL thùng (T)</th>
-                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL phế (T)</th>
+                            @* <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL phế (T)</th> *@
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">KL vào lò thổi</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Mẻ</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Ghi chú </th>
@@ -234,9 +234,12 @@
                                 <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
                                     @item.BKMIS_SoMe
                                 </td>
-                                <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                    @item.BKMIS_Gio
-                                </td>
+                                @if (i == 0)
+                                 {
+                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                        @ttg.GioChonMe
+                                    </td>
+                                 }
                                 <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
                                     @item.T_KLThungVaGang
                                 </td>
@@ -261,9 +264,9 @@
                                     <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
                                         @ttg.KLThung_Thoi
                                     </td>
-                                    <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                    @* <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
                                         @ttg.KL_phe
-                                    </td>
+                                    </td> *@
                                     <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
                                         @ttg.KLGang_Thoi
                                     </td>
@@ -290,7 +293,7 @@
                         <td colspan="2" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center; font-weight: 600;padding: 8px 2px;"></td>
                     </tr>
                 </tfoot>
-                </table>
+            </table>
             }
            
         </div>

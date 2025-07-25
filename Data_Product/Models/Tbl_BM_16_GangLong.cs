@@ -88,6 +88,8 @@ namespace Data_Product.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLGangLongThoi { get; set; }
 
+        public decimal? KLGangChia { get; set; }
+
         [StringLength(255)]
         public string? T_GhiChu { get; set; }
         public int? G_Ca { get; set; }
