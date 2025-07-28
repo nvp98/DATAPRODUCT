@@ -1,6 +1,6 @@
 ﻿using Data_Product.Models;
 using Data_Product.Repositorys;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
 using Microsoft.Data.SqlClient;

@@ -70,7 +70,11 @@
                                 <button class="btn btn-success btn-sm btn-xacnhan" data-id="@Model.ID">
                                     ✅ Xác nhận
                                 </button>
-                                <button class="btn btn-danger btn-sm btn-khongxacnhan" data-id="@Model.ID">
+                                @*<button class="btn btn-danger btn-sm btn-khongxacnhan" data-id="@Model.ID">
+                                    ❌ Không xác nhận
+                                </button>*@
+                                <!-- Nút mở modal -->
+                                <button type="button" class="btn  btn-danger" onclick="openGhiChuModal(@Model.ID)">
                                     ❌ Không xác nhận
                                 </button>
                             }
@@ -325,7 +329,30 @@
 
     </div>
 </div>
+<!-- Modal Ghi chú -->
+<div class="modal fade" id="ghiChuModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nhập Lý do không xác nhận</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                @*<input type="hidden" id="recordId" />*@
+                <textarea id="ghiChuInput" class="form-control" rows="4" placeholder="Nhập lý do..."></textarea>
+            </div>
+            <div class="modal-footer">
+               @* <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>*@
+                <button type="button" class="btn btn-success btn-khongxacnhan" data-id="@Model.ID" >💾 Gửi</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
+    function openGhiChuModal(id) {
+        $('#ghiChuInput').val('');
+        $('#ghiChuModal').modal('show');
+    }
     $(document).ready(function () {
         // Xác nhận
         $(".btn-xacnhan").click(function () {
@@ -349,13 +376,15 @@
         // Không xác nhận
         $(".btn-khongxacnhan").click(function () {
             const id = $(this).data("id");
+            const ghichu = $('#ghiChuInput').val();
             if (confirm("Bạn muốn từ chối xác nhận phiếu này?")) {
                 $.ajax({
                     url: '@Url.Action("TuChoiPhieu", "BM_NhatKy_SanXuat")',
                     type: 'POST',
-                    data: { id: id },
+                    data: { id: id, ghichu: ghichu },
                     success: function (result) {
                         alert(result.message);
+                        $('#ghiChuModal').modal('hide');
                         location.reload();
                     },
                     error: function () {

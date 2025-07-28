@@ -5,7 +5,6 @@ using Data_Product.Repositorys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.EntityFrameworkCore;
-using Mysqlx;
 using System.Security.Claims;
 
 namespace Data_Product.Controllers

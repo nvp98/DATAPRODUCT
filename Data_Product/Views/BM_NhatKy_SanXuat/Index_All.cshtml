@@ -90,6 +90,7 @@
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Xưởng Sản xuất</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Ghi chú</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -227,7 +228,9 @@
                                             <td style="font-size:14px;">
                                                 @item.Tbl_TaiKhoan.TenTaiKhoan - @item.Tbl_TaiKhoan.HoVaTen
                                             </td>
-
+                                            <td style="font-size:14px;">
+                                                @item.GhiChu
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>

@@ -23,6 +23,7 @@ namespace Data_Product.Models
         public bool? IsLock { get; set; } = false;
         public int? ID_NhanVien_BTBD { get; set; }
         public string? FileBB { get; set; }
+        public string? GhiChu { get; set; }
         [NotMapped]
         public string HoTen_NhanVien_BTBD { get; set; }
         [NotMapped]

@@ -223,7 +223,8 @@ namespace Data_Product.Controllers
                                  TinhTrangCheckPhieu = _context.Tbl_PKHXuLyPhieu.FirstOrDefault(x=>x.ID_NKDSX == a.ID && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan) != null?1:0,
                                  ID_NhanVien_BTBD = a.ID_NhanVien_BTBD,
                                  HoTen_NhanVien_BTBD = (btbd.TenTaiKhoan ?? "") + " - " + (btbd.HoVaTen ?? ""),
-                                 TenXuong_SX = xuong.TenXuong??""
+                                 TenXuong_SX = xuong.TenXuong??"",
+                                 GhiChu = a.GhiChu
                              };
             //Set quyền 
             List<string> ListPB = new List<string>();
@@ -1345,7 +1346,7 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
-        public JsonResult TuChoiPhieu(int id)
+        public JsonResult TuChoiPhieu(int id, string ghichu)
         {
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
@@ -1355,6 +1356,7 @@ namespace Data_Product.Controllers
 
             phieu.TinhTrang = -1; // Hoặc trạng thái 'Không xác nhận'
             phieu.ID_NhanVien_BTBD = TaiKhoan.ID_TaiKhoan;
+            phieu.GhiChu =ghichu;
             _context.SaveChanges();
 
             return Json(new { success = true, message = "Đã từ chối xác nhận!" });

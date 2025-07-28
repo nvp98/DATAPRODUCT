@@ -2,7 +2,6 @@
 using Data_Product.Repositorys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Mysqlx.Datatypes;
 using System.Diagnostics;
 using System.Security.Claims;
 

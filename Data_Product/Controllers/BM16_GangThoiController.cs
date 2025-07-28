@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.EntityFrameworkCore;
-using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -27,10 +26,9 @@ using iText.Layout.Font;
 using static Data_Product.Controllers.BM_11Controller;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Data_Product.Models.ModelView;
-using Mysqlx;
 using Org.BouncyCastle.Ocsp;
 using System.Text.RegularExpressions;
-
+using MySqlConnector;
 
 namespace Data_Product.Controllers
 {
