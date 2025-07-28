@@ -66,31 +66,41 @@ namespace Data_Product.Controllers
         public IActionResult GetDataTong(DateTime? thang)
         {
             if (thang == null) thang = DateTime.Now;
+            var thangBatDau = new DateTime(thang.Value.Year, thang.Value.Month, 1);
+            var thangKetThuc = thangBatDau.AddMonths(1);
             // Tổng dữ liệu
-            var listPhieuNhatKySX = _context.Tbl_NhatKy_SanXuat.Where(x=>x.NgayDungSX.Month == thang.Value.Month && x.NgayDungSX.Year == thang.Value.Year).AsNoTracking().ToList();
+            var listPhieuNhatKySX = _context.Tbl_NhatKy_SanXuat
+                                            .Where(x => x.NgayDungSX >= thangBatDau && x.NgayDungSX < thangKetThuc)
+                                            .AsNoTracking()
+                                            .ToList();
+            var Tbl_NhatKy_SanXuat_ChiTiet = _context.Tbl_NhatKy_SanXuat_ChiTiet.AsNoTracking().ToList();
             var resultTG = listPhieuNhatKySX.Where(x => x.TinhTrang == 1)
-            .Select(pb => new
-            {
-                ID_NhatKy = pb.ID,
-                TongGioDungMay = _context.Tbl_NhatKy_SanXuat_ChiTiet
-                                  .Where(p => p.ID_NhatKy == pb.ID)
-                                  .Sum(p => (int?)p.ThoiGianDung) ?? 0
-            })
-            .ToList();
+                                            .Select(pb => new
+                                            {
+                                                ID_NhatKy = pb.ID,
+                                                TongGioDungMay = Tbl_NhatKy_SanXuat_ChiTiet
+                                                                  .Where(p => p.ID_NhatKy == pb.ID)
+                                                                  .Sum(p => (int?)p.ThoiGianDung) ?? 0
+                                            })
+                                            .ToList();
             float TGDung = resultTG?.Sum(x => x.TongGioDungMay) ?? 0;
             int tongPhieu = listPhieuNhatKySX.Count();
             int PhieuDaXuLy = listPhieuNhatKySX.Where(x => x.TinhTrang == 1).Count();
             int PhieuChuaXuLy = listPhieuNhatKySX.Where(x => x.TinhTrang != 1).Count();
-            var listPhieuBBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.NgayTao.Month == thang.Value.Month && x.NgayTao.Year == thang.Value.Year).AsNoTracking().ToList();
+            var listPhieuBBGN = _context.Tbl_BienBanGiaoNhan
+                                        .Where(x => x.NgayTao >= thangBatDau && x.NgayTao < thangKetThuc)
+                                        .AsNoTracking()
+                                        .ToList();
+            var Tbl_ChiTiet_BienBanGiaoNhan = _context.Tbl_ChiTiet_BienBanGiaoNhan.AsNoTracking().ToList();
             var resultBBGN = listPhieuBBGN.Where(x => x.ID_TrangThai_BBGN == 1)
-           .Select(pb => new
-           {
-               ID_BBGN = pb.ID_BBGN,
-               KhoiLuong = _context.Tbl_ChiTiet_BienBanGiaoNhan
-                                 .Where(p => p.ID_BBGN == pb.ID_BBGN)
-                                 .Sum(p => (int?)p.KhoiLuong_BN) ?? 0
-           })
-           .ToList();
+                                           .Select(pb => new
+                                           {
+                                               ID_BBGN = pb.ID_BBGN,
+                                               KhoiLuong = Tbl_ChiTiet_BienBanGiaoNhan
+                                                                 .Where(p => p.ID_BBGN == pb.ID_BBGN)
+                                                                 .Sum(p => (int?)p.KhoiLuong_BN) ?? 0
+                                           })
+                                           .ToList();
             float KLBenNhan = resultBBGN?.Sum(x => x.KhoiLuong) ?? 0;
             int tongPhieuBBGN = listPhieuBBGN.Count();
             int PhieuDaXuLyBBGN = listPhieuBBGN.Where(x => x.ID_TrangThai_BBGN == 1).Count();
