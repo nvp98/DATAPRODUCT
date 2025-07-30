@@ -641,18 +641,11 @@ namespace Data_Product.Controllers
         private static int GetSortKeyFromTime(string gioStr)
         {
             if (string.IsNullOrWhiteSpace(gioStr))
-                return int.MaxValue; // giá trị lớn để sort cuối nếu không có giờ
-
-            // Chuẩn hóa giờ từ "21H19" => "21:19"
-            gioStr = gioStr.Replace('H', ':');
-
-            DateTime time;
-            bool parsed = DateTime.TryParseExact(gioStr, "HH:mm", null, System.Globalization.DateTimeStyles.None, out time);
-            if (!parsed)
                 return int.MaxValue;
 
-            int hour = time.Hour;
-            int minute = time.Minute;
+            var parts = gioStr.Split('H');
+            if (parts.Length != 2 || !int.TryParse(parts[0], out int hour) || !int.TryParse(parts[1], out int minute))
+                return int.MaxValue;
 
             int ca = (hour >= 20 || hour < 8) ? 0 : 1;
 
@@ -814,12 +807,6 @@ namespace Data_Product.Controllers
 
             await _context.SaveChangesAsync();
 
-            //if (danhSachThungDaChot.Any())
-            //{
-            //    string danhSach = string.Join(", ", danhSachThungDaChot);
-            //    string message = $"Thùng {danhSach} đã bị chốt và không được cập nhật. Các thùng còn lại đã được cập nhật thành công.";
-            //    return Ok(message);
-            //}
             return Ok("Đã cập nhật thành công.");
         }
         [HttpPost]

@@ -626,7 +626,7 @@
 					const soMe = item.testPatternCode || "";
 					const matchedList = soMeHienTai.filter(x => x.soMe === soMe);
 					const phanLoai = item.classifyName || "";
-					const time = item.patterntime ? item.patterntime.replace(/H/g, ":") : "";
+					const time = item.patterntime || "";
 
 					// [Case 2] Nếu số mẻ mới chưa có -> thêm dòng mới
 					if (matchedList.length === 0) {
