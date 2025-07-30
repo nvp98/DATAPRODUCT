@@ -1,35 +1,36 @@
-﻿using Data_Product.Models;
-using Data_Product.Repositorys;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.EntityFrameworkCore;
-using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
-using Microsoft.Extensions.Logging;
-using Data_Product.DTO.BM_16_DTO;
-using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.DotNet.Scaffolding.Shared.Messaging;
-using Org.BouncyCastle.Asn1.Ocsp;
-using iTextSharp.text;
-using DocumentFormat.OpenXml.Office2016.Excel;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using ClosedXML.Excel;
-using System.Reflection;
+﻿using ClosedXML.Excel;
 using Data_Product.Common.Enums;
+using Data_Product.DTO.BM_16_DTO;
+using Data_Product.Models;
+using Data_Product.Models.ModelView;
+using Data_Product.Repositorys;
+using Data_Product.Services;
+using DocumentFormat.OpenXml.Office2016.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using iText.Html2pdf;
 using iText.Kernel.Events;
 using iText.Layout.Font;
-using static Data_Product.Controllers.BM_11Controller;
+using iTextSharp.text;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using Data_Product.Models.ModelView;
+using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
 using Mysqlx;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Ocsp;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Reflection;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
+using static Data_Product.Controllers.BM_11Controller;
 
 
 namespace Data_Product.Controllers
@@ -40,10 +41,11 @@ namespace Data_Product.Controllers
         private readonly DataContext _context;
         private readonly ICompositeViewEngine _viewEngine;
         private readonly ILogger<BM16_GangThoiController> _logger;
-
-        public BM16_GangThoiController(DataContext _context, ICompositeViewEngine viewEngine, ILogger<BM16_GangThoiController> logger)
+        private readonly IChiaGangService _chiaGangService;
+        public BM16_GangThoiController(DataContext _context, ICompositeViewEngine viewEngine, ILogger<BM16_GangThoiController> logger, IChiaGangService chiaGangService)
         {
             this._context = _context;
+            this._chiaGangService = chiaGangService;
             _viewEngine = viewEngine;
             _logger = logger;
         }
@@ -790,7 +792,7 @@ namespace Data_Product.Controllers
 
                 thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
 
-
+                
                 // ==== Cập nhật các thùng T_Copy ====
                 var thungCopyList = await _context.Tbl_BM_16_GangLong
                     .Where(x => x.MaThungGang == item.MaThungGang && x.T_copy == true && x.ID != thung.ID)
@@ -815,6 +817,13 @@ namespace Data_Product.Controllers
             }
 
             await _context.SaveChangesAsync();
+            foreach (var item in req.DanhSachThung)
+            {
+                var thung = await _context.Tbl_BM_16_GangLong
+                    .FirstOrDefaultAsync(x => x.MaPhieu == item.MaPhieu && x.MaThungGang == item.MaThungGang);
+                if (thung == null || thung.ID_TrangThai == 5) continue;
+                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thung.MaThungGang);
+            }
 
             //if (danhSachThungDaChot.Any())
             //{

@@ -19,4 +19,14 @@
         public decimal? TyLeChia { get; set; }
         public decimal? KLChia { get; set; }
     }
+
+
+    public class ChiaGangResultModel
+    {
+        public List<ThungGangChiaModel> ThungGoc { get; set; }
+        public List<ThungGangChiaModel> ThungDaCoKL { get; set; }
+        public List<ThungGangChiaModel> ThungAll { get; set; }
+        public List<ThungGangChiaModel> ListAll { get; set; }
+
+    }
 }
