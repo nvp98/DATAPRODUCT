@@ -71,10 +71,10 @@
                                 <thead class="table-light sticky-top bg-white" style="z-index: 2; font-size: 14px;">
                                     <tr>
                                         <th class="text-center" width="30px" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
-                                        <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Tên lò</th>
+                                        <th class="text-center" width="70px" style="vertical-align:middle;background-color: #f7f7f7;">Tên lò</th>
                                         <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Bộ phận</th>
                                         <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">Mã lò</th>
-                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tài khoản</th>
+                                        <th class="text-center" width="300px" style="vertical-align:middle;background-color: #f7f7f7;">Tài khoản</th>
                                         <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
                                     </tr>
@@ -199,14 +199,15 @@
          data.forEach(item => {
              let htmlListTaiKhoan = '';
              if(item.listTaiKhoan.length > 0){
+                 htmlListTaiKhoan = `<div class="row">`;
                  item.listTaiKhoan.forEach(taiKhoan => {
                      htmlListTaiKhoan += `
-                            <div>
+                            <div class="col-6"  style="text-align: left">
                                 <p>${taiKhoan.tenTaiKhoan} - ${taiKhoan.hoVaTen}</p>
                             </div>
                          `;
                  })
-
+                     htmlListTaiKhoan += `</div>`;
              }
              const statusHtml = item.isActived ? `
                 <p>Đang sử dụng</p>
