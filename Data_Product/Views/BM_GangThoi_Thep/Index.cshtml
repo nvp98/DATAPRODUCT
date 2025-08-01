@@ -446,7 +446,7 @@
                                     <th>KL thùng & gang lỏng (T)</th>
                                     <th>KL thùng (T)</th>
                                     <th>KL gang lỏng (T)</th>
-                                    <th class="hide-col">KL gang chia (T)</th>
+                                    <th class="hide-col">KL gang chia (T)</th> 
                                     <th class="hrc2">Thao tác</th>
                                     <th>KL gang nhận (T)</th>
                                     <th>Thùng trung gian</th>
@@ -463,11 +463,11 @@
                             </tbody>
                             <tfoot>
                                 <tr style="height: 50px;">
-                                    <td class="total-space" colspan="@(PhongBan == "HRC2" ? "6" : "5")" style="font-weight: 600; text-align: start">Tổng</td>
+                                    <td class="total-space" colspan="6" style="font-weight: 600; text-align: start">Tổng</td>
                                     <td id="IDTongKLGangNhan" style="font-weight: 600">
                                         0.00
                                     </td>
-                                    <td class="total-space-2" colspan="@(PhongBan == "HRC2" ? "4" : "5")"></td>
+                                    <td class="total-space-2" colspan="4"></td>
                                     <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                                         0.00
                                     </td>
@@ -712,6 +712,7 @@
                     const disabled = thung.iD_TrangThai === 5 ? 'disabled' : '';
                     const disabledInputKL = thung.iD_TrangThai === 5 || phongBan === "HRC1" ? 'disabled' : '';
 
+                  
                     let row = `<tr`;
                     // Nếu là dòng đầu tiên của thùng trung gian thì thêm data-attribute
                     // if (index === 0) {
@@ -726,7 +727,7 @@
                     // Cột thùng gang
                     row += `
                         <td class="hide-col">
-                            <input type="checkbox" class="cbx-chiaGang" name="ChonThung" value="" ${thung.iD_TrangThai == 5 || thung.klGangChia ? "disabled readonly" : ""}/>
+                            <input type="checkbox" class="cbx-chiaGang" style="display: ${isCopy ? 'none' : 'inline-block'}" name="ChonThung" value="" ${thung.iD_TrangThai == 5 || thung.klGangChia ? "disabled readonly" : ""}/>
                         </td>
                         <td class="hide-col maThungThep" data-mathungganggoc="${thung.maThungGang}">${thung.maThungThep ?? ''}</td>
                         <td>${thung.iD_LoCao ?? ''}</td>
@@ -761,7 +762,7 @@
                             <td class="KLGangLong">${thung.t_KLGangLong ?? '00.0'}</td>
                         `;
                     }
-                    row += `<td class="hide-col KLGangChia">${thung.klGangChia ?? ''}</td>`;
+                    row += `<td class="hide-col" style="color: ${thung.klGangChia ? 'red':'black'}">${thung.klGangChia ?? thung.t_KLGangLong ?? ''}</td>`;
                     // Nếu là dòng đầu tiên của nhóm thì render các cột thùng trung gian với rowspan
                     if (index === 0) {
                         const actionHtml = tg.isCopy ? `<button ${disabled} class="btn-item-action btn btn-danger btn-sm btn-XoaCopy" title="Xóa">
@@ -786,7 +787,7 @@
                         <td rowspan="${rowspan}">
                             <input ${disabled} class="table_tbx KLPhe" type="number" min=0 name="kl_phe" value="${tg.kL_phe ?? ''}"/>
                         </td>
-                        <td rowspan="${rowspan}" id="IDKLVaoLoThoi" class="KLVaoLoThoi">${tg.klGang_Thoi ?? '0.00'} </td>
+                        <td rowspan="${rowspan}" id="IDKLVaoLoThoi" class="KLVaoLoThoi" >${tg.klGang_Thoi ?? '0.00'} </td>
                         <td rowspan="${rowspan}">
                             <select ${disabled} class="form-select selectMeThoi" data-selected-id="${tg.iD_MeThoi || ''}" data-selected-ma="${tg.maMeThoi || ''}">
                                     <option value="">-- Mẻ thổi --</option>
@@ -1477,21 +1478,18 @@
             $mainRow.find('.tong_KL_GangNhan').text(tong.toFixed(2));
         }
         // Khi nhập vào KLPhe ở bất kỳ dòng nào
-        $('#IDtbXuLySoLieu').on('input', '.KLPhe', function () {
-            const newValue = $(this).val();
+        // $('#IDtbXuLySoLieu').on('input', '.KLPhe', function () {
+        //     const newValue = $(this).val();
 
-            // Đồng bộ tất cả các ô KLPhe khác (kể cả đã có giá trị)
-            $('#IDtbXuLySoLieu .KLPhe').val(newValue);
+        //     $('#IDtbXuLySoLieu .KLPhe').val(newValue);
 
-            // Trigger lại sự kiện input cho từng dòng, để tái sử dụng logic đã có
-            $('#IDtbXuLySoLieu tr').each(function () {
-                $(this).find('.KhoiLuongThungVaGangLong').trigger('input');
-            });
+        //     $('#IDtbXuLySoLieu tr').each(function () {
+        //         $(this).find('.KhoiLuongThungVaGangLong').trigger('input');
+        //     });
 
-            // Tính tổng sau khi cập nhật xong toàn bộ
-            sumKLGangNhan();
-            sumKLGangThoi();
-        });
+        //     sumKLGangNhan();
+        //     sumKLGangThoi();
+        // });
 
         // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
         $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong, .KhoiLuongThung, .KLPhe', function () {
@@ -1575,11 +1573,9 @@
 
             if( phongBan == "HRC2"){
                 $('.hrc2').css('display', display);
-                $('.total-space').attr('colspan', isHidden ? 6 : 7);
-                $('.total-space-2').attr('colspan', isHidden ? 4 : 7);
+                $('.total-space').attr('colspan', isHidden ? 6 : 10);
             } else {
-                $('.total-space').attr('colspan', isHidden ? 5 : 7);
-                $('.total-space-2').attr('colspan', isHidden ? 5 : 6);
+                $('.total-space').attr('colspan', isHidden ? 6 : 9);
             }
 
         }
@@ -2052,14 +2048,14 @@
 
                         res.thungDaCoKL.forEach(item => {
                                     htmlNMLT += `
-                                                        <tr>
-                                                            <td>${item.iD_Locao}</td>
-                                                            <td>${item.maThungThep}</td>
-                                                            <td>${item.bkmiS_ThungSo}</td>
-                                                            <td>${item.t_KLThungVaGang ?? ''}</td>
-                                                            <td>${item.t_KLThungChua ?? ''}</td>
-                                                            <td class="text-danger fw-bold">${item.t_KLGangLong ?? ''}</td>
-                                                        </tr>`;
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungThep}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td>${item.t_KLThungVaGang ?? ''}</td>
+                                                    <td>${item.t_KLThungChua ?? ''}</td>
+                                                    <td class="text-danger fw-bold">${item.t_KLGangLong ?? ''}</td>
+                                                </tr>`;
                         });
                         tbodyNMLT.append(htmlNMLT);
 

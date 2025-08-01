@@ -12,6 +12,7 @@ namespace Data_Product.Services
         Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<int> selectedIds);
         Task<int> HuyChiaGangTheoNhieuThungGangAsync(List<string> maThungGangList, int idNguoiChia);
         Task KiemTraVaTinhLaiTheoMaThungGangAsync(string maThungGang);
+        Task<ChiaGangResultModel> GetDetailChiaGangAsync(string maThungThep);
     }
     public class ChiaGangService: IChiaGangService
     {
@@ -69,6 +70,7 @@ namespace Data_Product.Services
                     if (gangGoc != null)
                     {
                         gangGoc.KLGangChia = thung.KLChia;
+                        //gangGoc.T_KLGangLong = thung.KLChia;
                     }
                 }
             }
@@ -175,10 +177,10 @@ namespace Data_Product.Services
             var tongConLai = danhSachConLai.Sum(x => x.KLConLai);
 
             if (tongConLai <= 0)
-                throw new Exception("Không có khối lượng gang còn lại để chia.");
+                throw new Exception("Không có đủ khối lượng gang bên Luyện Gang để chia. Vui Lòng kiểm tra lại.");
 
             var tongT_KLGangLongChon = listAll
-                .Where(x => selectedIds.Contains(x.ID) && x.T_KLGangLong.HasValue)
+                .Where(x => selectedIds.Contains(x.ID) && x.T_KLGangLong.HasValue && x.T_KLThungVaGang.HasValue && x.T_KLThungChua.HasValue && x.KL_Phe.HasValue)
                 .Sum(x => x.T_KLGangLong.Value);
 
             foreach (var item in listAll.Where(x => selectedIds.Contains(x.ID)))
@@ -202,6 +204,63 @@ namespace Data_Product.Services
             {
                 ThungGoc = listGoc,
                 ThungDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !selectedIds.Contains(x.ID)).ToList(),
+                ThungAll = listSelected,
+                ListAll = listAll
+            };
+        }
+
+        public async Task<ChiaGangResultModel> GetDetailChiaGangAsync(string maThungThep)
+        {
+            var chiaGang = await _context.Tbl_BM_16_ChiaGang
+                .Where(x => x.MaThungThep == maThungThep)
+                .FirstOrDefaultAsync();
+
+
+            if (chiaGang == null)
+                return null;
+
+            var chiaGangList = await _context.Tbl_BM_16_ChiaGang
+                .Where(x => x.MaChiaGang == chiaGang.MaChiaGang)
+                .ToListAsync();
+            // Lấy các mã thùng gang và thép liên quan
+            var maThungGangList = chiaGangList.Select(x => x.MaThungGang).Distinct().ToList();
+            var maThungThepList = chiaGangList.Select(x => x.MaThungThep).Distinct().ToList();
+
+            // Lấy danh sách từ bảng GangLong
+            var listAll = await (from a in _context.Tbl_BM_16_GangLong
+                                    join cg in _context.Tbl_BM_16_ChiaGang
+                                        on a.MaThungThep equals cg.MaThungThep
+                                    join ttg in _context.Tbl_BM_16_ThungTrungGian
+                                        on a.ID_TTG equals ttg.ID into ttgGroup
+                                    from ttg in ttgGroup.DefaultIfEmpty()
+                                    where maThungGangList.Contains(a.MaThungGang)
+                                          || maThungThepList.Contains(a.MaThungThep)
+                                    select new ThungGangChiaModel
+                                    {
+                                        ID = a.ID,
+                                        MaThungGang = a.MaThungGang,
+                                        ID_Locao = a.ID_Locao,
+                                        BKMIS_ThungSo = a.BKMIS_ThungSo,
+                                        MaThungThep = a.MaThungThep,
+                                        G_KLGangLong = a.G_KLGangLong,
+                                        T_KLGangLong = a.T_KLGangLong,
+                                        T_KLThungChua = a.T_KLThungChua,
+                                        T_KLThungVaGang = a.T_KLThungVaGang,
+                                        KLGangChia = a.KLGangChia,
+                                        KL_Phe = ttg != null ? ttg.KL_phe : null
+                                    }).ToListAsync();
+
+
+            // Lọc danh sách
+            var selectedIds = chiaGangList.Select(x => x.ID_Thung).ToHashSet();
+            var listSelected = listAll.Where(x => selectedIds.Contains(x.ID)).ToList();
+            var listGoc = listSelected.Where(x => x.MaThungThep == maThungThep).ToList();
+            var listDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !selectedIds.Contains(x.ID)).ToList();
+
+            return new ChiaGangResultModel
+            {
+                ThungGoc = listGoc,
+                ThungDaCoKL = listDaCoKL,
                 ThungAll = listSelected,
                 ListAll = listAll
             };

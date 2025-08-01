@@ -816,7 +816,6 @@ namespace Data_Product.Controllers
                 if (thung == null || thung.ID_TrangThai == 5) continue;
                 await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thung.MaThungGang);
             }
-
             return Ok("Đã cập nhật thành công.");
         }
         [HttpPost]
@@ -846,8 +845,6 @@ namespace Data_Product.Controllers
                     ? item.BKMIS_SoMe.Substring(item.BKMIS_SoMe.Length - 2): null;
                 }
             }
-
-            await _context.SaveChangesAsync();
 
             return Ok(new { success = true });
         }
