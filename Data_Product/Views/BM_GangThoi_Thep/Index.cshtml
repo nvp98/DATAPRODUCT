@@ -1378,23 +1378,19 @@
 
         // search Me thoi
         $("#IDLoThoi").on('change', function () {
-            $('.selectMeThoi').each(function () {
-                const $select = $(this);
+            // $('.selectMeThoi').each(function () {
+            //     const $select = $(this);
 
-                // Reset
-                $select.val(null).empty().trigger('change');
+            //     $select.val(null).empty().trigger('change');
 
-                // Trick mở và gõ ký tự giả
-                $select.select2('open');
+            //     $select.select2('open');
 
-                // Gõ ký tự giả để trigger search (nếu cần)
-                setTimeout(() => {
-                    $('.select2-search__field').val(' ').trigger('input');
+            //     setTimeout(() => {
+            //         $('.select2-search__field').val(' ').trigger('input');
 
-                    // Đóng lại nếu bạn muốn không hiện dropdown
-                    setTimeout(() => $select.select2('close'), 100);
-                }, 100);
-            });
+            //         setTimeout(() => $select.select2('close'), 100);
+            //     }, 100);
+            // });
             const NgayNhan = $('#IDNgayNhan').val() || null;
             const IDCaNhan = $('#IDCaNhan').val() || null;
             const IDLoThoi = $('#IDLoThoi').val() || null;
@@ -1446,73 +1442,67 @@
             $mainRow.find('.tong_KL_GangNhan').text(tong.toFixed(2));
         }
         // Khi nhập vào KLPhe ở bất kỳ dòng nào
-        $('#IDtbXuLySoLieu').on('input', '.KLPhe', function () {
-            const newValue = $(this).val();
+        // $('#IDtbXuLySoLieu').on('input', '.KLPhe', function () {
+        //     const newValue = $(this).val();
 
-            // Đồng bộ tất cả các ô KLPhe khác (kể cả đã có giá trị)
-            $('#IDtbXuLySoLieu .KLPhe').not(this).each(function () {
-                $(this).val(newValue);
-            });
+        //     $('#IDtbXuLySoLieu .KLPhe').not(this).each(function () {
+        //         $(this).val(newValue);
+        //     });
 
-            // Gọi lại logic tính toán cho toàn bộ các dòng
-            $('#IDtbXuLySoLieu tr').each(function () {
-                const $row = $(this);
+        //     $('#IDtbXuLySoLieu tr').each(function () {
+        //         const $row = $(this);
 
-                const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
-                const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
-                const phongBan = $("#IDPhongBan").val();
+        //         const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
+        //         const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
+        //         const phongBan = $("#IDPhongBan").val();
 
-                // Nếu là HRC1 → đồng bộ vào lò thổi
-                if (phongBan === "HRC1") {
-                    $row.find('.KLThungVaGangLongVaoLoThoi').val(KLThungVaGangLong).trigger('input');
-                    $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
-                }
+        //         if (phongBan === "HRC1") {
+        //             $row.find('.KLThungVaGangLongVaoLoThoi').val(KLThungVaGangLong).trigger('input');
+        //             $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
+        //         }
 
-                const maThungTG = $row.data('mathungtg');
+        //         const maThungTG = $row.data('mathungtg');
 
-                if (maThungTG) {
-                    // Gọi lại tính toán cho cả nhóm
-                    $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).each(function () {
-                        tinhKLGangLong($(this));
-                    });
-                    updateTongKLGangNhan(maThungTG);
-                } else {
-                    // Nếu không có nhóm → tính riêng
-                    tinhKLGangLong($row);
-                }
-            });
+        //         if (maThungTG) {
+        //             $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).each(function () {
+        //                 tinhKLGangLong($(this));
+        //             });
+        //             updateTongKLGangNhan(maThungTG);
+        //         } else {
+        //             tinhKLGangLong($row);
+        //         }
+        //     });
 
-            // Tính tổng sau khi cập nhật xong toàn bộ
-            sumKLGangNhan();
-            sumKLGangThoi();
-        });
+        //     sumKLGangNhan();
+        //     sumKLGangThoi();
+        // });
 
         // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
-        // $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong, .KhoiLuongThung, .KLPhe', function () {
-        //     const $row = $(this).closest('tr');
-        //     const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
-        //     const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
+        $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong, .KhoiLuongThung, .KLPhe', function () {
+            const $row = $(this).closest('tr');
+            const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
+            const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
             
             
-        //     const phongBan = $("#IDPhongBan").val();
-        //     if(phongBan === "HRC1"){
-        //         $row.find('.KLThungVaGangLongVaoLoThoi').val(KLThungVaGangLong).trigger('input');
-        //         $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
-        //     }
+            const phongBan = $("#IDPhongBan").val();
+            if(phongBan === "HRC1"){
+                $row.find('.KLThungVaGangLongVaoLoThoi').val(KLThungVaGangLong).trigger('input');
+                $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
+            }
 
-        //     const maThungTG = $row.data('mathungtg');
+            const maThungTG = $row.data('mathungtg');
 
-        //     tinhKLGangLong($row);
+            tinhKLGangLong($row);
 
-        //     if (maThungTG) {
-        //         $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).each(function () {
-        //             tinhKLGangLong($(this));
-        //         });
+            if (maThungTG) {
+                $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).each(function () {
+                    tinhKLGangLong($(this));
+                });
 
-        //         updateTongKLGangNhan(maThungTG);
-        //     }
-        //     sumKLGangNhan();
-        // });
+                updateTongKLGangNhan(maThungTG);
+            }
+            sumKLGangNhan();
+        });
 
         // Tính khối lượng vào lò thổi khi nhập vào KL Thùng & gang lỏng vào lò thổi
         $('#IDtbXuLySoLieu').on('input', '.KLThungVaGangLongVaoLoThoi, .KLThungVaoLoThoi, .KLPhe', function () {
