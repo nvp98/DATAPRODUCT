@@ -4,6 +4,7 @@ using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Models.ModelView;
 using Data_Product.Repositorys;
+using Data_Product.Services;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Humanizer;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,12 @@ namespace Data_Product.Controllers
     {
         private readonly DataContext _context;
         private readonly ICompositeViewEngine _viewEngine;
+        private readonly IChiaGangService _chiaGangService;
 
-        public BM16_GangThoi_PKHController(DataContext _context, ICompositeViewEngine viewEngine)
+        public BM16_GangThoi_PKHController(DataContext _context, ICompositeViewEngine viewEngine, IChiaGangService chiaGangService)
         {
             this._context = _context;
+            this._chiaGangService = chiaGangService;
             _viewEngine = viewEngine;
         }
         public async Task<IActionResult> Index()
@@ -265,6 +268,18 @@ namespace Data_Product.Controllers
 
             await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetDetailChiaGang(string maThungThep)
+        {
+            try
+            {
+                var result = await _chiaGangService.GetDetailChiaGangAsync(maThungThep);
+                return Ok(result);
+            } catch(Exception ex){ 
+                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+            }
         }
 
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
