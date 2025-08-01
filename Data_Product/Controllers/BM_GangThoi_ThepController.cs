@@ -1367,81 +1367,83 @@ namespace Data_Product.Controllers
                                     worksheet.Row(row).Height = 25;
                                     row++;
                                 }
+                                int colTg = 9;
+                                var cellTongKLGang = worksheet.Cell(startRow, colTg);
+                                cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellTongKLGang.Style.Font.Bold = true;
+
+                                if (thungTG.IsCopy == true)
+                                {
+                                    cellTongKLGang.Value = "TTG Copy";
+                                    cellTongKLGang.Style.Font.FontColor = XLColor.Red;
+                                }
+                                else if (thungTG.Tong_KLGangNhan.HasValue)
+                                {
+                                    cellTongKLGang.Value = thungTG.Tong_KLGangNhan.Value;
+                                    cellTongKLGang.Style.NumberFormat.Format = "0.00";
+                                }
+                                else
+                                {
+                                    cellTongKLGang.Value = "";
+                                }
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                                colTg++;
+
+                                worksheet.Cell(startRow, colTg).Value = thungTG.SoThungTG;
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                                colTg++;
+
+                                worksheet.Cell(startRow, colTg).Value = thungTG.KLThungVaGang_Thoi;
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                                colTg++;
+
+                                worksheet.Cell(startRow, colTg).Value = thungTG.KLThung_Thoi;
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                                colTg++;
+
+                                worksheet.Cell(startRow, colTg).Value = thungTG.KL_phe;
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                                colTg++;
+
+                                var cellKLGang = worksheet.Cell(startRow, colTg);
+                                if (thungTG.KLGang_Thoi.HasValue)
+                                {
+                                    cellKLGang.Value = thungTG.KLGang_Thoi.Value;
+                                    cellKLGang.Style.NumberFormat.Format = "0.00";
+                                    cellKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                    cellKLGang.Style.Font.Bold = true;
+                                }
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                                colTg++;
+
+                                worksheet.Cell(startRow, colTg).Value = thungTG.MaMeThoi;
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                                colTg++;
+
+                                worksheet.Cell(startRow, colTg).Value = thungTG.GioChonMe;
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                                colTg++;
+
+                                worksheet.Cell(startRow, colTg).Value = thungTG.GhiChu ?? "";
+                                worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
                             }
                             else
                             {
                                 // Nếu không có thùng gang, render dòng trống
-                                int icol = 1;
-                                worksheet.Cell(row, icol++).Value = stt++;
-                                worksheet.Cell(row, icol++).Value = "-";
-                                worksheet.Cell(row, icol++).Value = "-";
-                                worksheet.Cell(row, icol++).Value = "-";
-                                worksheet.Cell(row, icol++).Value = "-";
-                                worksheet.Cell(row, icol++).Value = "-";
-                                worksheet.Cell(row, icol++).Value = "-";
-                                row++;
+                                continue;
+                                //int icol = 1;
+                                //worksheet.Cell(row, icol++).Value = stt++;
+                                //worksheet.Cell(row, icol++).Value = "-";
+                                //worksheet.Cell(row, icol++).Value = "-";
+                                //worksheet.Cell(row, icol++).Value = "-";
+                                //worksheet.Cell(row, icol++).Value = "-";
+                                //worksheet.Cell(row, icol++).Value = "-";
+                                //worksheet.Cell(row, icol++).Value = "-";
+                                //row++;
                             }
 
                             // Render và merge các ô Thùng Trung Gian từ cột 8 trở đi
-                            int colTg = 9;
-                            var cellTongKLGang = worksheet.Cell(startRow, colTg);
-                            cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                            cellTongKLGang.Style.Font.Bold = true;
-
-                            if (thungTG.IsCopy == true)
-                            {
-                                cellTongKLGang.Value = "TTG Copy";
-                                cellTongKLGang.Style.Font.FontColor = XLColor.Red;
-                            }
-                            else if (thungTG.Tong_KLGangNhan.HasValue)
-                            {
-                                cellTongKLGang.Value = thungTG.Tong_KLGangNhan.Value;
-                                cellTongKLGang.Style.NumberFormat.Format = "0.00";
-                            }
-                            else
-                            {
-                                cellTongKLGang.Value = "";
-                            }
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
-                            colTg++;
-
-                            worksheet.Cell(startRow, colTg).Value = thungTG.SoThungTG;
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
-                            colTg++;
-
-                            worksheet.Cell(startRow, colTg).Value = thungTG.KLThungVaGang_Thoi;
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
-                            colTg++;
-
-                            worksheet.Cell(startRow, colTg).Value = thungTG.KLThung_Thoi;
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
-                            colTg++;
-
-                            worksheet.Cell(startRow, colTg).Value = thungTG.KL_phe;
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
-                            colTg++;
-
-                            var cellKLGang = worksheet.Cell(startRow, colTg);
-                            if (thungTG.KLGang_Thoi.HasValue)
-                            {
-                                cellKLGang.Value = thungTG.KLGang_Thoi.Value;
-                                cellKLGang.Style.NumberFormat.Format = "0.00";
-                                cellKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cellKLGang.Style.Font.Bold = true;
-                            }
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
-                            colTg++;
-
-                            worksheet.Cell(startRow, colTg).Value = thungTG.MaMeThoi;
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
-                            colTg++;
-
-                            worksheet.Cell(startRow, colTg).Value = thungTG.GioChonMe;
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
-                            colTg++;
-
-                            worksheet.Cell(startRow, colTg).Value = thungTG.GhiChu ?? "";
-                            worksheet.Range(startRow, colTg, row - 1, colTg).Merge();
+                            
                         }
 
 
