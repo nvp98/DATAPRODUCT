@@ -82,6 +82,7 @@
         background: none;
         border: none;
     }
+    
 
     .rotate-icon {
         transition: transform 0.3s ease;
@@ -410,6 +411,7 @@
                         <th class="hide-col">KL thùng & gang lỏng (T)</th>
                         <th class="hide-col">KL thùng (T)</th>
                         <th class="hide-col">KL gang lỏng (T)</th>
+                        <th class="hide-col">KL gang chia (T)</th>
                         <th>KL Gang nhận (T)</th>
                         <th>Lò thổi</th>
                         <th>Thùng trung gian</th>
@@ -441,6 +443,7 @@
                         <td class="hide-col" id="IDTongKLGangLongThep" style="font-weight: 600">
                             0.00
                         </td>
+                        <td class="hide-col"></td>
                         <td id="IDTongKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -469,6 +472,7 @@
                         <td class="hide-col" id="IDTongAllKLGangLongThep" style="font-weight: 600">
                             0.00
                         </td>
+                        <td class="hide-col"></td>
                         <td id="IDTongAllKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -495,6 +499,75 @@
         <nav class="py-2">
             <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
         </nav>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modalShowChiaGang" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalChiaGang" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 50%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết chia gang</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalChiaGang"></button>
+            </div>
+            <div class="modal-body" id="chiaGangContent" style="overflow-x: hidden;">
+
+                <!-- 1. KL NM.LG -->
+                <h6 class="fw-bold">1. KL NM.LG:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblNMLG">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng gang</th>
+                            <th>Thùng số</th>
+                            <th>KL bên LG</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <!-- 2. KL đã rót NM.HRC -->
+                <h6 class="fw-bold mt-4">2. KL đã rót NM.HRC:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblNMLT">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng thép</th>
+                            <th>Thùng số</th>
+                            <th>KL thùng&gang</th>
+                            <th>KL thùng</th>
+                            <th>KL gang</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <!-- 3. KL Chia -->
+                <h6 class="fw-bold mt-4">3. KL Chia:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblGangChia">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng thép</th>
+                            <th>Thùng số</th>
+                            <th>KL thùng&gang</th>
+                            <th>KL thùng</th>
+                            <th>KL Phế</th>
+                            <th>KL gang</th>
+                            <th>Tỷ lệ chia</th>
+                            <th>KL chia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnDongChiaGang" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -889,6 +962,15 @@
                     row.append(`<td  class="hide-col">${item.t_KLThungVaGang ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungChua ?? ''}</td>`);
                     row.append(`<td  class="hide-col T_KLGangLong">${item.t_KLGangLong ?? ''}</td>`);
+                    row.append(`<td  class="hide-col text-danger" style="width: 100px;" style="color: red">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                              ${item.klGangChia ?? ''}
+                              <button class="btn p-0 border-0 bg-transparent btnDetailChiaGang" style="display: ${item.klGangChia ? 'inline-block':'none'}">
+                                <i class="bi bi-eye-fill"></i>
+                              </button>
+                            </div>
+                    
+                    </td>`);
                     if (isFirstRow) {
                         row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
@@ -1289,6 +1371,85 @@
 
             applyColumnVisibility();
         });
+
+        $('#tblDuLieu').on('click', '.btnDetailChiaGang', function() {
+            const row = $(this).closest('tr');
+            const idThung = row.data('id'); 
+            if(!idThung){
+                alert('lỗi không lấy được ID');
+                return;
+            }
+            $.ajax({
+                  url: "/BM16_GangThoi_PKH/GetDetailChiaGang",
+                  type: "POST",
+                  contentType: "application/json",
+                  data: JSON.stringify(idThung),
+                  processData: false,
+                  success: function (res) {
+                      console.log(res);
+                      const modalChiaGang = new bootstrap.Modal(document.getElementById('modalShowChiaGang'));
+                        modalChiaGang.show();
+
+                        const tbodyNMLG = $('#tblNMLG tbody');
+                        tbodyNMLG.empty();
+
+                        const tbodyNMLT = $('#tblNMLT tbody');
+                        tbodyNMLT.empty();
+
+                        const tbodyGangChia = $('#tblGangChia tbody');
+                        tbodyGangChia.empty();
+
+                        let htmlNMLG = ``
+                        let htmlNMLT = ``;
+                        let htmlGangChia = ``;
+
+                        res.thungGoc.forEach(item => {
+                                            htmlNMLG += `
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungGang}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td class="text-danger fw-bold">${item.g_KLGangLong ?? ''}</td>
+                                                </tr>`;
+                        });
+                        tbodyNMLG.append(htmlNMLG);
+
+                        res.thungDaCoKL.forEach(item => {
+                                    htmlNMLT += `
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungThep}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td>${item.t_KLThungVaGang ?? ''}</td>
+                                                    <td>${item.t_KLThungChua ?? ''}</td>
+                                                    <td class="text-danger fw-bold">${item.t_KLGangLong ?? ''}</td>
+                                                </tr>`;
+                        });
+                        tbodyNMLT.append(htmlNMLT);
+
+                         res.thungAll.forEach(item => {
+                         htmlGangChia += `
+                                        <tr>
+                                            <td>${item.iD_Locao}</td>
+                                            <td>${item.maThungThep}</td>
+                                            <td>${item.bkmiS_ThungSo}</td>
+                                            <td>${item.t_KLThungVaGang ?? ''}</td>
+                                            <td>${item.t_KLThungChua ?? ''}</td>
+                                            <td>${item.kL_Phe ?? ''}</td>
+                                            <td>${item.t_KLGangLong ?? ''}</td>
+                                            <td class="text-danger fw-bold">${item.tyLeChia ? item.tyLeChia + "%" :''}</td>
+                                            <td class="bg-warning fw-bold">${item.klChia ?? ''}</td>
+                                        </tr>`;
+                         });
+                        tbodyGangChia.append(htmlGangChia);
+                      // Search();
+                  },
+                  error: function () {
+                      alert("Lỗi khi nhận dữ liệu!");
+                  }
+              });
+        }) 
+
 
         function applyColumnVisibility() {
             const display = isHidden ? 'none' : 'table-cell';

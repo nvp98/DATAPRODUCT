@@ -29,7 +29,9 @@ using Data_Product.Models.ModelView;
 using Org.BouncyCastle.Ocsp;
 using System.Text.RegularExpressions;
 using MySqlConnector;
+using Data_Product.Services;
 using System;
+
 
 namespace Data_Product.Controllers
 {
@@ -39,10 +41,11 @@ namespace Data_Product.Controllers
         private readonly DataContext _context;
         private readonly ICompositeViewEngine _viewEngine;
         private readonly ILogger<BM16_GangThoiController> _logger;
-
-        public BM16_GangThoiController(DataContext _context, ICompositeViewEngine viewEngine, ILogger<BM16_GangThoiController> logger)
+        private readonly IChiaGangService _chiaGangService;
+        public BM16_GangThoiController(DataContext _context, ICompositeViewEngine viewEngine, ILogger<BM16_GangThoiController> logger, IChiaGangService chiaGangService)
         {
             this._context = _context;
+            this._chiaGangService = chiaGangService;
             _viewEngine = viewEngine;
             _logger = logger;
         }
@@ -788,7 +791,7 @@ namespace Data_Product.Controllers
 
                 thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
 
-
+                
                 // ==== Cập nhật các thùng T_Copy ====
                 var thungCopyList = await _context.Tbl_BM_16_GangLong
                     .Where(x => x.MaThungGang == item.MaThungGang && x.T_copy == true && x.ID != thung.ID)
@@ -813,7 +816,13 @@ namespace Data_Product.Controllers
             }
 
             await _context.SaveChangesAsync();
-
+            foreach (var item in req.DanhSachThung)
+            {
+                var thung = await _context.Tbl_BM_16_GangLong
+                    .FirstOrDefaultAsync(x => x.MaPhieu == item.MaPhieu && x.MaThungGang == item.MaThungGang);
+                if (thung == null || thung.ID_TrangThai == 5) continue;
+                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thung.MaThungGang);
+            }
             return Ok("Đã cập nhật thành công.");
         }
         [HttpPost]
@@ -855,8 +864,6 @@ namespace Data_Product.Controllers
                     ? item.BKMIS_SoMe.Substring(item.BKMIS_SoMe.Length - 2): null;
                 }
             }
-
-            await _context.SaveChangesAsync();
 
             return Ok(new { success = true });
         }

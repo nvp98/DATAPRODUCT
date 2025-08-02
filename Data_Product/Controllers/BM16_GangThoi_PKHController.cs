@@ -4,6 +4,7 @@ using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Models.ModelView;
 using Data_Product.Repositorys;
+using Data_Product.Services;
 using DocumentFormat.OpenXml.Spreadsheet;
 using ExcelDataReader;
 using Humanizer;
@@ -19,10 +20,12 @@ namespace Data_Product.Controllers
     {
         private readonly DataContext _context;
         private readonly ICompositeViewEngine _viewEngine;
+        private readonly IChiaGangService _chiaGangService;
 
-        public BM16_GangThoi_PKHController(DataContext _context, ICompositeViewEngine viewEngine)
+        public BM16_GangThoi_PKHController(DataContext _context, ICompositeViewEngine viewEngine, IChiaGangService chiaGangService)
         {
             this._context = _context;
+            this._chiaGangService = chiaGangService;
             _viewEngine = viewEngine;
         }
         public async Task<IActionResult> Index()
@@ -268,6 +271,18 @@ namespace Data_Product.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GetDetailChiaGang([FromBody] int idThung)
+        {
+            try
+            {
+                var result = await _chiaGangService.GetDetailChiaGangAsync(idThung);
+                return Ok(result);
+            } catch(Exception ex){ 
+                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+            }
+        }
+
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
         {
             var query = _context.Tbl_BM_16_GangLong.OrderByDescending(x => x.NgayTao).ThenBy(x => x.ID_Locao).ThenByDescending(x => x.G_Ca).ThenByDescending(x => x.MaThungGang).ThenBy(x => x.MaThungThep).AsQueryable();
@@ -485,6 +500,7 @@ namespace Data_Product.Controllers
                                 TrangThaiLG = trangThaiLG.TenTrangThai,
                                 TrangThaiLT = trangThaiLT.TenTrangThai,
                                 T_copy = a.T_copy,
+                                KLGangChia = a.KLGangChia,
 
                                 HoVaTen = user.HoVaTen,
                                 TenPhongBan = phongban.TenNgan,
@@ -1030,7 +1046,10 @@ namespace Data_Product.Controllers
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLThungChua;
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLGangLong;
 
-                                // --- Phần merge các cột cuối ---
+                                var cellKLGangChia = worksheet.Cell(row, colIndex++);
+                                cellKLGangChia.Value = item.KLGangChia;
+                                cellKLGangChia.Style.Font.FontColor = XLColor.Red;
+
                                 if (isFirst)
                                 {
                                     mergedColumnCount = 0;
