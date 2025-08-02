@@ -4,6 +4,7 @@ using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Models.ModelView;
 using Data_Product.Repositorys;
+using Data_Product.Services;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Humanizer;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,12 @@ namespace Data_Product.Controllers
     {
         private readonly DataContext _context;
         private readonly ICompositeViewEngine _viewEngine;
+        private readonly IChiaGangService _chiaGangService;
 
-        public BM16_GangThoi_PKHController(DataContext _context, ICompositeViewEngine viewEngine)
+        public BM16_GangThoi_PKHController(DataContext _context, ICompositeViewEngine viewEngine, IChiaGangService chiaGangService)
         {
             this._context = _context;
+            this._chiaGangService = chiaGangService;
             _viewEngine = viewEngine;
         }
         public async Task<IActionResult> Index()
@@ -267,6 +270,18 @@ namespace Data_Product.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> GetDetailChiaGang([FromBody] int idThung)
+        {
+            try
+            {
+                var result = await _chiaGangService.GetDetailChiaGangAsync(idThung);
+                return Ok(result);
+            } catch(Exception ex){ 
+                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+            }
+        }
+
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
         {
             var query = _context.Tbl_BM_16_GangLong.OrderByDescending(x => x.NgayTao).ThenBy(x => x.ID_Locao).ThenByDescending(x => x.G_Ca).ThenByDescending(x => x.MaThungGang).ThenBy(x => x.MaThungThep).AsQueryable();
@@ -484,6 +499,7 @@ namespace Data_Product.Controllers
                                 TrangThaiLG = trangThaiLG.TenTrangThai,
                                 TrangThaiLT = trangThaiLT.TenTrangThai,
                                 T_copy = a.T_copy,
+                                KLGangChia = a.KLGangChia,
 
                                 HoVaTen = user.HoVaTen,
                                 TenPhongBan = phongban.TenNgan,
@@ -733,6 +749,11 @@ namespace Data_Product.Controllers
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLThungVaGang;
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLThungChua;
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLGangLong;
+
+                                var cellKLGangChia = worksheet.Cell(row, colIndex++);
+                                cellKLGangChia.Value = item.KLGangChia;
+                                cellKLGangChia.Style.Font.FontColor = XLColor.Red;
+
                                 if (isFirst)
                                 {
                                     var cellTongKLGang = worksheet.Cell(row, colIndex);
@@ -826,31 +847,31 @@ namespace Data_Product.Controllers
                         worksheet.Cell(sumRow, 14).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge các cột O -> X (15 -> 24)
-                        var mergeRange1 = worksheet.Range(sumRow, 15, sumRow, 24);
+                        var mergeRange1 = worksheet.Range(sumRow, 15, sumRow, 25);
                         mergeRange1.Merge();
                         mergeRange1.Value = ""; 
                         mergeRange1.Style.Fill.BackgroundColor = XLColor.White; 
 
-                        // Tổng cột 25
-                        worksheet.Cell(sumRow, 25).FormulaA1 = $"=SUM(Y8:Y{row - 1})";
-                        worksheet.Cell(sumRow, 25).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 25).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 25).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột 26
+                        worksheet.Cell(sumRow, 26).FormulaA1 = $"=SUM(Z8:Z{row - 1})";
+                        worksheet.Cell(sumRow, 26).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 26).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 26).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge các cột Z -> AD (26 -> 30)
-                        var mergeRange2 = worksheet.Range(sumRow, 26, sumRow, 30);
+                        var mergeRange2 = worksheet.Range(sumRow, 27, sumRow, 31);
                         mergeRange2.Merge();
                         mergeRange2.Value = "";
                         mergeRange2.Style.Fill.BackgroundColor = XLColor.White;
 
-                        // Tổng cột 31
-                        worksheet.Cell(sumRow, 31).FormulaA1 = $"=SUM(AE8:AE{row - 1})";
-                        worksheet.Cell(sumRow, 31).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 31).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 31).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột 32
+                        worksheet.Cell(sumRow, 32).FormulaA1 = $"=SUM(AF8:AF{row - 1})";
+                        worksheet.Cell(sumRow, 32).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 32).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 32).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Merge các cột AF -> AJ (32 -> 37)
-                        var mergeRange3 = worksheet.Range(sumRow, 32, sumRow, 37);
+                        // Merge các cột AF -> AL (32 -> 37)
+                        var mergeRange3 = worksheet.Range(sumRow, 32, sumRow, 38);
                         mergeRange3.Merge();
                         mergeRange3.Value = "";
                         mergeRange3.Style.Fill.BackgroundColor = XLColor.White;
@@ -870,13 +891,13 @@ namespace Data_Product.Controllers
                         worksheet.Cell(sumAllRow, 14).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge các cột O -> U (15 -> 21)
-                        var mergeRangeAll = worksheet.Range(sumAllRow, 15, sumAllRow, 37);
+                        var mergeRangeAll = worksheet.Range(sumAllRow, 15, sumAllRow, 38);
                         mergeRangeAll.Merge();
                         mergeRangeAll.Value = "";
                         mergeRangeAll.Style.Fill.BackgroundColor = XLColor.White;
 
                         // Format toàn bảng
-                        var usedRange = worksheet.Range($"A7:AK{sumAllRow}");
+                        var usedRange = worksheet.Range($"A7:AL{sumAllRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
