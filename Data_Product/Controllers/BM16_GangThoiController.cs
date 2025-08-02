@@ -817,8 +817,20 @@ namespace Data_Product.Controllers
                 return BadRequest("Danh sách cập nhật rỗng.");
             }
             //ChuaXuLy = 1, ChoXuLy = 2, DaXuLy = 3, DaNhan = 4, DaChot = 5
+            var danhSachTrung = new List<string>();
             foreach (var item in req.DsMaThung)
             {
+                // check duplicate 
+                var isDuplicateSoMe = _context.Tbl_BM_16_GangLong.Any(x =>
+                                    x.MaPhieu == req.MaPhieu &&
+                                    x.BKMIS_SoMe == item.BKMIS_SoMe &&
+                                    x.MaThungGang != item.MaThungGang);
+
+                if (isDuplicateSoMe)
+                {
+                    danhSachTrung.Add(item.BKMIS_SoMe);
+                    continue;
+                }
                 var thung = _context.Tbl_BM_16_GangLong
                     .FirstOrDefault(x => x.MaPhieu == req.MaPhieu 
                         && x.MaThungGang == item.MaThungGang 
