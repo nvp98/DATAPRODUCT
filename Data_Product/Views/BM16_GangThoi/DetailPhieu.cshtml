@@ -589,6 +589,7 @@
 			}
 	
 		function loadThemSoMeMoi() {
+		  $("#btnLamMoi").prop("disabled", true);
 		const ngay = $("#ID_Day").val();
 		const idLoCao = $("#ID_Locao").val();
 		const idKip = $("#ID_Kip").val();
@@ -717,6 +718,9 @@
 				}
 			});
 		});
+	setTimeout(() => {
+		$("#btnLamMoi").prop("disabled", false);
+	}, 10000);
 	}
 
 		function saveGangThoiVaoPhieu(callback) {
