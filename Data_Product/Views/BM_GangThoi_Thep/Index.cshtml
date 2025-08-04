@@ -453,7 +453,12 @@
                                     <th>Thùng trung gian</th>
                                     <th>KL thùng & gang lỏng (T) </th>
                                     <th>KL thùng (T)</th>
-                                    <th>KL phế (T)</th>
+                                    <th style="min-width: 90px">
+                                        <p>
+                                            KL phế (T)
+                                        </p> 
+                                        <input class="table_tbx" id="tbxKLPhe" type="number" min=0 />
+                                        </th>
                                     <th>KL vào lò thổi </th>
                                     <th>Mẻ thổi</th>
                                     <th>Giờ bắt đầu thổi</th>
@@ -784,7 +789,7 @@
                             <input ${disabledInputKL} class="table_tbx KLThungVaoLoThoi" type="number" min=0 name="klThung_Thoi" value="${tg.klThung_Thoi ?? ''}"/>
                         </td>
                         <td rowspan="${rowspan}">
-                            <input ${disabled} class="table_tbx KLPhe" type="number" min=0 name="kl_phe" value="${tg.kL_phe ?? ''}"/>
+                            <input ${disabled} class="table_tbx KLPhe" type="number" min=0 name="kl_phe" value="${tg.kL_phe ?? ''}" data-customized="false"/>
                         </td>
                         <td rowspan="${rowspan}" id="IDKLVaoLoThoi" class="KLVaoLoThoi">${tg.klGang_Thoi ?? '0.00'} </td>
                         <td rowspan="${rowspan}">
@@ -1482,6 +1487,17 @@
         // });
 
         // Tính khối lượng gang lỏng khi nhập vào KL Thùng & gang lỏng
+        $('#IDtbXuLySoLieu').on('input', '.KLPhe', function () {
+            const $input = $(this);
+            const tbxVal = parseFloat($('#tbxKLPhe').val()) || 0;
+            const inputVal = parseFloat($input.val()) || 0;
+
+            // Nếu giá trị không bằng tbxKLPhe => xem là chỉnh tay
+            if (inputVal !== tbxVal) {
+                $input.data('customized', true);
+            }
+        });
+
         $('#IDtbXuLySoLieu').on('input', '.KhoiLuongThungVaGangLong, .KhoiLuongThung, .KLPhe', function () {
             const $row = $(this).closest('tr');
             const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
@@ -1551,6 +1567,19 @@
             $row.find('.KLGangLong').text(!isNaN(KLGangLong) ? KLGangLong.toFixed(2) : '0.00');
         }
 
+        $('#tbxKLPhe').on('input', function() {
+            const newVal = parseFloat($(this).val()) || 0;
+
+            $('#IDtbXuLySoLieu .KLPhe').each(function () {
+                const $input = $(this);
+                const isDisabled = $input.prop('disabled');
+                const isCustomized = $input.data('customized') === true;
+
+                if (!isDisabled && !isCustomized) {
+                    $input.val(newVal).trigger('input');
+                }
+            });
+        });
         // function applyColumnVisibility() {
         //     const display = isHidden ? 'none' : 'table-cell';
        
