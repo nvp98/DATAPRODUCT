@@ -859,118 +859,221 @@ namespace Data_Product.Controllers
 
 
 
+        //[HttpPost]
+        //public async Task<IActionResult> HuyNhan([FromBody] HuyNhanThungDto payload)
+        //    {
+        //    if (payload.selectedMaThungs == null || payload.selectedMaThungs.Count == 0 || payload.idNguoiHuyNhan == null)
+        //        return BadRequest("Danh sách ID trống.");
+        //    try
+        //    {
+        //        using var tran = await _context.Database.BeginTransactionAsync();
+
+        //        //  Lấy các bản ghi bảng phụ của user hiện tại theo MaThung
+        //        var phuToDelete = await _context.Tbl_BM_16_TaiKhoan_Thung
+        //            .Where(x => payload.selectedMaThungs.Contains(x.MaThungGang) && x.ID_taiKhoan == payload.idNguoiHuyNhan)
+        //            .ToListAsync();
+
+
+        //        //  Xoá bản ghi bảng phụ của user hiện tại
+        //        _context.Tbl_BM_16_TaiKhoan_Thung.RemoveRange(phuToDelete);
+
+        //        // Lấy danh sách MaThep để xoá trong bảng thùng copy
+        //        var dsMaThepCanXoa = phuToDelete.Select(x => x.MaThungThep).Distinct().ToList();
+
+        //        // Xoá bản sao (copy) trong bảng chính theo MaThep và user hiện tại
+        //        var thungCopyToDelete = await _context.Tbl_BM_16_GangLong
+        //            .Where(x => x.T_copy == true && dsMaThepCanXoa.Contains(x.MaThungThep) && x.T_ID_NguoiNhan == payload.idNguoiHuyNhan)
+        //            .ToListAsync();
+
+        //        _context.Tbl_BM_16_GangLong.RemoveRange(thungCopyToDelete);
+
+
+        //        // Lọc ra các thùng gốc (T_copy == false) thuộc về người hủy
+        //        var thungGocCanCapNhat = await _context.Tbl_BM_16_GangLong
+        //            .Where(x => x.T_copy == false
+        //                        && payload.selectedMaThungs.Contains(x.MaThungGang)
+        //                        && _context.Tbl_BM_16_TaiKhoan_Thung.Any(y =>
+        //                                y.MaThungGang == x.MaThungGang
+        //                                && y.ID_taiKhoan == payload.idNguoiHuyNhan))
+        //            .ToListAsync();
+        //        if (thungGocCanCapNhat.Any())
+        //        {
+        //            foreach (var thung in thungGocCanCapNhat)
+        //            {
+        //                thung.MaThungThep = null;
+        //                thung.T_ID_Kip = null;
+        //                thung.NgayLuyenThep = null;
+        //                thung.T_KLThungVaGang = null;
+        //                thung.T_KLThungChua = null;
+        //                thung.T_KLGangLong = null;
+        //                thung.ThungTrungGian = null;
+        //                thung.T_KLThungVaGang_Thoi = null;
+        //                thung.T_KLThungChua_Thoi = null;
+        //                thung.T_KLGangLongThoi = null;
+        //                thung.T_GhiChu = null;
+        //                thung.T_ID_NguoiLuu = null;
+        //                thung.T_ID_Kip = null;
+        //                thung.ID_LoThoi = null;
+        //                thung.ID_MeThoi = null;
+        //                thung.T_Ca = null;
+        //                thung.T_ID_NguoiHuyNhan = payload.idNguoiHuyNhan;
+        //                thung.T_ID_TrangThai = (int)TinhTrang.ChoXuLy;
+        //                thung.ID_TTG = null;
+        //                thung.T_ID_NguoiNhan = null;
+        //            }
+        //        }
+
+        //        // Lấy tất cả ID_TTG của các thùng gang mà người dùng đang hủy
+        //        var ID_TTGList = await _context.Tbl_BM_16_GangLong
+        //            .Where(x => payload.selectedMaThungs.Contains(x.MaThungGang) && x.ID_TTG != null && x.T_ID_NguoiNhan == payload.idNguoiHuyNhan)
+        //            .Select(x => x.ID_TTG.Value)
+        //            .Distinct()
+        //            .ToListAsync();
+
+        //        // Duyệt qua từng ID_TTG để kiểm tra và xử lý thùng trung gian
+        //        foreach (var idTTG in ID_TTGList)
+        //        {
+        //            // Lấy tất cả thùng gang có cùng ID_TTG này và kiểm tra xem có thùng gang nào khác ngoài những thùng đang hủy không
+        //            var remainingGangLongRecords = await _context.Tbl_BM_16_GangLong
+        //                .Where(x => x.ID_TTG == idTTG && !payload.selectedMaThungs.Contains(x.MaThungGang))
+        //                .ToListAsync();
+
+        //            // Nếu không còn thùng gang nào khác sử dụng thùng trung gian này, thì xóa thùng trung gian
+        //            if (!remainingGangLongRecords.Any())
+        //            {
+        //                var thungTrungGianToDelete = await _context.Tbl_BM_16_ThungTrungGian
+        //                    .Where(x => x.ID == idTTG)
+        //                    .FirstOrDefaultAsync();
+
+
+        //                if (thungTrungGianToDelete != null)
+        //                {
+        //                    var thungTrungGianCopy = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.MaThungTG == thungTrungGianToDelete.MaThungTG && x.IsCopy == true).ToListAsync();
+        //                    if (thungTrungGianCopy.Any())
+        //                    {
+        //                        _context.Tbl_BM_16_ThungTrungGian.RemoveRange(thungTrungGianCopy);
+        //                    }
+        //                    _context.Tbl_BM_16_ThungTrungGian.Remove(thungTrungGianToDelete);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                //  Nếu còn thùng gang khác sử dụng thùng trung gian, cập nhật tổng KL Gang nhận
+        //                var thungTrungGianToUpdate = await _context.Tbl_BM_16_ThungTrungGian
+        //                    .Where(x => x.ID == idTTG)
+        //                    .FirstOrDefaultAsync();
+
+        //                if (thungTrungGianToUpdate != null)
+        //                {
+        //                    // Cập nhật lại Tong_KLGangNhan bằng tổng T_KLGangLong
+        //                    thungTrungGianToUpdate.Tong_KLGangNhan = remainingGangLongRecords
+        //                        .Sum(x => x.T_KLGangLong ?? 0); 
+        //                }
+        //            }
+        //        }
+
+        //        await _context.SaveChangesAsync();
+        //        await tran.CommitAsync();
+
+        //        return Ok(new { success = true });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
+        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+        //    }
+        //}
+
         [HttpPost]
         public async Task<IActionResult> HuyNhan([FromBody] HuyNhanThungDto payload)
-            {
-            if (payload.selectedMaThungs == null || payload.selectedMaThungs.Count == 0 || payload.idNguoiHuyNhan == null)
+        {
+            if (payload.selectedMaThungs == null || !payload.selectedMaThungs.Any() || payload.idNguoiHuyNhan == null)
                 return BadRequest("Danh sách ID trống.");
+
             try
             {
                 using var tran = await _context.Database.BeginTransactionAsync();
 
-                //  Lấy các bản ghi bảng phụ của user hiện tại theo MaThung
-                var phuToDelete = await _context.Tbl_BM_16_TaiKhoan_Thung
+                var danhSachPhu = await _context.Tbl_BM_16_TaiKhoan_Thung
                     .Where(x => payload.selectedMaThungs.Contains(x.MaThungGang) && x.ID_taiKhoan == payload.idNguoiHuyNhan)
                     .ToListAsync();
 
+                //var soDongXoa = await _chiaGangService.HuyChiaGangTheoNhieuThungGangAsync(payload.selectedMaThungs, payload.idNguoiHuyNhan);
 
-                //  Xoá bản ghi bảng phụ của user hiện tại
-                _context.Tbl_BM_16_TaiKhoan_Thung.RemoveRange(phuToDelete);
+                var dsMaThep = danhSachPhu.Select(x => x.MaThungThep).Distinct().ToList();
 
-                // Lấy danh sách MaThep để xoá trong bảng thùng copy
-                var dsMaThepCanXoa = phuToDelete.Select(x => x.MaThungThep).Distinct().ToList();
-
-                // Xoá bản sao (copy) trong bảng chính theo MaThep và user hiện tại
-                var thungCopyToDelete = await _context.Tbl_BM_16_GangLong
-                    .Where(x => x.T_copy == true && dsMaThepCanXoa.Contains(x.MaThungThep) && x.T_ID_NguoiNhan == payload.idNguoiHuyNhan)
+                var danhSachThungGang = await _context.Tbl_BM_16_GangLong
+                    .Where(x => dsMaThep.Contains(x.MaThungThep) && x.T_ID_NguoiNhan == payload.idNguoiHuyNhan)
                     .ToListAsync();
 
-                _context.Tbl_BM_16_GangLong.RemoveRange(thungCopyToDelete);
+                var thungCopyCanXoa = danhSachThungGang.Where(x => x.T_copy == true).ToList();
+                var thungGocCanCapNhat = danhSachThungGang.Where(x => x.T_copy == false).ToList();
 
-
-                // Lọc ra các thùng gốc (T_copy == false) thuộc về người hủy
-                var thungGocCanCapNhat = await _context.Tbl_BM_16_GangLong
-                    .Where(x => x.T_copy == false
-                                && payload.selectedMaThungs.Contains(x.MaThungGang)
-                                && _context.Tbl_BM_16_TaiKhoan_Thung.Any(y =>
-                                        y.MaThungGang == x.MaThungGang
-                                        && y.ID_taiKhoan == payload.idNguoiHuyNhan))
-                    .ToListAsync();
-                if (thungGocCanCapNhat.Any())
-                {
-                    foreach (var thung in thungGocCanCapNhat)
-                    {
-                        thung.MaThungThep = null;
-                        thung.T_ID_Kip = null;
-                        thung.NgayLuyenThep = null;
-                        thung.T_KLThungVaGang = null;
-                        thung.T_KLThungChua = null;
-                        thung.T_KLGangLong = null;
-                        thung.ThungTrungGian = null;
-                        thung.T_KLThungVaGang_Thoi = null;
-                        thung.T_KLThungChua_Thoi = null;
-                        thung.T_KLGangLongThoi = null;
-                        thung.T_GhiChu = null;
-                        thung.T_ID_NguoiLuu = null;
-                        thung.T_ID_Kip = null;
-                        thung.ID_LoThoi = null;
-                        thung.ID_MeThoi = null;
-                        thung.T_Ca = null;
-                        thung.T_ID_NguoiHuyNhan = payload.idNguoiHuyNhan;
-                        thung.T_ID_TrangThai = (int)TinhTrang.ChoXuLy;
-                        thung.ID_TTG = null;
-                        thung.T_ID_NguoiNhan = null;
-                    }
-                }
-
-                // Lấy tất cả ID_TTG của các thùng gang mà người dùng đang hủy
-                var ID_TTGList = await _context.Tbl_BM_16_GangLong
-                    .Where(x => payload.selectedMaThungs.Contains(x.MaThungGang) && x.ID_TTG != null && x.T_ID_NguoiNhan == payload.idNguoiHuyNhan)
+                var ID_TTGList = danhSachThungGang
+                    .Where(x => x.ID_TTG.HasValue)
                     .Select(x => x.ID_TTG.Value)
                     .Distinct()
-                    .ToListAsync();
+                    .ToList();
 
-                // Duyệt qua từng ID_TTG để kiểm tra và xử lý thùng trung gian
                 foreach (var idTTG in ID_TTGList)
                 {
-                    // Lấy tất cả thùng gang có cùng ID_TTG này và kiểm tra xem có thùng gang nào khác ngoài những thùng đang hủy không
-                    var remainingGangLongRecords = await _context.Tbl_BM_16_GangLong
+                    // Thùng gang KHÔNG bị hủy nhưng đang dùng TTG này
+                    var otherThungGang = await _context.Tbl_BM_16_GangLong
                         .Where(x => x.ID_TTG == idTTG && !payload.selectedMaThungs.Contains(x.MaThungGang))
                         .ToListAsync();
 
-                    // Nếu không còn thùng gang nào khác sử dụng thùng trung gian này, thì xóa thùng trung gian
-                    if (!remainingGangLongRecords.Any())
+                    if (!otherThungGang.Any())
                     {
-                        var thungTrungGianToDelete = await _context.Tbl_BM_16_ThungTrungGian
-                            .Where(x => x.ID == idTTG)
-                            .FirstOrDefaultAsync();
-
-
-                        if (thungTrungGianToDelete != null)
+                        // Không ai dùng nữa => xoá TTG & bản sao
+                        var thungTG = await _context.Tbl_BM_16_ThungTrungGian.FirstOrDefaultAsync(x => x.ID == idTTG);
+                        if (thungTG != null)
                         {
-                            var thungTrungGianCopy = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.MaThungTG == thungTrungGianToDelete.MaThungTG && x.IsCopy == true).ToListAsync();
-                            if (thungTrungGianCopy.Any())
-                            {
-                                _context.Tbl_BM_16_ThungTrungGian.RemoveRange(thungTrungGianCopy);
-                            }
-                            _context.Tbl_BM_16_ThungTrungGian.Remove(thungTrungGianToDelete);
+                            var copies = await _context.Tbl_BM_16_ThungTrungGian
+                                .Where(x => x.MaThungTG == thungTG.MaThungTG && x.IsCopy)
+                                .ToListAsync();
+
+                            _context.Tbl_BM_16_ThungTrungGian.RemoveRange(copies);
+                            _context.Tbl_BM_16_ThungTrungGian.Remove(thungTG);
                         }
                     }
                     else
                     {
-                        //  Nếu còn thùng gang khác sử dụng thùng trung gian, cập nhật tổng KL Gang nhận
-                        var thungTrungGianToUpdate = await _context.Tbl_BM_16_ThungTrungGian
-                            .Where(x => x.ID == idTTG)
-                            .FirstOrDefaultAsync();
-
-                        if (thungTrungGianToUpdate != null)
+                        // Còn thùng khác dùng => cập nhật lại tổng KL
+                        var thungTG = await _context.Tbl_BM_16_ThungTrungGian.FirstOrDefaultAsync(x => x.ID == idTTG);
+                        if (thungTG != null)
                         {
-                            // Cập nhật lại Tong_KLGangNhan bằng tổng T_KLGangLong
-                            thungTrungGianToUpdate.Tong_KLGangNhan = remainingGangLongRecords
-                                .Sum(x => x.T_KLGangLong ?? 0); 
+                            thungTG.Tong_KLGangNhan = otherThungGang.Sum(x => x.T_KLGangLong ?? 0);
                         }
                     }
                 }
+
+                foreach (var thung in thungGocCanCapNhat)
+                {
+                    thung.MaThungThep = null;
+                    thung.T_ID_Kip = null;
+                    thung.NgayLuyenThep = null;
+                    thung.T_KLThungVaGang = null;
+                    thung.T_KLThungChua = null;
+                    thung.T_KLGangLong = null;
+                    thung.ThungTrungGian = null;
+                    thung.T_KLThungVaGang_Thoi = null;
+                    thung.T_KLThungChua_Thoi = null;
+                    thung.T_KLGangLongThoi = null;
+                    thung.T_GhiChu = null;
+                    thung.T_ID_NguoiLuu = null;
+                    thung.T_ID_Kip = null;
+                    thung.ID_LoThoi = null;
+                    thung.ID_MeThoi = null;
+                    thung.T_Ca = null;
+                    thung.T_ID_NguoiHuyNhan = payload.idNguoiHuyNhan;
+                    thung.T_ID_TrangThai = (int)TinhTrang.ChoXuLy;
+                    thung.ID_TTG = null;
+                    thung.T_ID_NguoiNhan = null;
+                    thung.KLGangChia = null;
+                }
+
+                _context.Tbl_BM_16_TaiKhoan_Thung.RemoveRange(danhSachPhu);
+                _context.Tbl_BM_16_GangLong.RemoveRange(thungCopyCanXoa);
 
                 await _context.SaveChangesAsync();
                 await tran.CommitAsync();
@@ -979,10 +1082,10 @@ namespace Data_Product.Controllers
             }
             catch (Exception ex)
             {
-                TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
                 return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
             }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Luu([FromBody] List<ThungTrungGianDto> dsThungTG)
@@ -1482,6 +1585,8 @@ namespace Data_Product.Controllers
                         // Format toàn bảng
                         var usedRange = worksheet.Range($"A7:Q{sumRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
+                        //usedRange.Style.NumberFormat.SetFormat("General");
+                        usedRange.Style.Font.FontColor = XLColor.Black;
                         usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
