@@ -438,6 +438,7 @@
                         <table class="table table-bordered text-center align-middle table-hover" id="IDtbXuLySoLieu">
                             <thead class="table-light sticky-top bg-white" style="z-index: 2">
                                 <tr>
+                                    <th>STT</th>
                                     <th style="display: none">Chọn thùng</th>
                                     <th class="hide-col">Mã thùng thép</th>
                                     <th>Lò cao</th>
@@ -472,7 +473,7 @@
                                         0.00
                                     </td>
                                     <td colspan="3"></td> *@
-                                    <td class="total-space" colspan="6" style="font-weight: 600; text-align: start">Tổng</td>
+                                    <td class="total-space" colspan="7" style="font-weight: 600; text-align: start">Tổng</td>
                                     <td id="IDTongKLGangNhan" style="font-weight: 600">
                                         0.00
                                     </td>
@@ -697,6 +698,7 @@
                 return;
             }
             const phongBan = $("#IDPhongBan").val();
+            let stt = 1;
             data.forEach(tg => {
                 const rowspan = tg.danhSachThungGang.length;
                 const isCopy = tg.isCopy === true || tg.isCopy === 'true';
@@ -720,6 +722,7 @@
                     // }
 
                     row += `>`;
+                    row += `<td>${stt}</td>`;
                     // Cột thùng gang
                     row += `
                         <td style="display: none">
@@ -799,6 +802,7 @@
                     }
 
                     row += '</tr>';
+                    stt++;
                     tbody.append(row);
                 });
             });
@@ -1579,10 +1583,10 @@
 
             if( phongBan == "HRC2"){
                 $('.hrc2').css('display', display);
-                $('.total-space').attr('colspan', isHidden ? 6 : 8);
+                $('.total-space').attr('colspan', isHidden ? 7 : 9);
             } else {
                 // Nếu bạn có cột tổng cuối bảng cần cập nhật colspan
-                $('.total-space').attr('colspan', isHidden ? 6 : 7);
+                $('.total-space').attr('colspan', isHidden ? 7 : 8);
             }
 
         }
