@@ -29,6 +29,7 @@ using Data_Product.Models.ModelView;
 using Org.BouncyCastle.Ocsp;
 using System.Text.RegularExpressions;
 using MySqlConnector;
+using System;
 
 namespace Data_Product.Controllers
 {
@@ -680,10 +681,8 @@ namespace Data_Product.Controllers
                     .Select(k => k.TenCa)
                     .FirstOrDefaultAsync();
                 int? soCa = int.TryParse(tenCaStr, out int ca) ? ca : null;
-
                 foreach (var item in req.DanhSachThung)
                 {
-
                     bool duDuLieu = item.KL_XeGoong != null &&
                         item.G_KLThungChua != null &&
                         item.G_KLThungVaGang != null &&
@@ -1022,6 +1021,34 @@ namespace Data_Product.Controllers
             {
                 return BadRequest(new { success = false, message = "Lỗi khi hủy xác nhận thùng", error = ex.Message });
             }
+        }
+        [HttpGet]
+        public IActionResult GetLastThungIndex(string maPhieu)
+        {
+            var lastStt = _context.Tbl_BM_16_GangLong
+                .Where(x => x.MaPhieu == maPhieu)
+                .Select(x => x.MaThungGang)
+                .ToList()
+                .Select(ma =>
+                {
+                    var match = Regex.Match(ma ?? "", @"(\d{3})\.00$");
+                    return match.Success ? int.Parse(match.Groups[1].Value) : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max();
+
+            return Ok(new { lastStt });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSoMeDaCoTrongPhieu(string maPhieu)
+        {
+            var list = await _context.Tbl_BM_16_GangLong
+                .Where(x => x.MaPhieu == maPhieu)
+                .Select(x => x.BKMIS_SoMe)
+                .ToListAsync();
+
+            return Json(new { success = true, soMes = list });
         }
 
         public async Task<IActionResult> ExportToExcel(string MaPhieu)
