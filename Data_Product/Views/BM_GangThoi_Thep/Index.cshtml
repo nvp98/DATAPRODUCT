@@ -1416,7 +1416,7 @@
 
         });
 
-        $("#IDLoThoi, #IDNgayNhan").on('change', function () {
+        function UpdateCounter(){
             const NgayNhan = $('#IDNgayNhan').val() || null;
             const IDLoThoi = $('#IDLoThoi').val() || null;
             if(NgayNhan && IDLoThoi){
@@ -1435,13 +1435,17 @@
                         if(res){
                             $("#latestCounter").text(res.stT_HienTai);
                         }
-                        
+
                     },
                     error: function (xhr) {
                         $("#latestCounter").text(xhr.responseText);
                     }
                 });
             }
+        }
+
+        $("#IDLoThoi, #IDNgayNhan").on('change', function () {
+            UpdateCounter();
         })
 
 
@@ -2353,10 +2357,13 @@
                 $('#btnDongModalTaoMeThoi').click();
                     alert("Tạo mẻ thổi thành công!");
                 // window.location.reload();
-
+                const NgayNhan = $('#IDNgayNhan').val() || null;
+                const IDCaNhan = $('#IDCaNhan').val() || null;
+                const IDLoThoi = $('#IDLoThoi').val() || null;
                 if(NgayNhan && IDCaNhan && IDLoThoi){
                     SearchThungDaNhanTheoUser();
                 }
+                UpdateCounter();
             },
             error: function (err) {
                 alert("Tạo mẻ thổi thất bại")
