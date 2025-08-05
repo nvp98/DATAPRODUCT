@@ -573,17 +573,17 @@
 
 				return `${dd}${mm}${yy}L${loCao}${caChar}${sttFormatted}.00`;
 		}
-		function getLastThungIndex()
-		{
-			const maPhieu = $('#PhieuID').val()?.trim();
-			if (!maPhieu) return;
+			function getLastThungIndex() {
+		const maPhieu = $('#PhieuID').val()?.trim();
+		if (!maPhieu) return;
 
-			$.get("/BM16_GangThoi/GetLastThungIndex", { maPhieu }, function (data) {
-				const lastIndex = (data && data.lastStt !== undefined) ? data.lastStt : 0;
-				loadThemSoMeMoi(lastIndex);
-			});
-		}
-		function loadThemSoMeMoi(lastIndexFromServer) {
+		$.get("/BM16_GangThoi/GetLastThungIndex", { maPhieu }, function (data) {
+			const lastIndex = (data && data.lastStt !== undefined) ? data.lastStt : 0;
+			loadThemSoMeMoi(lastIndex);
+		});
+	}
+
+	function loadThemSoMeMoi(lastIndexFromServer) {
 		$("#btnLamMoi").prop("disabled", true);
 		const ngay = $("#ID_Day").val();
 		const idLoCao = $("#ID_Locao").val();
@@ -592,57 +592,49 @@
 		const maPhieu = $('#PhieuID').val()?.trim();
 		const tableBody = $("#dataTable tbody");
 
-		const soMeHienTai = [];
+		$.get("/BM16_GangThoi/GetSoMeDaCoTrongPhieu", { maPhieu }, function (res) {
+			const soMeHienTai = res.soMes.map(soMe => ({
+				maThung: res.data?.find(item => item.soMe === soMe)?.maThung || "",
+				soMe: soMe
+			})) || [];
+			const soMeDaCoTrongDB = res.soMes || [];
+			console.log('soMeDaCoTrongDB',soMeDaCoTrongDB)
+			const listSoMeHienTai = soMeHienTai.map(x => x.soMe);
+			console.log('listSoMeHienTai',listSoMeHienTai)
+			const updateList = [];
+			$.get("/BM16_GangThoi/GetSoMeGangBKMis", { ngay, ID_LoCao: idLoCao, IDKip: idKip }, function (data) {
+				const soMeMoi = data.map(item => item.testPatternCode || "");
+				console.log('soMeMoi',soMeMoi)
+				const soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
 
-		// [Case 0] Lấy danh sách mẻ hiện tại trên UI
-		tableBody.find("tr").each(function () {
-			const maThung = $(this).find("td[name='maThung']").text().trim();
-			const soMe = $(this).find("td[name='soMe']").text().trim();
-			if (soMe) {
-				soMeHienTai.push({ maThung, soMe });
-			}
-		});
-	$.get("/BM16_GangThoi/GetSoMeDaCoTrongPhieu", { maPhieu }, function (res) {
-		const soMeDaCoTrongDB = res.soMes || [];
+				$.get("/XeGoong/KLXeLoCao", { idlocao: idLoCao }, function (xeData) {
+					const klxe = (xeData.success && xeData.klXe) ? xeData.klXe : "";
+					let lastIndex = lastIndexFromServer || 0;
 
-		let lastIndex = lastIndexFromServer || 0;
-		const listSoMeHienTai = soMeHienTai.map(x => x.soMe);
-		const updateList = [];
+					data.forEach(item => {
+						const soMe = item.testPatternCode || "";
+						const matchedList = soMeHienTai.filter(x => x.soMe === soMe);
+						console.log('matchedList',matchedList)
+						const phanLoai = item.classifyName || "";
+						const time = item.patterntime || "";
 
-		// [Case 1] Gọi dữ liệu BK MIS
-		$.get("/BM16_GangThoi/GetSoMeGangBKMis", { ngay, ID_LoCao: idLoCao, IDKip: idKip }, function (data) {
-			const soMeMoi = data.map(item => item.testPatternCode || "");
+						if (soMeDaCoTrongDB.includes(soMe)) return;
 
-			// [Case 3] So sánh: số mẻ hiện tại nhưng không có trong BK MIS => cần xóa
-			const soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
-
-			// Lấy khối lượng xe goòng
-			$.get("/XeGoong/KLXeLoCao", { idlocao: idLoCao }, function (xeData) {
-				const klxe = (xeData.success && xeData.klXe) ? xeData.klXe : "";
-
-				data.forEach(item => {
-					const soMe = item.testPatternCode || "";
-					const matchedList = soMeHienTai.filter(x => x.soMe === soMe);
-					const phanLoai = item.classifyName || "";
-					const time = item.patterntime || "";
-
-					 if (soMeDaCoTrongDB.includes(soMe)) return;
-					// [Case 2] Nếu số mẻ mới chưa có -> thêm dòng mới
-					if (matchedList.length === 0) {
-						lastIndex++;
-						const maThung = generateMaThung(ngay, idLoCao, idCa, lastIndex);
-						const thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
+						if (matchedList.length === 0) {
+							lastIndex++;
+							const maThung = generateMaThung(ngay, idLoCao, idCa, lastIndex);
+							const thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
 							let row = `
 								<tr class="row-new" data-new="true" data-so-me="${soMe}">
-								<td class='text-center deleteItem'><a class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a></td>
-									<td class='text-center copyItem'><a class="btn btn-secondary btn-sm"><i class="bi bi-copy"></i></a></td>						
+									<td class='text-center deleteItem'><a class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a></td>
+									<td class='text-center copyItem'><a class="btn btn-secondary btn-sm"><i class="bi bi-copy"></i></a></td>
 									<td name="maThung">${maThung}</td>
 									<td name="soMe">${soMe}</td>
 									<td name="ThungSo">${thungSo}</td>
 									<td name="Gio">${time}</td>
 									<td name="PhanLoai">${phanLoai}</td>
 									<td><input name="KLThungVaXe" type="number" class="form-control" style="width: 100px;"></td>
-									<td><input type="number" name="KLThungGangXe" class="form-control"  style="width: 100px;"></td>									
+									<td><input type="number" name="KLThungGangXe" class="form-control" style="width: 100px;"></td>
 									<td><input type="number" name="KhoiLuongXeGoong" class="form-control" value="${klxe}" style="width: 100px;"></td>
 									<td><input name="KhoiLuongThung" type="number" class="form-control" style="width: 100px;"></td>
 									<td><input name="KLThungGangLong" type="number" class="form-control" style="width: 100px;"></td>
@@ -657,69 +649,63 @@
 									<td></td>
 									<td></td>
 									<td class="toggle-col"></td>
-										<td></td>
+									<td></td>
 								</tr>`;
 							tableBody.append(row);
-					}
-					// Nếu mẻ đã có -> yêu cầu backend cập nhật nếu trạng thái cho phép
-					else {
-						matchedList.forEach(matched => {
-							updateList.push({
-								MaThungGang: matched.maThung,
-								BKMIS_SoMe: soMe,
-								BKMIS_PhanLoai: phanLoai,
-								BKMIS_Gio: item.patterntime || ""
+						} else {
+							matchedList.forEach(matched => {
+								updateList.push({
+									MaThungGang: matched.maThung,
+									BKMIS_SoMe: soMe,
+									BKMIS_PhanLoai: phanLoai,
+									BKMIS_Gio: item.patterntime || ""
+								});
 							});
+						}
+					});
+
+					if (updateList.length > 0 && maPhieu) {
+						$.ajax({
+							url: "/BM16_GangThoi/CapNhatThung",
+							type: "POST",
+							contentType: "application/json",
+							data: JSON.stringify({ maPhieu, DsMaThung: updateList }),
+							success: function () {
+								alert("Đã cập nhật các thùng có trạng thái cho phép.");
+							},
+							error: function () {
+								alert("Lỗi khi cập nhật thùng.");
+							}
+						});
+					}
+
+					if (soMeCanXoa.length > 0 && maPhieu) {
+						$.ajax({
+							url: "/BM16_GangThoi/XoaNhungSoMeKhongConTrongBK",
+							type: "POST",
+							contentType: "application/json",
+							data: JSON.stringify({ maPhieu, soMes: soMeCanXoa }),
+							success: function (res) {
+								const danhSachKhongXoa = res.soMesKhongXoaDuoc || [];
+								tableBody.find("tr").each(function () {
+									const soMe = $(this).find("td[name='soMe']").text().trim();
+									if (soMeCanXoa.includes(soMe) && !danhSachKhongXoa.includes(soMe)) {
+										$(this).remove();
+									}
+								});
+							},
+							error: function () {
+								alert("Lỗi khi xóa số mẻ cũ.");
+							}
 						});
 					}
 				});
-
-				// [Gửi cập nhật thùng]
-				if (updateList.length > 0 && maPhieu) {
-					$.ajax({
-						url: "/BM16_GangThoi/CapNhatThung",
-						type: "POST",
-						contentType: "application/json",
-						data: JSON.stringify({ maPhieu, DsMaThung: updateList }),
-						success: function () {
-							alert("Đã cập nhật các thùng có trạng thái cho phép.");
-						},
-						error: function () {
-							alert("Lỗi khi cập nhật thùng.");
-						}
-					});
-				}
-
-				// [Gửi danh sách số mẻ cần xóa]
-				if (soMeCanXoa.length > 0 && maPhieu) {
-					$.ajax({
-						url: "/BM16_GangThoi/XoaNhungSoMeKhongConTrongBK",
-						type: "POST",
-						contentType: "application/json",
-						data: JSON.stringify({ maPhieu, soMes: soMeCanXoa }),
-						success: function (res) {
-							const danhSachKhongXoa = res.soMesKhongXoaDuoc || [];
-
-							tableBody.find("tr").each(function () {
-								const soMe = $(this).find("td[name='soMe']").text().trim();
-
-								// Chỉ xóa nếu không thuộc danh sách không được xóa
-								if (soMeCanXoa.includes(soMe) && !danhSachKhongXoa.includes(soMe)) {
-									$(this).remove();
-								}
-							});
-						},
-						error: function () {
-							alert("Lỗi khi xóa số mẻ cũ.");
-						}
-					});
-				}
 			});
+
+			setTimeout(() => {
+				$("#btnLamMoi").prop("disabled", false);
+			}, 10000);
 		});
-	setTimeout(() => {
-		$("#btnLamMoi").prop("disabled", false);
-	}, 10000);
-	});
 	}
 
 		function saveGangThoiVaoPhieu(callback) {
