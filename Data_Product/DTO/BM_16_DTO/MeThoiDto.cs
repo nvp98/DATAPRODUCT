@@ -18,4 +18,10 @@
     {
         public int id_LoThoi { get; set; }
     }
+
+    public class GetLatestCounterDto
+    {
+        public int id_LoThoi { get; set; }
+        public DateTime ngayLamViec { get; set; }
+    }
 }
