@@ -1100,10 +1100,33 @@ namespace Data_Product.Controllers
                     else
                     {
                         var thungTG = await _context.Tbl_BM_16_ThungTrungGian.FirstOrDefaultAsync(x => x.ID == idTTG);
+                       
                         if (thungTG != null)
                         {
+                            int count = 0;
+
+                            foreach(var item in otherThungGang)
+                            {
+                                var KLSoSanh = item.T_KLThungVaGang - item.T_KLThungChua - thungTG.KL_phe;
+                                if (item.T_KLGangLong == KLSoSanh)
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    count++;
+                                }
+                            }
+                            if(count == otherThungGang.Count())
+                            {
+                                var firstItem = otherThungGang.Where(x => x.T_KLGangLong >= thungTG.KL_phe).FirstOrDefault();
+                                if (firstItem != null)
+                                    firstItem.T_KLGangLong = firstItem.T_KLGangLong - thungTG.KL_phe;
+                            }
+
                             thungTG.Tong_KLGangNhan = otherThungGang.Sum(x => x.T_KLGangLong ?? 0);
                         }
+
                     }
                 }
 
