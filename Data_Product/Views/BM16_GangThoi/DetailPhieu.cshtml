@@ -591,20 +591,23 @@
 		const idCa = $("#IDCa").val();
 		const maPhieu = $('#PhieuID').val()?.trim();
 		const tableBody = $("#dataTable tbody");
-
+		const soMesTrongBangHTML = [];
+		$("#dataTable tbody tr").each(function () {
+			const soMe = $(this).find("td[name='soMe']").text().trim();
+			if (soMe) soMesTrongBangHTML.push(soMe);
+		});
 		$.get("/BM16_GangThoi/GetSoMeDaCoTrongPhieu", { maPhieu }, function (res) {
 			const soMeHienTai = res.soMes.map(soMe => ({
 				maThung: res.data?.find(item => item.soMe === soMe)?.maThung || "",
 				soMe: soMe
 			})) || [];
 			const soMeDaCoTrongDB = res.soMes || [];
-			console.log('soMeDaCoTrongDB',soMeDaCoTrongDB)
 			const listSoMeHienTai = soMeHienTai.map(x => x.soMe);
-			console.log('listSoMeHienTai',listSoMeHienTai)
 			const updateList = [];
+
 			$.get("/BM16_GangThoi/GetSoMeGangBKMis", { ngay, ID_LoCao: idLoCao, IDKip: idKip }, function (data) {
 				const soMeMoi = data.map(item => item.testPatternCode || "");
-				console.log('soMeMoi',soMeMoi)
+
 				const soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
 
 				$.get("/XeGoong/KLXeLoCao", { idlocao: idLoCao }, function (xeData) {
@@ -614,11 +617,10 @@
 					data.forEach(item => {
 						const soMe = item.testPatternCode || "";
 						const matchedList = soMeHienTai.filter(x => x.soMe === soMe);
-						console.log('matchedList',matchedList)
 						const phanLoai = item.classifyName || "";
 						const time = item.patterntime || "";
 
-						if (soMeDaCoTrongDB.includes(soMe)) return;
+					   if (soMeDaCoTrongDB.includes(soMe) || soMesTrongBangHTML.includes(soMe)) return;
 
 						if (matchedList.length === 0) {
 							lastIndex++;
@@ -816,7 +818,7 @@
 				data: JSON.stringify(dataToSend),
 				success: function (res) {
 			alert("Lưu thành công");
-			if (typeof callback === "function") callback(); // tiếp tục gọi cập nhật
+			if (typeof callback === "function") callback();
 		},
 				error: function (err) {
 					alert("Lỗi khi lưu: " + err.responseText);

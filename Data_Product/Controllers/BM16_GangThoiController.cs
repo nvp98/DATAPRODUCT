@@ -688,7 +688,7 @@ namespace Data_Product.Controllers
 
                     if (daTonTai)
                     {
-                        continue; // Không thêm trùng
+                        continue;
                     }
 
                     bool duDuLieu = item.KL_XeGoong != null &&
