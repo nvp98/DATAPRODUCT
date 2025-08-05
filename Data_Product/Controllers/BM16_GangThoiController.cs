@@ -683,6 +683,14 @@ namespace Data_Product.Controllers
                 int? soCa = int.TryParse(tenCaStr, out int ca) ? ca : null;
                 foreach (var item in req.DanhSachThung)
                 {
+                    var daTonTai = await _context.Tbl_BM_16_GangLong
+                    .AnyAsync(x => x.MaPhieu == req.MaPhieu && x.BKMIS_SoMe == item.BKMIS_SoMe);
+
+                    if (daTonTai)
+                    {
+                        continue; // Không thêm trùng
+                    }
+
                     bool duDuLieu = item.KL_XeGoong != null &&
                         item.G_KLThungChua != null &&
                         item.G_KLThungVaGang != null &&
@@ -751,7 +759,7 @@ namespace Data_Product.Controllers
             {
                 if (string.IsNullOrEmpty(item.MaThungGang)) continue;
                 var thung = await _context.Tbl_BM_16_GangLong
-                    .FirstOrDefaultAsync(x => x.MaPhieu == item.MaPhieu && x.MaThungGang == item.MaThungGang);
+                    .FirstOrDefaultAsync(x => x.MaPhieu == item.MaPhieu && x.MaThungGang == item.MaThungGang && x.T_copy == false);
                 if (thung == null || thung.ID_TrangThai == 5) continue;
                 var chuyenDen = item.ChuyenDen ?? "";
 
@@ -1045,10 +1053,15 @@ namespace Data_Product.Controllers
         {
             var list = await _context.Tbl_BM_16_GangLong
                 .Where(x => x.MaPhieu == maPhieu)
-                .Select(x => x.BKMIS_SoMe)
+                .Select(x => new { soMe = x.BKMIS_SoMe, maThung = x.MaThungGang })
                 .ToListAsync();
 
-            return Json(new { success = true, soMes = list });
+            return Json(new
+            {
+                success = true,
+                soMes = list.Select(x => x.soMe).ToList(),
+                data = list
+            });
         }
 
         public async Task<IActionResult> ExportToExcel(string MaPhieu)
