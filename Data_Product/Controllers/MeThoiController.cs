@@ -2,6 +2,7 @@
 using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.EntityFrameworkCore;
@@ -161,6 +162,27 @@ namespace Data_Product.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { success = true, message = "Khôi phục mẻ thời thành công." });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetLatestCounter([FromBody] GetLatestCounterDto dto)
+        {
+            var currentDate = dto.ngayLamViec;
+            string yearPart = (currentDate.Year % 100).ToString("D2");
+            string loaiMe = Enum.GetName(typeof(LoThoi), dto.id_LoThoi); 
+            string prefix = yearPart + loaiMe;       // Ví dụ: 25A
+
+            var result = await _context.Tbl_Counter_MeThoi.Where(x => x.Prefix == prefix).FirstOrDefaultAsync();
+            
+            if(result != null)
+            {
+
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest("Không tồn tại mẻ ở lò thổi và năm làm việc này");
+            }
         }
     }
 }

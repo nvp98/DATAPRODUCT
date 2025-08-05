@@ -123,7 +123,10 @@
         margin-left: 20px;
         font-size: 12px;
     }
-
+    .tong-so-me{
+        display: flex;
+        gap: 10px;
+    }
 
     .table_tbx {
         border: solid grey 1px;
@@ -384,6 +387,10 @@
                                                 }
                                             </select>
                                         </div>
+                                        <div class="tong-so-me" >
+                                            <p>Số Mẻ lớn nhất của lò hiện tại: </p>
+                                            <p id="latestCounter"></p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
@@ -567,7 +574,6 @@
             </div>
             <div class="modal-body">
                 <div class="mb-0" id="huyNhanThung-content"></div>
-                <p class="mb-0">Bạn muốn hủy nhận thùng này?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -1403,11 +1409,41 @@
             const NgayNhan = $('#IDNgayNhan').val() || null;
             const IDCaNhan = $('#IDCaNhan').val() || null;
             const IDLoThoi = $('#IDLoThoi').val() || null;
-
+            
             if(NgayNhan && IDCaNhan && IDLoThoi){
                 SearchThungDaNhanTheoUser();
             }
+
         });
+
+        $("#IDLoThoi, #IDNgayNhan").on('change', function () {
+            const NgayNhan = $('#IDNgayNhan').val() || null;
+            const IDLoThoi = $('#IDLoThoi').val() || null;
+            if(NgayNhan && IDLoThoi){
+                const dto = {
+                    id_LoThoi : parseInt(IDLoThoi),
+                    ngayLamViec: NgayNhan
+                }
+                $.ajax({
+                    url: "/MeThoi/GetLatestCounter",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(dto),
+                    processData: false,
+                    success: function (res) {
+                        // console.log(res)
+                        if(res){
+                            $("#latestCounter").text(res.stT_HienTai);
+                        }
+                        
+                    },
+                    error: function (xhr) {
+                        $("#latestCounter").text(xhr.responseText);
+                    }
+                });
+            }
+        })
+
 
         $("#IDCaNhan").on('change', function () {
             const NgayNhan = $('#IDNgayNhan').val() || null;
@@ -1545,27 +1581,31 @@
           
         });
 
+       
         function tinhKLGangLong($row) {
             const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
             const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
 
-            // Lấy KLPhe từ dòng đầu tiên trong nhóm thùng trung gian
             const maThungTG = $row.data('mathungtg');
             const $rowGroupHead = $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).first();
-            const KLPhe = parseFloat($rowGroupHead.find('.KLPhe').val());
+            const isFirstRow = $row.is($rowGroupHead); 
 
             let KLGangLong = 0;
 
             if (!isNaN(KLThungVaGangLong) && !isNaN(KLThung)) {
                 KLGangLong = KLThungVaGangLong - KLThung;
 
-                if (!isNaN(KLPhe)) {
-                    KLGangLong -= KLPhe;
+                if (isFirstRow) {
+                    const KLPhe = parseFloat($rowGroupHead.find('.KLPhe').val());
+                    if (!isNaN(KLPhe)) {
+                        KLGangLong -= KLPhe;
+                    }
                 }
             }
 
             $row.find('.KLGangLong').text(!isNaN(KLGangLong) ? KLGangLong.toFixed(2) : '0.00');
         }
+
 
         $('#tbxKLPhe').on('input', function() {
             const newVal = parseFloat($(this).val()) || 0;
@@ -1744,23 +1784,23 @@
                         const modal = new bootstrap.Modal(document.getElementById('huyNhanThungModal'));
                         modal.show();
 
-                        let html ='';
-                        data.forEach(item => {
-                        const solan = item.soLanDaNhan.length;
-                        html += `<div>
-                                <p>Thùng ${item.maThungGang} đã được nhận - ${solan} lần</p>
-                            `;
-                            item.soLanDaNhan.forEach(lan =>{
-                                const ngay = new Date(lan.ngay);
-                                const day = ngay.getDate().toString().padStart(2, '0');
-                                const month = (ngay.getMonth() + 1).toString().padStart(2, '0');
-                                const year = ngay.getFullYear();
-                                const ngayFormatted = `${day}/${month}/${year}`;
+                        let html = '';
 
-                                let stt = 1;
-                                    html += `<p>${stt}. Ca ${lan.ca} ngày ${ngayFormatted} - ${lan.soLan} lần</p>`;
-                                stt++;
-                            })
+                        data.forEach(item => {
+                            const thung = item.maThungGang;
+                            const chiTiet = item.chiTietCaNgay || [];
+
+                            const tongLan = chiTiet.reduce((acc, curr) => acc + curr.soLan, 0);
+
+                            html += `<div class="mb-2">
+                                <p><strong>Thùng ${thung}</strong> đã được nhận <strong>${tongLan}</strong> lần:</p>`;
+
+                            chiTiet.forEach((lan, index) => {
+                                const ngay = new Date(lan.ngay);
+                                const ngayFormatted = `${ngay.getDate().toString().padStart(2, '0')}/${(ngay.getMonth() + 1).toString().padStart(2, '0')}/${ngay.getFullYear()}`;
+                                html += `<p class="ms-3">${index + 1}. Ca ${lan.ca} – Ngày ${ngayFormatted} – ${lan.soLan} lần</p>`;
+                            });
+
                             html += `</div>`;
                         });
                         $("#huyNhanThung-content").html(html);
@@ -1773,6 +1813,9 @@
                         ReLoad();
                     }
                     selectedMaThungHuyTmp = null;
+                },
+                error: function () {
+                    alert("Lỗi khi gọi API. Vui lòng thử lại.");
                 }
             });
         }
