@@ -418,23 +418,9 @@ namespace Data_Product.Controllers
                  sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
                  sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
             }
-
-            //if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
-            //{
-            //    query = query.OrderByDescending(x => x.NgayLuyenThep)
-            //                    .ThenBy(x => x.MaThungGang)
-            //                    .ThenBy(x => x.MaThungThep);
-
-            //}
-            //else
-            //{
-            //    query = query.OrderByDescending(x => x.NgayTao)
-            //                        .ThenBy(x => x.MaThungGang)
-            //                        .ThenBy(x => x.MaThungThep);
-            //}
+            
             // Tổng số bản ghi
             var totalRecords = await query.CountAsync();
-
 
             // Check nếu không có pageNumber và pageSize sẽ lấy dữ liệu để xuất excel
             if (dto.PageNumber.HasValue && dto.PageSize.HasValue)
@@ -539,27 +525,66 @@ namespace Data_Product.Controllers
             var maTTGs = gocData.Where(x => !string.IsNullOrEmpty(x.MaThungTG)).Select(x => x.MaThungTG).Distinct();
             var thungTG_Copies = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.IsCopy == true && maTTGs.Contains(x.MaThungTG)).ToListAsync();
 
-            for (int i = 0; i < gocData.Count; i++)
-            {
-                var item = gocData[i];
+            // Final result list để hiển thị
+            var finalData = new List<Tbl_BM_16_GangLong>();
 
+            //for (int i = 0; i < gocData.Count; i++)
+            //{
+            //    var item = gocData[i];
+
+            //    if (!item.ID_TTG.HasValue || item.IsCopy == true) continue;
+
+            //    // Tìm các thùng copy có cùng MaThungTG
+            //    var copies = thungTG_Copies
+            //        .Where(x => x.MaThungTG == item.MaThungTG)
+            //        .ToList();
+
+            //    int insertIndex = i + 1;
+
+            //    foreach (var copy in copies)
+            //    {
+            //        var clone = CloneGangLong(item);
+
+            //        var methoi = await _context.Tbl_MeThoi
+            //            .Where(x => x.ID == copy.ID_MeThoi)
+            //            .FirstOrDefaultAsync();
+
+            //        clone.ID_TTG = copy.ID;
+            //        clone.IsCopy = true;
+            //        clone.SoThungTG = copy.SoThungTG;
+            //        clone.KLThungVaGang_Thoi = copy.KLThungVaGang_Thoi;
+            //        clone.KLThung_Thoi = copy.KLThung_Thoi;
+            //        clone.KLGang_Thoi = copy.KLGang_Thoi;
+            //        clone.KL_phe = copy.KL_phe;
+            //        clone.ID_MeThoi = methoi?.ID;
+            //        clone.MaMeThoi = methoi?.MaMeThoi;
+            //        clone.GioChonMe = copy.GioChonMe;
+            //        gocData.Insert(insertIndex, clone);
+            //        insertIndex++; 
+            //        i++; 
+            //    }
+            //}
+            foreach (var item in gocData)
+            {
+                // Thêm dòng gốc
+                finalData.Add(item);
+
+                // Nếu không có ID_TTG hoặc là bản copy rồi thì bỏ qua
                 if (!item.ID_TTG.HasValue || item.IsCopy == true) continue;
 
-                // Tìm các thùng copy có cùng MaThungTG
+                // Tìm các bản copy tương ứng
                 var copies = thungTG_Copies
                     .Where(x => x.MaThungTG == item.MaThungTG)
                     .ToList();
-
-                int insertIndex = i + 1;
 
                 foreach (var copy in copies)
                 {
                     var clone = CloneGangLong(item);
 
                     var methoi = await _context.Tbl_MeThoi
-                        .Where(x => x.ID == copy.ID_MeThoi)
-                        .FirstOrDefaultAsync();
+                        .FirstOrDefaultAsync(x => x.ID == copy.ID_MeThoi);
 
+                    // Gán lại thông tin từ bản sao
                     clone.ID_TTG = copy.ID;
                     clone.IsCopy = true;
                     clone.SoThungTG = copy.SoThungTG;
@@ -570,13 +595,13 @@ namespace Data_Product.Controllers
                     clone.ID_MeThoi = methoi?.ID;
                     clone.MaMeThoi = methoi?.MaMeThoi;
                     clone.GioChonMe = copy.GioChonMe;
-                    gocData.Insert(insertIndex, clone);
-                    insertIndex++; 
-                    i++; 
+
+                    // Thêm vào danh sách kết quả
+                    finalData.Add(clone);
                 }
             }
-            var test = gocData;
-            var groupedData = gocData
+            //var test = gocData;
+            var groupedData = finalData
                                 .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
                                 //.OrderByDescending(g => g.Max(x => x.NgayTao))
                                 .Select(g => g.ToList())
