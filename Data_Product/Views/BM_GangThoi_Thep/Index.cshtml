@@ -1331,7 +1331,6 @@
 
                         // Chèn bản sao vào đúng vị trí
                         dataThungDaNhan.splice(insertAfter + 1, 0, tgCopy);
-
                         // Gọi hàm render lại bảng
                         renderTableXuLySoLieu(dataThungDaNhan);
                     } else {
@@ -1983,25 +1982,39 @@
             const $rows = $('#IDtbXuLySoLieu tbody tr');
 
             // === Gom nhóm theo data-mathungtg ===
+            // const groups = {};
+            // $rows.each(function () {
+            //     const $row = $(this);
+            //     const maThungTG = $row.attr('data-mathungtg');
+            //     if (!maThungTG) return;
+
+            //     if (!groups[maThungTG]) groups[maThungTG] = [];
+            //     groups[maThungTG].push($row);
+            // });
             const groups = {};
             $rows.each(function () {
                 const $row = $(this);
+                const isCopy = String($row.attr('data-copy')).toLowerCase() === 'true';
                 const maThungTG = $row.attr('data-mathungtg');
-                if (!maThungTG) return;
+                const maThungTG_Copy = $row.attr('data-mathungcopy');
 
-                if (!groups[maThungTG]) groups[maThungTG] = [];
-                groups[maThungTG].push($row);
+                // Bỏ qua nếu không có mã thùng
+                if (!maThungTG && !maThungTG_Copy) return;
+
+                const groupKey = isCopy ? `COPY_${maThungTG_Copy}` : `ORIGIN_${maThungTG}`;
+                if (!groups[groupKey]) groups[groupKey] = [];
+                groups[groupKey].push($row);
             });
 
-            let isValidLuu = true;
 
-            for (const maThungTG in groups) {
-                const groupRows = groups[maThungTG];
+            let isValidLuu = true;
+            for (const key in groups) {
+                const groupRows = groups[key];
                 const $firstRow = groupRows[0];
 
+                const maThungTG = $firstRow.attr('data-mathungtg') || null;
                 const maThungTG_Copy = $firstRow.attr('data-mathungcopy') || null;
                 const isCopy = String($firstRow.attr('data-copy')).toLowerCase() === 'true';
-                const key = isCopy ? `COPY_${maThungTG_Copy}` : `ORIGIN_${maThungTG}`;
 
                 const parent = {
                     MaThungTG: maThungTG,
@@ -2069,7 +2082,8 @@
                 return null;
             }
 
-            return Object.values(thungTrungGianMap);
+            const result = Object.values(thungTrungGianMap);
+            return result;
         }
 
         // Chia Gang
