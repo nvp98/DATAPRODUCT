@@ -734,8 +734,12 @@
             `;
         }
 
+
         function renderStatusPKH(item) {
-            if (item.iD_TrangThai === 5) return renderStatusCard(item.iD_TrangThai);
+            if (item.iD_TrangThai === 5) {
+                // Nếu đã duyệt thì giữ nguyên
+                return renderStatusCard(item.iD_TrangThai);
+            }
 
             const isValidValue = val => val !== null && val !== undefined;
 
@@ -744,34 +748,48 @@
                 item.g_ID_TrangThai === 3,
                 isValidValue(item.iD_TTG),
                 isValidValue(item.soThungTG),
-                isValidValue(item.klThungVaGang_Thoi),
-                isValidValue(item.klThung_Thoi),
-                isValidValue(item.klGang_Thoi),
-                isValidValue(item.kL_phe),
                 isValidValue(item.iD_MeThoi),
-                isValidValue(item.gioChonMe),
+                isValidValue(item.gioChonMe)
             ];
 
+            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
+
+            let isValid = false;
+
             if (item.isCopy) {
-                const isValid = commonFields.every(Boolean);
-                return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+                // Nếu là bản copy → chỉ cần commonFields
+                isValid = commonFields.every(Boolean);
             } else {
+                // Nếu là bản gốc → cần thêm các field khác
                 const additionalFields = [
                     isValidValue(item.kL_XeGoong),
                     isValidValue(item.g_KLThungChua),
                     isValidValue(item.g_KLThungVaGang),
                     isValidValue(item.g_KLGangLong),
                     isValidValue(item.chuyenDen),
-                    isValidValue(item.gio_NM),
-                    isValidValue(item.t_KLThungVaGang),
-                    isValidValue(item.t_KLThungChua),
-                    isValidValue(item.t_KLGangLong),
+                    isValidValue(item.gio_NM)
                 ];
 
-                const isValid = [...commonFields, ...additionalFields].every(Boolean);
-                return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+                // Nếu không có klGangChia → kiểm tra thêm 3 field nữa
+                if (!hasKlGangChia) {
+                    additionalFields.push(
+                        isValidValue(item.t_KLThungVaGang),
+                        isValidValue(item.t_KLThungChua),
+                        isValidValue(item.t_KLGangLong),
+                        isValidValue(item.klThungVaGang_Thoi),
+                        isValidValue(item.klThung_Thoi),
+                        isValidValue(item.klGang_Thoi),
+                        isValidValue(item.kL_phe),
+                    );
+                }
+
+                isValid = [...commonFields, ...additionalFields].every(Boolean);
             }
+
+            // Cập nhật trạng thái nếu đủ điều kiện
+            return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
         }
+
 
         function KLChenhLech(g_KLGangLong, t_KLGangLong) {
             if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
@@ -802,47 +820,101 @@
 
             flatData.forEach(item => {
                 const key = item.maThungGang;
+                if (!key) return;
 
                 if (!grouped[key]) {
                     grouped[key] = {
                         maThungGang: key,
                         sum_g_KLGangLong: 0,
-                        sum_t_KLGangLong: 0
+                        sum_t_KLGangLong: 0,
+                        sum_klGangChia: 0
                     };
                 }
 
+                const g_KLGangLong = parseFloat(item.g_KLGangLong) || 0;
+                const t_KLGangLong = parseFloat(item.t_KLGangLong) || 0;
+                const klGangChia = parseFloat(item.klGangChia);
+
                 if (item.t_copy === false) {
-                    grouped[key].sum_g_KLGangLong += Number(item.g_KLGangLong) || 0;
+                    grouped[key].sum_g_KLGangLong += g_KLGangLong;
                 }
 
-                grouped[key].sum_t_KLGangLong += Number(item.t_KLGangLong) || 0;
+                grouped[key].sum_t_KLGangLong += t_KLGangLong;
+
+                if (!isNaN(klGangChia)) {
+                    grouped[key].sum_klGangChia += klGangChia;
+                    grouped[key].hasValid_klGangChia = true;
+                } else if (!isNaN(t_KLGangLong)) {
+                    grouped[key].sum_klGangChia += t_KLGangLong;
+                }
             });
+            // Giai đoạn sau cùng: nếu không có klGangChia hợp lệ thì reset sum_klGangChia về 0
+            for (const key in grouped) {
+                if (!grouped[key].hasValid_klGangChia) {
+                    grouped[key].sum_klGangChia = 0;
+                }
+                delete grouped[key].hasValid_klGangChia; // dọn dẹp
+            }
 
             return grouped;
         }
-            // Tính phần trăm chênh lệch khối lượng
+         // Tính phần trăm chênh lệch khối lượng
         function PhanTramKLChenhLech(maThungGang) {
             const grouped = tinhTongTheoMaThungGang();
             const record = grouped[maThungGang];
+            if (!record) return null;
 
-            if(record && record.sum_t_KLGangLong !== null && record.sum_g_KLGangLong !== null && !isNaN(record.sum_g_KLGangLong) && !isNaN(record.sum_t_KLGangLong) && record.sum_t_KLGangLong !== 0){
-                const result = ((record.sum_t_KLGangLong - record.sum_g_KLGangLong) / record.sum_t_KLGangLong) * 100;
+            const {
+                sum_klGangChia,
+                sum_t_KLGangLong,
+                sum_g_KLGangLong
+            } = record;
+
+            const isNumber = val => val !== null && !isNaN(val);
+
+            // Ưu tiên tính phần trăm theo klGangChia nếu có
+            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                const result = ((sum_klGangChia - sum_g_KLGangLong) / sum_klGangChia) * 100;
                 return result.toFixed(1);
             }
+
+            // Nếu không có klGangChia → fallback sang t_KLGangLong
+            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                const result = ((sum_t_KLGangLong - sum_g_KLGangLong) / sum_t_KLGangLong) * 100;
+                return result.toFixed(1);
+            }
+
             return null;
         }
+
 
         // Tính khối lượng chênh lệch
         function KhoiLuongChenhLech(maThungGang) {
             const grouped = tinhTongTheoMaThungGang();
             const record = grouped[maThungGang];
 
-            if(record && record.sum_t_KLGangLong !== null && record.sum_g_KLGangLong !== null && !isNaN(record.sum_g_KLGangLong) && !isNaN(record.sum_t_KLGangLong) && record.sum_t_KLGangLong !== 0){
-                const result = record.sum_t_KLGangLong - record.sum_g_KLGangLong;
-                return result.toFixed(2);
+            if (!record) return null;
+            const {
+                sum_klGangChia,
+                sum_g_KLGangLong,
+                sum_t_KLGangLong
+            } = record;
+
+            const isNumber = val => val !== null && !isNaN(val);
+
+            // Ưu tiên sử dụng klGangChia nếu có
+            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                return (sum_klGangChia - sum_g_KLGangLong).toFixed(2);
             }
+
+            // Nếu không có klGangChia → dùng t_KLGangLong
+            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong)  && sum_g_KLGangLong !== 0) {
+                return (sum_t_KLGangLong - sum_g_KLGangLong).toFixed(2);
+            }
+
             return null;
         }
+
 
         // Tính khối lượng đúc theo phần trăm
         function KhoiLuongDuc(maThungGang) {
@@ -926,6 +998,12 @@
                     const klChenh = item.t_copy || isCopy ? null : KhoiLuongChenhLech(item.maThungGang);
                     const ptChenh = item.t_copy || isCopy ? null : PhanTramKLChenhLech(item.maThungGang);
 
+                    const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
+
+                    const displayedValue = hasKlGangChia ? item.klGangChia : (item.t_KLGangLong ?? '');
+                    const textColor = hasKlGangChia ? 'text-danger' : ''; // đỏ nếu có chia, đen nếu không
+                    const showButton = hasKlGangChia ? 'inline-block' : 'none';
+
                     const klDuc = (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') && item.t_copy === false ? KhoiLuongDuc(item.maThungGang) : null;
 
                     row.append(`<td class="sticky-col-1">${ngayLG ?? ''}</td>`);
@@ -965,15 +1043,25 @@
                     row.append(`<td  class="hide-col">${item.t_KLThungVaGang ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungChua ?? ''}</td>`);
                     row.append(`<td  class="hide-col T_KLGangLong">${item.t_KLGangLong ?? ''}</td>`);
-                    row.append(`<td  class="hide-col text-danger" style="width: 100px;" style="color: red">
-                        <div class="d-flex align-items-center justify-content-center gap-2">
-                              ${item.klGangChia ?? ''}
-                              <button class="btn p-0 border-0 bg-transparent btnDetailChiaGang" style="display: ${item.klGangChia ? 'inline-block':'none'}">
-                                <i class="bi bi-eye-fill"></i>
-                              </button>
-                            </div>
+                    // row.append(`<td  class="hide-col text-danger" style="width: 100px;" style="color: red">
+                    //     <div class="d-flex align-items-center justify-content-center gap-2">
+                    //           ${item.klGangChia ?? ''}
+                    //           <button class="btn p-0 border-0 bg-transparent btnDetailChiaGang" style="display: ${item.klGangChia ? 'inline-block':'none'}">
+                    //             <i class="bi bi-eye-fill"></i>
+                    //           </button>
+                    //         </div>
                     
-                    </td>`);
+                    // </td>`);
+                    row.append(`
+                      <td class="hide-col ${textColor}" style="width: 100px;">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                          ${displayedValue}
+                          <button class="btn p-0 border-0 bg-transparent btnDetailChiaGang" style="display: ${showButton}">
+                            <i class="bi bi-eye-fill"></i>
+                          </button>
+                        </div>
+                      </td>
+                    `);
                     if (isFirstRow) {
                         row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
@@ -1043,19 +1131,50 @@
             if (isDUC && item.t_ID_TrangThai === 4 && item.g_ID_TrangThai === 3) {
                 return true;
             }
+            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
 
-            if (
-                item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 ||
-                item.kL_XeGoong == null || item.g_KLThungChua == null || item.g_KLThungVaGang == null || item.g_KLGangLong == null || item.chuyenDen == null || item.gio_NM == null ||
-                item.t_KLThungVaGang == null || item.t_KLThungChua == null ||
-                item.t_KLGangLong == null || item.iD_TTG == null || item.soThungTG == null ||
-                item.klThungVaGang_Thoi == null || item.klThung_Thoi == null ||
-                item.klGang_Thoi == null || item.kL_phe == null || item.iD_MeThoi == null || item.gioChonMe == null
-            ) {
-                return false;
+            // if (
+            //     item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 ||
+            //     item.kL_XeGoong == null || item.g_KLThungChua == null || item.g_KLThungVaGang == null || item.g_KLGangLong == null || item.chuyenDen == null || item.gio_NM == null ||
+            //     item.t_KLThungVaGang == null || item.t_KLThungChua == null ||
+            //     item.t_KLGangLong == null || item.iD_TTG == null || item.soThungTG == null ||
+            //     item.klThungVaGang_Thoi == null || item.klThung_Thoi == null ||
+            //     item.klGang_Thoi == null || item.kL_phe == null || item.iD_MeThoi == null || item.gioChonMe == null
+            // ) {
+            //     return false;
+            // }
+
+            // return true;
+            // Danh sách điều kiện bắt buộc phải có
+            const requiredFields = [
+                item.t_ID_TrangThai === 4,
+                item.g_ID_TrangThai === 3,
+                item.kL_XeGoong != null,
+                item.g_KLThungChua != null,
+                item.g_KLThungVaGang != null,
+                item.g_KLGangLong != null,
+                item.chuyenDen != null,
+                item.gio_NM != null,
+                item.iD_TTG != null,
+                item.soThungTG != null,
+                item.iD_MeThoi != null,
+                item.gioChonMe != null
+            ];
+
+            // Nếu không có klGangChia thì phải kiểm tra thêm 3 trường này
+            if (!hasKlGangChia) {
+                requiredFields.push(
+                    item.t_KLThungVaGang != null,
+                    item.t_KLThungChua != null,
+                    item.t_KLGangLong != null,
+                    item.klThungVaGang_Thoi != null,
+                    item.klThung_Thoi != null,
+                    item.klGang_Thoi != null,
+                    item.kL_phe != null,
+                );
             }
 
-            return true;
+            return requiredFields.every(cond => cond === true);
            
         }
         
