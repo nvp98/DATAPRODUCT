@@ -46,6 +46,6 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_BM_16_LoSanXuat_TaiKhoan> Tbl_BM_16_LoSanXuat_TaiKhoan { get; set; }
         public DbSet<Tbl_BM_16_LoSanXuat> Tbl_BM_16_LoSanXuat { get; set; }
         public DbSet<Tbl_BM_16_PhanTramDuc> Tbl_BM_16_PhanTramDuc { get; set; }
-      
+        public DbSet<Tbl_BM_16_ChiaGang> Tbl_BM_16_ChiaGang { get; set; }
     }
 }
