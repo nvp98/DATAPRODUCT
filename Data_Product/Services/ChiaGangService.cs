@@ -180,7 +180,7 @@ namespace Data_Product.Services
                 throw new Exception("Không có đủ khối lượng gang bên Luyện Gang để chia. Vui Lòng kiểm tra lại.");
 
             var tongT_KLGangLongChon = listAll
-                .Where(x => selectedIds.Contains(x.ID) && x.T_KLGangLong.HasValue && x.T_KLThungVaGang.HasValue && x.T_KLThungChua.HasValue && x.KL_Phe.HasValue)
+                .Where(x => selectedIds.Contains(x.ID) && x.T_KLGangLong.HasValue && x.T_KLThungVaGang.HasValue && x.T_KLThungChua.HasValue)
                 .Sum(x => x.T_KLGangLong.Value);
 
             foreach (var item in listAll.Where(x => selectedIds.Contains(x.ID)))

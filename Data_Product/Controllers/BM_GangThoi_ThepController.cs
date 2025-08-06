@@ -1068,6 +1068,8 @@ namespace Data_Product.Controllers
                     .Where(x => payload.selectedMaThungs.Contains(x.MaThungGang) && x.ID_taiKhoan == payload.idNguoiHuyNhan)
                     .ToListAsync();
 
+                var soDongXoa = await _chiaGangService.HuyChiaGangTheoNhieuThungGangAsync(payload.selectedMaThungs, payload.idNguoiHuyNhan);
+
                 var dsMaThep = danhSachPhu.Select(x => x.MaThungThep).Distinct().ToList();
 
                 var danhSachThungGang = await _context.Tbl_BM_16_GangLong

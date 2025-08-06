@@ -357,20 +357,23 @@
                                     <label class="form-label">Thùng số:</label>
                                     <input type="number" class="form-control form-control-sm" id="ThungSo" />
                                 </div>
-                                
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <div class="d-flex flex-column gap-2 w-100">
-                                        <div class="d-flex justify-content-between w-100 gap-2">
-                                            <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
-                                            <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
-                                        </div>
-                                        <div class="d-flex justify-content-between w-100 gap-2">
-                                            <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
-                                            <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
-                                        </div>
+                                    <label class="form-label">Mã mẻ thổi:</label>
+                                    <input type="text" class="form-control form-control-sm" id="MaMeThoi" />
+                                </div>
+                                
+                                
+                             </div>
+                            <div class="row">
+                                <div class="col-12" style="padding-bottom: 5px;">
+                                    <div class="d-flex justify-content-end w-100 gap-2">
+                                        <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
+                                        <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
+                                        <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
+                                        <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
                                     </div>
                                 </div>
-                             </div>
+                            </div>
                          </div>
                     </div>
                 </div>
@@ -1101,6 +1104,7 @@
             const MaThungGang = $("#MaThungGang").val() || null;
             const MaThungThep = $("#MaThungThep").val() || null;
             const TinhTrangChot = $("#TinhTrangChot").val() || null;
+            const MaMeThoi = $("#MaMeThoi").val() || null;
 
             return dto = {
                 ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
@@ -1119,7 +1123,8 @@
                 ID_TinhTrang_LG: TinhTrangLG ? parseInt(TinhTrangLG) : null,
                 ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null,
                 MaThungGang: MaThungGang || null,
-                MaThungThep: MaThungThep || null
+                MaThungThep: MaThungThep || null,
+                MaMeThoi: MaMeThoi || null
             };
         }
 
@@ -1348,7 +1353,7 @@
         })
 
         $("#btnReset").click(function() {
-            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep']);
+            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi']);
             currentPage = 1;
             Search();
         })
@@ -1386,7 +1391,6 @@
                   data: JSON.stringify(idThung),
                   processData: false,
                   success: function (res) {
-                      console.log(res);
                       const modalChiaGang = new bootstrap.Modal(document.getElementById('modalShowChiaGang'));
                         modalChiaGang.show();
 
