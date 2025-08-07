@@ -9,7 +9,7 @@
     public class TaoMeThoiDto
     {
         public int id_LoThoi { get; set; }
-        public string maLoThoi { get; set; }
+        //public string maLoThoi { get; set; }
         public int soLuong { get; set; }
         public DateTime ngayTao{ get; set; }
     }

@@ -14,6 +14,8 @@ namespace Data_Product.Models.ModelView
         public decimal? T_KLThungChua { get; set; }
         public decimal? T_KLThungVaGang { get; set; }
         public decimal? KLGangChia { get; set; }
+        public int? T_ID_NguoiNhan { get; set; }
+
 
         public int? G_ID_NguoiLuu { get; set; }
         public int? G_ID_NguoiChuyen { get; set; }

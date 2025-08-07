@@ -3,6 +3,7 @@ using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Humanizer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.EntityFrameworkCore;
@@ -60,16 +61,21 @@ namespace Data_Product.Controllers
         [HttpPost]
         public async Task<IActionResult> TaoMeThoi([FromBody] TaoMeThoiDto payload)
         {
-            if (payload.soLuong <= 0 || string.IsNullOrEmpty(payload.maLoThoi))
+            if (payload.soLuong <= 0 || payload.id_LoThoi == null)
                 return BadRequest("Dữ liệu không hợp lệ.");
 
             // get User
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
 
+
+            var lothoi = await _context.Tbl_LoThoi.Where(x => x.ID == payload.id_LoThoi).FirstOrDefaultAsync();
+            if (lothoi == null)
+                return BadRequest("Không tìm thấy lò thổi");
+
             var currentDate = payload.ngayTao;
             string yearPart = (currentDate.Year % 100).ToString("D2"); 
-            string loaiMe = payload.maLoThoi.Trim(); // A,B,C
+            string loaiMe = lothoi.MaLoThoi; // A,B,C
             string prefix = yearPart + loaiMe;       // Ví dụ: 25A
 
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -167,10 +173,14 @@ namespace Data_Product.Controllers
         [HttpPost]
         public async Task<IActionResult> GetLatestCounter([FromBody] GetLatestCounterDto dto)
         {
+            if(dto.id_LoThoi == null)
+                return BadRequest("Vui lòng chọn lò thổi");
+            var lothoi = await _context.Tbl_LoThoi.Where(x => x.ID == dto.id_LoThoi).FirstOrDefaultAsync();
+            if(lothoi == null)
+                return BadRequest("Không tìm thấy lò thổi");
             var currentDate = dto.ngayLamViec;
             string yearPart = (currentDate.Year % 100).ToString("D2");
-            string loaiMe = Enum.GetName(typeof(LoThoi), dto.id_LoThoi); 
-            string prefix = yearPart + loaiMe;       // Ví dụ: 25A
+            string prefix = yearPart + lothoi.MaLoThoi;       // Ví dụ: 25A
 
             var result = await _context.Tbl_Counter_MeThoi.Where(x => x.Prefix == prefix).FirstOrDefaultAsync();
             

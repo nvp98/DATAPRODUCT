@@ -82,6 +82,7 @@
         background: none;
         border: none;
     }
+    
 
     .rotate-icon {
         transition: transform 0.3s ease;
@@ -356,20 +357,23 @@
                                     <label class="form-label">Thùng số:</label>
                                     <input type="number" class="form-control form-control-sm" id="ThungSo" />
                                 </div>
-                                
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <div class="d-flex flex-column gap-2 w-100">
-                                        <div class="d-flex justify-content-between w-100 gap-2">
-                                            <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
-                                            <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
-                                        </div>
-                                        <div class="d-flex justify-content-between w-100 gap-2">
-                                            <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
-                                            <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
-                                        </div>
+                                    <label class="form-label">Mã mẻ thổi:</label>
+                                    <input type="text" class="form-control form-control-sm" id="MaMeThoi" />
+                                </div>
+                                
+                                
+                             </div>
+                            <div class="row">
+                                <div class="col-12" style="padding-bottom: 5px;">
+                                    <div class="d-flex justify-content-end w-100 gap-2">
+                                        <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
+                                        <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
+                                        <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
+                                        <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
                                     </div>
                                 </div>
-                             </div>
+                            </div>
                          </div>
                     </div>
                 </div>
@@ -410,6 +414,7 @@
                         <th class="hide-col">KL thùng & gang lỏng (T)</th>
                         <th class="hide-col">KL thùng (T)</th>
                         <th class="hide-col">KL gang lỏng (T)</th>
+                        <th class="hide-col">KL gang chia (T)</th>
                         <th>KL Gang nhận (T)</th>
                         <th>Lò thổi</th>
                         <th>Thùng trung gian</th>
@@ -441,6 +446,7 @@
                         <td class="hide-col" id="IDTongKLGangLongThep" style="font-weight: 600">
                             0.00
                         </td>
+                        <td class="hide-col"></td>
                         <td id="IDTongKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -469,6 +475,7 @@
                         <td class="hide-col" id="IDTongAllKLGangLongThep" style="font-weight: 600">
                             0.00
                         </td>
+                        <td class="hide-col"></td>
                         <td id="IDTongAllKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -495,6 +502,75 @@
         <nav class="py-2">
             <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
         </nav>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modalShowChiaGang" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalChiaGang" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 50%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết chia gang</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalChiaGang"></button>
+            </div>
+            <div class="modal-body" id="chiaGangContent" style="overflow-x: hidden;">
+
+                <!-- 1. KL NM.LG -->
+                <h6 class="fw-bold">1. KL NM.LG:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblNMLG">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng gang</th>
+                            <th>Thùng số</th>
+                            <th>KL bên LG</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <!-- 2. KL đã rót NM.HRC -->
+                <h6 class="fw-bold mt-4">2. KL đã rót NM.HRC:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblNMLT">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng thép</th>
+                            <th>Thùng số</th>
+                            <th>KL thùng&gang</th>
+                            <th>KL thùng</th>
+                            <th>KL gang</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <!-- 3. KL Chia -->
+                <h6 class="fw-bold mt-4">3. KL Chia:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblGangChia">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng thép</th>
+                            <th>Thùng số</th>
+                            <th>KL thùng&gang</th>
+                            <th>KL thùng</th>
+                            <th>KL Phế</th>
+                            <th>KL gang</th>
+                            <th>Tỷ lệ chia</th>
+                            <th>KL chia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnDongChiaGang" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -658,8 +734,12 @@
             `;
         }
 
+
         function renderStatusPKH(item) {
-            if (item.iD_TrangThai === 5) return renderStatusCard(item.iD_TrangThai);
+            if (item.iD_TrangThai === 5) {
+                // Nếu đã duyệt thì giữ nguyên
+                return renderStatusCard(item.iD_TrangThai);
+            }
 
             const isValidValue = val => val !== null && val !== undefined;
 
@@ -668,34 +748,48 @@
                 item.g_ID_TrangThai === 3,
                 isValidValue(item.iD_TTG),
                 isValidValue(item.soThungTG),
-                isValidValue(item.klThungVaGang_Thoi),
-                isValidValue(item.klThung_Thoi),
-                isValidValue(item.klGang_Thoi),
-                isValidValue(item.kL_phe),
                 isValidValue(item.iD_MeThoi),
-                isValidValue(item.gioChonMe),
+                isValidValue(item.gioChonMe)
             ];
 
+            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
+
+            let isValid = false;
+
             if (item.isCopy) {
-                const isValid = commonFields.every(Boolean);
-                return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+                // Nếu là bản copy → chỉ cần commonFields
+                isValid = commonFields.every(Boolean);
             } else {
+                // Nếu là bản gốc → cần thêm các field khác
                 const additionalFields = [
                     isValidValue(item.kL_XeGoong),
                     isValidValue(item.g_KLThungChua),
                     isValidValue(item.g_KLThungVaGang),
                     isValidValue(item.g_KLGangLong),
                     isValidValue(item.chuyenDen),
-                    isValidValue(item.gio_NM),
-                    isValidValue(item.t_KLThungVaGang),
-                    isValidValue(item.t_KLThungChua),
-                    isValidValue(item.t_KLGangLong),
+                    isValidValue(item.gio_NM)
                 ];
 
-                const isValid = [...commonFields, ...additionalFields].every(Boolean);
-                return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+                // Nếu không có klGangChia → kiểm tra thêm 3 field nữa
+                if (!hasKlGangChia) {
+                    additionalFields.push(
+                        isValidValue(item.t_KLThungVaGang),
+                        isValidValue(item.t_KLThungChua),
+                        isValidValue(item.t_KLGangLong),
+                        isValidValue(item.klThungVaGang_Thoi),
+                        isValidValue(item.klThung_Thoi),
+                        isValidValue(item.klGang_Thoi),
+                        isValidValue(item.kL_phe),
+                    );
+                }
+
+                isValid = [...commonFields, ...additionalFields].every(Boolean);
             }
+
+            // Cập nhật trạng thái nếu đủ điều kiện
+            return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
         }
+
 
         function KLChenhLech(g_KLGangLong, t_KLGangLong) {
             if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
@@ -726,47 +820,101 @@
 
             flatData.forEach(item => {
                 const key = item.maThungGang;
+                if (!key) return;
 
                 if (!grouped[key]) {
                     grouped[key] = {
                         maThungGang: key,
                         sum_g_KLGangLong: 0,
-                        sum_t_KLGangLong: 0
+                        sum_t_KLGangLong: 0,
+                        sum_klGangChia: 0
                     };
                 }
 
+                const g_KLGangLong = parseFloat(item.g_KLGangLong) || 0;
+                const t_KLGangLong = parseFloat(item.t_KLGangLong) || 0;
+                const klGangChia = parseFloat(item.klGangChia);
+
                 if (item.t_copy === false) {
-                    grouped[key].sum_g_KLGangLong += Number(item.g_KLGangLong) || 0;
+                    grouped[key].sum_g_KLGangLong += g_KLGangLong;
                 }
 
-                grouped[key].sum_t_KLGangLong += Number(item.t_KLGangLong) || 0;
+                grouped[key].sum_t_KLGangLong += t_KLGangLong;
+
+                if (!isNaN(klGangChia)) {
+                    grouped[key].sum_klGangChia += klGangChia;
+                    grouped[key].hasValid_klGangChia = true;
+                } else if (!isNaN(t_KLGangLong)) {
+                    grouped[key].sum_klGangChia += t_KLGangLong;
+                }
             });
+            // Giai đoạn sau cùng: nếu không có klGangChia hợp lệ thì reset sum_klGangChia về 0
+            for (const key in grouped) {
+                if (!grouped[key].hasValid_klGangChia) {
+                    grouped[key].sum_klGangChia = 0;
+                }
+                delete grouped[key].hasValid_klGangChia; // dọn dẹp
+            }
 
             return grouped;
         }
-            // Tính phần trăm chênh lệch khối lượng
+         // Tính phần trăm chênh lệch khối lượng
         function PhanTramKLChenhLech(maThungGang) {
             const grouped = tinhTongTheoMaThungGang();
             const record = grouped[maThungGang];
+            if (!record) return null;
 
-            if(record && record.sum_t_KLGangLong !== null && record.sum_g_KLGangLong !== null && !isNaN(record.sum_g_KLGangLong) && !isNaN(record.sum_t_KLGangLong) && record.sum_t_KLGangLong !== 0){
-                const result = ((record.sum_t_KLGangLong - record.sum_g_KLGangLong) / record.sum_t_KLGangLong) * 100;
+            const {
+                sum_klGangChia,
+                sum_t_KLGangLong,
+                sum_g_KLGangLong
+            } = record;
+
+            const isNumber = val => val !== null && !isNaN(val);
+
+            // Ưu tiên tính phần trăm theo klGangChia nếu có
+            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                const result = ((sum_klGangChia - sum_g_KLGangLong) / sum_klGangChia) * 100;
                 return result.toFixed(1);
             }
+
+            // Nếu không có klGangChia → fallback sang t_KLGangLong
+            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                const result = ((sum_t_KLGangLong - sum_g_KLGangLong) / sum_t_KLGangLong) * 100;
+                return result.toFixed(1);
+            }
+
             return null;
         }
+
 
         // Tính khối lượng chênh lệch
         function KhoiLuongChenhLech(maThungGang) {
             const grouped = tinhTongTheoMaThungGang();
             const record = grouped[maThungGang];
 
-            if(record && record.sum_t_KLGangLong !== null && record.sum_g_KLGangLong !== null && !isNaN(record.sum_g_KLGangLong) && !isNaN(record.sum_t_KLGangLong) && record.sum_t_KLGangLong !== 0){
-                const result = record.sum_t_KLGangLong - record.sum_g_KLGangLong;
-                return result.toFixed(2);
+            if (!record) return null;
+            const {
+                sum_klGangChia,
+                sum_g_KLGangLong,
+                sum_t_KLGangLong
+            } = record;
+
+            const isNumber = val => val !== null && !isNaN(val);
+
+            // Ưu tiên sử dụng klGangChia nếu có
+            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                return (sum_klGangChia - sum_g_KLGangLong).toFixed(2);
             }
+
+            // Nếu không có klGangChia → dùng t_KLGangLong
+            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong)  && sum_g_KLGangLong !== 0) {
+                return (sum_t_KLGangLong - sum_g_KLGangLong).toFixed(2);
+            }
+
             return null;
         }
+
 
         // Tính khối lượng đúc theo phần trăm
         function KhoiLuongDuc(maThungGang) {
@@ -850,6 +998,12 @@
                     const klChenh = item.t_copy || isCopy ? null : KhoiLuongChenhLech(item.maThungGang);
                     const ptChenh = item.t_copy || isCopy ? null : PhanTramKLChenhLech(item.maThungGang);
 
+                    const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
+
+                    const displayedValue = hasKlGangChia ? item.klGangChia : (item.t_KLGangLong ?? '');
+                    const textColor = hasKlGangChia ? 'text-danger' : ''; // đỏ nếu có chia, đen nếu không
+                    const showButton = hasKlGangChia ? 'inline-block' : 'none';
+
                     const klDuc = (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') && item.t_copy === false ? KhoiLuongDuc(item.maThungGang) : null;
 
                     row.append(`<td class="sticky-col-1">${ngayLG ?? ''}</td>`);
@@ -889,6 +1043,25 @@
                     row.append(`<td  class="hide-col">${item.t_KLThungVaGang ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungChua ?? ''}</td>`);
                     row.append(`<td  class="hide-col T_KLGangLong">${item.t_KLGangLong ?? ''}</td>`);
+                    // row.append(`<td  class="hide-col text-danger" style="width: 100px;" style="color: red">
+                    //     <div class="d-flex align-items-center justify-content-center gap-2">
+                    //           ${item.klGangChia ?? ''}
+                    //           <button class="btn p-0 border-0 bg-transparent btnDetailChiaGang" style="display: ${item.klGangChia ? 'inline-block':'none'}">
+                    //             <i class="bi bi-eye-fill"></i>
+                    //           </button>
+                    //         </div>
+                    
+                    // </td>`);
+                    row.append(`
+                      <td class="hide-col ${textColor}" style="width: 100px;">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                          ${displayedValue}
+                          <button class="btn p-0 border-0 bg-transparent btnDetailChiaGang" style="display: ${showButton}">
+                            <i class="bi bi-eye-fill"></i>
+                          </button>
+                        </div>
+                      </td>
+                    `);
                     if (isFirstRow) {
                         row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
@@ -958,19 +1131,50 @@
             if (isDUC && item.t_ID_TrangThai === 4 && item.g_ID_TrangThai === 3) {
                 return true;
             }
+            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
 
-            if (
-                item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 ||
-                item.kL_XeGoong == null || item.g_KLThungChua == null || item.g_KLThungVaGang == null || item.g_KLGangLong == null || item.chuyenDen == null || item.gio_NM == null ||
-                item.t_KLThungVaGang == null || item.t_KLThungChua == null ||
-                item.t_KLGangLong == null || item.iD_TTG == null || item.soThungTG == null ||
-                item.klThungVaGang_Thoi == null || item.klThung_Thoi == null ||
-                item.klGang_Thoi == null || item.kL_phe == null || item.iD_MeThoi == null || item.gioChonMe == null
-            ) {
-                return false;
+            // if (
+            //     item.t_ID_TrangThai !== 4 || item.g_ID_TrangThai !== 3 ||
+            //     item.kL_XeGoong == null || item.g_KLThungChua == null || item.g_KLThungVaGang == null || item.g_KLGangLong == null || item.chuyenDen == null || item.gio_NM == null ||
+            //     item.t_KLThungVaGang == null || item.t_KLThungChua == null ||
+            //     item.t_KLGangLong == null || item.iD_TTG == null || item.soThungTG == null ||
+            //     item.klThungVaGang_Thoi == null || item.klThung_Thoi == null ||
+            //     item.klGang_Thoi == null || item.kL_phe == null || item.iD_MeThoi == null || item.gioChonMe == null
+            // ) {
+            //     return false;
+            // }
+
+            // return true;
+            // Danh sách điều kiện bắt buộc phải có
+            const requiredFields = [
+                item.t_ID_TrangThai === 4,
+                item.g_ID_TrangThai === 3,
+                item.kL_XeGoong != null,
+                item.g_KLThungChua != null,
+                item.g_KLThungVaGang != null,
+                item.g_KLGangLong != null,
+                item.chuyenDen != null,
+                item.gio_NM != null,
+                item.iD_TTG != null,
+                item.soThungTG != null,
+                item.iD_MeThoi != null,
+                item.gioChonMe != null
+            ];
+
+            // Nếu không có klGangChia thì phải kiểm tra thêm 3 trường này
+            if (!hasKlGangChia) {
+                requiredFields.push(
+                    item.t_KLThungVaGang != null,
+                    item.t_KLThungChua != null,
+                    item.t_KLGangLong != null,
+                    item.klThungVaGang_Thoi != null,
+                    item.klThung_Thoi != null,
+                    item.klGang_Thoi != null,
+                    item.kL_phe != null,
+                );
             }
 
-            return true;
+            return requiredFields.every(cond => cond === true);
            
         }
         
@@ -1019,6 +1223,7 @@
             const MaThungGang = $("#MaThungGang").val() || null;
             const MaThungThep = $("#MaThungThep").val() || null;
             const TinhTrangChot = $("#TinhTrangChot").val() || null;
+            const MaMeThoi = $("#MaMeThoi").val() || null;
 
             return dto = {
                 ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
@@ -1037,7 +1242,8 @@
                 ID_TinhTrang_LG: TinhTrangLG ? parseInt(TinhTrangLG) : null,
                 ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null,
                 MaThungGang: MaThungGang || null,
-                MaThungThep: MaThungThep || null
+                MaThungThep: MaThungThep || null,
+                MaMeThoi: MaMeThoi || null
             };
         }
 
@@ -1266,7 +1472,7 @@
         })
 
         $("#btnReset").click(function() {
-            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep']);
+            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi']);
             currentPage = 1;
             Search();
         })
@@ -1289,6 +1495,84 @@
 
             applyColumnVisibility();
         });
+
+        $('#tblDuLieu').on('click', '.btnDetailChiaGang', function() {
+            const row = $(this).closest('tr');
+            const idThung = row.data('id'); 
+            if(!idThung){
+                alert('lỗi không lấy được ID');
+                return;
+            }
+            $.ajax({
+                  url: "/BM16_GangThoi_PKH/GetDetailChiaGang",
+                  type: "POST",
+                  contentType: "application/json",
+                  data: JSON.stringify(idThung),
+                  processData: false,
+                  success: function (res) {
+                      const modalChiaGang = new bootstrap.Modal(document.getElementById('modalShowChiaGang'));
+                        modalChiaGang.show();
+
+                        const tbodyNMLG = $('#tblNMLG tbody');
+                        tbodyNMLG.empty();
+
+                        const tbodyNMLT = $('#tblNMLT tbody');
+                        tbodyNMLT.empty();
+
+                        const tbodyGangChia = $('#tblGangChia tbody');
+                        tbodyGangChia.empty();
+
+                        let htmlNMLG = ``
+                        let htmlNMLT = ``;
+                        let htmlGangChia = ``;
+
+                        res.thungGoc.forEach(item => {
+                                            htmlNMLG += `
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungGang}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td class="text-danger fw-bold">${item.g_KLGangLong ?? ''}</td>
+                                                </tr>`;
+                        });
+                        tbodyNMLG.append(htmlNMLG);
+
+                        res.thungDaCoKL.forEach(item => {
+                                    htmlNMLT += `
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungThep}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td>${item.t_KLThungVaGang ?? ''}</td>
+                                                    <td>${item.t_KLThungChua ?? ''}</td>
+                                                    <td class="text-danger fw-bold">${item.t_KLGangLong ?? ''}</td>
+                                                </tr>`;
+                        });
+                        tbodyNMLT.append(htmlNMLT);
+
+                         res.thungAll.forEach(item => {
+                         htmlGangChia += `
+                                        <tr>
+                                            <td>${item.iD_Locao}</td>
+                                            <td>${item.maThungThep}</td>
+                                            <td>${item.bkmiS_ThungSo}</td>
+                                            <td>${item.t_KLThungVaGang ?? ''}</td>
+                                            <td>${item.t_KLThungChua ?? ''}</td>
+                                            <td>${item.kL_Phe ?? ''}</td>
+                                            <td>${item.t_KLGangLong ?? ''}</td>
+                                            <td class="text-danger fw-bold">${item.tyLeChia ? item.tyLeChia + "%" :''}</td>
+                                            <td class="bg-warning fw-bold">${item.klChia ?? ''}</td>
+                                        </tr>`;
+                         });
+                        tbodyGangChia.append(htmlGangChia);
+                      // Search();
+                  },
+                  error: function () {
+                      alert("Lỗi khi nhận dữ liệu!");
+                  }
+              });
+        }) 
+
 
         function applyColumnVisibility() {
             const display = isHidden ? 'none' : 'table-cell';

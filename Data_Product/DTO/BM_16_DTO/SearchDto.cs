@@ -19,6 +19,7 @@
         public int? ID_TinhTrang_LG { get; set; }
         public string? MaThungGang { get; set; }
         public string? MaThungThep { get; set; }
+        public string? MaMeThoi { get; set; }
         public int? PageNumber { get; set; }
         public int? PageSize { get; set; } 
     }

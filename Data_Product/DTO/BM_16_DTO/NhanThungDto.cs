@@ -2,7 +2,7 @@
 {
     public class NhanThungDto
     {
-        public List<int> selectedIds { get; set; }
+        public List<string> selectedThungs { get; set; }
         public DateTime ngayNhan { get; set; }
         public int idCa { get; set; }
         public int idLoThoi { get; set; }

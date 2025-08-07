@@ -156,6 +156,10 @@
         display: none;
     }
 
+    #BtnXuatPhieuPDF{
+        display: none;
+    }
+
     .select2-container--default .select2-selection--single,
     .select2-container--default .select2-selection--multiple,
     .select2-results__option {
@@ -401,11 +405,11 @@
                     </div>
                     <div class="row g-3" style="position: absolute;bottom: 10px;right: 12px;">
                         <div class="col-12 d-flex justify-content-end">
-                            <button class="btn btn-warning btn-sm px-4" id="BtnChiaGang" style="display: none">Gộp Tính KL</button>
+                            <button class="btn btn-warning btn-sm px-4" id="BtnChiaGang" >Gộp Tính KL</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnLuu">Lưu</button>
                             <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel">Xuất Excel</button>
-                            <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF" style="display: none">Xuất PDF</button>
+                            <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
                             <button class="btn btn-primary" onclick="loadModalTaoMe()">Tạo Mẻ thổi</button>
                         </div>
                     </div>
@@ -446,7 +450,7 @@
                             <thead class="table-light sticky-top bg-white" style="z-index: 2">
                                 <tr>
                                     <th>STT</th>
-                                    <th style="display: none">Chọn thùng</th>
+                                    <th class="hide-col">Chọn thùng</th>
                                     <th class="hide-col">Mã thùng thép</th>
                                     <th>Lò cao</th>
                                     <th>Thùng số</th>
@@ -454,7 +458,7 @@
                                     <th>KL thùng & gang lỏng (T)</th>
                                     <th>KL thùng (T)</th>
                                     <th>KL gang lỏng (T)</th>
-                                    <th style="display: none">KL gang chia (T)</th>
+                                    <th class="hide-col">KL gang chia (T)</th> 
                                     <th class="hrc2">Thao tác</th>
                                     <th>KL gang nhận (T)</th>
                                     <th>Thùng trung gian</th>
@@ -476,20 +480,11 @@
                             </tbody>
                             <tfoot>
                                 <tr style="height: 50px;">
-                                    @* <td class="total-space" colspan="@(PhongBan == "HRC2" ? "6" : "5")" style="font-weight: 600; text-align: start">Tổng</td>
-                                    <td id="IDTongKLGangNhan" style="font-weight: 600">
-                                        0.00
-                                    </td>
-                                    <td class="total-space-2" colspan="@(PhongBan == "HRC2" ? "4" : "5")"></td>
-                                    <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
-                                        0.00
-                                    </td>
-                                    <td colspan="3"></td> *@
                                     <td class="total-space" colspan="7" style="font-weight: 600; text-align: start">Tổng</td>
                                     <td id="IDTongKLGangNhan" style="font-weight: 600">
                                         0.00
                                     </td>
-                                    <td colspan="4"></td>
+                                    <td class="total-space-2" colspan="4"></td>
                                     <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                                         0.00
                                     </td>
@@ -648,7 +643,7 @@
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-secondary" id="btnDongChiaGang" data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-primary" id="btnConfirmChiaGang">Xác nhận</button>
             </div>
         </div>
@@ -669,6 +664,8 @@
         let selectedMaThungHuyTmp = null;
         let isHidden = true;
         let isValidLuu = true;
+        let resultChiaGang = null;
+
         // render card trạng thái
         function renderStatusCard(tinhTrang) {
             const statusMap = {
@@ -694,6 +691,15 @@
 
         function renderTableXuLySoLieu(data) {
             const tbody = $('#IDtbXuLySoLieu tbody');
+
+            $('.selectMeThoi').each(function () {
+            if ($(this).data('select2')) {
+                $(this).select2('destroy');
+            }
+            });
+             $.each(tbody[0].attributes, function () {
+                tbody.removeAttr(this.name);
+            });
             tbody.empty();
 
             if (!Array.isArray(data) || data.length === 0) {
@@ -722,6 +728,7 @@
                     const disabled = thung.iD_TrangThai === 5 ? 'disabled' : '';
                     const disabledInputKL = thung.iD_TrangThai === 5 || phongBan === "HRC1" ? 'disabled' : '';
 
+                  
                     let row = `<tr`;
                     // Nếu là dòng đầu tiên của thùng trung gian thì thêm data-attribute
                     // if (index === 0) {
@@ -736,10 +743,10 @@
                     row += `<td>${stt}</td>`;
                     // Cột thùng gang
                     row += `
-                        <td style="display: none">
-                            <input type="checkbox" class="cbx-chiaGang" name="ChonThung" value="" ${thung.iD_TrangThai == 5 ? "disabled readonly" : ""}/>
+                        <td class="hide-col">
+                            <input type="checkbox" class="cbx-chiaGang" style="display: ${isCopy ? 'none' : 'inline-block'}" name="ChonThung" value="" ${thung.iD_TrangThai == 5 || thung.klGangChia ? "disabled readonly" : ""}/>
                         </td>
-                        <td class="hide-col maThungThep">${thung.maThungThep ?? ''}</td>
+                        <td class="hide-col maThungThep" data-mathungganggoc="${thung.maThungGang}">${thung.maThungThep ?? ''}</td>
                         <td>${thung.iD_LoCao ?? ''}</td>
                         <td>${thung.bkmiS_ThungSo ?? ''}</td>
                         <td>${tinhTrangHTML}</td>
@@ -772,7 +779,7 @@
                             <td class="KLGangLong">${thung.t_KLGangLong ?? '00.0'}</td>
                         `;
                     }
-                    // row += `<td class="hide-col KLGangChia">${thung.klGangChia ?? ''}</td>`;
+                    row += `<td class="hide-col" style="color: ${thung.klGangChia ? 'red':'black'}">${thung.klGangChia ?? thung.t_KLGangLong ?? ''}</td>`;
                     // Nếu là dòng đầu tiên của nhóm thì render các cột thùng trung gian với rowspan
                     if (index === 0) {
                         const actionHtml = tg.isCopy ? `<button ${disabled} class="btn-item-action btn btn-danger btn-sm btn-XoaCopy" title="Xóa">
@@ -797,7 +804,7 @@
                         <td rowspan="${rowspan}">
                             <input ${disabled} class="table_tbx KLPhe" type="number" min=0 name="kl_phe" value="${tg.kL_phe ?? ''}" data-customized="false"/>
                         </td>
-                        <td rowspan="${rowspan}" id="IDKLVaoLoThoi" class="KLVaoLoThoi">${tg.klGang_Thoi ?? '0.00'} </td>
+                        <td rowspan="${rowspan}" id="IDKLVaoLoThoi" class="KLVaoLoThoi" >${tg.klGang_Thoi ?? '0.00'} </td>
                         <td rowspan="${rowspan}">
                             <select ${disabled} class="form-select selectMeThoi" data-selected-id="${tg.iD_MeThoi || ''}" data-selected-ma="${tg.maMeThoi || ''}">
                                     <option value="">-- Mẻ thổi --</option>
@@ -823,13 +830,18 @@
             sumKLGangNhan();
             sumKLGangThoi();
             applyColumnVisibility();
+             setTimeout(() => {
+                initSelectMeThoiInTable();
+            }, 0);
         }
 
         
 
         //render table Khu Vuc Nhan Thung
         function renderTableNhanThung(data) {
+                
             const tbody = $('#IDtbKhuVucNhanThung tbody');
+            
             tbody.empty();
             if(data.length){
                 data.forEach(item => {
@@ -1019,8 +1031,7 @@
                     dataThungDaNhan = data;
 
                     if(data.length !== 0){
-                        // TODO PDF
-                        // checkShowBtnPDF(data);
+                        checkShowBtnPDF(data);
                     } else{
                         $("#BtnXuatPhieuPDF").css("display","none");
                     }
@@ -1132,6 +1143,12 @@
         function initSelectMeThoiInTable() {
             $('.selectMeThoi').each(function () {
                 const $select = $(this);
+
+                const isInitialized = $select.hasClass("select2-hidden-accessible");
+                if (isInitialized) {
+                    $select.select2('destroy');
+                }
+
                 const selectedId = $select.data('selected-id');
                 const selectedMa = $select.data('selected-ma');
 
@@ -1167,6 +1184,13 @@
                     },
                     width: '100%'
                 });
+
+                // Nếu muốn close, phải gọi sau khi chắc chắn đã init
+                try {
+                    $select.select2('close');
+                } catch (e) {
+                    console.warn('Không thể close select2:', e);
+                }
             });
         }
 
@@ -1307,7 +1331,6 @@
 
                         // Chèn bản sao vào đúng vị trí
                         dataThungDaNhan.splice(insertAfter + 1, 0, tgCopy);
-
                         // Gọi hàm render lại bảng
                         renderTableXuLySoLieu(dataThungDaNhan);
                     } else {
@@ -1393,19 +1416,6 @@
 
         // search Me thoi
         $("#IDLoThoi").on('change', function () {
-            // $('.selectMeThoi').each(function () {
-            //     const $select = $(this);
-
-            //     $select.val(null).empty().trigger('change');
-
-            //     $select.select2('open');
-
-            //     setTimeout(() => {
-            //         $('.select2-search__field').val(' ').trigger('input');
-
-            //         setTimeout(() => $select.select2('close'), 100);
-            //     }, 100);
-            // });
             const NgayNhan = $('#IDNgayNhan').val() || null;
             const IDCaNhan = $('#IDCaNhan').val() || null;
             const IDLoThoi = $('#IDLoThoi').val() || null;
@@ -1490,27 +1500,6 @@
             const $mainRow = $('#IDtbXuLySoLieu tr[data-mathungtg="' + maThungTG + '"]');
             $mainRow.find('.tong_KL_GangNhan').text(tong.toFixed(2));
         }
-        // Khi nhập vào KLPhe ở bất kỳ dòng nào
-        // $('#IDtbXuLySoLieu').on('input', '.KLPhe', function () {
-        //     const newValue = $(this).val();
-
-        //     $('#IDtbXuLySoLieu .KLPhe').not(this).each(function () {
-        //         $(this).val(newValue);
-        //     });
-
-        //     $('#IDtbXuLySoLieu tr').each(function () {
-        //         const $row = $(this);
-
-        //         const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
-        //         const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
-        //         const phongBan = $("#IDPhongBan").val();
-
-        //         if (phongBan === "HRC1") {
-        //             $row.find('.KLThungVaGangLongVaoLoThoi').val(KLThungVaGangLong).trigger('input');
-        //             $row.find('.KLThungVaoLoThoi').val(KLThung).trigger('input');
-        //         }
-
-        //         const maThungTG = $row.data('mathungtg');
 
         //         if (maThungTG) {
         //             $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).each(function () {
@@ -1647,22 +1636,24 @@
 
         function applyColumnVisibility() {
             const display = isHidden ? 'none' : 'table-cell';
-
-            // Cột cần ẩn/hiện
+       
             $('.hide-col').css('display', display);
 
-            // Cột cần ẩn/hiện
+            // $('.not-found').attr('colspan', isHidden ? 14 : 15);
+
             const phongBan = $("#IDPhongBan").val();
+
 
             if( phongBan == "HRC2"){
                 $('.hrc2').css('display', display);
-                $('.total-space').attr('colspan', isHidden ? 7 : 9);
+                $('.total-space').attr('colspan', isHidden ? 7 : 11);
             } else {
                 // Nếu bạn có cột tổng cuối bảng cần cập nhật colspan
-                $('.total-space').attr('colspan', isHidden ? 7 : 8);
+                $('.total-space').attr('colspan', isHidden ? 7 : 10);
             }
 
         }
+
 
         // event An/Hien ma Thùng Thép
         $('#BtnAnHien').click(function() {
@@ -1862,16 +1853,16 @@
 
          // logic nhan thung
         $('#IDbtnNhanThung').click(function () {
-            let selectedIds = [];
+            let selectedThungs = [];
             $('#IDtbKhuVucNhanThung tbody tr').each(function () {
                 const checkbox = $(this).find('.cbx-nhanThung');
                 if (checkbox.is(':checked')) {
-                    const id = $(this).data('id');
-                    selectedIds.push(id);
+                    const mathung = $(this).data('mathung');
+                    selectedThungs.push(mathung);
                 }
             });
 
-            if (selectedIds.length === 0) {
+        if (selectedThungs.length === 0) {
                 alert("Vui lòng chọn ít nhất 1 dòng.");
                 return;
             }
@@ -1894,7 +1885,7 @@
             }
 
             const payload = {
-                selectedIds,
+                selectedThungs,
                 ngayNhan: NgayNhan,
                 idCa: IDCaNhan,
                 idLoThoi: IDLoThoi,
@@ -1905,7 +1896,7 @@
                 url: "/BM_GangThoi_Thep/CheckNhan",
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify(selectedIds),
+                data: JSON.stringify(selectedThungs),
                 processData: false,
                 success: function (res) {
                     if(res.isValid){
@@ -1991,25 +1982,39 @@
             const $rows = $('#IDtbXuLySoLieu tbody tr');
 
             // === Gom nhóm theo data-mathungtg ===
+            // const groups = {};
+            // $rows.each(function () {
+            //     const $row = $(this);
+            //     const maThungTG = $row.attr('data-mathungtg');
+            //     if (!maThungTG) return;
+
+            //     if (!groups[maThungTG]) groups[maThungTG] = [];
+            //     groups[maThungTG].push($row);
+            // });
             const groups = {};
             $rows.each(function () {
                 const $row = $(this);
+                const isCopy = String($row.attr('data-copy')).toLowerCase() === 'true';
                 const maThungTG = $row.attr('data-mathungtg');
-                if (!maThungTG) return;
+                const maThungTG_Copy = $row.attr('data-mathungcopy');
 
-                if (!groups[maThungTG]) groups[maThungTG] = [];
-                groups[maThungTG].push($row);
+                // Bỏ qua nếu không có mã thùng
+                if (!maThungTG && !maThungTG_Copy) return;
+
+                const groupKey = isCopy ? `COPY_${maThungTG_Copy}` : `ORIGIN_${maThungTG}`;
+                if (!groups[groupKey]) groups[groupKey] = [];
+                groups[groupKey].push($row);
             });
 
-            let isValidLuu = true;
 
-            for (const maThungTG in groups) {
-                const groupRows = groups[maThungTG];
+            let isValidLuu = true;
+            for (const key in groups) {
+                const groupRows = groups[key];
                 const $firstRow = groupRows[0];
 
+                const maThungTG = $firstRow.attr('data-mathungtg') || null;
                 const maThungTG_Copy = $firstRow.attr('data-mathungcopy') || null;
                 const isCopy = String($firstRow.attr('data-copy')).toLowerCase() === 'true';
-                const key = isCopy ? `COPY_${maThungTG_Copy}` : `ORIGIN_${maThungTG}`;
 
                 const parent = {
                     MaThungTG: maThungTG,
@@ -2052,6 +2057,7 @@
                     groupRows.forEach(($row) => {
                         const thungGang = {
                             MaThungThep: $row.find('td.maThungThep').text().trim(),
+                            MaThungGang: $row.find('td.maThungThep').attr('data-mathungganggoc'),
                             T_KLThungVaGang: parseFloat($row.find('input[name="t_KLThungVaGang"]').val()) || null,
                             T_KLThungChua: parseFloat($row.find('input[name="t_KLThungChua"]').val()) || null,
                             T_KLGangLong: parseFloat($row.find('.KLGangLong').text()) || 0
@@ -2076,7 +2082,8 @@
                 return null;
             }
 
-            return Object.values(thungTrungGianMap);
+            const result = Object.values(thungTrungGianMap);
+            return result;
         }
 
         // Chia Gang
@@ -2101,8 +2108,8 @@
                 data: JSON.stringify(selectedIds),
                 processData: false,
                 success: function (res) {
-                console.log(res);
                 if(res){
+                        resultChiaGang = res;
                         const modalChiaGang = new bootstrap.Modal(document.getElementById('modalChiaGang'));
                         modalChiaGang.show();
 
@@ -2132,14 +2139,14 @@
 
                         res.thungDaCoKL.forEach(item => {
                                     htmlNMLT += `
-                                                        <tr>
-                                                            <td>${item.iD_Locao}</td>
-                                                            <td>${item.maThungThep}</td>
-                                                            <td>${item.bkmiS_ThungSo}</td>
-                                                            <td>${item.t_KLThungVaGang ?? ''}</td>
-                                                            <td>${item.t_KLThungChua ?? ''}</td>
-                                                            <td class="text-danger fw-bold">${item.t_KLGangLong ?? ''}</td>
-                                                        </tr>`;
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungThep}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td>${item.t_KLThungVaGang ?? ''}</td>
+                                                    <td>${item.t_KLThungChua ?? ''}</td>
+                                                    <td class="text-danger fw-bold">${item.t_KLGangLong ?? ''}</td>
+                                                </tr>`;
                         });
                         tbodyNMLT.append(htmlNMLT);
 
@@ -2161,7 +2168,6 @@
                    }
                 },
                 error: function (xhr) {
-                    console.log(xhr)
                     alert("Lỗi: " + xhr.responseText);
                 }
             });
@@ -2251,12 +2257,34 @@
         });
 
         $("#btnConfirmChiaGang").click(function (){
-            // const modalChiaGang = new bootstrap.Modal(document.getElementById('modalChiaGang'));
-            // modalChiaGang.hide();
-            $("#btnCloseModalChiaGang").click();
-            ReLoad();
-        })
+            const payload = resultChiaGang?.thungAll || [];
 
+            if (!Array.isArray(payload) || payload.length === 0) {
+                alert("Dữ liệu chia gang không hợp lệ.");
+                return;
+            }
+
+            $.ajax({
+                url: '/BM_GangThoi_Thep/XacNhanChiaGang',
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+                processData: false,
+                success: function (res) {
+                   // console.log(res);
+                    ReLoad();
+                },
+                error: function () {
+                    
+                }
+            });
+
+            resultChiaGang = null;
+            $("#btnCloseModalChiaGang").click();
+        })
+        $("#btnCloseModalChiaGang, #btnDongChiaGang").click(function() {
+            resultChiaGang = null;
+        })
         // xu ly khi load
         $(document).ready(function () {
             // render tim kiem ban dau
@@ -2265,16 +2293,6 @@
             $('#ID_DenNgayLamViec').val(today);
             UpdateNgayNhan('ID_TuNgayLamViec');
             SearchLT(); // call hàm search
-
-
-            // if( phongBan == "HRC2"){
-            //     $('.hrc2').css('display', display);
-            //     $('.total-space').attr('colspan',  6 );
-            //     $('.total-space-2').attr('colspan', 4 );
-            // } else {
-            //     $('.total-space').attr('colspan',  5 );
-            //     $('.total-space-2').attr('colspan', 5 );
-            // }
         });
 </script>
 
@@ -2310,16 +2328,16 @@
 
     // tao me
     function submitTaoMe() {
-        const myMap = new Map([
-            [1, 'A'],
-            [2, 'B'],
-            [3, 'C'],
-            [4, 'D'],
-            [5, 'E'],
-            [6, 'F'],
-            [7, 'G'],
-            [8, 'H']
-        ]);
+        // const myMap = new Map([
+        //     [1, 'A'],
+        //     [2, 'B'],
+        //     [3, 'C'],
+        //     [4, 'D'],
+        //     [5, 'E'],
+        //     [6, 'F'],
+        //     [7, 'G'],
+        //     [8, 'H']
+        // ]);
 
         const soLuong = $('#formSoLuong').val();
         const ngayTao = $('#IDNgayNhan').val() || null;
@@ -2348,7 +2366,7 @@
             contentType: 'application/json',
             processData: false,
             data: JSON.stringify({
-                maLoThoi: myMap.get(parseInt(IDLoThoi)),
+                // maLoThoi: myMap.get(parseInt(IDLoThoi)),
                 soLuong: parseInt(soLuong),
                 id_LoThoi: parseInt(IDLoThoi),
                 ngayTao: ngayTao

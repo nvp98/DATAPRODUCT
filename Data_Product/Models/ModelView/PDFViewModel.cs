@@ -14,4 +14,6 @@
         public string? ChuKy { get; set; }
         public string? TenViTri { get; set; }
     }
+
+    
 }
