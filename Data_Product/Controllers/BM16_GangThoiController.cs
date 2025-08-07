@@ -842,7 +842,7 @@ namespace Data_Product.Controllers
                     .FirstOrDefault(x => x.MaPhieu == req.MaPhieu 
                         && x.MaThungGang == item.MaThungGang 
                         && x.BKMIS_SoMe == item.BKMIS_SoMe
-                        && x.G_ID_TrangThai == 1
+                        && (x.G_ID_TrangThai == 1 || x.G_ID_TrangThai == 3)
                         && x.XacNhan == false
                         && (x.ID_TrangThai == 1 || x.ID_TrangThai == 2) ) ;
 
@@ -850,7 +850,7 @@ namespace Data_Product.Controllers
                 {
                     thung.BKMIS_PhanLoai = item.BKMIS_PhanLoai;
                     thung.BKMIS_Gio = item.BKMIS_Gio;
-                    thung.BKMIS_SoMe = item.BKMIS_SoMe;
+                    //thung.BKMIS_SoMe = item.BKMIS_SoMe;
                     thung.BKMIS_ThungSo = !string.IsNullOrEmpty(item.BKMIS_SoMe) && item.BKMIS_SoMe.Length >= 2
                     ? item.BKMIS_SoMe.Substring(item.BKMIS_SoMe.Length - 2): null;
                 }
