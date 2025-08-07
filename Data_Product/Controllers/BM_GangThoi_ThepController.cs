@@ -443,12 +443,12 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CheckNhan([FromBody] List<int> selectedIds)
+        public async Task<IActionResult> CheckNhan([FromBody] List<string> selectedThungs)
         {
             try
             {
                 var isInValid = await _context.Tbl_BM_16_GangLong
-                                      .Where(x => selectedIds.Contains(x.ID))
+                                      .Where(x => selectedThungs.Contains(x.MaThungGang) && x.T_copy == false)
                                       .AnyAsync(x => x.ID_TrangThai == (int)TinhTrang.DaChot);
                 if (isInValid)
                 {
@@ -467,14 +467,14 @@ namespace Data_Product.Controllers
         [HttpPost]
         public async Task<IActionResult> Nhan([FromBody] NhanThungDto payload)
         {
-            if (payload.selectedIds == null || payload.selectedIds.Count == 0 || payload.ngayNhan == null || payload.idCa == null || payload.idLoThoi == null || payload.idNguoiNhan == null)
+            if (payload.selectedThungs == null || payload.selectedThungs.Count == 0 || payload.ngayNhan == null || payload.idCa == null || payload.idLoThoi == null || payload.idNguoiNhan == null)
                 return BadRequest("Danh sách ID trống.");
 
             try
             {
                 // Lấy tất cả các thùng cần xử lý
                 var thungs = await _context.Tbl_BM_16_GangLong
-                                           .Where(x => payload.selectedIds.Contains(x.ID))
+                                           .Where(x => payload.selectedThungs.Contains(x.MaThungGang) && x.T_copy == false)
                                            .ToListAsync();
 
                 var kip = await (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == payload.ngayNhan && x.TenCa == payload.idCa.ToString())
@@ -625,7 +625,7 @@ namespace Data_Product.Controllers
                 await _context.SaveChangesAsync();
                 await tran.CommitAsync();
 
-                return Ok(new { Message = "Đã xử lý nhận thùng.", Soluong = payload.selectedIds.Count });
+                return Ok(new { Message = "Đã xử lý nhận thùng.", Soluong = payload.selectedThungs.Count });
             }
             catch (Exception ex)
             {
@@ -1072,6 +1072,8 @@ namespace Data_Product.Controllers
 
                 var dsMaThep = danhSachPhu.Select(x => x.MaThungThep).Distinct().ToList();
 
+                _context.Tbl_BM_16_TaiKhoan_Thung.RemoveRange(danhSachPhu);
+
                 var danhSachThungGang = await _context.Tbl_BM_16_GangLong
                     .Where(x => dsMaThep.Contains(x.MaThungThep) && x.T_ID_NguoiNhan == payload.idNguoiHuyNhan)
                     .ToListAsync();
@@ -1187,7 +1189,7 @@ namespace Data_Product.Controllers
                     }
                 }
 
-                _context.Tbl_BM_16_TaiKhoan_Thung.RemoveRange(danhSachPhu);
+                
                 _context.Tbl_BM_16_GangLong.RemoveRange(thungCopyCanXoa);
 
                 await _context.SaveChangesAsync();
