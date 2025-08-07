@@ -1853,16 +1853,16 @@
 
          // logic nhan thung
         $('#IDbtnNhanThung').click(function () {
-            let selectedIds = [];
+            let selectedThungs = [];
             $('#IDtbKhuVucNhanThung tbody tr').each(function () {
                 const checkbox = $(this).find('.cbx-nhanThung');
                 if (checkbox.is(':checked')) {
-                    const id = $(this).data('id');
-                    selectedIds.push(id);
+                    const mathung = $(this).data('mathung');
+                    selectedThungs.push(mathung);
                 }
             });
 
-            if (selectedIds.length === 0) {
+        if (selectedThungs.length === 0) {
                 alert("Vui lòng chọn ít nhất 1 dòng.");
                 return;
             }
@@ -1885,7 +1885,7 @@
             }
 
             const payload = {
-                selectedIds,
+                selectedThungs,
                 ngayNhan: NgayNhan,
                 idCa: IDCaNhan,
                 idLoThoi: IDLoThoi,
@@ -1896,7 +1896,7 @@
                 url: "/BM_GangThoi_Thep/CheckNhan",
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify(selectedIds),
+                data: JSON.stringify(selectedThungs),
                 processData: false,
                 success: function (res) {
                     if(res.isValid){
