@@ -821,7 +821,7 @@ namespace Data_Product.Controllers
                 var thung = await _context.Tbl_BM_16_GangLong
                     .FirstOrDefaultAsync(x => x.MaPhieu == item.MaPhieu && x.MaThungGang == item.MaThungGang);
                 if (thung == null || thung.ID_TrangThai == 5) continue;
-                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thung.MaThungGang);
+                //await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thung.MaThungGang);
             }
             return Ok("Đã cập nhật thành công.");
         }

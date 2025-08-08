@@ -1309,7 +1309,15 @@ namespace Data_Product.Controllers
 
                                 entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
                                 entity.T_KLThungChua = thungGang.T_KLThungChua;
-                                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thungGang.MaThungGang);
+                                //try
+                                //{
+                                //if (entity.T_KLGangLong.HasValue)
+                                //{
+                                //    await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thungGang.MaThungGang);
+                                //}
+                                    
+                                //}
+                                //catch { }
                                 // Nếu thay đổi thì xử lý lại chia gang
                                 //if (isChanged)
                                 //{
