@@ -145,7 +145,7 @@ namespace Data_Product.Controllers
                     query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
                 }
 
-                query = query.Take(150);
+                query = query.Take(350);
                 
 
                 var res = await (from a in query
@@ -293,12 +293,6 @@ namespace Data_Product.Controllers
 
         public async Task<List<ThungTrungGianGroupViewModel>> GetDanhSachThungTrungGianDaNhan(SearchThungDaNhanDto payload)
         {
-            //var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-            //var taiKhoan = await _context.Tbl_TaiKhoan
-            //                             .AsNoTracking()
-            //                             .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
-            //if (taiKhoan == null) return new List<ThungTrungGianGroupViewModel>();
-
             // Truy vấn thùng trung gian theo ngày, ca, lò thổi, người nhận
             var query = _context.Tbl_BM_16_ThungTrungGian.AsQueryable();
                                 //.Where(x => x.ID_NguoiNhan == taiKhoan.ID_TaiKhoan);
@@ -418,7 +412,11 @@ namespace Data_Product.Controllers
                         }).ToList();
                 }
             }
-
+            // Sắp xếp thungList theo MaMeThoi: các thùng có MaMeThoi lên trên, không có đẩy xuống dưới
+            thungList = thungList
+                .OrderBy(x => string.IsNullOrEmpty(x.MaMeThoi))
+                .ThenBy(x => x.MaMeThoi)
+                .ToList();
             return thungList;
         }
 
@@ -1211,6 +1209,7 @@ namespace Data_Product.Controllers
                 return BadRequest("Không có dữ liệu.");
             try
             {
+                var maThungThepCanTinhToan = new HashSet<string>();
                 var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
                 var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
                 if (TaiKhoan == null) return BadRequest("Không tìm thấy tài khoản.");
@@ -1267,15 +1266,6 @@ namespace Data_Product.Controllers
                         continue;
                     }
 
-                    //ttg.KLThungVaGang_Thoi = tgDto.KLThungVaGang_Thoi;
-                    //ttg.KLThung_Thoi = tgDto.KLThung_Thoi;
-                    //ttg.KL_phe = tgDto.KLPhe;
-                    //ttg.KLGang_Thoi = tgDto.KLGang_Thoi;
-                    //ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
-                    //ttg.GhiChu = tgDto.GhiChu;
-                    //ttg.ID_MeThoi = tgDto.ID_MeThoi;
-                    //ttg.GioChonMe = tgDto.GioChonMe;
-
                     // Cập nhật dữ liệu chung
                     if (ttg != null)
                     {
@@ -1292,6 +1282,7 @@ namespace Data_Product.Controllers
                     // Nếu là thùng gốc =>> cập nhật danh sách thùng gang
                     if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
                     {
+                        
                         foreach (var thungGang in tgDto.DanhSachThungGang)
                         {
                             var entity = await _context.Tbl_BM_16_GangLong
@@ -1305,23 +1296,29 @@ namespace Data_Product.Controllers
                                 {
                                     isChanged = true;
                                     entity.T_KLGangLong = thungGang.T_KLGangLong;
+                                   
                                 }
 
                                 entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
                                 entity.T_KLThungChua = thungGang.T_KLThungChua;
-                                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thungGang.MaThungGang);
-                                // Nếu thay đổi thì xử lý lại chia gang
-                                //if (isChanged)
-                                //{
-                                //    // chia lại gang
-                                //    await _chiaGangService.KiemTraVaTinhLaiTheoMaThungThepAsync(thungGang.MaThungGang);
-                                //}
+                                maThungThepCanTinhToan.Add(thungGang.MaThungGang);
                             }
                         }
                     }
                 }
 
                 await _context.SaveChangesAsync();
+
+                foreach (var ma in maThungThepCanTinhToan)
+                {
+                    try
+                    {
+                        await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(ma);
+                    }
+                    catch
+                    {
+                    }
+                }
                 return Ok(new { success = true, message = "Lưu thành công.", danhSachBiBoQua = danhSachBiBoQua });
             }
             catch (Exception ex)
@@ -1332,11 +1329,11 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DanhSachTheoMaThungGang([FromBody] List<int> selectedIds)
+        public async Task<IActionResult> DanhSachTheoMaThungGang([FromBody] List<string> selectedThungs)
         {
             try
             {
-                var result = await _chiaGangService.TinhToanChiaGangAsync(selectedIds);
+                var result = await _chiaGangService.TinhToanChiaGangAsync(selectedThungs);
                 return Ok(result);
             }
             catch(Exception ex)
