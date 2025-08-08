@@ -665,6 +665,7 @@
         let isHidden = true;
         let isValidLuu = true;
         let resultChiaGang = null;
+        let selectedThungsGlobal = [];
 
         // render card trạng thái
         function renderStatusCard(tinhTrang) {
@@ -732,7 +733,7 @@
                     let row = `<tr`;
                     // Nếu là dòng đầu tiên của thùng trung gian thì thêm data-attribute
                     // if (index === 0) {
-                        row += ` data-mathungtg="${tg.maThungTG}" data-mathunggang="${thung.maThungGang}" data-id="${thung.id}"`;
+                        row += ` data-mathungtg="${tg.maThungTG}" data-mathunggang="${thung.maThungGang}" data-id="${thung.id}" data-maThungThep="${thung.maThungThep}"`;
                         if (hasCopyValue) {
                             row += ` data-mathungcopy="${tg.maThungTG_Copy}"`;
                         }
@@ -888,6 +889,7 @@
                 tbody.append(html);
             }
             applyColumnVisibility();
+            reapplyCheckboxSelections();
         }
 
 
@@ -1713,20 +1715,60 @@
         // Khi checkbox thay đổi
         $(document).on('change', '.cbx-nhanThung', function () {
             let showButton = false;
+            const row = $(this).closest('tr');
+            const maThung = row.data('mathung');
+            const status = parseInt(row.find('.status-cell').data('status'));
+
+            // $('.cbx-nhanThung:checked').each(function () {
+            //     const row = $(this).closest('tr');
+            //     const status = parseInt(row.find('.status-cell').data('status'));
+            //     if (status === 4) { 
+            //         showButton = true;
+            //         return false;
+            //     }
+            // });
+            // if (showButton) {
+            //     $('#IDbtnHuyNhanThung').show();
+            // } else {
+            //     $('#IDbtnHuyNhanThung').hide();
+            // }
+            // Xử lý cập nhật danh sách đã chọn
+            if ($(this).is(':checked')) {
+                if (!selectedThungsGlobal.includes(maThung)) {
+                    selectedThungsGlobal.push(maThung);
+                }
+            } else {
+                selectedThungsGlobal = selectedThungsGlobal.filter(x => x !== maThung);
+            }
+
+            // Kiểm tra để hiển thị nút Hủy Nhận
             $('.cbx-nhanThung:checked').each(function () {
-                const row = $(this).closest('tr');
-                const status = parseInt(row.find('.status-cell').data('status'));
-                if (status === 4) { // 4 = Đã nhận
+                const statusCheck = parseInt($(this).closest('tr').find('.status-cell').data('status'));
+                if (statusCheck === 4) { // 4 = Đã nhận
                     showButton = true;
-                    return false;
+                    return false; // thoát each
                 }
             });
+
             if (showButton) {
                 $('#IDbtnHuyNhanThung').show();
             } else {
                 $('#IDbtnHuyNhanThung').hide();
             }
         });
+
+        function reapplyCheckboxSelections() {
+            $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+                const maThung = $(this).data('mathung');
+                const checkbox = $(this).find('.cbx-nhanThung');
+                if (selectedThungsGlobal.includes(maThung)) {
+                    checkbox.prop('checked', true);
+                }
+            });
+
+            // Gọi lại logic hiển thị nút Hủy Nhận nếu cần
+            $('.cbx-nhanThung').trigger('change');
+        }
 
         $('#IDbtnHuyNhanThung').click(function () {
 
@@ -1843,6 +1885,7 @@
                         // render lai
                         ReLoad();
                         selectedMaThungHuy = null;
+                        selectedThungsGlobal = [];
                     }
                 }
             });
@@ -1854,15 +1897,20 @@
          // logic nhan thung
         $('#IDbtnNhanThung').click(function () {
             let selectedThungs = [];
-            $('#IDtbKhuVucNhanThung tbody tr').each(function () {
-                const checkbox = $(this).find('.cbx-nhanThung');
-                if (checkbox.is(':checked')) {
-                    const mathung = $(this).data('mathung');
-                    selectedThungs.push(mathung);
-                }
-            });
+            // $('#IDtbKhuVucNhanThung tbody tr').each(function () {
+            //     const checkbox = $(this).find('.cbx-nhanThung');
+            //     if (checkbox.is(':checked')) {
+            //         const mathung = $(this).data('mathung');
+            //         selectedThungs.push(mathung);
+            //     }
+            // });
 
-        if (selectedThungs.length === 0) {
+            // if (selectedThungs.length === 0) {
+            //     alert("Vui lòng chọn ít nhất 1 dòng.");
+            //     return;
+            // }
+
+            if (selectedThungsGlobal.length === 0) {
                 alert("Vui lòng chọn ít nhất 1 dòng.");
                 return;
             }
@@ -1885,7 +1933,7 @@
             }
 
             const payload = {
-                selectedThungs,
+            selectedThungs : selectedThungsGlobal,
                 ngayNhan: NgayNhan,
                 idCa: IDCaNhan,
                 idLoThoi: IDLoThoi,
@@ -1916,6 +1964,7 @@
                         alert('Có thùng đã được chốt, vui lòng kiểm tra lại');
                         ReLoad();
                     }
+                    selectedThungsGlobal = [];
                 },
                 error: function () {
                     alert("Lỗi khi nhận dữ liệu!");
@@ -2088,16 +2137,16 @@
 
         // Chia Gang
         $('#BtnChiaGang').click(function() {
-            let selectedIds = [];
+            let selectedThungs = [];
             $('#IDtbXuLySoLieu tbody tr').each(function () {
                 const checkbox = $(this).find('.cbx-chiaGang');
                 if (checkbox.is(':checked')) {
-                    const id = $(this).data('id');
-                selectedIds.push(id);
+                    const mathungthep = $(this).data('mathungthep');
+                selectedThungs.push(mathungthep);
                 }
             });
 
-            if (selectedIds.length < 2) {
+        if (selectedThungs.length < 2) {
                 alert("Vui lòng chọn ít nhất 2 dòng.");
                 return;
             }
@@ -2105,7 +2154,7 @@
                 url: "/BM_GangThoi_Thep/DanhSachTheoMaThungGang",
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify(selectedIds),
+                data: JSON.stringify(selectedThungs),
                 processData: false,
                 success: function (res) {
                 if(res){
