@@ -9,7 +9,7 @@ namespace Data_Product.Services
 {
     public interface IChiaGangService
     {
-        Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<int> selectedIds);
+        Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<string> selectedThungs);
         Task<int> HuyChiaGangTheoNhieuThungGangAsync(List<string> maThungGangList, int idNguoiChia);
         Task KiemTraVaTinhLaiTheoMaThungGangAsync(string maThungGang);
         Task<ChiaGangResultModel> GetDetailChiaGangAsync(int idThung);
@@ -45,14 +45,14 @@ namespace Data_Product.Services
                     .Where(x => x.MaChiaGang == maChiaGang)
                     .ToListAsync();
 
-                var selectedIds = listThepDaChia.Select(x => x.ID_Thung).ToList();
+                var selectedThungs = listThepDaChia.Select(x => x.MaThungThep).ToList();
 
-                var result = await TinhToanChiaGangAsync(selectedIds);
+                var result = await TinhToanChiaGangAsync(selectedThungs);
                 var thungAll = result.ThungAll;
 
                 // Cache gang gốc cần cập nhật để xử lý một lần
                 var gangGocList = await _context.Tbl_BM_16_GangLong
-                    .Where(x => selectedIds.Contains(x.ID))
+                    .Where(x => selectedThungs.Contains(x.MaThungThep))
                     .ToListAsync();
 
                 foreach (var thung in thungAll)
@@ -77,10 +77,10 @@ namespace Data_Product.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<int> selectedIds)
+        public async Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<string> maThungTheps)
         {
             var danhsachThung = await (from a in _context.Tbl_BM_16_GangLong
-                                       where selectedIds.Contains(a.ID)
+                                       where maThungTheps.Contains(a.MaThungThep)
                                        select new
                                        {
                                            a.MaThungGang,
@@ -137,23 +137,26 @@ namespace Data_Product.Services
 
             var listGoc = listAll.Where(x => x.T_copy == false).ToList();
 
+            // Nếu có bất kỳ thùng gốc nào thiếu G_KLGangLong thì không chia
+            bool coThungGocNullGKL = listGoc.Any(x => !x.G_KLGangLong.HasValue || x.G_KLGangLong == 0);
+
             foreach (var thungGoc in listGoc)
             {
                 var tongHRCDaRot = listAll
-                    .Where(x => x.MaThungGang == thungGoc.MaThungGang && !selectedIds.Contains(x.ID))
+                    .Where(x => x.MaThungGang == thungGoc.MaThungGang && !maThungTheps.Contains(x.MaThungThep))
                     .Where(x => x.T_KLGangLong.HasValue)
                     .Sum(x => x.T_KLGangLong.Value);
 
                 var klLuyenGang = thungGoc.G_KLGangLong ?? 0;
 
-                if (klLuyenGang < tongHRCDaRot)
+                if (klLuyenGang > 0 && klLuyenGang < tongHRCDaRot)
                 {
-                    throw new Exception($"Mã thùng {thungGoc.MaThungGang} có KL Gang Lỏng ({klLuyenGang}) nhỏ hơn tổng HRC đã rót ({tongHRCDaRot}). Vui lòng check lại số liệu");
+                    throw new Exception($"Mã thùng {thungGoc.MaThungGang} có KL Gang Lỏng ({klLuyenGang}) nhỏ hơn tổng HRC đã rót ({tongHRCDaRot}). Vui lòng check lại số liệu để chia lại KL Gang Chia");
                 }
             }
 
             var daRongTheoMa = listAll
-                .Where(x => x.T_KLGangLong.HasValue && !selectedIds.Contains(x.ID))
+                .Where(x => x.T_KLGangLong.HasValue && !maThungTheps.Contains(x.MaThungThep))
                 .GroupBy(x => x.MaThungGang)
                 .ToDictionary(
                     g => g.Key,
@@ -176,34 +179,35 @@ namespace Data_Product.Services
 
             var tongConLai = danhSachConLai.Sum(x => x.KLConLai);
 
-            if (tongConLai <= 0)
+            if (tongConLai < 0)
                 throw new Exception("Không có đủ khối lượng gang bên Luyện Gang để chia. Vui Lòng kiểm tra lại.");
 
             var tongT_KLGangLongChon = listAll
-                .Where(x => selectedIds.Contains(x.ID) && x.T_KLGangLong.HasValue && x.T_KLThungVaGang.HasValue && x.T_KLThungChua.HasValue)
+                .Where(x => maThungTheps.Contains(x.MaThungThep) && x.T_KLGangLong.HasValue && x.T_KLThungVaGang.HasValue && x.T_KLThungChua.HasValue)
                 .Sum(x => x.T_KLGangLong.Value);
 
-            foreach (var item in listAll.Where(x => selectedIds.Contains(x.ID)))
+            foreach (var item in listAll.Where(x => maThungTheps.Contains(x.MaThungThep)))
             {
                 var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
-                if (nguon != null)
-                {
-                    item.TyLeChia = Math.Round((nguon.KLConLai / tongConLai) * 100, 2);
-                    item.KLChia = Math.Round((item.TyLeChia ?? 0) * tongT_KLGangLongChon / 100, 2);
-                }
-                else
+
+                if (coThungGocNullGKL || nguon == null || tongConLai <= 0)
                 {
                     item.TyLeChia = 0;
                     item.KLChia = 0;
                 }
+                else
+                {
+                    item.TyLeChia = Math.Round((nguon.KLConLai / tongConLai) * 100, 2);
+                    item.KLChia = Math.Round((item.TyLeChia ?? 0) * tongT_KLGangLongChon / 100, 2);
+                }
             }
 
-            var listSelected = listAll.Where(x => selectedIds.Contains(x.ID)).ToList();
+            var listSelected = listAll.Where(x => maThungTheps.Contains(x.MaThungThep)).ToList();
 
             return new ChiaGangResultModel
             {
                 ThungGoc = listGoc,
-                ThungDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !selectedIds.Contains(x.ID)).ToList(),
+                ThungDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !maThungTheps.Contains(x.MaThungThep)).ToList(),
                 ThungAll = listSelected,
                 ListAll = listAll
             };
