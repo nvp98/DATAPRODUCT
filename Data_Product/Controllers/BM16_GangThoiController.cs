@@ -853,7 +853,8 @@ namespace Data_Product.Controllers
                         && x.BKMIS_SoMe == item.BKMIS_SoMe
                         && (x.G_ID_TrangThai == 1 || x.G_ID_TrangThai == 3)
                         && x.XacNhan == false
-                        && (x.ID_TrangThai == 1 || x.ID_TrangThai == 2) ) ;
+                        && ( x.T_ID_TrangThai == 2 || x.T_ID_TrangThai == 4)
+                        &&  x.ID_TrangThai == 2 ) ;
 
                 if (thung != null)
                 {
@@ -864,7 +865,7 @@ namespace Data_Product.Controllers
                     ? item.BKMIS_SoMe.Substring(item.BKMIS_SoMe.Length - 2): null;
                 }
             }
-
+            await _context.SaveChangesAsync();
             return Ok(new { success = true });
         }
 
@@ -884,7 +885,11 @@ namespace Data_Product.Controllers
 
                 // Những thùng được phép xóa
                 var thungCanXoa = allThung
-                  .Where(x => (x.XacNhan == false || x.XacNhan == null) && (x.G_ID_TrangThai == 1 || x.ID_TrangThai == 1))
+                  .Where(x => (x.XacNhan == false || x.XacNhan == null)
+                  && (x.G_ID_TrangThai == 1 || x.G_ID_TrangThai == 3)
+                  && x.T_ID_TrangThai == 2
+                  && x.ID_TrangThai == 2
+                  )
                   .ToList();
 
                 // Những số mẻ không được xóa (đã xác nhận hoặc trạng thái khác)
@@ -904,7 +909,7 @@ namespace Data_Product.Controllers
                 {
                     success = true,
                     message = thungCanXoa.Any() ? "Đã xóa thành công." : "Không có thùng nào cần xóa.",
-                    soMesKhongXoaDuoc = soMesKhongXoaDuoc
+                    thungdaxoa = thungCanXoa
                 });
             }
             catch (Exception ex)

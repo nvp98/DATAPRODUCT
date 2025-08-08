@@ -596,20 +596,23 @@
 			const soMe = $(this).find("td[name='soMe']").text().trim();
 			if (soMe) soMesTrongBangHTML.push(soMe);
 		});
+
 		$.get("/BM16_GangThoi/GetSoMeDaCoTrongPhieu", { maPhieu }, function (res) {
 			const soMeHienTai = res.soMes.map(soMe => ({
 				maThung: res.data?.find(item => item.soMe === soMe)?.maThung || "",
 				soMe: soMe
 			})) || [];
 			const soMeDaCoTrongDB = res.soMes || [];
+			//console.log ("soMeDaCoTrongDB",soMeDaCoTrongDB)
 			const listSoMeHienTai = soMeHienTai.map(x => x.soMe);
+			//console.log ("listSoMeHienTai",listSoMeHienTai)
 			const updateList = [];
 
 			$.get("/BM16_GangThoi/GetSoMeGangBKMis", { ngay, ID_LoCao: idLoCao, IDKip: idKip }, function (data) {
 				const soMeMoi = data.map(item => item.testPatternCode || "");
-
+				//console.log ("data",data)
 				const soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
-
+				//	console.log ("soMeCanXoa",soMeCanXoa)
 				$.get("/XeGoong/KLXeLoCao", { idlocao: idLoCao }, function (xeData) {
 					const klxe = (xeData.success && xeData.klXe) ? xeData.klXe : "";
 					let lastIndex = lastIndexFromServer || 0;
@@ -617,12 +620,14 @@
 					data.forEach(item => {
 						const soMe = item.testPatternCode || "";
 						const matchedList = soMeHienTai.filter(x => x.soMe === soMe);
+						//console.log("matchedList",matchedList)
 						const phanLoai = item.classifyName || "";
 						const time = item.patterntime || "";
 
-					   if (soMeDaCoTrongDB.includes(soMe) || soMesTrongBangHTML.includes(soMe)) return;
+					   //if (soMeDaCoTrongDB.includes(soMe) || soMesTrongBangHTML.includes(soMe)) return;
 
 						if (matchedList.length === 0) {
+							  if (soMeDaCoTrongDB.includes(soMe) || soMesTrongBangHTML.includes(soMe)) return;
 							lastIndex++;
 							const maThung = generateMaThung(ngay, idLoCao, idCa, lastIndex);
 							const thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
@@ -665,7 +670,7 @@
 							});
 						}
 					});
-
+					//console.log("updateList",updateList)
 					if (updateList.length > 0 && maPhieu) {
 						$.ajax({
 							url: "/BM16_GangThoi/CapNhatThung",
