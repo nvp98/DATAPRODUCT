@@ -481,6 +481,7 @@
                             <tfoot>
                                 <tr style="height: 50px;">
                                     <td class="total-space" colspan="7" style="font-weight: 600; text-align: start">Tổng</td>
+                                    <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
                                     <td id="IDTongKLGangNhan" style="font-weight: 600">
                                         0.00
                                     </td>
@@ -780,7 +781,7 @@
                             <td class="KLGangLong">${thung.t_KLGangLong ?? '00.0'}</td>
                         `;
                     }
-                    row += `<td class="hide-col" style="color: ${isCopy ? '' : (thung.klGangChia ? 'red' : 'black')}">
+                    row += `<td class="hide-col KLGangChia" style="color: ${isCopy ? '' : (thung.klGangChia ? 'red' : 'black')}">
                             ${isCopy ? '' : (thung.klGangChia ?? thung.t_KLGangLong ?? '')}
                     </td>`;
                     // Nếu là dòng đầu tiên của nhóm thì render các cột thùng trung gian với rowspan
@@ -831,6 +832,7 @@
             // const IDLoThoi = $('#IDLoThoi').val() || null;
             // SearchMeThoi(IDLoThoi);
             sumKLGangNhan();
+            sumKLGangChia();
             sumKLGangThoi();
             applyColumnVisibility();
              setTimeout(() => {
@@ -1227,6 +1229,17 @@
                 }
             });
             $("#IDTongKLGangNhan").text(total.toFixed(2));
+        }
+
+        function sumKLGangChia(){
+            let total = 0;
+            $("#IDtbXuLySoLieu .KLGangChia").each(function () {
+                const value = parseFloat($(this).text());
+                if (!isNaN(value)) {
+                    total += value;
+                }
+            });
+            $("#IDTongKLGangChia").text(total.toFixed(2));
         }
 
         // Hàm kiểm tra có giá trị âm hay không
@@ -1650,10 +1663,10 @@
 
             if( phongBan == "HRC2"){
                 $('.hrc2').css('display', display);
-                $('.total-space').attr('colspan', isHidden ? 7 : 11);
+                $('.total-space').attr('colspan', isHidden ? 7 : 10);
             } else {
                 // Nếu bạn có cột tổng cuối bảng cần cập nhật colspan
-                $('.total-space').attr('colspan', isHidden ? 7 : 10);
+                $('.total-space').attr('colspan', isHidden ? 7 : 9);
             }
 
         }
