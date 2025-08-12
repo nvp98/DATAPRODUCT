@@ -4,12 +4,13 @@ using Data_Product.Models.ModelView;
 using Data_Product.Repositorys;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
 
 namespace Data_Product.Services
 {
     public interface IChiaGangService
     {
-        Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<string> selectedThungs);
+        Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<int> IDs);
         Task<int> HuyChiaGangTheoNhieuThungGangAsync(List<string> maThungGangList, int idNguoiChia);
         Task KiemTraVaTinhLaiTheoMaThungGangAsync(string maThungGang);
         Task<ChiaGangResultModel> GetDetailChiaGangAsync(int idThung);
@@ -45,14 +46,13 @@ namespace Data_Product.Services
                     .Where(x => x.MaChiaGang == maChiaGang)
                     .ToListAsync();
 
-                var selectedThungs = listThepDaChia.Select(x => x.MaThungThep).ToList();
-
+                var selectedThungs = listThepDaChia.Select(x => x.ID_Thung).ToList();
                 var result = await TinhToanChiaGangAsync(selectedThungs);
                 var thungAll = result.ThungAll;
 
                 // Cache gang gốc cần cập nhật để xử lý một lần
                 var gangGocList = await _context.Tbl_BM_16_GangLong
-                    .Where(x => selectedThungs.Contains(x.MaThungThep))
+                    .Where(x => selectedThungs.Contains(x.ID))
                     .ToListAsync();
 
                 foreach (var thung in thungAll)
@@ -77,10 +77,30 @@ namespace Data_Product.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<string> maThungTheps)
+        public async Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<int> IDs)
         {
+
+            var test = await _context.Tbl_BM_16_GangLong
+                .Where(x => IDs.Contains(x.ID))
+                .Select(x => new
+                {
+                    x.MaThungGang,
+                    x.BKMIS_ThungSo
+                })
+                .ToListAsync();
+            //foreach(var item in maThungTheps)
+            //{
+            //    var thung = await _context.Tbl_BM_16_GangLong
+            //        .Where(x => x.MaThungThep.Trim() == item.Trim())
+            //        .Select(x => new
+            //        {
+            //            x.MaThungGang,
+            //            x.BKMIS_ThungSo
+            //        }).FirstOrDefaultAsync();
+            //}
+
             var danhsachThung = await (from a in _context.Tbl_BM_16_GangLong
-                                       where maThungTheps.Contains(a.MaThungThep)
+                                       where IDs.Contains(a.ID)
                                        select new
                                        {
                                            a.MaThungGang,
@@ -143,7 +163,7 @@ namespace Data_Product.Services
             foreach (var thungGoc in listGoc)
             {
                 var tongHRCDaRot = listAll
-                    .Where(x => x.MaThungGang == thungGoc.MaThungGang && !maThungTheps.Contains(x.MaThungThep))
+                    .Where(x => x.MaThungGang == thungGoc.MaThungGang && !IDs.Contains(x.ID))
                     .Where(x => x.T_KLGangLong.HasValue)
                     .Sum(x => x.T_KLGangLong.Value);
 
@@ -156,7 +176,7 @@ namespace Data_Product.Services
             }
 
             var daRongTheoMa = listAll
-                .Where(x => x.T_KLGangLong.HasValue && !maThungTheps.Contains(x.MaThungThep))
+                .Where(x => x.T_KLGangLong.HasValue && !IDs.Contains(x.ID))
                 .GroupBy(x => x.MaThungGang)
                 .ToDictionary(
                     g => g.Key,
@@ -183,10 +203,10 @@ namespace Data_Product.Services
                 throw new Exception("Không có đủ khối lượng gang bên Luyện Gang để chia. Vui Lòng kiểm tra lại.");
 
             var tongT_KLGangLongChon = listAll
-                .Where(x => maThungTheps.Contains(x.MaThungThep) && x.T_KLGangLong.HasValue && x.T_KLThungVaGang.HasValue && x.T_KLThungChua.HasValue)
+                .Where(x => IDs.Contains(x.ID) && x.T_KLGangLong.HasValue && x.T_KLThungVaGang.HasValue && x.T_KLThungChua.HasValue)
                 .Sum(x => x.T_KLGangLong.Value);
 
-            foreach (var item in listAll.Where(x => maThungTheps.Contains(x.MaThungThep)))
+            foreach (var item in listAll.Where(x => IDs.Contains(x.ID)))
             {
                 var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
 
@@ -202,12 +222,12 @@ namespace Data_Product.Services
                 }
             }
 
-            var listSelected = listAll.Where(x => maThungTheps.Contains(x.MaThungThep)).ToList();
+            var listSelected = listAll.Where(x => IDs.Contains(x.ID)).ToList();
 
             return new ChiaGangResultModel
             {
                 ThungGoc = listGoc,
-                ThungDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !maThungTheps.Contains(x.MaThungThep)).ToList(),
+                ThungDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !IDs.Contains(x.ID)).ToList(),
                 ThungAll = listSelected,
                 ListAll = listAll
             };

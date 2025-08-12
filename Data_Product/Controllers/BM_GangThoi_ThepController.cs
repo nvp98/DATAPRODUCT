@@ -1282,11 +1282,16 @@ namespace Data_Product.Controllers
                     // Nếu là thùng gốc =>> cập nhật danh sách thùng gang
                     if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
                     {
-                        
+
+                        var maThungList = tgDto.DanhSachThungGang.Select(x => x.MaThungThep).ToList();
+
+                        var gangList = await _context.Tbl_BM_16_GangLong
+                            .Where(x => maThungList.Contains(x.MaThungThep) && x.ID_TrangThai != (int)TinhTrang.DaChot)
+                            .ToListAsync();
+
                         foreach (var thungGang in tgDto.DanhSachThungGang)
                         {
-                            var entity = await _context.Tbl_BM_16_GangLong
-                                .FirstOrDefaultAsync(x => x.MaThungThep == thungGang.MaThungThep && x.ID_TrangThai != (int)TinhTrang.DaChot);
+                            var entity = gangList.FirstOrDefault(x => x.MaThungThep == thungGang.MaThungThep);
 
                             if (entity != null)
                             {
@@ -1319,7 +1324,7 @@ namespace Data_Product.Controllers
                     {
                     }
                 }
-                return Ok(new { success = true, message = "Lưu thành công.", danhSachBiBoQua = danhSachBiBoQua });
+                return Ok(new { success = true, message = "Lưu thành công.", maThungThepCanTinhToan = maThungThepCanTinhToan });
             }
             catch (Exception ex)
             {
@@ -1328,20 +1333,56 @@ namespace Data_Product.Controllers
             }
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> TinhLaiChiaGang([FromBody] List<string> maThungThepCanTinhToan)
+        //{
+        //    try
+        //    {
+        //        foreach (var ma in maThungThepCanTinhToan)
+        //        {
+        //            try
+        //            {
+        //                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(ma);
+        //            }
+        //            catch
+        //            {
+        //            }
+        //        }
+        //        return Ok();
+        //    }catch(Exception ex)
+        //    {
+        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+        //    }
+        //}
+
+        //[HttpPost]
+        //public async Task<IActionResult> DanhSachTheoMaThungGang([FromBody] List<string> selectedThungs)
+        //{
+        //    try
+        //    {
+        //        var result = await _chiaGangService.TinhToanChiaGangAsync(selectedThungs);
+        //        return Ok(result);
+        //    }
+        //    catch(Exception ex)
+        //    {
+        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+        //    }
+        //}
+
         [HttpPost]
-        public async Task<IActionResult> DanhSachTheoMaThungGang([FromBody] List<string> selectedThungs)
+        public async Task<IActionResult> DanhSachTheoMaThungGang([FromBody] List<int> IDs)
         {
             try
             {
-                var result = await _chiaGangService.TinhToanChiaGangAsync(selectedThungs);
+                var result = await _chiaGangService.TinhToanChiaGangAsync(IDs);
                 return Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
             }
         }
-        
+
         [HttpPost]
         public async Task<IActionResult> XacNhanChiaGang([FromBody] List<ChiaGangDto> payload)
         {
