@@ -2137,16 +2137,30 @@
 
         // Chia Gang
         $('#BtnChiaGang').click(function() {
-            let selectedThungs = [];
+            // let selectedThungs = [];
+            // $('#IDtbXuLySoLieu tbody tr').each(function () {
+            //     const checkbox = $(this).find('.cbx-chiaGang');
+            //     if (checkbox.is(':checked')) {
+            //         const mathungthep = $(this).data('mathungthep');
+            //     selectedThungs.push(mathungthep);
+            //     }
+            // });
+
+            // if (selectedThungs.length < 2) {
+            //     alert("Vui lòng chọn ít nhất 2 dòng.");
+            //     return;
+            // }
+
+            let IDs = [];
             $('#IDtbXuLySoLieu tbody tr').each(function () {
                 const checkbox = $(this).find('.cbx-chiaGang');
                 if (checkbox.is(':checked')) {
-                    const mathungthep = $(this).data('mathungthep');
-                selectedThungs.push(mathungthep);
+                    const id = $(this).data('id');
+                IDs.push(id);
                 }
             });
 
-        if (selectedThungs.length < 2) {
+            if (IDs.length < 2) {
                 alert("Vui lòng chọn ít nhất 2 dòng.");
                 return;
             }
@@ -2154,7 +2168,7 @@
                 url: "/BM_GangThoi_Thep/DanhSachTheoMaThungGang",
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify(selectedThungs),
+                data: JSON.stringify(IDs),
                 processData: false,
                 success: function (res) {
                 if(res){
@@ -2243,7 +2257,18 @@
                 success: function (res) {
                     alert("Lưu thành công!");
                     isValidLuu = true;
-                    ReLoad();
+                    // const maThungThepCanTinhToan = res.maThungThepCanTinhToan;
+                    // $.ajax({
+                    //     url: "/BM_GangThoi_Thep/TinhLaiChiaGang",
+                    //     type: "POST",
+                    //     contentType: "application/json",
+                    //     data: JSON.stringify(maThungThepCanTinhToan),
+                    //     processData: false,
+                    //     success: function (res) {
+                            // ReLoad();
+                    //     }
+                    // });
+                     ReLoad();
                 },
                 error: function () {
                     alert("Lỗi khi nhận dữ liệu!");
