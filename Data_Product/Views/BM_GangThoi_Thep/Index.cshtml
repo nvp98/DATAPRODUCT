@@ -780,7 +780,9 @@
                             <td class="KLGangLong">${thung.t_KLGangLong ?? '00.0'}</td>
                         `;
                     }
-                    row += `<td class="hide-col" style="color: ${thung.klGangChia ? 'red':'black'}">${thung.klGangChia ?? thung.t_KLGangLong ?? ''}</td>`;
+                    row += `<td class="hide-col" style="color: ${isCopy ? '' : (thung.klGangChia ? 'red' : 'black')}">
+                            ${isCopy ? '' : (thung.klGangChia ?? thung.t_KLGangLong ?? '')}
+                    </td>`;
                     // Nếu là dòng đầu tiên của nhóm thì render các cột thùng trung gian với rowspan
                     if (index === 0) {
                         const actionHtml = tg.isCopy ? `<button ${disabled} class="btn-item-action btn btn-danger btn-sm btn-XoaCopy" title="Xóa">
