@@ -100,7 +100,7 @@ namespace Data_Product.Controllers
             }
             var allowedDestinations = new[] { "DUC1", "DUC2" };
             var thungsCanCheckTTG = thungs
-                .Where(x => !allowedDestinations.Contains(x.ChuyenDen))
+                .Where(x => !allowedDestinations.Contains(x.ChuyenDen) && x.KLGangChia == null)
                 .ToList();
 
             var invalidThungsTTG = new List<object>();
@@ -141,7 +141,7 @@ namespace Data_Product.Controllers
                 return Ok(new
                 {
                     isValid = false,
-                    invalidThungsGang = new List<object>(), // Rỗng vì đã qua bước 1
+                    invalidThungsGang = new List<object>(), 
                     invalidThungsTTG
                 });
             }
