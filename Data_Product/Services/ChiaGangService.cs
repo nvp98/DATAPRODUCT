@@ -79,26 +79,6 @@ namespace Data_Product.Services
 
         public async Task<ChiaGangResultModel> TinhToanChiaGangAsync(List<int> IDs)
         {
-
-            var test = await _context.Tbl_BM_16_GangLong
-                .Where(x => IDs.Contains(x.ID))
-                .Select(x => new
-                {
-                    x.MaThungGang,
-                    x.BKMIS_ThungSo
-                })
-                .ToListAsync();
-            //foreach(var item in maThungTheps)
-            //{
-            //    var thung = await _context.Tbl_BM_16_GangLong
-            //        .Where(x => x.MaThungThep.Trim() == item.Trim())
-            //        .Select(x => new
-            //        {
-            //            x.MaThungGang,
-            //            x.BKMIS_ThungSo
-            //        }).FirstOrDefaultAsync();
-            //}
-
             var danhsachThung = await (from a in _context.Tbl_BM_16_GangLong
                                        where IDs.Contains(a.ID)
                                        select new
@@ -159,6 +139,10 @@ namespace Data_Product.Services
 
             // Nếu có bất kỳ thùng gốc nào thiếu G_KLGangLong thì không chia
             bool coThungGocNullGKL = listGoc.Any(x => !x.G_KLGangLong.HasValue || x.G_KLGangLong == 0);
+            if(coThungGocNullGKL == true)
+            {
+                throw new Exception("KL Gang Lỏng bên Luyện Gang chưa được nhập đầy đủ. Vui lòng kiểm tra lại");
+            }
 
             foreach (var thungGoc in listGoc)
             {
@@ -199,7 +183,7 @@ namespace Data_Product.Services
 
             var tongConLai = danhSachConLai.Sum(x => x.KLConLai);
 
-            if (tongConLai < 0)
+            if (tongConLai <= 0)
                 throw new Exception("Không có đủ khối lượng gang bên Luyện Gang để chia. Vui Lòng kiểm tra lại.");
 
             var tongT_KLGangLongChon = listAll
@@ -208,17 +192,28 @@ namespace Data_Product.Services
 
             foreach (var item in listAll.Where(x => IDs.Contains(x.ID)))
             {
-                var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
+                //var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
 
-                if (coThungGocNullGKL || nguon == null || tongConLai <= 0)
-                {
-                    item.TyLeChia = 0;
-                    item.KLChia = 0;
-                }
-                else
+                //if (coThungGocNullGKL || nguon == null || tongConLai <= 0)
+                //{
+                //    item.TyLeChia = 0;
+                //    item.KLChia = 0;
+                //}
+                //else
+                //{
+                //    item.TyLeChia = Math.Round((nguon.KLConLai / tongConLai) * 100, 2);
+                //    item.KLChia = Math.Round((item.TyLeChia ?? 0) * tongT_KLGangLongChon / 100, 2);
+                //}
+                var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
+                if (nguon != null)
                 {
                     item.TyLeChia = Math.Round((nguon.KLConLai / tongConLai) * 100, 2);
                     item.KLChia = Math.Round((item.TyLeChia ?? 0) * tongT_KLGangLongChon / 100, 2);
+                }
+                else
+                {
+                    item.TyLeChia = 0;
+                    item.KLChia = 0;
                 }
             }
 
