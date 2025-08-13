@@ -193,12 +193,12 @@
                             </b>
                         </span>
                          @if (TaiKhoan.ID_PhongBan == 70)
-                         { 
+                         {  
                         <div style="display: flex; gap: 10px;">
                             <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
                             <button class="btn btn-danger btn-sm px-4 status-card" id="btnHuyChotThung"> Hủy Chốt</button>
                         </div>
-                          }
+                          } 
                     </div>
                 </div>
             </div>
@@ -428,7 +428,9 @@
                         <th>BP Nhận</th>
                         <th style="min-width: 150px;">Người nhận</th>
                         <th><input style="width: 45px; margin-bottom: 3px;" type="number" name="name" min="0" max="100" value="@ViewBag.PhanTram" id="percentDuc" @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") /> <button @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") style="border: none;" id="btn-percent"><i class="bi bi-floppy2"></i></button><br /> KL Đúc</th>
-                        <th>Chọn thùng</th>
+                        <th>Chọn thùng 
+                            <input type="checkbox" id="cbx-selectAll" @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") />
+                        </th>
                         <th>Tình trạng</th>
                         <th class="hide-col">KL chênh lệch</th>
                         <th class="hide-col">Tỷ lệ chênh lệch</th>
@@ -1330,9 +1332,10 @@
                  contentType: 'application/json',
                  data: JSON.stringify(dto),
                  success: function (res) {
-                     danhSachThung = res.data;
+                    danhSachThung = res.data;
                     renderTable(res);
                     renderPagination(res.totalRecords);
+                    $('#cbx-selectAll').prop('checked', false);
                  },
                  error: function (err) {
                      alert("Lỗi khi tìm kiếm dữ liệu");
@@ -1598,6 +1601,13 @@
                 $(".sticky-col-8").css("left", "422px");
             }
         }
+
+        $('#cbx-selectAll').on('change', function () {
+            const isChecked = $(this).is(':checked');
+
+            // Chọn hoặc bỏ chọn tất cả checkbox có class cbx-item
+            $('.cbx-chotThung:visible').prop('checked', isChecked);
+        });
 
         // xu ly khi load
         $(document).ready(function () {

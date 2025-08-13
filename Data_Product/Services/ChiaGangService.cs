@@ -256,7 +256,8 @@ namespace Data_Product.Services
 
                                 // LEFT JOIN với bảng Tbl_BM_16_ChiaGang
                                 join cg in _context.Tbl_BM_16_ChiaGang
-                                    on a.MaThungThep equals cg.MaThungThep into cgGroup
+                                    on new { a.MaThungThep, MaChiaGang = chiaGang.MaChiaGang }
+                                    equals new { cg.MaThungThep, cg.MaChiaGang } into cgGroup
                                 from cg in cgGroup.DefaultIfEmpty()
 
                                     // LEFT JOIN với Thùng trung gian
@@ -279,7 +280,8 @@ namespace Data_Product.Services
                                     T_copy = a.T_copy,
                                     KL_Phe = ttg != null ? ttg.KL_phe : null,
                                     TyLeChia = cg != null ? cg.PhanTram : null,
-                                    KLChia = cg != null ? cg.KLGangChia : null
+                                    KLChia = cg != null ? cg.KLGangChia : null,
+                                    MaChiaGang = cg != null ? cg.MaChiaGang : null
                                 }).ToListAsync();
 
 
