@@ -52,6 +52,7 @@ namespace Data_Product.Controllers
             return Ok(data);
         }
 
+
         [HttpPost]
         public async Task<IActionResult> CheckChotThung([FromBody] List<ChotThungDto> selectedIds)
         {
@@ -59,20 +60,19 @@ namespace Data_Product.Controllers
                 return BadRequest("Danh sách ID trống.");
 
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
             if (TaiKhoan == null) return Unauthorized();
 
-            var Ids = selectedIds
-                                .Select(x => x.id)
-                                .ToList();
+            var Ids = selectedIds.Select(x => x.id).ToList();
 
             // Lấy tất cả các thùng cần xử lý
             var thungs = await _context.Tbl_BM_16_GangLong
-                                       .Where(x => Ids.Contains(x.ID) && x.T_ID_TrangThai == (int)TinhTrang.DaNhan)
-                                       .ToListAsync();
-            if (thungs.Count == 0) return NotFound("Không tìm thấy thùng nào.");
+                .Where(x => Ids.Contains(x.ID) && x.T_ID_TrangThai == (int)TinhTrang.DaNhan)
+                .ToListAsync();
 
-            // Kiểm tra số liệu thùng gang thiếu
+            if (thungs.Count == 0)
+                return NotFound("Không tìm thấy thùng nào.");
+
             var invalidThungsGang = thungs
                 .Where(x =>
                     x.KL_XeGoong == null ||
@@ -80,53 +80,75 @@ namespace Data_Product.Controllers
                     x.G_KLThungChua == null ||
                     x.G_KLGangLong == null ||
                     x.ChuyenDen == null ||
-                    x.Gio_NM == null ||
-                    x.T_KLThungVaGang == null ||
-                    x.T_KLThungChua == null ||
-                    x.T_KLGangLong == null ||
-                    x.ID_TTG == null
+                    x.Gio_NM == null 
+                    // || x.T_KLThungVaGang == null ||
+                    //x.T_KLThungChua == null ||
+                    //x.T_KLGangLong == null ||
+                    //x.ID_TTG == null
                 )
-                .Select(x => new { x.ID, x.MaThungGang }) 
+                .Select(x => new { x.ID, x.MaThungGang })
                 .ToList();
 
-            var idTTGs = thungs.Select(x => x.ID_TTG).Distinct().ToList();
-
-            // Lấy tất cả thùng trung gian liên quan
-            var allTTGs = await _context.Tbl_BM_16_ThungTrungGian
-                .Where(x => idTTGs.Contains(x.ID))
-                .ToListAsync();
-
-            var maThungTGs = allTTGs.Select(x => x.MaThungTG).Distinct().ToList();
-
-            // Lấy toàn bộ các thùng trung gian liên quan theo MaThungTG (gốc và bản sao)
-            var relatedTTGs = await _context.Tbl_BM_16_ThungTrungGian
-                .Where(x => maThungTGs.Contains(x.MaThungTG))
-                .ToListAsync();
-
-            var invalidThungsTTG = relatedTTGs
-                .Where(item =>
-                    item.KLThungVaGang_Thoi == null ||
-                    item.KLThung_Thoi == null ||
-                    item.KL_phe == null ||
-                    item.KLGang_Thoi == null ||
-                    item.ID_MeThoi == null ||
-                    item.GioChonMe == null
-                )
-                .Select(x => new { x.MaThungTG }) 
-                .ToList();
-
-            if (invalidThungsTTG.Any() || invalidThungsGang.Any())
+            if (invalidThungsGang.Any())
             {
                 return Ok(new
                 {
                     isValid = false,
-                    invalidThungsTTG,
-                    invalidThungsGang
+                    invalidThungsGang,
+                    invalidThungsTTG = new List<object>() 
+                });
+            }
+            var allowedDestinations = new[] { "DUC1", "DUC2" };
+            var thungsCanCheckTTG = thungs
+                .Where(x => !allowedDestinations.Contains(x.ChuyenDen))
+                .ToList();
+
+            var invalidThungsTTG = new List<object>();
+
+            if (thungsCanCheckTTG.Any())
+            {
+                var idTTGs = thungsCanCheckTTG
+                    .Where(x => x.ID_TTG.HasValue)
+                    .Select(x => x.ID_TTG.Value)
+                    .Distinct()
+                    .ToList();
+
+                var allTTGs = await _context.Tbl_BM_16_ThungTrungGian
+                    .Where(x => idTTGs.Contains(x.ID))
+                    .ToListAsync();
+
+                var maThungTGs = allTTGs.Select(x => x.MaThungTG).Distinct().ToList();
+
+                var relatedTTGs = await _context.Tbl_BM_16_ThungTrungGian
+                    .Where(x => maThungTGs.Contains(x.MaThungTG))
+                    .ToListAsync();
+
+                invalidThungsTTG = relatedTTGs
+                    .Where(item =>
+                        item.KLThungVaGang_Thoi == null ||
+                        item.KLThung_Thoi == null ||
+                        item.KL_phe == null ||
+                        item.KLGang_Thoi == null ||
+                        item.ID_MeThoi == null ||
+                        item.GioChonMe == null
+                    )
+                    .Select(x => new { x.MaThungTG })
+                    .ToList<object>();
+            }
+
+            if (invalidThungsTTG.Any())
+            {
+                return Ok(new
+                {
+                    isValid = false,
+                    invalidThungsGang = new List<object>(), // Rỗng vì đã qua bước 1
+                    invalidThungsTTG
                 });
             }
 
             return Ok(new { isValid = true });
         }
+
 
         [HttpPost]
         public async Task<IActionResult> LuuPhanTram([FromBody] int percent)

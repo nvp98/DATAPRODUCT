@@ -18,6 +18,7 @@
         // 2 trường thêm cho xử lý chia
         public decimal? TyLeChia { get; set; }
         public decimal? KLChia { get; set; }
+        public string? MaChiaGang { get; set; }
     }
 
 
