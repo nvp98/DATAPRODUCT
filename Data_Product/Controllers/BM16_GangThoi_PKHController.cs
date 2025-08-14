@@ -314,8 +314,8 @@ namespace Data_Product.Controllers
             decimal sumKLGangNhan = 0;
             decimal sumKLPhe = 0;
             decimal sumKLVaoLoThoi = 0;
+            decimal sumKLGangChia = 0;
 
-            
 
             if (dto.ID_LoCao.HasValue)
             {
@@ -424,6 +424,7 @@ namespace Data_Product.Controllers
                 query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
                 sumKLGang = query.Where(x => x.T_copy != true).Sum(x => x.G_KLGangLong ?? 0);
                 sumKLGangLongThep = query.Sum(x => x.T_KLGangLong ?? 0);
+                sumKLGangChia = query.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0);
 
                 var maThungTGList = (
                     from a in query
@@ -439,6 +440,8 @@ namespace Data_Product.Controllers
                  sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
                  sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
                  sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
+
+                 
             }
             
             // Tổng số bản ghi
@@ -549,43 +552,7 @@ namespace Data_Product.Controllers
 
             // Final result list để hiển thị
             var finalData = new List<Tbl_BM_16_GangLong>();
-
-            //for (int i = 0; i < gocData.Count; i++)
-            //{
-            //    var item = gocData[i];
-
-            //    if (!item.ID_TTG.HasValue || item.IsCopy == true) continue;
-
-            //    // Tìm các thùng copy có cùng MaThungTG
-            //    var copies = thungTG_Copies
-            //        .Where(x => x.MaThungTG == item.MaThungTG)
-            //        .ToList();
-
-            //    int insertIndex = i + 1;
-
-            //    foreach (var copy in copies)
-            //    {
-            //        var clone = CloneGangLong(item);
-
-            //        var methoi = await _context.Tbl_MeThoi
-            //            .Where(x => x.ID == copy.ID_MeThoi)
-            //            .FirstOrDefaultAsync();
-
-            //        clone.ID_TTG = copy.ID;
-            //        clone.IsCopy = true;
-            //        clone.SoThungTG = copy.SoThungTG;
-            //        clone.KLThungVaGang_Thoi = copy.KLThungVaGang_Thoi;
-            //        clone.KLThung_Thoi = copy.KLThung_Thoi;
-            //        clone.KLGang_Thoi = copy.KLGang_Thoi;
-            //        clone.KL_phe = copy.KL_phe;
-            //        clone.ID_MeThoi = methoi?.ID;
-            //        clone.MaMeThoi = methoi?.MaMeThoi;
-            //        clone.GioChonMe = copy.GioChonMe;
-            //        gocData.Insert(insertIndex, clone);
-            //        insertIndex++; 
-            //        i++; 
-            //    }
-            //}
+           
             foreach (var item in gocData)
             {
                 // Thêm dòng gốc
@@ -637,6 +604,7 @@ namespace Data_Product.Controllers
                     SumKLGangNhan = sumKLGangNhan,
                     SumKLPhe = sumKLPhe,
                     SumKLVaoLoThoi = sumKLVaoLoThoi,
+                    SumKLGangChia = sumKLGangChia,
                     Data = groupedData
             };
         }
