@@ -448,7 +448,7 @@
                         <td class="hide-col" id="IDTongKLGangLongThep" style="font-weight: 600">
                             0.00
                         </td>
-                        <td class="hide-col"></td>
+                        <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
                         <td id="IDTongKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -477,7 +477,7 @@
                         <td class="hide-col" id="IDTongAllKLGangLongThep" style="font-weight: 600">
                             0.00
                         </td>
-                        <td class="hide-col"></td>
+                        <td class="hide-col" id="IDTongAllKLGangChia" style="font-weight: 600">0.00</td>
                         <td id="IDTongAllKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -654,6 +654,17 @@
                }
            });
           $("#IDTongKLGangLongThep").text(total.toFixed(2));
+       }
+
+       function TongKLGangChia(){
+           let total = 0;
+            $("#tblDuLieu .KLGangChia").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLGangChia").text(total.toFixed(2));
        }
 
        function TongKLVaoLoThoi(){
@@ -1056,8 +1067,8 @@
                     // </td>`);
                     row.append(`
                       <td class="hide-col ${textColor}" style="width: 100px;">
-                        <div class="d-flex align-items-center justify-content-center gap-2">
-                          ${displayedValue}
+                        <div class="d-flex align-items-center justify-content-center gap-2 ">
+                          <p class="KLGangChia" style="margin: 0;">${displayedValue}</p>
                           <button class="btn p-0 border-0 bg-transparent btnDetailChiaGang" style="display: ${showButton}">
                             <i class="bi bi-eye-fill"></i>
                           </button>
@@ -1110,6 +1121,7 @@
                 TongKLGangLongThep();
                 TongKLVaoLoThoi();
                 TongKLPhe();
+                TongKLGangChia();
                 TongKLGangNhan();
                 renderTongKLChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongKLChenhLech');
                 renderTongPhanTramChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongPhanTramChenhLech');
@@ -1117,6 +1129,7 @@
             });
              $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toFixed(2) : $("#IDTongKLGangLong").text().trim());
              $("#IDTongAllKLGangLongThep").text(res.sumKLGangLongThep !== 0 ? res.sumKLGangLongThep.toFixed(2) : $("#IDTongKLGangLongThep").text().trim());
+             $("#IDTongAllKLGangChia").text(res.sumKLGangChia !== 0 ? res.sumKLGangChia.toFixed(2) : $("#IDTongKLGangChia").text().trim());
              $("#IDTongAllKLGangNhan").text(res.sumKLGangNhan !== 0 ? res.sumKLGangNhan.toFixed(2) : $("#IDTongKLGangNhan").text().trim());
              $("#IDTongAllKLPhe").text(res.sumKLPhe !== 0 ? res.sumKLPhe.toFixed(2) : $("#IDTongKLPhe").text().trim());
              $("#IDTongAllKLVaoLoThoi").text(res.sumKLVaoLoThoi !== 0 ? res.sumKLVaoLoThoi.toFixed(2) : $("#IDTongKLVaoLoThoi").text().trim());
