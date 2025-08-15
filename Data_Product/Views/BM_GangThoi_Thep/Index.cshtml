@@ -120,7 +120,7 @@
 
     .btn {
         height: 35px;
-        margin-left: 20px;
+        margin-left: 10px;
         font-size: 12px;
     }
     .tong-so-me{
@@ -337,10 +337,34 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row mb-3">
+                                        <label for="LoCao" class="col-sm-5 col-form-label">Lò thổi:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDLoThoiSearch" name="LoThoi">
+                                                <option value="">-- Lò thổi --</option>
+                                                @foreach (var lothoi in ViewBag.LoThoiSearchList)
+                                                {
+                                                    <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 col-12 filter-item">
+                                    <div class="row g-3 d-flex align-items-end">
+                                        <div class="col-12 d-flex justify-content-end">
+                                            <button class="btn btn-primary btn-sm px-4" id="btnSeachLG">Tìm kiếm</button>
+                                            <button class="btn btn-warning btn-sm px-4" id="btnLuuKR">Lưu KR</button>
+                                            <button class="btn btn-success btn-sm px-4" id="IDbtnNhanThung">Nhận</button>
+                                            <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung" style="display:none">Hủy nhận</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row g-3 d-flex align-items-end">
+                    @* <div class="row g-3 d-flex align-items-end">
                         <div class="col-12 d-flex justify-content-end">
                             <button class="btn btn-primary btn-sm px-4" id="btnSeachLG">Tìm kiếm</button>
                             <button class="btn btn-warning btn-sm px-4" id="btnLuuKR">Lưu KR</button>
@@ -348,7 +372,7 @@
                             <button class="btn btn-danger btn-sm px-4" id="IDbtnHuyNhanThung" style="display:none">Hủy nhận</button>
 
                         </div>
-                    </div>
+                    </div> *@
                 </div>
                 <div class="col-7">
                     <h5><strong>KHU VỰC XỬ LÝ SỐ LIỆU</strong></h5>
@@ -746,7 +770,7 @@
                     // Cột thùng gang
                     row += `
                         <td class="hide-col">
-                            <input type="checkbox" class="cbx-chiaGang" style="display: ${isCopy ? 'none' : 'inline-block'}" name="ChonThung" value="" ${thung.iD_TrangThai == 5 || thung.klGangChia ? "disabled readonly" : ""}/>
+                            <input type="checkbox" class="cbx-chiaGang" style="display: ${isCopy ? 'none' : 'inline-block'}" name="ChonThung" value="" ${thung.iD_TrangThai == 5 || thung.klGangChia !== null ? "disabled readonly" : ""}/>
                         </td>
                         <td class="hide-col maThungThep" data-mathungganggoc="${thung.maThungGang}">${thung.maThungThep ?? ''}</td>
                         <td>${thung.iD_LoCao ?? ''}</td>
@@ -781,8 +805,8 @@
                             <td class="KLGangLong">${thung.t_KLGangLong ?? '00.0'}</td>
                         `;
                     }
-                    row += `<td class="hide-col KLGangChia" style="color: ${isCopy ? '' : (thung.klGangChia ? 'red' : 'black')}">
-                            ${isCopy ? '' : (thung.klGangChia ?? thung.t_KLGangLong ?? '')}
+                    row += `<td class="hide-col KLGangChia" style="color: ${isCopy ? '' : (thung.klGangChia !== null ? 'red' : 'black')}">
+                            ${isCopy ? '' : (thung.klGangChia !== null ? thung.klGangChia : thung.t_KLGangLong ?? '')}
                     </td>`;
                     // Nếu là dòng đầu tiên của nhóm thì render các cột thùng trung gian với rowspan
                     if (index === 0) {
@@ -908,7 +932,7 @@
             const IDTinhTrang = $('#IDTinhTrang').val() || null;
             const IDMaThungGang = $('#IDMaThungGang').val().trim() || null;
             const IDBKMisThungSo = $('#IDBKMisThungSo').val() || null;
-
+            const IDLoThoiSearch = $('#IDLoThoiSearch').val() || null;
 
             const payload = {
                 TuNgay: TuNgayLamViec,
@@ -918,7 +942,8 @@
                 ChuyenDen: IDChuyenDen,
                 G_Ca: IDCaLamViec,
                 MaThungGang : IDMaThungGang,
-                BKMIS_ThungSo: IDBKMisThungSo
+                BKMIS_ThungSo: IDBKMisThungSo,
+                ID_LoThoi: IDLoThoiSearch
             };
 
             $.ajax({

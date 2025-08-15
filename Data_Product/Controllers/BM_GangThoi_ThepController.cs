@@ -88,6 +88,10 @@ namespace Data_Product.Controllers
 
             ViewBag.LoThoiList = loThoiList;
 
+            var loThoiSearchList = await _context.Tbl_LoThoi.ToListAsync();
+            ViewBag.LoThoiSearchList = loThoiSearchList;
+
+
             return View();
         }
 
@@ -135,6 +139,11 @@ namespace Data_Product.Controllers
                 if (!string.IsNullOrEmpty(payload.BKMIS_ThungSo))
                 {
                     query = query.Where(x => x.BKMIS_ThungSo.Contains(payload.BKMIS_ThungSo));  
+                }
+
+                if (payload.ID_LoThoi.HasValue)
+                {
+                    query = query.Where(x => x.ID_LoThoi == payload.ID_LoThoi.Value);
                 }
 
                 if (payload.TuNgay.HasValue && payload.DenNgay.HasValue)
