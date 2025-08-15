@@ -1,6 +1,8 @@
 ﻿using Data_Product.Common.Enums;
+using Data_Product.DTO;
 using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
+using Data_Product.Models.ModelView;
 using Data_Product.Repositorys;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Humanizer;
@@ -21,7 +23,74 @@ namespace Data_Product.Controllers
             this._context = _context;
             _viewEngine = viewEngine;
         }
+        public async Task<IActionResult> Index()
+        {
+            var loThoiSearchList = await _context.Tbl_LoThoi.ToListAsync();
+            ViewBag.LoThoiSearchList = loThoiSearchList;
+            return View();
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> Search([FromBody] SearchMeThoiDto dto)
+        {
+            try
+            {
+                var query = _context.Tbl_MeThoi.AsQueryable();
+
+                if (!string.IsNullOrEmpty(dto.SearchText))
+                {
+                    query = query.Where(x => x.MaMeThoi.Contains(dto.SearchText));
+                }
+
+                if (dto.ID_LoThoi.HasValue)
+                {
+                    query = query.Where(x => x.ID_LoThoi == dto.ID_LoThoi.Value);
+                }
+
+                if (dto.TuNgay.HasValue && dto.DenNgay.HasValue)
+                {
+                    var tuNgay = dto.TuNgay.Value.Date;
+                    var denNgay = dto.DenNgay.Value.Date.AddDays(1);
+
+                    query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
+                }
+                if (dto.IDTrangThai.HasValue)
+                {
+                    if(dto.IDTrangThai == (int)TinhTrang.DaChot)
+                    {
+                        query = query.Where(x => x.ID_TrangThai == dto.IDTrangThai.Value);
+                    }
+                    else
+                    {
+                        bool IsDelete = dto.IDTrangThai.Value == 1 ? true : false;
+                        query = query.Where(x => x.Is_Delete == IsDelete && x.ID_TrangThai != (int)TinhTrang.DaChot);
+                    }
+                }
+                int totalPages = await query.CountAsync();
+
+                query = query.Skip((dto.PageNumber - 1) * dto.PageSize)
+                    .Take(dto.PageSize);
+
+                var result = await (from lo in query
+                                    orderby lo.ID_LoThoi
+                                    select new Tbl_MeThoi
+                                    {
+                                        ID = lo.ID,
+                                        NgayTao = lo.NgayTao,
+                                        MaMeThoi = lo.MaMeThoi,
+                                        ID_TrangThai = lo.ID_TrangThai,
+                                        Is_Delete = lo.Is_Delete,
+                                        ID_LoThoi = lo.ID_LoThoi,
+
+                                    }).ToListAsync();
+
+                return Ok(new { TotalRecords = totalPages, Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
 
         [HttpPost]
         public async Task<IActionResult> FilterMeThoi([FromBody] MeThoiSearchDto dto)
@@ -144,30 +213,85 @@ namespace Data_Product.Controllers
 
         }
         [HttpPost]
-        public async Task<IActionResult> XoaMeThoi([FromBody] int id)
+        public async Task<IActionResult> XoaMeThoi([FromBody] List<int> selectedIds)
         {
-            var meThoi = await _context.Tbl_MeThoi.FirstOrDefaultAsync(x => x.ID == id && !x.Is_Delete);
-            if (meThoi == null)
+            if (selectedIds is null || selectedIds.Count == 0)
+                return BadRequest(new { success = false, message = "Danh sách ID trống." });
+
+            var ids = selectedIds.Distinct().ToList();
+
+            // Những bản ghi hợp lệ để xóa (chưa bị xóa)
+            var toDelete = await _context.Tbl_MeThoi
+                .Where(x => ids.Contains(x.ID) && !x.Is_Delete && x.ID_TrangThai != (int)TinhTrang.DaChot)
+                .ToListAsync();
+
+            // Những bản ghi đã bị xóa sẵn
+            var alreadyDeleted = await _context.Tbl_MeThoi
+                .Where(x => ids.Contains(x.ID) && x.Is_Delete)
+                .Select(x => x.ID)
+                .ToListAsync();
+
+
+            if (toDelete.Count == 0)
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Không có mẻ thời hợp lệ để xóa.",
+                    alreadyDeleted,
+                });
+
+            foreach (var m in toDelete) m.Is_Delete = true;
+            var affected = await _context.SaveChangesAsync();
+
+            return Ok(new
             {
-                return NotFound(new { success = false, message = "Không tìm thấy mẻ thời cần xóa." });
-            }
-
-            meThoi.Is_Delete = true;
-            await _context.SaveChangesAsync();
-
-            return Ok(new { success = true, message = "Đã xóa mềm mẻ thời thành công." });
+                success = true,
+                message = $"Đã xóa mềm {toDelete.Count} mẻ thời.",
+                affectedCount = affected,
+                deletedIds = toDelete.Select(x => x.ID).ToList(),
+                alreadyDeleted,
+            });
         }
         [HttpPost]
-        public async Task<IActionResult>KhoiPhucMeThoi([FromBody] int id)
+        public async Task<IActionResult> KhoiPhucMeThoi([FromBody] List<int> selectedIds)
         {
-            var methoi = await _context.Tbl_MeThoi.FirstOrDefaultAsync(x => x.ID == id && x.Is_Delete);
-             if (methoi == null)
-              return NotFound(new { success = false, message = "Không tìm thấy dữ liệu đã xóa để khôi phục." });
+            if (selectedIds is null || selectedIds.Count == 0)
+                return BadRequest(new { success = false, message = "Danh sách ID trống." });
 
-            methoi.Is_Delete = false;
-            await _context.SaveChangesAsync();
+            var ids = selectedIds.Distinct().ToList();
 
-            return Ok(new { success = true, message = "Khôi phục mẻ thời thành công." });
+            // Những bản ghi hợp lệ để khôi phục (đang bị xóa)
+            var toRestore = await _context.Tbl_MeThoi
+                .Where(x => ids.Contains(x.ID) && x.Is_Delete)
+                .ToListAsync();
+
+            // Những bản ghi chưa bị xóa (không cần khôi phục)
+            var notDeleted = await _context.Tbl_MeThoi
+                .Where(x => ids.Contains(x.ID) && !x.Is_Delete)
+                .Select(x => x.ID)
+                .ToListAsync();
+
+            // ID không tồn tại
+
+            if (toRestore.Count == 0)
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Không có mẻ thời hợp lệ để khôi phục.",
+                    notDeleted,
+                });
+
+            foreach (var m in toRestore) m.Is_Delete = false;
+            var affected = await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Đã khôi phục {toRestore.Count} mẻ thời.",
+                affectedCount = affected,
+                restoredIds = toRestore.Select(x => x.ID).ToList(),
+                notDeleted,
+            });
         }
 
         [HttpPost]
