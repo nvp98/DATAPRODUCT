@@ -34,6 +34,7 @@
         public int? G_Ca { get; set; }
         public string? MaThungGang { get; set; }
         public string? BKMIS_ThungSo { get; set; }
+        public int? ID_LoThoi { get; set; }
     }
 
 
