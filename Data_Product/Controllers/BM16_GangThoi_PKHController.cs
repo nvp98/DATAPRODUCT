@@ -288,6 +288,7 @@ namespace Data_Product.Controllers
             {
 
                 t.ID_TrangThai = (int)TinhTrang.ChoXuLy;
+                t.ID_NguoiChot = null;
             }
 
             await _context.SaveChangesAsync();
@@ -484,6 +485,9 @@ namespace Data_Product.Controllers
                             join phongban in _context.Tbl_PhongBan on user.ID_PhongBan equals phongban.ID_PhongBan into g_phongban
                             from phongban in g_phongban.DefaultIfEmpty()
 
+                            join pkh_user in _context.Tbl_TaiKhoan on a.ID_NguoiChot equals pkh_user.ID_TaiKhoan into tk_user
+                            from pkh_user in tk_user.DefaultIfEmpty()
+
                             join ttg in _context.Tbl_BM_16_ThungTrungGian on a.ID_TTG equals ttg.ID into t_ttg
                             from ttg in t_ttg.DefaultIfEmpty()
 
@@ -528,6 +532,8 @@ namespace Data_Product.Controllers
                                 TrangThaiLT = trangThaiLT.TenTrangThai,
                                 T_copy = a.T_copy,
                                 KLGangChia = a.KLGangChia,
+                                ID_NguoiChot = a.ID_NguoiChot,
+                                HoTenNguoiChot = pkh_user.HoVaTen,
 
                                 HoVaTen = user.HoVaTen,
                                 TenPhongBan = phongban.TenNgan,

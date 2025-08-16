@@ -180,5 +180,8 @@ namespace Data_Product.Models
 
         [NotMapped]
         public string? GioChonMe { get; set; }
+
+        [NotMapped]
+        public string? HoTenNguoiChot { get; set; }
     }
 }

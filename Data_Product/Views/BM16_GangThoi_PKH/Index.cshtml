@@ -192,13 +192,13 @@
                                 DANH SÁCH THÙNG
                             </b>
                         </span>
-                         @if (TaiKhoan.ID_PhongBan == 70)
-                         {  
+                          @if (TaiKhoan.ID_PhongBan == 70)
+                         {    
                         <div style="display: flex; gap: 10px;">
                             <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
                             <button class="btn btn-danger btn-sm px-4 status-card" id="btnHuyChotThung"> Hủy Chốt</button>
                         </div>
-                          } 
+                         }  
                     </div>
                 </div>
             </div>
@@ -432,6 +432,7 @@
                             <input type="checkbox" id="cbx-selectAll" @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") />
                         </th>
                         <th>Tình trạng</th>
+                        <th class="hide-col" style="min-width: 150px;">Người chốt</th>
                         <th class="hide-col">KL chênh lệch</th>
                         <th class="hide-col">Tỷ lệ chênh lệch</th>
                     </tr>
@@ -459,7 +460,7 @@
                         <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="8" class="space-4"></td>
+                        <td colspan="9" class="space-4"></td>
                         <td class="hide-col" id="IDTongKLChenhLech" style="font-weight: 600">
                             0.00
                         </td>
@@ -488,7 +489,7 @@
                         <td id="IDTongAllKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="8" class="space-4"></td>
+                        <td colspan="9" class="space-4"></td>
                         <td class="hide-col" id="IDTongAllKLChenhLech" style="font-weight: 600">
                             0.0
                         </td>
@@ -1093,20 +1094,10 @@
                     }
                     
                     row.append(`<td>${tinhTrangHTML}</td>`);
+                    row.append(`<td class="hide-col">${item.hoTenNguoiChot ?? ''}</td>`);
                     row.append(`<td class="hide-col">${klChenh ?? ''}</td>`);
                     row.append(`<td class="hide-col">${ptChenh ? ptChenh + '%' : ''}</td>`);
-                    // if (klChenh !== '0.00') {
-                    //     row.append(`<td class="hide-col">${klChenh ?? ''}</td>`);
-                    // } else {
-                    //     row.append('<td class="hide-col"></td>');
-                    // }
-
-                    // if (ptChenh !== '0.0') {
-                    //     row.append(`<td class="hide-col">${ptChenh ? ptChenh + '%' : ''}</td>`);
-                    // } else {
-                    //     row.append('<td class="hide-col"></td>');
-                    // }
-                     tbody.append(row);
+                    tbody.append(row);
                 });
                 TongKLGangLong();
                 TongKLGangLongThep();
@@ -1137,8 +1128,11 @@
             if (isDUC && item.t_ID_TrangThai === 4 && item.g_ID_TrangThai === 3) {
                 return true;
             }
-            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '' && item.klGangChia > 0;
+            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '' ;
 
+            if(hasKlGangChia && item.klGangChia <= 0){
+                return false;
+            }
             // Danh sách điều kiện bắt buộc phải có
             const requiredFields = [
                 item.t_ID_TrangThai === 4,
@@ -1579,7 +1573,7 @@
             $('.space-2').attr('colspan', isHidden ? 5 : 10);
 
             $('.space-3').attr('colspan', isHidden ? 4 : 9);
-            $('.space-4').attr('colspan', isHidden ? 8 : 8);
+            $('.space-4').attr('colspan', isHidden ? 9 : 9);
 
             if(!isHidden){
                 $(".sticky-col-5").css("left", "299px");
