@@ -82,6 +82,7 @@
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhân viên xử lý BTBD</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Ghi Chú</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -172,7 +173,9 @@
                                             <td style="font-size:14px;">
                                                 @item.Tbl_TaiKhoan.TenTaiKhoan - @item.Tbl_TaiKhoan.HoVaTen
                                             </td>
-
+                                            <td>
+                                                @item.GhiChu
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>

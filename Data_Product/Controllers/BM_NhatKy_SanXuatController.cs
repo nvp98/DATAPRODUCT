@@ -71,7 +71,8 @@ namespace Data_Product.Controllers
                                 Tbl_TaiKhoan = b,
                                 IsLock = a.IsLock,
                                 ID_NhanVien_BTBD = a.ID_NhanVien_BTBD,
-                                HoTen_NhanVien_BTBD = (c.TenTaiKhoan ?? "") + " - " + (c.HoVaTen ?? "")
+                                HoTen_NhanVien_BTBD = (c.TenTaiKhoan ?? "") + " - " + (c.HoVaTen ?? ""),
+                                GhiChu = a.GhiChu
                             }).OrderByDescending(x => x.NgayDungSX).ToListAsync();
             if (ID_TrangThai != null) res = res.Where(x => x.TinhTrang == ID_TrangThai).ToList();
             if (begind != null && endd != null) res = res.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay).ToList();
