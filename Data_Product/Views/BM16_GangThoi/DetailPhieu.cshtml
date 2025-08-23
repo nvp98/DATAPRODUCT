@@ -19,9 +19,9 @@
 	border-radius: 0px !important;
 	}
 
-	th.toggle-col, td.toggle-col {
+	/* th.toggle-col, td.toggle-col {
 	display: none;
-	}
+	} */
 
 	.is-invalid {
 	border: 1px solid red !important;
@@ -188,9 +188,9 @@
 											Xuất Excel
 										</button>
 										<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
-										<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
+									@* 	<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
 											Ẩn/Hiện
-										</button>
+										</button> *@
 									}
 								</div>
 							</div>
@@ -442,15 +442,15 @@
 				}
 			});
 			// Ẩn/hiện cột
-			let isHidden = true;
-			$('#toggleColumnsBtn').on('click', function() {
-				if (isHidden) {
-					$('th.toggle-col, td.toggle-col').show();
-				} else {
-					$('th.toggle-col, td.toggle-col').hide();
-				}
-				isHidden = !isHidden;
-			});
+			// let isHidden = true;
+			// $('#toggleColumnsBtn').on('click', function() {
+			// 	if (isHidden) {
+			// 		$('th.toggle-col, td.toggle-col').show();
+			// 	} else {
+			// 		$('th.toggle-col, td.toggle-col').hide();
+			// 	}
+			// 	isHidden = !isHidden;
+			// });
 
 			$("#btnLamMoi").click(function() {
 			
