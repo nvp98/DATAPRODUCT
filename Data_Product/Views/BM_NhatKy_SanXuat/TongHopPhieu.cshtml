@@ -1,0 +1,263 @@
+﻿<div class="row mt-4">
+    <h3 class="mb-3 text-center"> Tổng hợp Nhật ký dừng sản xuất</h3>
+
+    <!-- Filter -->
+    <div class="row mb-3">
+        <div class="col-md-1">
+            <label class="form-label">Ca</label>
+            <select id="filterCaFrom" class="form-select form-select-sm">
+                <option value="null">-- Chọn ca --</option>
+                <option value="Ngày">Ca Ngày</option>
+                <option value="Đêm">Ca Đêm</option>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" id="filterDateFrom" class="form-control form-select-sm">
+        </div>
+        <div class="col-md-1">
+            <label class="form-label">Ca</label>
+            <select id="filterCaTo" class="form-select form-select-sm">
+                <option value="null">-- Chọn ca --</option>
+                <option value="Ngày">Ca Ngày</option>
+                <option value="Đêm">Ca Đêm</option>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" id="filterDateTo" class="form-control form-select-sm">
+        </div>
+        
+        <div class="col-md-1">
+            <label class="form-label">Tình trạng</label>
+            <select id="filterTinhTrang" class="form-select form-select-sm">
+                <option value="null">--Tình trạng--</option>
+                <option value="0">Đã gửi</option>
+                <option value="1">Hoàn tất</option>
+                <option value="2">Đang xóa</option>
+                <option value="-1">Không xác nhận</option>
+                <option value="3">Đã xóa</option>
+            </select>
+        </div>
+
+        <div class="col-md-1">
+            <label class="form-label">Chọn Bộ phận</label>
+            @Html.DropDownList("IDPhongBan", null, "---- Phòng ban ----", new { @id = "filterBophan", @class = "form-select form-select-sm" })
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Chọn Xưởng</label>
+            @Html.DropDownList("IDXuong", null, "---- Xưởng ----", new { @id = "filterXuong", @class = "form-select form-select-sm" })
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-primary w-100" id="btnFilter">
+                Lọc
+            </button>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-success w-100" id="btnExport">Excel</button>
+        </div>
+    </div>
+
+    <!-- PHẦN TRÊN: Biểu đồ -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body" >
+                    <h5 class="card-title text-center">Tổng hợp theo xưởng</h5>
+                    <div style="height:200px;">
+                        <canvas id="chartByXuong"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body" >
+                    <h5 class="card-title text-center">Tổng hợp theo ngày</h5>
+                    <div style="height:200px;">
+                        <canvas id="chartByDay"></canvas>
+                   </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHẦN DƯỚI: Bảng dữ liệu -->
+    <div class="card mt-2 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-center">Bảng dữ liệu chi tiết</h5>
+            <div id="filterInfo"
+                 class="alert alert-info text-center fw-bold py-2">
+                Từ ca: ..., ngày: ... → đến ca: ..., ngày: ...
+            </div>
+            <table class="table table-bordered table-striped" id="dataTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>STT</th>
+                        <th>Bộ phận</th>
+                        <th>Xưởng</th>
+                        <th>Dừng do Thiết bị</th>
+                        <th>Dừng do Sự cố CN</th>
+                        <th>Dừng do Chờ CN</th>
+                        <th>Dừng do Khách quan</th>
+                        <th>Tổng thời gian dừng</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+      let chartByXuongInstance = null;
+      let chartByNgayInstance = null;
+      function loadData() {
+        $.ajax({
+          url: "/BM_NhatKy_SanXuat/BaoCaoTongHopDung",   // API Controller trả JSON
+          type: "GET",
+          data: {
+            fromDate: $("#filterDateFrom").val(),
+            toDate: $("#filterDateTo").val(),
+            fromCa: $("#filterCaFrom").val(),
+            toCa: $("#filterCaTo").val(),
+            boPhan: $("#filterBophan").val(),
+            xuong: $("#filterXuong").val(),
+            tinhtrang: $("#filterTinhTrang").val()
+          },
+          success: function (apiData) {
+              // console.log(apiData)
+            // Vẽ Chart By Xuong
+            if (chartByXuongInstance) {
+              chartByXuongInstance.destroy(); // hủy chart cũ
+            }
+            chartByXuongInstance = new Chart(document.getElementById("chartByXuong"), {
+                      type: "line",
+                      data: {
+                        labels: apiData.chartByXuong.labels,
+                        datasets: [{
+                          label: "Thời gian dừng (h)",
+                          data: apiData.chartByXuong.values,
+                          borderColor: "blue",
+                          backgroundColor: "rgba(0,123,255,0.3)",
+                          fill: true
+                        }]
+                      },
+                      options: { maintainAspectRatio: false }
+                    });
+
+            // Vẽ Chart By Day
+            if (chartByNgayInstance) {
+              chartByNgayInstance.destroy(); // hủy chart cũ
+            }
+          chartByNgayInstance = new Chart(document.getElementById("chartByDay"), {
+              type: "line",
+              data: {
+                labels: apiData.chartByDay.labels,
+                datasets: [{
+                  label: "Thời gian dừng (h)",
+                  data: apiData.chartByDay.values,
+                  borderColor: "orange",
+                  backgroundColor: "rgba(255,165,0,0.3)",
+                  fill: true
+                }]
+              },
+              options: { maintainAspectRatio: false}
+            });
+
+            // Render bảng
+            let tbody = $("#dataTable tbody");
+            tbody.empty();
+
+            // Hiển thị dòng filter ngay trên bảng
+            $("#filterInfo").text(
+              `Từ ca: ${$("#filterCaFrom").val()}, ngày: ${$("#filterDateFrom").val()} →
+               đến ca: ${$("#filterCaTo").val()}, ngày: ${$("#filterDateTo").val()}`
+            );
+
+            apiData.tableData.forEach(row => {
+              tbody.append(`
+                <tr>
+                  <td>${row.stt}</td>
+                  <td>${row.bophan}</td>
+                  <td>${row.xuong}</td>
+                  <td>${row.tb}</td>
+                  <td>${row.sc}</td>
+                  <td>${row.cho}</td>
+                  <td>${row.kq}</td>
+                  <td class="fw-bold text-danger">${row.tong}</td>
+                </tr>
+              `);
+            });
+          },
+          error: function (err) {
+            alert("Lỗi khi load dữ liệu: " + err.responseText);
+          }
+        });
+      }
+
+      // Load lần đầu
+      loadData();
+
+      // Gắn nút Lọc
+      $("#btnFilter").on("click", loadData);
+
+      // Xuất Excel
+      $("#btnExport").click(function () {
+        // let table = document.getElementById("dataTable");
+        // let wb = XLSX.utils.table_to_book(table, { sheet: "Nhật ký dừng SX" });
+        // XLSX.writeFile(wb, "NhatKyDungSanXuat.xlsx");
+          // build query params từ filter trên UI
+        let params = {
+          fromDate: $("#filterDateFrom").val(),
+          toDate: $("#filterDateTo").val(),
+          fromCa: $("#filterCaFrom").val(),
+          toCa: $("#filterCaTo").val(),
+          boPhan: $("#filterBophan").val(),
+          xuong: $("#filterXuong").val(),
+          tinhtrang: $("#filterTinhTrang").val()
+        };
+
+        let query = $.param(params); // chuyển object thành query string
+
+        window.location.href = "/BM_NhatKy_SanXuat/ExportExcelTHDung?" + query;
+          });
+
+    });
+</script>
+
+<script type="text/javascript">
+    var IDPBC = $("#filterBophan").val();
+    if (IDPBC != null) {
+        $.get("/BM_11/Xuong", { IDPhongBan: $("#filterBophan").val() }, function (data) {
+            if (data[0] != null) {
+                $("#filterXuong").empty();
+                $("#filterXuong").append("<option value ='" + null + "'>" + "--Chọn xưởng--" + "</option>")
+                $.each(data, function (index, row) {
+                    $("#filterXuong").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                });
+            }
+            else {
+                $("#filterXuong").empty();
+                $("#filterXuong").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+            }
+        });
+    }
+    $("#filterBophan").change(function () {
+        $.get("/BM_11/Xuong", { IDPhongBan: $("#filterBophan").val() }, function (data) {
+            if (data[0] != null) {
+                $("#filterXuong").empty();
+                $("#filterXuong").append("<option value ='" + null + "'>" + "--Chọn xưởng--" + "</option>")
+                $.each(data, function (index, row) {
+                    $("#filterXuong").append("<option value ='" + row.iD_Xuong + "'>" + row.tenXuong + "</option>");
+                });
+            }
+            else {
+                $("#filterXuong").empty();
+                $("#filterXuong").append("<option value ='" + null + "'>" + "--Không có Xưởng--" + "</option>")
+            }
+        });
+    });
+</script>
+
