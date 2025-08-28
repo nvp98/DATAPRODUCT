@@ -10,4 +10,10 @@
         public decimal KLChia { get; set; }
 
     }
+
+    public class GopThungGang
+    {
+        public List<int> IDs { get; set; }
+        public string PhongBan { get; set; }
+    }
 }

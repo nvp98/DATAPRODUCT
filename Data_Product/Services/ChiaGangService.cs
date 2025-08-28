@@ -46,7 +46,12 @@ namespace Data_Product.Services
                     .Where(x => x.MaChiaGang == maChiaGang)
                     .ToListAsync();
 
-                var selectedThungs = listThepDaChia.Select(x => x.ID_Thung).ToList();
+                //var selectedThungs = listThepDaChia.Select(x => x.ID_Thung).ToList();
+                var selectedThungs = listThepDaChia
+                                        .Where(x => x.ID_Thung.HasValue)   // lọc null
+                                        .Select(x => x.ID_Thung!.Value)    // lấy int
+                                        .Distinct()                        // (tuỳ) bỏ trùng
+                                        .ToList();
                 var result = await TinhToanTuDongChiaGangAsync(selectedThungs);
                 var thungAll = result.ThungAll;
 
@@ -160,7 +165,7 @@ namespace Data_Product.Services
             }
 
             var daRongTheoMa = listAll
-                .Where(x => x.T_KLGangLong.HasValue && !IDs.Contains(x.ID))
+                .Where(x => x.T_KLGangLong.HasValue && !IDs.Contains(x.ID) && x.KLChia == null)
                 .GroupBy(x => x.MaThungGang)
                 .ToDictionary(
                     g => g.Key,
@@ -192,18 +197,6 @@ namespace Data_Product.Services
 
             foreach (var item in listAll.Where(x => IDs.Contains(x.ID)))
             {
-                //var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
-
-                //if (coThungGocNullGKL || nguon == null || tongConLai <= 0)
-                //{
-                //    item.TyLeChia = 0;
-                //    item.KLChia = 0;
-                //}
-                //else
-                //{
-                //    item.TyLeChia = Math.Round((nguon.KLConLai / tongConLai) * 100, 2);
-                //    item.KLChia = Math.Round((item.TyLeChia ?? 0) * tongT_KLGangLongChon / 100, 2);
-                //}
                 var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
                 if (nguon != null)
                 {
@@ -227,51 +220,44 @@ namespace Data_Product.Services
                 ListAll = listAll
             };
         }
-
         public async Task<ChiaGangResultModel> TinhToanTuDongChiaGangAsync(List<int> IDs)
         {
             if (IDs == null || IDs.Count == 0)
                 throw new Exception("Danh sách ID trống.");
 
-            var danhsachThung = await (from a in _context.Tbl_BM_16_GangLong
-                                       where IDs.Contains(a.ID)
-                                       select new
-                                       {
-                                           a.MaThungGang,
-                                           a.BKMIS_ThungSo,
-                                           a.ID,
-                                           a.T_KLGangLong
-                                       }).ToListAsync();
+            var idSet = IDs.ToHashSet();
 
-            if (danhsachThung.Count != IDs.Count)
+            // 1) Validate input IDs
+            var danhsachThung = await _context.Tbl_BM_16_GangLong
+                .AsNoTracking()
+                .Where(a => idSet.Contains(a.ID))
+                .Select(a => new
+                {
+                    a.MaThungGang,
+                    a.BKMIS_ThungSo,
+                    a.ID,
+                    a.T_KLGangLong
+                })
+                .ToListAsync();
+
+            if (danhsachThung.Count != idSet.Count)
                 throw new Exception("Một số ID không tồn tại hoặc không hợp lệ.");
 
-            bool hasDuplicateMaThungGang = danhsachThung.GroupBy(x => x.MaThungGang)
-                                                        .Any(g => g.Count() > 1);
-
-            if (hasDuplicateMaThungGang)
-            {
+            if (danhsachThung.GroupBy(x => x.MaThungGang).Any(g => g.Count() > 1))
                 throw new Exception("Các mã thùng gang phải khác nhau.");
-            }
 
-            bool isAllThungSoSame = danhsachThung.Select(x => x.BKMIS_ThungSo)
-                                                .Distinct()
-                                                .Count() == 1;
-
-            if (!isAllThungSoSame)
-            {
+            if (danhsachThung.Select(x => x.BKMIS_ThungSo).Distinct().Count() != 1)
                 throw new Exception("Các thùng gang phải có cùng thùng số.");
-            }
 
-            if (danhsachThung.All(x => !x.T_KLGangLong.HasValue || x.T_KLGangLong == 0))
-            {
-                throw new Exception("Không có thùng gang nào có KL Gang lỏng cân bên HRC.");
-            }
+            bool khongCoT_KLGangLong = danhsachThung.All(x => !x.T_KLGangLong.HasValue || x.T_KLGangLong == 0);
+
             var thungSo = danhsachThung.First().BKMIS_ThungSo;
             var danhSachMaThung = danhsachThung.Select(x => x.MaThungGang).Distinct().ToList();
 
-            var listAll = await (from a in _context.Tbl_BM_16_GangLong
-                                 join ttg in _context.Tbl_BM_16_ThungTrungGian on a.ID_TTG equals ttg.ID
+            // 2) Kéo toàn bộ thùng (gốc + copy) theo MaThungGang + ThungSo
+            var listAll = await (from a in _context.Tbl_BM_16_GangLong.AsNoTracking()
+                                 join ttg in _context.Tbl_BM_16_ThungTrungGian.AsNoTracking()
+                                    on a.ID_TTG equals ttg.ID
                                  where danhSachMaThung.Contains(a.MaThungGang) && a.BKMIS_ThungSo == thungSo
                                  select new ThungGangChiaModel
                                  {
@@ -284,7 +270,7 @@ namespace Data_Product.Services
                                      T_KLGangLong = a.T_KLGangLong,
                                      T_KLThungChua = a.T_KLThungChua,
                                      T_KLThungVaGang = a.T_KLThungVaGang,
-                                     KLGangChia = a.KLGangChia,
+                                     KLGangChia = a.KLGangChia,   // cờ "đã chia" ở bảng GangLong
                                      KL_Phe = ttg.KL_phe,
                                      T_copy = a.T_copy,
 
@@ -294,77 +280,95 @@ namespace Data_Product.Services
 
             var listGoc = listAll.Where(x => x.T_copy == false).ToList();
 
-            // Nếu có bất kỳ thùng gốc nào thiếu G_KLGangLong thì không chia
+            // 3) Xác định các thùng "đÃ CHIA" từ bảng Tbl_BM_16_ChiaGang (ID_Thung / MaThungThep)
+            var allIds = listAll.Select(x => x.ID).Distinct().ToList();
+            var allTheps = listAll.Select(x => x.MaThungThep).Where(s => !string.IsNullOrEmpty(s)).Distinct().ToList();
+
+            var chiaRows = await _context.Tbl_BM_16_ChiaGang
+                .AsNoTracking()
+                .Where(cg => (cg.ID_Thung.HasValue && allIds.Contains(cg.ID_Thung.Value)) ||
+                             (cg.MaThungThep != null && allTheps.Contains(cg.MaThungThep)))
+                .Select(cg => new { cg.ID_Thung, cg.MaThungThep })
+                .ToListAsync();
+
+            var daChiaById = chiaRows.Where(r => r.ID_Thung.HasValue).Select(r => r.ID_Thung!.Value).ToHashSet();
+            var daChiaByThep = chiaRows.Where(r => r.MaThungThep != null).Select(r => r.MaThungThep!).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            bool DaChia(ThungGangChiaModel x) =>
+                x.KLGangChia.HasValue ||                                   // đã có KLGangChia
+                daChiaById.Contains(x.ID) ||                               // có dòng trong bảng chia theo ID_Thung
+                (!string.IsNullOrEmpty(x.MaThungThep) && daChiaByThep.Contains(x.MaThungThep!)); // hoặc theo Mã Thùng Thép
+
+            // 4) Kiểm tra dữ liệu gốc
             bool coThungGocNullGKL = listGoc.Any(x => !x.G_KLGangLong.HasValue || x.G_KLGangLong == 0);
 
+            // 5) Đánh dấu các MaThungGang "không đủ KL" (G_KLGangLong < tổng HRC đã rót CHƯA CHIA)
             var maThungKhongDuKL = new HashSet<string>();
-
             foreach (var thungGoc in listGoc)
             {
-                var tongHRCDaRot = listAll
-                    .Where(x => x.MaThungGang == thungGoc.MaThungGang && !IDs.Contains(x.ID))
-                    .Where(x => x.T_KLGangLong.HasValue)
-                    .Sum(x => x.T_KLGangLong.Value);
+                var tongHRCDaRotChuaChia = listAll
+                    .Where(x => x.MaThungGang == thungGoc.MaThungGang && !idSet.Contains(x.ID))
+                    .Where(x => x.T_KLGangLong.HasValue && !DaChia(x))   // KHÔNG trừ các thùng đã chia
+                    .Sum(x => x.T_KLGangLong!.Value);
 
                 var klLuyenGang = thungGoc.G_KLGangLong ?? 0;
-
-                // Nếu KL luyện gang nhỏ hơn KL đã rót, thì đánh dấu thùng này để bỏ qua trong chia
-                if (klLuyenGang > 0 && klLuyenGang < tongHRCDaRot)
-                {
+                if (klLuyenGang > 0 && klLuyenGang < tongHRCDaRotChuaChia)
                     maThungKhongDuKL.Add(thungGoc.MaThungGang);
-                }
             }
 
+            // 6) Tổng đã rót CHƯA CHIA theo MaThungGang (không gồm IDs)
             var daRongTheoMa = listAll
-                .Where(x => x.T_KLGangLong.HasValue && !IDs.Contains(x.ID))
+                .Where(x => x.T_KLGangLong.HasValue && !idSet.Contains(x.ID) && !DaChia(x))
                 .GroupBy(x => x.MaThungGang)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Sum(x => x.T_KLGangLong ?? 0)
-                );
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.T_KLGangLong ?? 0m));
 
+            // 7) KL còn lại cho từng thùng gốc
             var danhSachConLai = listGoc
                 .Select(x =>
                 {
-                    var daRong = daRongTheoMa.TryGetValue(x.MaThungGang, out var val) ? val : 0;
-                    var conLai = (x.G_KLGangLong ?? 0) - daRong;
-                    return new
-                    {
-                        MaThungGang = x.MaThungGang,
-                        KLConLai = conLai > 0 ? conLai : 0
-                    };
+                    var daRong = daRongTheoMa.TryGetValue(x.MaThungGang, out var v) ? v : 0m;
+                    var conLai = (x.G_KLGangLong ?? 0m) - daRong;
+                    return new { x.MaThungGang, KLConLai = conLai > 0m ? conLai : 0m };
                 })
-                .Where(x => x.KLConLai > 0)
+                .Where(x => x.KLConLai > 0m)
                 .ToList();
 
             var tongConLai = danhSachConLai.Sum(x => x.KLConLai);
 
+            // 8) Tổng KL cần chia của các thùng đang chọn
             var tongT_KLGangLongChon = listAll
-                .Where(x => IDs.Contains(x.ID) && x.T_KLGangLong.HasValue && x.T_KLThungVaGang.HasValue && x.T_KLThungChua.HasValue)
-                .Sum(x => x.T_KLGangLong.Value);
+                .Where(x => idSet.Contains(x.ID))
+                .Sum(x => x.T_KLGangLong ?? 0);
 
-            foreach (var item in listAll.Where(x => IDs.Contains(x.ID)))
+            // 9) Phân tỷ lệ & KL chia cho từng thùng được chọn
+            foreach (var item in listAll.Where(x => idSet.Contains(x.ID)))
             {
                 var nguon = danhSachConLai.FirstOrDefault(x => x.MaThungGang == item.MaThungGang);
 
-                if (coThungGocNullGKL || nguon == null || tongConLai <= 0 || maThungKhongDuKL.Count() > 0)
+                if (coThungGocNullGKL ||
+                    khongCoT_KLGangLong ||
+                    tongConLai <= 0 ||
+                    nguon == null ||
+                    maThungKhongDuKL.Count() > 0 ||
+                    tongT_KLGangLongChon <= 0)
                 {
                     item.TyLeChia = 0;
                     item.KLChia = 0;
                 }
                 else
                 {
-                    item.TyLeChia = Math.Round((nguon.KLConLai / tongConLai) * 100, 2);
-                    item.KLChia = Math.Round((item.TyLeChia ?? 0) * tongT_KLGangLongChon / 100, 2);
+                    var ratio = nguon.KLConLai / tongConLai;
+                    item.TyLeChia = Math.Round(ratio * 100m, 2);
+                    item.KLChia = Math.Round(ratio * tongT_KLGangLongChon, 2);
                 }
             }
 
-            var listSelected = listAll.Where(x => IDs.Contains(x.ID)).ToList();
+            var listSelected = listAll.Where(x => idSet.Contains(x.ID)).ToList();
 
             return new ChiaGangResultModel
             {
                 ThungGoc = listGoc,
-                ThungDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !IDs.Contains(x.ID)).ToList(),
+                ThungDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !idSet.Contains(x.ID)).ToList(),
                 ThungAll = listSelected,
                 ListAll = listAll
             };
@@ -424,10 +428,26 @@ namespace Data_Product.Services
 
             // Lọc danh sách
             var selectedIds = chiaGangList.Select(x => x.ID_Thung).ToHashSet();
-            var listSelected = listAll.Where(x => selectedIds.Contains(x.ID)).ToList();
-            var listGoc = listAll.Where(x => x.T_copy == false).ToList();
-            var listDaCoKL = listAll.Where(x => x.T_KLGangLong.HasValue && !selectedIds.Contains(x.ID)).ToList();
 
+            var listSelected = listAll.Where(x => selectedIds.Contains(x.ID)).ToList();
+
+            var listGoc = listAll.Where(x => x.T_copy == false).ToList();
+
+            // === NEW: chỉ lấy các thùng CÙNG MaThungGang với thùng gốc & CHƯA được chia (KLGangChia null/0) & không thuộc selectedIds ===
+            var maThungGocSet = new HashSet<string>(
+                listGoc.Where(x => !string.IsNullOrEmpty(x.MaThungGang))
+                       .Select(x => x.MaThungGang!),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            var listDaCoKL = listAll
+                .Where(x => x.T_KLGangLong.HasValue                       // đã có KL thực nhập
+                            && !selectedIds.Contains(x.ID)                // không nằm trong nhóm đang chia
+                            && !string.IsNullOrEmpty(x.MaThungGang)       // có mã thùng
+                            && maThungGocSet.Contains(x.MaThungGang!)     // cùng MaThungGang với thùng gốc
+                            && (!x.KLGangChia.HasValue)) // CHƯA chia
+                .ToList();
+            // === END NEW ===
             return new ChiaGangResultModel
             {
                 ThungGoc = listGoc,
@@ -471,6 +491,20 @@ namespace Data_Product.Services
             foreach (var thung in thungThepCanUpdate)
             {
                 thung.KLGangChia = null;
+                thung.T_KLThungVaGang = null;
+                thung.T_KLThungChua = null;
+                thung.T_KLGangLong = null;
+                // update với các thùng trong thùng trung gian
+
+                var thungttg = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.ID == thung.ID_TTG).FirstOrDefaultAsync();
+                thungttg.KL_phe = null;
+                thungttg.KLGang_Thoi = null;
+                thungttg.KLThung_Thoi = null;
+                thungttg.KLThungVaGang_Thoi = null;
+                thungttg.ID_MeThoi = null;
+                thungttg.GioChonMe = null;
+                thungttg.Tong_KLGangNhan = null;
+                thungttg.GhiChu = null;
             }
             _context.Tbl_BM_16_ChiaGang.RemoveRange(listCanXoa);
             return await _context.SaveChangesAsync(); // Trả về số bản ghi đã xóa

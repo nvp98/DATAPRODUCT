@@ -2,12 +2,18 @@
 {
     public class NhanThungDto
     {
-        public List<string> selectedThungs { get; set; }
+        public List<selectedThungsDto> selectedThungs { get; set; }
         public DateTime ngayNhan { get; set; }
         public int idCa { get; set; }
         public int idLoThoi { get; set; }
         public int idNguoiNhan { get; set; }
         public string thungTrungGian { get; set; }
+    }
+
+    public class selectedThungsDto
+    {
+        public int clientSeq { get; set; }
+        public string maThungGang { get; set; }
     }
 
     public class ThungNhanResultDto
