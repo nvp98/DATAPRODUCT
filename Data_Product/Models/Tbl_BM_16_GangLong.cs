@@ -95,6 +95,8 @@ namespace Data_Product.Models
         public int? G_Ca { get; set; }
         public int? T_Ca { get; set; }
 
+        public int? T_ReceiveSeq { get; set; }
+
         public DateTime? NgayTao { get; set; }
 
         public int? G_ID_TrangThai { get; set; }

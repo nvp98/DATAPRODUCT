@@ -198,7 +198,7 @@
                             <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
                             <button class="btn btn-danger btn-sm px-4 status-card" id="btnHuyChotThung"> Hủy Chốt</button>
                         </div>
-                         }  
+                         } 
                     </div>
                 </div>
             </div>
@@ -936,10 +936,26 @@
             const grouped = tinhTongTheoMaThungGang();
             const record = grouped[maThungGang];
 
-            if(record && record.sum_t_KLGangLong !== null && record.sum_g_KLGangLong !== null && !isNaN(record.sum_g_KLGangLong) && !isNaN(record.sum_t_KLGangLong) && record.sum_t_KLGangLong !== 0){
-                const result = (record.sum_g_KLGangLong - record.sum_t_KLGangLong) * (percent / 100);
-                return result.toFixed(1);
+            if (!record) return null;
+            const {
+                sum_klGangChia,
+                sum_g_KLGangLong,
+                sum_t_KLGangLong
+            } = record;
+
+            const isNumber = val => val !== null && !isNaN(val);
+
+            // Ưu tiên sử dụng klGangChia nếu có
+            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                // return (sum_klGangChia - sum_g_KLGangLong).toFixed(2);
+                return (sum_g_KLGangLong - sum_klGangChia) * (percent / 100);
             }
+
+            // Nếu không có klGangChia → dùng t_KLGangLong
+            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong)  && sum_g_KLGangLong !== 0) {
+                return (record.sum_g_KLGangLong - record.sum_t_KLGangLong) * (percent / 100);
+            }
+
             return null;
         }
 
