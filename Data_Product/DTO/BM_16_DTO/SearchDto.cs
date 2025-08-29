@@ -20,6 +20,7 @@
         public string? MaThungGang { get; set; }
         public string? MaThungThep { get; set; }
         public string? MaMeThoi { get; set; }
+        public bool? IsChiaGang { get; set; }
         public int? PageNumber { get; set; }
         public int? PageSize { get; set; } 
     }

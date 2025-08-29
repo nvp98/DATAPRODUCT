@@ -361,19 +361,47 @@
                                     <label class="form-label">Mã mẻ thổi:</label>
                                     <input type="text" class="form-control form-control-sm" id="MaMeThoi" />
                                 </div>
-                                
-                                
-                             </div>
-                            <div class="row">
-                                <div class="col-12" style="padding-bottom: 5px;">
-                                    <div class="d-flex justify-content-end w-100 gap-2">
-                                        <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
-                                        <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
-                                        <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
-                                        <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
+                                <div class="col-12 d-flex gap-2">
+                                    <div class="col-sm-6 col-md-4 mb-2">
+                                        <label class="form-label">Tình trạng chia:</label>
+                                        <select class="form-select form-select-sm" id="IsChiaGang" name="IsChiaGang">
+                                            <option value="">-- Tình trạng --</option>
+                                            <option value="false">Chưa chia</option>
+                                            <option value="true">Đã được chia</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-7" style="display: flex;justify-content: flex-end;align-items: center;">
+                                        <div class="d-flex justify-content-end w-100 gap-2">
+                                            <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
+                                            <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
+                                            <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
+                                            <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                                
+                             </div>
+                            @* <div class="row">
+
+                                <div class="col-12" style="padding-bottom: 5px;">
+                                    <div class="col-4">
+                                            <label class="form-label">Tình trạng chia:</label>
+                                            <select class="form-select form-select-sm" id="IsChiaGang" name="IsChiaGang">
+                                                <option value="">-- Tình trạng --</option>
+                                                <option value="false">Chưa chia</option>
+                                                <option value="true">Đã được chia</option>
+                                            </select>
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="d-flex justify-content-end w-100 gap-2">
+                                            <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
+                                            <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
+                                            <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
+                                            <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> *@
                          </div>
                     </div>
                 </div>
@@ -1228,7 +1256,12 @@
             const MaThungThep = $("#MaThungThep").val() || null;
             const TinhTrangChot = $("#TinhTrangChot").val() || null;
             const MaMeThoi = $("#MaMeThoi").val() || null;
-
+            const chiagangVal = $("#IsChiaGang").val(); 
+            // Ép về true | false | null
+            const IsChiaGang = chiagangVal === null || chiagangVal === "" ? null
+                               : chiagangVal === "true"           ? true
+                               : chiagangVal === "false"          ? false
+                               : null; // fallback
             return dto = {
                 ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
                 ID_LoThoi: ID_LoThoi ? parseInt(ID_LoThoi) : null,
@@ -1247,7 +1280,8 @@
                 ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null,
                 MaThungGang: MaThungGang || null,
                 MaThungThep: MaThungThep || null,
-                MaMeThoi: MaMeThoi || null
+                MaMeThoi: MaMeThoi || null,
+                IsChiaGang: IsChiaGang
             };
         }
 

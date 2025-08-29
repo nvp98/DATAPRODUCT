@@ -410,6 +410,11 @@ namespace Data_Product.Controllers
                 
             }
 
+            if (dto.IsChiaGang.HasValue)
+            {
+                query = dto.IsChiaGang == true ? query.Where(x => x.KLGangChia.HasValue) : query.Where(x => !x.KLGangChia.HasValue);
+            }
+
             if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
             {
                 var tuNgay = dto.TuNgay_LT.Value.Date;
