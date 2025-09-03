@@ -602,6 +602,8 @@ namespace Data_Product.Controllers
                 : null,
                 NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>(),
                 XacNhan = t.XacNhan,
+                KL_GangChia = t.KLGangChia,
+                T_KLGangLong = t.T_KLGangLong,
 
                 // Dùng để sort:
                 //MaThungPrefix = t.MaThungGang.Split('.')[0],
@@ -633,7 +635,9 @@ namespace Data_Product.Controllers
                     x.TrangThai,
                     x.NguoiLuu,
                     x.NguoiNhanList,
-                    x.XacNhan
+                    x.XacNhan,
+                    x.KL_GangChia,
+                    x.T_KLGangLong
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
