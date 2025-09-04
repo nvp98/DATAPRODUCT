@@ -46,17 +46,20 @@
                                 </span>
                             </div>
                             <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
+                                <button type="button" class="btn btn-success" id="btnCheckPhieu">
+                                    Check Tạo Phiếu BTBD
+                                </button>
                                 <button id="btn-add" type="button" class="btn btn-primary">
-                                    <i class="bi bi-plus-lg"></i>
+                                    <i class="bi bi-plus-lg"></i> Thêm mới
                                     <span class="small pt-2 ps-1" style="color: white;">
-                                        <i></i><span style="color: white;">Thêm mới</span>
+                                        <i></i><span style="color: white;"></span>
                                     </span>
                                 </button>
                                 <!-- Nút mở modal -->
                                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#phanQuyenModal">
                                     Phân quyền BTBD
                                 </button>
-
+                               
                               
 
                                 <button id="btn-Import" type="button" class="btn btn-primary">
@@ -123,6 +126,7 @@
                                 <thead style="font-size: 14px;">
                                     <tr>
                                         <th class="text-center" width="30px"    style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">Chọn Xưởng</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên xưởng</th>
                                         <th class="text-center"    width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Thống kê xử lý</th>
@@ -157,6 +161,17 @@
                                                 @RowNo@{
                                                     RowNo++;
                                                 }
+                                            </td>
+                                            <td class="text-center"> 
+                                                @if(item.IsPhieuDungSX != 1)
+                                                {
+                                                    <input type="checkbox" class="chkXuong" value="@item.ID_Xuong">
+                                                }
+                                                else
+                                                {
+                                                    <button class="btnuncheck btn btn-danger" data-id="@item.ID_Xuong">Bỏ check</button>
+                                                }
+
                                             </td>
                                             <td style="font-size:14px;">@item.TenXuong </td>
                                             <td style="font-size:14px;">@item.TenPhongBan </td>
@@ -296,6 +311,62 @@
             scrollCollapse: true, // Cho phép bảng co lại khi có ít dữ liệu
             //paging: false // Tắt phân trang nếu cần
         });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#btnCheckPhieu").click(function () {
+            // Lấy danh sách ID xưởng đã chọn
+            var selected = [];
+            $(".chkXuong:checked").each(function () {
+                selected.push($(this).val());
+            });
+
+            if (selected.length === 0) {
+                alert("Vui lòng chọn ít nhất một xưởng!");
+                return;
+            }
+
+            // Gửi sang Controller bằng AJAX
+            $.ajax({
+                url: '/Xuong/SaveSelected', // Action trong Controller
+                type: 'POST',
+                // contentType: 'application/json; charset=utf-8',
+                // traditional: true,
+                data: { ids: selected },
+                success: function (res) {
+                    alert(res.message);
+                    location.reload();
+                },
+                error: function () {
+                    alert("Có lỗi xảy ra!");
+                }
+            });
+        });
+       $(".btnuncheck").click(function () {
+        var btn = $(this);
+        var id = btn.data("id");
+
+        $.ajax({
+            url: '/Xuong/DeleteSelected',
+            type: 'POST',
+            traditional: true,
+            data: { ids: id }, // chỉ gửi id
+            success: function (res) {
+                if (res.success) {
+                    alert(res.message);
+                    btn.replaceWith(
+                        '<input type="checkbox" class="chkXuong" value="' + id + '" />'
+                    );
+                } else {
+                    alert(res.message);
+                }
+            },
+            error: function () {
+                alert("Có lỗi khi cập nhật!");
+            }
+        });
+    });
     });
 </script>
 

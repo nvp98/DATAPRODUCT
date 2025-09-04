@@ -159,6 +159,12 @@
                                     }
                                     else
                                     {
+                                        <button type="button" class="btn btn-warning" id="btnReset" data-id= "@Model.ID">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                            <span class="small pt-2 ps-1" style="color: white;">
+                                                Reset phiếu
+                                            </span>
+                                        </button>
                                         <button type="button" class="btn btn-danger" onclick="if(confirm('Bạn có chắc chắn muốn xóa?')) { window.location.href='@Url.Action("XoaDuLieu", "BM_NhatKy_SanXuat", new { id = Model.ID })'; }">
                                             <i class="bi bi-x-lg"></i>
                                             <span class="small pt-2 ps-1" style="color: white;">
@@ -498,12 +504,32 @@
 
 
 <script type="text/javascript">
-    @*    $("#IDTaiKhoan").select2();*@
-    @*     $("#IDTaiKhoan").chosen({
-        width: "100%"
-        });*@
+     // Reset Phiếu
+    $("#btnReset").click(function () {
+        var selected = $(this).data("id");
 
-
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 phiếu!");
+            return;
+        }
+         // Thêm confirm
+        if (!confirm("Bạn có chắc muốn reset phiếu này?")) {
+            return; // nếu bấm Cancel thì thoát luôn
+        }
+        $.ajax({
+            url: '/BM_NhatKy_SanXuat/ResetPhieu',
+            type: 'POST',
+            // contentType: 'application/json',
+            data: { IDPhieus: selected },
+            success: function (res) {
+                alert(res.message);
+                window.location.href = "/BM_NhatKy_SanXuat/Index"; // redirect sang trang Index
+            },
+            error: function (err) {
+                alert("Có lỗi xảy ra: " + err.responseText);
+            }
+        });
+    });
 </script>
 
 

@@ -12,5 +12,6 @@ namespace Data_Product.Models
         [NotMapped]
         public string? TenPhongBan { get; set; }
         public int? ID_TrangThai { get; set; }
+        public int? IsPhieuDungSX { get; set; } = 0;
     }
 }

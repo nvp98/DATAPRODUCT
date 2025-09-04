@@ -28,7 +28,8 @@ namespace Data_Product.Controllers
                                  TenXuong = a.TenXuong,
                                  ID_PhongBan = (int)a.ID_PhongBan,
                                  TenPhongBan = pb.TenPhongBan,
-                                 ID_TrangThai = (int?)a.ID_TrangThai ?? default
+                                 ID_TrangThai = (int?)a.ID_TrangThai ?? default,
+                                 IsPhieuDungSX = a.IsPhieuDungSX
                              }).ToListAsync();
             if (search != null)
             {
@@ -371,6 +372,45 @@ namespace Data_Product.Controllers
                 return Json(new { status = "ok" });
             }
             return Json(new { status = "error", message = "Không tìm thấy quyền cần xóa" });
+        }
+
+        [HttpPost]
+        public JsonResult SaveSelected(List<int> ids )
+        {
+            // Xử lý dữ liệu (lưu DB, logic tùy ý)
+            if (ids == null || ids.Count == 0)
+            {
+                return Json(new { success = false, message = "Không có dữ liệu" });
+            }
+            foreach (var item in ids)
+            {
+                var xuong = _context.Tbl_Xuong.Find(item);
+                if (xuong != null)
+                {
+                    xuong.IsPhieuDungSX = 1;
+                    _context.SaveChanges();
+                }
+            }
+
+            return Json(new { success = true, message = "Check Xưởng thành công!" });
+        }
+
+        [HttpPost]
+        public JsonResult DeleteSelected(int? ids)
+        {
+            // Xử lý dữ liệu (lưu DB, logic tùy ý)
+            if (ids == null || ids == 0)
+            {
+                return Json(new { success = false, message = "Không có dữ liệu" });
+            }
+            var xuong = _context.Tbl_Xuong.Find(ids);
+            if (xuong != null)
+            {
+                xuong.IsPhieuDungSX = 0;
+                _context.SaveChanges();
+            }
+
+            return Json(new { success = true, message = "Bỏ Check thành công!" });
         }
 
     }

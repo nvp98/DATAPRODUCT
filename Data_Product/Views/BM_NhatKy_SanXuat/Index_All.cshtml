@@ -1,5 +1,6 @@
 ﻿@model IEnumerable<Data_Product.Models.Tbl_NhatKy_SanXuat>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@using Data_Product.DTO
 @using Data_Product.Repositorys;
 @inject Data_Product.Repositorys.DataContext _context
 
@@ -175,58 +176,16 @@
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayDungSX.ToString("dd/MM/yyyy")</td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.HoTen_NhanVien_BTBD</td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.TenXuong_SX</td>
-                                            @if (item.TinhTrang == 0)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-sm btn-warning" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đã gửi
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item.TinhTrang == 1)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-sm btn-success" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Hoàn tất
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item.TinhTrang == -1)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-sm btn-danger" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Không xác nhận
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item.TinhTrang == 2)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-sm btn-primary" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đang xóa phiếu
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item.TinhTrang == 3)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-sm btn-danger" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đã xóa phiếu
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
+                                            <td class="text-center" style="font-size:14px;">
+                                            <button id="btn-add" type="button" type="button" class="btn btn-sm" style="width: 150px;background-color:@ConstantsDungSX.Mau(item.TinhTrang)">
+                                                <span class="small pt-2 ps-1" style="color: white;">
+                                                        @ConstantsDungSX.TinhTrang(item.TinhTrang)
+                                                    </span>
+                                                </button>
+                                            </td>
+
                                             <td style="font-size:14px;">
-                                                @item.Tbl_TaiKhoan.TenTaiKhoan - @item.Tbl_TaiKhoan.HoVaTen
+                                                @item.Tbl_TaiKhoan?.TenTaiKhoan - @item.Tbl_TaiKhoan?.HoVaTen
                                             </td>
                                             <td style="font-size:14px;">
                                                 @item.GhiChu
