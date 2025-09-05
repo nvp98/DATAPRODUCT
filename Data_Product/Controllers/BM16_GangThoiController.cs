@@ -575,6 +575,17 @@ namespace Data_Product.Controllers
                           .Select(x => $"{x.Key} ({x.Count()})")
                           .ToList()
                 );
+            var tongTheoMe = await _context.Tbl_BM_16_GangLong
+                    .Where(t => t.MaPhieu == id  && !string.IsNullOrEmpty(t.BKMIS_SoMe))
+                    .GroupBy(t => t.BKMIS_SoMe)
+                    .Select(g => new
+                    {
+                        SoMe = g.Key,
+                        Tong = g.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0)
+                    })
+                    .OrderBy(x => x.SoMe)
+                    .ToListAsync();
+
             // Chuyển sang view model nhẹ cho hiển thị
             var viewData = danhSachThung.Select(t => new
             {
@@ -602,8 +613,7 @@ namespace Data_Product.Controllers
                 : null,
                 NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>(),
                 XacNhan = t.XacNhan,
-                KL_GangChia = t.KLGangChia,
-                T_KLGangLong = t.T_KLGangLong,
+                TongKL_TheoMe = tongTheoMe.FirstOrDefault(x => x.SoMe == t.BKMIS_SoMe)?.Tong ?? 0m,
 
                 // Dùng để sort:
                 //MaThungPrefix = t.MaThungGang.Split('.')[0],
@@ -636,8 +646,7 @@ namespace Data_Product.Controllers
                     x.NguoiLuu,
                     x.NguoiNhanList,
                     x.XacNhan,
-                    x.KL_GangChia,
-                    x.T_KLGangLong
+                    x.TongKL_TheoMe
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
