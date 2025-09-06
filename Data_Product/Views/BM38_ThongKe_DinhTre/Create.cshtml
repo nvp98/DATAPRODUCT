@@ -1,0 +1,430 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@model Data_Product.Models.Tbl_NhatKy_SanXuat
+@inject IJsonHelper Json
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+}
+<style>
+    .radio-square {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border: 2px solid #555;
+        border-radius: 4px; /* 0 cho hình vuông hoàn toàn */
+        position: relative;
+        cursor: pointer;
+    }
+
+        .radio-square:checked::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 12px;
+            height: 12px;
+            background-color: #0d6efd; /* màu xanh Bootstrap */
+        }
+
+    .table thead th {
+        text-align: center;
+        vertical-align: middle;
+        padding: 0.25rem;
+        font-size: 0.7rem; /* 👈 font nhỏ hơn */
+        font-weight: 600;
+    }
+
+    .table td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 0.3rem;
+        font-size: 0.75rem;
+    }
+</style>
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+
+                    <div class="row" style="width:100%">
+                        <div class="row pt-2" style="border-bottom: 0.8px solid #E8E8E8;background-color: #F9F9F9;">
+                            <div class="col-8 m-auto" style="text-align: left; ">
+                                <div class="col-lg-12" style="display:flex;">
+                                    <div class="col-xxl-4 col-md-6 p-2" style=" background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                        <div class="row p-0">
+                                            <label for="colFormLabel" class="col-auto col-form-label"> Ngày làm việc:</label>
+                                            <div class="col-auto">
+                                                @{
+                                                    DateTime NgayLamViec = DateTime.Now;
+                                                }
+                                                <span style="color:black; font-size:14px;">
+                                                    @* @Html.TextBox("ID_Day", null, new { @id = "ID_Day", @name = "ID_Day", @type = "date", @class = "form-control" }) *@
+                                                </span>
+                                            </div>
+                                            <script type="text/javascript">
+                                                // $("#ID_Day").change(function () {
+                                                //     $("#CaKip").empty();
+                                                //     //$("#IDCa").empty();
+                                                //     $('#IDCa').prop('selectedIndex', 0);
+                                                // });
+                                            </script>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xxl-3 col-md-6 p-2" style=" background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                        <div class="row ">
+                                            <label for="colFormLabel" class="col-auto col-form-label">   Ca :</label>
+                                            <div class="col-auto">
+                                                <span style="color:black; font-size:14px;">
+                                                    <select class="form-control marginTB5 SelectCA" name="IDCa" id="IDCa" required>
+                                                        <option value=''>-- Ca làm việc --</option>
+                                                        <option value='1'>1</option>
+                                                        <option value='2'>2</option>
+                                                    </select>
+                                                </span>
+                                                <script type="text/javascript">
+                                                    $("#IDCa").change(function () {
+                                                        $("#CaKip").empty();
+                                                        $.get("/BM_11/KipN", { Ngay: $("#ID_Day").val(), Ca: $("#IDCa").val() }, function (data) {
+                                                            console.log(data)
+                                                            if (data[0] != null) {
+                                                                $("#CaKip").empty();
+                                                                //$("#ID_TaiKhoan").append("<option value ='" + null + "'>" + "--Chọn hợp đồng--" + "</option>")
+                                                                $.each(data, function (index, row) {
+                                                                    $("#CaKip").append("<option value ='" + row.iD_Kip + "' selected>" + row.tenKip + "</option>");
+                                                                });
+                                                            }
+                                                            else {
+                                                                $("#CaKip").empty();
+                                                                $("#CaKip").append("<option value ='" + 0 + "'>" + "--Không có kíp làm việc--" + "</option>")
+                                                            }
+                                                        });
+                                                    });
+                                                </script>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xxl-3 col-md-6 p-2" style=" background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                        <div class="row ">
+                                            <label for="colFormLabel" class="col-auto col-form-label">Kíp:</label>
+                                            <div class="col-auto">
+                                                <span style="color:black; font-size:14px;">
+                                                    <select class="form-control marginTB5" name="CaKip" id="CaKip" disabled="disabled">
+                                                    </select>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div><!-- End Recent Sales -->
+                            </div><!-- End Recent Sales -->
+                            <div class="col-4 m-auto" style=" ">
+                               @*  <button type="button" class="btn btn-danger" onclick="window.location.href='@Url.Action("Index", "Menu")';">
+                                    <i class="bi bi-x-lg"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Hủy bỏ
+                                    </span>
+                                </button> *@
+                                @* <button type="submit" class="btn btn-warning" name="luu" id="luu" value="2">
+                                        <i class="bi bi-floppy"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Lưu
+                                        </span>
+                                    </button>*@
+                                @* <button type="submit" class="btn btn-primary" name="xacnhan" id="xacnhan" value="1">
+                                    <i class="bi bi-send"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Gửi dữ liệu
+                                    </span>
+                                </button> *@
+                            </div><!-- End Recent Sales -->
+                        </div>
+                    </div>
+
+
+                    <div class="card-body p-2" style="">
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="mb-1 font-weight-bold text-left">
+                                    Tải lên dữ liệu  <a href="/BM/Template BM.38 Thong ke chi so thiet bi.xlsx" class="" download>
+                                        <small>Tải biểu mẫu nhập liệu</small>
+                                    </a>
+                                </label>
+                                <div class="row col-md-12">
+                                    <input type="file" id="fileInput" accept=".xlsx, .xls" />
+                                </div>
+
+                                @* <div id="tableContainer" class="col-md-12">
+                                    <table id="excelTable" border="1"></table>
+                                </div> *@
+                            </div>
+
+                            <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+                            <script>
+                                document.getElementById("fileInput").addEventListener("change", function (event) {
+                                    let file = event.target.files[0];
+                                    let reader = new FileReader();
+
+                                    reader.onload = function (e) {
+                                        let data = new Uint8Array(e.target.result);
+                                        let workbook = XLSX.read(data, { type: "array" });
+                                        let sheet = workbook.Sheets[workbook.SheetNames[0]];
+                                        let jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                                        let tableBody = document.querySelector("#bmTable tbody");
+                                        tableBody.innerHTML = ""; // clear old rows
+
+                                        jsonData.forEach((row, index) => {
+                                            if (index < 7) return; // bỏ qua tiêu đề Excel (6 dòng đầu)
+
+                                            let newRow = `
+                                              <tr>
+                                                <td><input type="date" name="NgayThang[]" value="${toInputDate(row[1])}" class="form-control form-control-sm"></td>
+                                                <td><input type="text" name="CaKip[]" value="${row[2] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="text" width="150px" name="CumThietBi[]" value="${row[3] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="time" name="BatDauSC[]" value="${excelTimeToHHMM(row[4])}" class="form-control form-control-sm"></td>
+                                                <td><input type="time" name="BatDauSua[]" value="${excelTimeToHHMM(row[5])}" class="form-control form-control-sm"></td>
+                                                <td><input type="time" name="HoanThanhSC[]" value="${excelTimeToHHMM(row[6])}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" name="SoSCDien[]" value="${row[8] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGDienXuLy[]" value="${row[9] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGDienSuCo[]" value="${row[10] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" name="SoSCCo[]" value="${row[11] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGCoXuLy[]" value="${row[12] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGCoSuCo[]" value="${row[13] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGCN[]" value="${row[14] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGDungKhac[]" value="${row[15] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGChayMay[]" value="${row[16] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGChoSC[]" value="${row[17] || ""}" class="form-control form-control-sm"></td>
+                                                <td><input type="number" step="0.01" name="TGPhCN[]" value="${row[18] || ""}" class="form-control form-control-sm"></td>
+                                                <td>
+                                                  <select name="DungCumTB[]" class="form-select form-select-sm">
+                                                    <option value="Có" ${row[19] === "Có" ? "selected" : ""}>Có</option>
+                                                    <option value="Không" ${row[19] === "Không" ? "selected" : ""}>Không</option>
+                                                  </select>
+                                                </td>
+                                                <td>
+                                                  <select name="DungDayChuyen[]" class="form-select form-select-sm">
+                                                    <option value="Có" ${row[20] === "Có" ? "selected" : ""}>Có</option>
+                                                    <option value="Không" ${row[20] === "Không" ? "selected" : ""}>Không</option>
+                                                  </select>
+                                                </td>
+                                                <td width="100px"><textarea name="GhiChu[]" class="form-control form-control-sm" rows="2">${row[21] || ""}</textarea></td>
+                                                <td><button type="button" class="btn btn-danger btn-sm removeRow">X</button></td>
+                                              </tr>`;
+                                            tableBody.insertAdjacentHTML("beforeend", newRow);
+                                        });
+
+                                        // nút xóa dòng
+                                        document.querySelectorAll(".removeRow").forEach(btn => {
+                                            btn.addEventListener("click", function () {
+                                                this.closest("tr").remove();
+                                            });
+                                        });
+                                    };
+
+                                    reader.readAsArrayBuffer(file);
+                                });
+
+                                // Chuyển Excel time sang HH:mm
+                                function excelTimeToHHMM(excelTime) {
+                                    if (!excelTime) return "";
+                                    if (typeof excelTime !== "number") return excelTime; // nếu đã là chuỗi HH:mm
+                                    let totalMinutes = Math.round(excelTime * 24 * 60);
+                                    let hours = Math.floor(totalMinutes / 60);
+                                    let minutes = totalMinutes % 60;
+                                    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                                }
+                                                                // Excel lưu ngày tháng từ 01/01/1900 (serial = 1)
+                                                               function toInputDate(value) {
+                                    if (!value) return "";
+
+                                    // Nếu là số => Excel serial date
+                                    if (typeof value === "number") {
+                                        let utc_days  = Math.floor(value - 25569);
+                                        let utc_value = utc_days * 86400; // seconds
+                                        let date_info = new Date(utc_value * 1000);
+                                        let year  = date_info.getUTCFullYear();
+                                        let month = String(date_info.getUTCMonth() + 1).padStart(2, "0");
+                                        let day   = String(date_info.getUTCDate()).padStart(2, "0");
+                                        return `${year}-${month}-${day}`;
+                                    }
+
+                                    // Nếu là string dd/MM/yyyy
+                                    if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+                                        let [day, month, year] = value.split("/");
+                                        return `${year}-${month}-${day}`;
+                                    }
+
+                                    // Nếu đã đúng yyyy-MM-dd thì trả luôn
+                                    return value;
+                                }
+                            </script>
+
+                        </div>
+
+                        <form id="bmForm">
+                            <div class="text-end">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="window.location.href='@Url.Action("Index", "Menu")';">
+                                    <i class="bi bi-x-lg"></i>
+                                    Hủy bỏ
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-sm">Lưu dữ liệu</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm" id="bmTable">
+                                    <thead class="table-light">
+                                        <tr style="vertical-align:middle;background-color: #f9f9f9">
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Ngày/Tháng</th>
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Ca/kíp</th>
+                                            <th rowspan="2" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Cụm thiết bị</th>
+                                            <th colspan="3" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Mốc thời điểm</th>
+                                            <th colspan="3" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thiết bị điện</th>
+                                            <th colspan="3" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thiết bị cơ</th>
+                                            <th rowspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thời gian xử lý SC Công nghệ (h)</th>
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">TG dừng khác (h)</th>
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Tổng TG chạy máy (h)</th>
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">TG chờ xử lý sự cố (h)</th>
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">TG phối hợp cùng CN chạy lại máy</th>
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Gây dừng cụm thiết bị</th>
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Gây dừng dây chuyền</th>
+                                            <th rowspan="2" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                            <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Hành động</th>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Bắt đầu SC có điện</th>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Bắt đầu sửa chữa</th>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Hoàn thành CV sửa chữa</th>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Số sự cố điện (lần)</th>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thời gian xử lý SC điện (h)</th>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thời gian sự cố điện (h)</th>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Số sự cố cơ (lần)</th>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thời gian xử lý SC cơ (h)</th>
+                                            <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thời gian sự cố cơ (h)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="date" class="form-control form-control-sm" name="NgayThang[]"></td>
+                                            <td><input type="text" class="form-control form-control-sm" name="CaKip[]"></td>
+                                            <td><input type="text" width="150px" class="form-control form-control-sm" name="CumThietBi[]"></td>
+                                            <td><input type="time" class="form-control form-control-sm" name="BatDauSC[]"></td>
+                                            <td><input type="time" class="form-control form-control-sm" name="BatDauSua[]"></td>
+                                            <td><input type="time" class="form-control form-control-sm" name="HoanThanhSC[]"></td>
+                                            <td><input type="number" class="form-control form-control-sm" name="SoSCDien[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGDienXuLy[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGDienSuCo[]" min="0"></td>
+                                            <td><input type="number" class="form-control form-control-sm" name="SoSCCo[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGCoXuLy[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGCoSuCo[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGCongNghe[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGDungKhac[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGChayMay[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGChoSC[]" min="0"></td>
+                                            <td><input type="number" step="0.01" class="form-control form-control-sm" name="TGPhCN[]" min="0"></td>
+                                            <td>
+                                                <select class="form-select form-select-sm" name="DungCumTB[]">
+                                                    <option value="Có">Có</option>
+                                                    <option value="Không">Không</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm" name="DungDayChuyen[]">
+                                                    <option value="Có">Có</option>
+                                                    <option value="Không">Không</option>
+                                                </select>
+                                            </td>
+                                            <td width="100px"><textarea type="text" class="form-control form-control-sm" name="GhiChu[]"></textarea></td>
+                                            <td><button type="button" class="btn btn-danger btn-sm removeRow">X</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-success btn-sm" id="addRow">+ Thêm dòng</button>
+                            </div>
+                        </form>
+
+                        <script>
+                            // Thêm dòng mới
+                            $("#addRow").click(function () {
+                              let row = $("#bmTable tbody tr:first").clone();
+                              row.find("input, select").val(""); // clear input
+                              $("#bmTable tbody").append(row);
+                            });
+
+                            // Xóa dòng
+                            $(document).on("click", ".removeRow", function () {
+                              if ($("#bmTable tbody tr").length > 1) {
+                                $(this).closest("tr").remove();
+                              } else {
+                                alert("Phải có ít nhất 1 dòng!");
+                              }
+                            });
+
+                            // Submit AJAX
+                            $("#bmForm").submit(function (e) {
+                              e.preventDefault();
+
+                              let formData = $(this).serializeArray();
+
+                              $.ajax({
+                                url: "/api/bm38/save", // thay bằng API thật
+                                method: "POST",
+                                data: formData,
+                                success: function (res) {
+                                  alert("Lưu thành công!");
+                                  console.log(res);
+                                },
+                                error: function (err) {
+                                  alert("Có lỗi khi lưu!");
+                                  console.log(err);
+                                }
+                              });
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
