@@ -52,7 +52,12 @@
                                         <i></i><span style="color: white;">Thêm mới</span>
                                     </span>
                                 </button>
+                                <!-- Nút mở modal -->
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#phanQuyenModal">
+                                    Phân quyền BTBD
+                                </button>
 
+                              
 
                                 <button id="btn-Import" type="button" class="btn btn-primary">
                                     <i class="bi bi-box-arrow-up"></i>
@@ -69,6 +74,7 @@
                             </div>
                         </div>
                     </div>
+
                  @*   Thêm mới*@
                     <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("Create","Xuong")'></div>
                     <script type="text/javascript">
@@ -109,6 +115,8 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Gọi partial view -->
+                    @Html.Partial("_PhanQuyenModal",Model)
                     <div class="card-body">
                         <div class="table-responsive" style="">
                             <table class="table table-bordered table-hover" id="table" cellpadding="0">
@@ -118,6 +126,7 @@
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên xưởng</th>
                                         <th class="text-center"    width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Thống kê xử lý</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhân viên xử lý BTBD</th>
                                         <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
                                     </tr>
@@ -131,6 +140,18 @@
                                     @foreach (var item in Model)
                                     {
                                         var dsThongKe = _context.Tbl_ThongKeXuong.Where(x => x.ID_Xuong == item.ID_Xuong).ToList();
+                                        var dsBTBD = (from q in _context.Tbl_QuyenXuLy
+                                                      join tk in _context.Tbl_TaiKhoan on q.ID_TaiKhoan equals tk.ID_TaiKhoan
+                                                      where q.MaXL == "BTBD" && q.ID_XuongXL == item.ID_Xuong
+                                                      select new
+                                                      {
+                                                          q.ID_TaiKhoan,
+                                                          tk.HoVaTen,
+                                                          tk.TenTaiKhoan,
+                                                          q.ID_XuongXL,
+                                                          q.MaXL,
+                                                          q.ID
+                                                      }).ToList();
                                         <tr>
                                             <td class="text-center">
                                                 @RowNo@{
@@ -156,6 +177,24 @@
                                                 <td class="text-center" style="font-size:14px;">
                                                 </td>
                                             }
+                                            @if (dsBTBD.Count() != 0)
+                                            {
+                                                <td class="text-center" id="myTd_@item.ID_Xuong" style="font-size:14px;">
+                                                    @foreach (var k in dsBTBD)
+                                                    {
+                                                        <div id="row_@k.ID" >
+                                                            <span>@k.TenTaiKhoan - @k.HoVaTen</span>
+                                                            <button class="btn btn-sm btn-danger ms-2" onclick="xoaQuyen(@k.ID)">Xóa</button>
+                                                        </div>
+                                                    }
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                </td>
+                                            }
+                                           
                                             @if (item.ID_TrangThai == 1)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
@@ -258,4 +297,93 @@
             //paging: false // Tắt phân trang nếu cần
         });
     });
+</script>
+
+
+
+<script>
+    
+    function themDong() {
+        const row = `
+               <tr>
+                                    <td>
+                                                <select name="TaiKhoan" class="form-select select-taikhoan">
+    @foreach (var item in (SelectList)ViewBag.TKList)
+    {
+                                                    <option value="@item.Value">@item.Text</option>
+    }
+                                        </select>
+                                    </td>
+                                    <td>
+                                                <select name="DanhSachXuong" class="form-select select-xuong" multiple>
+    @foreach (var item in (SelectList)ViewBag.XList)
+    {
+                                                    <option value="@item.Value">@item.Text</option>
+    }
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="xoaDong(this)">Xóa</button>
+                                    </td>
+                                </tr>`;
+        $('#phanQuyenTableBody').append(row);
+        $(".select-taikhoan").chosen({
+            width: "100%"
+        });
+        $(".select-xuong").chosen({
+            width: "100%"
+        });
+    }
+
+    function xoaDong(btn) {
+        $(btn).closest('tr').remove();
+    }
+
+    function submitPhanQuyen() {
+        let data = [];
+
+        $("#phanQuyenTableBody tr").each(function () {
+            const taiKhoan = $(this).find("select[name='TaiKhoan']").val();
+            const dsXuong = $(this).find("select[name='DanhSachXuong']").val(); // array
+
+            data.push({
+                TaiKhoan: taiKhoan,
+                DanhSachXuong: dsXuong // mảng
+            });
+        });
+
+        $.ajax({
+            type: "POST",
+            url: "/Xuong/SaveQuyenBTBD", // thay bằng controller thực tế
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            success: function (res) {
+                alert(res.message);
+                location.reload();
+            },
+            error: function (err) {
+                alert("Lỗi khi lưu: " + err.responseText);
+            }
+        });
+    }
+    function xoaQuyen(id) {
+        if (confirm("Bạn có chắc muốn xóa quyền này không?")) {
+            $.ajax({
+                url: '/Xuong/DeleteQuyen',
+                type: 'POST',
+                data: { id: id },
+                success: function (res) {
+                    if (res.status === "ok") {
+                        $('#row_' + id).remove();
+                    } else {
+                        alert("Lỗi: " + res.message);
+                    }
+                },
+                error: function () {
+                    alert("Có lỗi xảy ra khi xóa!");
+                }
+            });
+        }
+    }
+
 </script>

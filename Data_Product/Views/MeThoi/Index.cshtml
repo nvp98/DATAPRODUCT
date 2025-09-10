@@ -1,0 +1,463 @@
+﻿@model IEnumerable<Data_Product.Models.ModelView.BM_16_LoSanXuatModelView>
+@inject Data_Product.Repositorys.DataContext _context
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+    var pager = ViewBag.Pager as Pager;
+    string search = ViewBag.Search as string ?? "";
+
+}
+
+<style>
+    .status-card {
+        height: 35px;
+        width: 110px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 400;
+    }
+
+    .status-text {
+        padding: 0 !important;
+        font-size: 12px;
+    }
+
+    .bg-da-an {
+        background-color: #6c757d;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+
+    .bg-dang-su-dung {
+        background-color: #50cbde;
+        color: #000000;
+        font-weight: bold;
+    }
+
+
+    .bg-da-chot {
+        background-color: #1e7e34;
+        color: #ffffff;
+        font-weight: bold;
+    }
+</style>
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-12">
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        DANH SÁCH MẺ THỔI
+                                    </b>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 d-flex flex-row justify-content-start" style="padding: 2%  2%  2% 0%;gap: 20px;padding: 20px 0px 10px 20px;">
+                                <div class="col-md-2">
+                                    <div class="row align-items-center g-2">
+                                        <label for="LoCao" class="col-sm-5 col-form-label">Lò thổi:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDLoThoi" name="LoThoi">
+                                                <option value="">-- Lò thổi --</option>
+                                                @foreach (var lothoi in ViewBag.LoThoiSearchList)
+                                                {
+                                                    <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="row align-items-center g-2">
+                                        <label for="LoCao" class="col-sm-5 col-form-label">Trạng thái:</label>
+                                        <div class="col-sm-7">
+                                            <select class="form-select form-select-sm" id="IDDelete" name="TrangThai">
+                                                <option value="">-- Trạng thái --</option>
+                                                <option value="5">Đã chốt</option>
+                                                <option value="1">Đã ẩn</option>
+                                                <option value="0">Đang dùng</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="row align-items-center g-2">
+                                        <label for="TuNgayTao" class="col-sm-5 col-form-label">Từ ngày Tạo:</label>
+                                        <div class="col-sm-7">
+                                            <input type="date" class="form-control form-control-sm" id="TuNgay" name="TuNgay"
+                                                   onkeydown="return false;">
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="row align-items-center g-2">
+                                        <label for="DenNgayTao" class="col-sm-5 col-form-label">Đến ngày Tạo:</label>
+                                        <div class="col-sm-7">
+                                            <input type="date" class="form-control form-control-sm" id="DenNgay" name="DenNgay"
+                                                   onkeydown="return false;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <input type="text" id="txtsearch" name="" placeholder="Tìm kiếm" class="form-control">
+                                </div>
+                                <div class="col-md-3" style="text-align:left;">
+                                    <button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
+                                        <i class="bi bi-search"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Tìm kiếm
+                                        </span>
+                                    </button>
+                                    <button class="btn btn-warning" id="btn-an" style="border-radius: 5px; margin-left:10px;">
+                                        <span class="small pt-2 ps-1" style="color: black;">
+                                            Ẩn Mẻ
+                                        </span>
+                                    </button>
+                                    <button class="btn btn-success" id="btn-khoiPhuc" style="border-radius: 5px; margin-left:10px;">
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Khôi phục
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding-top: 30px;">
+                        <div class="table-responsive" style="">
+                            <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu" cellpadding="0">
+                                <thead class="table-light sticky-top bg-white" style="z-index: 2; font-size: 14px;">
+                                    <tr>
+                                        <th class="text-center" width="10%" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center" width="30%" style="vertical-align:middle;background-color: #f7f7f7;">Mã mẻ thổi</th>
+                                        <th class="text-center" width="20%" style="vertical-align:middle;background-color: #f7f7f7;">Lò thổi</th>
+                                        <th class="text-center" width="30%" style="vertical-align:middle;background-color: #f7f7f7;">Trạng thái</th>
+                                        <th class="text-center" width="10%" style="vertical-align:middle;background-color: #f7f7f7;">Chọn mẻ
+                                            <input type="checkbox" id="cbx-selectAll" />
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+
+                        </div>
+                        <div class="container" style="margin:0px; padding:1% 0% 0% 0%;">
+                            <nav class="py-2">
+                                <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    let currentPage = 1;
+    const pageSize = 20;
+
+
+    // render card trạng thái
+    function renderStatusCard(tinhTrang) {
+    const statusMap = {
+        1: { label: "Đã ẩn", bgClass: "bg-da-an" },
+        0: { label: "Đang sử dụng", bgClass: "bg-dang-su-dung" },
+        5: { label: "Đã chốt", bgClass: "bg-da-chot" },
+    };
+
+    const { label, bgClass } = statusMap[tinhTrang] || {
+        label: "Không rõ", bgClass: "bg-light"
+    };
+
+    return `
+        <div class="status-card ${bgClass}">
+        <span class="status-text small pt-2 ps-1"">
+                ${label}
+            </span>
+        </div>
+    `;
+}
+
+    function Search(){
+        const searchText = $('#txtsearch').val().trim() || null;
+        const IDLoThoi = $('#IDLoThoi').val() || null;
+        const IDDelete = $('#IDDelete').val() || null;
+        const TuNgay = $("#TuNgay").val() || null;
+        const DenNgay = $("#DenNgay").val() || null;
+
+        const dto = {
+            PageSize : pageSize,
+            PageNumber : currentPage,
+            ID_LoThoi: IDLoThoi,
+            IDTrangThai: IDDelete,
+            SearchText : searchText,
+            TuNgay: TuNgay,
+            DenNgay: DenNgay
+        }
+
+        $.ajax({
+            url: '/MeThoi/Search',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(dto),
+            success: function (res) {
+                renderTable(res.data);
+                renderPagination(res.totalRecords);
+                $('#cbx-selectAll').prop('checked', false);
+            },
+            error: function (err) {
+                alert("Lỗi khi tìm kiếm dữ liệu");
+            }
+        });
+    }
+
+    function renderTable(data){
+        const tbody = $('#tblDuLieu tbody');
+
+        tbody.empty();
+
+        if (!data || data.length === 0) {
+                tbody.append(`<tr><td colspan="5" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                            </td></tr>`);
+                return;
+            }
+        let RowNo = 1;
+         data.forEach(item => {
+            const trangThai = item.iD_TrangThai == 5 ? 5 : item.is_Delete == 1 ? 1 : 0;
+            const statusHtml = renderStatusCard(trangThai);
+            const isLocked = item.iD_TrangThai == 5;
+            const checkboxHtml = isLocked ? '' : `<input type="checkbox" class="cbx-ChonMe" />`;
+
+             const html =`
+                <tr data-id="${item.id}" data-trangthai="${item.is_Delete}">
+                    <td class="text-center align-middle">${RowNo}</td>
+                    <td class="align-middle">${item.maMeThoi}</td>
+                    <td class="align-middle">${item.iD_LoThoi}</td>
+                        <td class="text-center align-middle" style="display: flex;justify-content: center;">
+                        ${statusHtml}
+                    </td>
+                    <td class="text-center">
+                        ${checkboxHtml}
+                    </td>
+                </tr>
+                `;
+            tbody.append(html);
+            RowNo++;
+         })
+    }
+
+    function renderPagination(totalRecords) {
+        const totalPages = Math.ceil(totalRecords / pageSize);
+        const pagination = $('#pagination');
+        pagination.empty();
+
+        if (totalPages <= 1) return; 
+
+        const createPageItem = (page, label = page, isActive = false, isDisabled = false) => {
+            return `
+                <li class="page-item ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}">
+                    <a class="page-link" href="javascript:void(0)" data-page="${page}">${label}</a>
+                </li>
+            `;
+        };
+
+        // << Prev
+        pagination.append(createPageItem(currentPage - 1, '«', false, currentPage === 1));
+
+        let startPage, endPage;
+
+        if (totalPages <= 5) {
+            startPage = 1;
+            endPage = totalPages;
+        } else {
+            if (currentPage <= 3) {
+                startPage = 1;
+                endPage = 4;
+            } else if (currentPage >= totalPages - 2) {
+                startPage = totalPages - 3;
+                endPage = totalPages;
+            } else {
+                startPage = currentPage - 1;
+                endPage = currentPage + 1;
+            }
+        }
+
+        // First page and ellipsis
+        if (startPage > 1) {
+            pagination.append(createPageItem(1, '1', false));
+            if (startPage > 2) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+        }
+
+        // Page numbers
+        for (let i = startPage; i <= endPage; i++) {
+            pagination.append(createPageItem(i, i, i === currentPage));
+        }
+
+        // Last page and ellipsis
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+            pagination.append(createPageItem(totalPages, totalPages, false));
+        }
+
+        // >> Next
+        pagination.append(createPageItem(currentPage + 1, '»', false, currentPage === totalPages));
+
+        // Click event
+        $('#pagination .page-link').on('click', function () {
+            const page = parseInt($(this).data('page'));
+            if (!isNaN(page) && page !== currentPage) {
+                currentPage = page;
+                Search();
+            }
+        });
+    }
+
+    $("#btn-search").on('click', function() {
+        Search();
+    })
+
+    $('#cbx-selectAll').on('change', function () {
+        const isChecked = $(this).is(':checked');
+
+        // Chọn hoặc bỏ chọn tất cả checkbox có class cbx-item
+        $('.cbx-ChonMe:visible').prop('checked', isChecked);
+    });
+
+    $('#btn-an').on('click', function(){
+        let selectedIds = [];
+        let hasLocked = false;
+
+        // Duyệt qua tất cả các checkbox đã chọn
+        $('.cbx-ChonMe:checked').each(function () {
+            const $row = $(this).closest('tr');
+            const id = Number($row.data('id'));
+
+            const isDelete = $row.data('trangthai');
+
+            if (isDelete == 1) {
+                hasLocked = true;
+                return false; 
+            }
+
+            selectedIds.push(id);
+
+            if (hasLocked) return false; 
+        });
+
+        if (hasLocked) {
+            alert("Vui lòng không chọn các mẻ đã ẩn.");
+            Search();
+            return;
+        }
+
+        if (selectedIds.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 dòng.");
+            Search();
+            return;
+        }
+            console.log(selectedIds)
+        $.ajax({
+            url: "/MeThoi/XoaMeThoi",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(selectedIds),
+            processData: false,
+            success: function (res) {
+                alert('Đã ẩn mẻ thành công');
+                Search();
+            },
+            error: function () {
+                alert("Lỗi khi nhận dữ liệu!");
+            }
+        });
+    })
+
+    $('#btn-khoiPhuc').on('click', function(){
+        let selectedIds = [];
+        let hasLocked = false;
+
+        // Duyệt qua tất cả các checkbox đã chọn
+        $('.cbx-ChonMe:checked').each(function () {
+                const $row = $(this).closest('tr');
+                const id = Number($row.data('id'));
+
+                const isDelete = $row.data('trangthai');
+
+                if (isDelete == 0) {
+                    hasLocked = true;
+                    return false;
+                }
+
+                selectedIds.push( id );
+
+                if (hasLocked) return false;
+            });
+
+        if (hasLocked) {
+            alert("Vui lòng không chọn các mẻ chưa ẩn.");
+            Search();
+            return;
+        }
+
+        if (selectedIds.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 dòng.");
+            Search();
+            return;
+        }
+
+        $.ajax({
+            url: "/MeThoi/KhoiPhucMeThoi",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(selectedIds),
+            processData: false,
+            success: function (res) {
+                alert('Đã khôi phục mẻ thành công');
+                Search();
+            },
+            error: function () {
+                alert("Lỗi khi nhận dữ liệu!");
+            }
+        });
+    })
+
+    $(document).ready(function () {
+        Search();
+    });
+</script>

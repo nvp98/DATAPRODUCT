@@ -1,0 +1,322 @@
+﻿using Data_Product.Common.Enums;
+using Data_Product.DTO;
+using Data_Product.DTO.BM_16_DTO;
+using Data_Product.Models;
+using Data_Product.Models.ModelView;
+using Data_Product.Repositorys;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Humanizer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+
+namespace Data_Product.Controllers
+{
+    public class MeThoiController : Controller
+    {
+        private readonly DataContext _context;
+        private readonly ICompositeViewEngine _viewEngine;
+
+        public MeThoiController(DataContext _context, ICompositeViewEngine viewEngine)
+        {
+            this._context = _context;
+            _viewEngine = viewEngine;
+        }
+        public async Task<IActionResult> Index()
+        {
+            var loThoiSearchList = await _context.Tbl_LoThoi.ToListAsync();
+            ViewBag.LoThoiSearchList = loThoiSearchList;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Search([FromBody] SearchMeThoiDto dto)
+        {
+            try
+            {
+                var query = _context.Tbl_MeThoi.AsQueryable();
+
+                if (!string.IsNullOrEmpty(dto.SearchText))
+                {
+                    query = query.Where(x => x.MaMeThoi.Contains(dto.SearchText));
+                }
+
+                if (dto.ID_LoThoi.HasValue)
+                {
+                    query = query.Where(x => x.ID_LoThoi == dto.ID_LoThoi.Value);
+                }
+
+                if (dto.TuNgay.HasValue && dto.DenNgay.HasValue)
+                {
+                    var tuNgay = dto.TuNgay.Value.Date;
+                    var denNgay = dto.DenNgay.Value.Date.AddDays(1);
+
+                    query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
+                }
+                if (dto.IDTrangThai.HasValue)
+                {
+                    if(dto.IDTrangThai == (int)TinhTrang.DaChot)
+                    {
+                        query = query.Where(x => x.ID_TrangThai == dto.IDTrangThai.Value);
+                    }
+                    else
+                    {
+                        bool IsDelete = dto.IDTrangThai.Value == 1 ? true : false;
+                        query = query.Where(x => x.Is_Delete == IsDelete && x.ID_TrangThai != (int)TinhTrang.DaChot);
+                    }
+                }
+                int totalPages = await query.CountAsync();
+
+                query = query.Skip((dto.PageNumber - 1) * dto.PageSize)
+                    .Take(dto.PageSize);
+
+                var result = await (from lo in query
+                                    orderby lo.ID_LoThoi
+                                    select new Tbl_MeThoi
+                                    {
+                                        ID = lo.ID,
+                                        NgayTao = lo.NgayTao,
+                                        MaMeThoi = lo.MaMeThoi,
+                                        ID_TrangThai = lo.ID_TrangThai,
+                                        Is_Delete = lo.Is_Delete,
+                                        ID_LoThoi = lo.ID_LoThoi,
+
+                                    }).ToListAsync();
+
+                return Ok(new { TotalRecords = totalPages, Data = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> FilterMeThoi([FromBody] MeThoiSearchDto dto)
+        {
+            var query = _context.Tbl_MeThoi
+                    .Where(x => x.ID_LoThoi == dto.id_LoThoi &&
+                    //x.NgayTao.Year == dto.ngayLamViec.Year && 
+                    x.ID_TrangThai == (int)TinhTrang.ChoXuLy &&
+                    x.Is_Delete == false);
+
+            if (!string.IsNullOrWhiteSpace(dto.searchText))
+            {
+                query = query.Where(x => x.MaMeThoi.Contains(dto.searchText));
+            }
+
+
+            var result = await query
+                .OrderBy(x => x.MaMeThoi)
+                .Take(250)
+                .Select(x => new { id = x.ID, maMeThoi = x.MaMeThoi })
+                .ToListAsync();
+
+            return Ok(result);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> TaoMeThoi()
+        {
+            //list lo thoi
+            var loThoiList = await _context.Tbl_LoThoi.ToListAsync();
+            ViewBag.LoThoiList = loThoiList;
+
+            return PartialView("TaoMeThoi"); 
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> TaoMeThoi([FromBody] TaoMeThoiDto payload)
+        {
+            if (payload.soLuong <= 0 || payload.id_LoThoi == null)
+                return BadRequest("Dữ liệu không hợp lệ.");
+
+            // get User
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
+
+            var lothoi = await _context.Tbl_LoThoi.Where(x => x.ID == payload.id_LoThoi).FirstOrDefaultAsync();
+            if (lothoi == null)
+                return BadRequest("Không tìm thấy lò thổi");
+
+            var currentDate = payload.ngayTao;
+            string yearPart = (currentDate.Year % 100).ToString("D2"); 
+            string loaiMe = lothoi.MaLoThoi; // A,B,C
+            string prefix = yearPart + loaiMe;       // Ví dụ: 25A
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try {
+                // Kiểm tra hoặc tạo mới dòng counter
+                var counter = await _context.Tbl_Counter_MeThoi
+                    .FirstOrDefaultAsync(x => x.Prefix == prefix);
+
+                if (counter == null)
+                {
+                    counter = new Tbl_Counter_MeThoi
+                    {
+                        Prefix = prefix,
+                        STT_HienTai = 0
+                    };
+                    _context.Tbl_Counter_MeThoi.Add(counter);
+                    await _context.SaveChangesAsync(); // Lưu để lấy ID
+                }
+
+                // Tạo danh sách mẻ mới
+                var newItems = new List<Tbl_MeThoi>();
+                for (int i = 1; i <= payload.soLuong; i++)
+                {
+                    counter.STT_HienTai += 1;
+                    string maMeThoi = $"{prefix}{counter.STT_HienTai.ToString("D6")}"; // VD: 25A000123
+
+                    var meThoi = new Tbl_MeThoi
+                    {
+                        MaMeThoi = maMeThoi,
+                        NgayTao = payload.ngayTao,
+                        ID_LoThoi = payload.id_LoThoi,
+                        ID_TrangThai = (int)TinhTrang.ChoXuLy,
+                        ID_NguoiTao = TaiKhoan.ID_TaiKhoan
+                    };
+
+                    newItems.Add(meThoi);
+                    _context.Tbl_MeThoi.Add(meThoi);
+                }
+
+                // Cập nhật counter sau cùng
+                _context.Tbl_Counter_MeThoi.Update(counter);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(new { success = true, Message = "Đã xử tạo mới.", meThoiMoi = newItems });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, "Lỗi khi tạo mẻ thổi: " + ex.Message);
+            }
+
+
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> DsMeThoi([FromBody] int id)
+        {
+            var currentYear = DateTime.Now.Year;
+            var result = await _context.Tbl_MeThoi
+                .Where(x => x.NgayTao.Year == currentYear && x.ID_LoThoi == id && x.Is_Delete == false)
+                .ToListAsync();
+
+            return Ok(result);
+
+        }
+        [HttpPost]
+        public async Task<IActionResult> XoaMeThoi([FromBody] List<int> selectedIds)
+        {
+            if (selectedIds is null || selectedIds.Count == 0)
+                return BadRequest(new { success = false, message = "Danh sách ID trống." });
+
+            var ids = selectedIds.Distinct().ToList();
+
+            // Những bản ghi hợp lệ để xóa (chưa bị xóa)
+            var toDelete = await _context.Tbl_MeThoi
+                .Where(x => ids.Contains(x.ID) && !x.Is_Delete && x.ID_TrangThai != (int)TinhTrang.DaChot)
+                .ToListAsync();
+
+            // Những bản ghi đã bị xóa sẵn
+            var alreadyDeleted = await _context.Tbl_MeThoi
+                .Where(x => ids.Contains(x.ID) && x.Is_Delete)
+                .Select(x => x.ID)
+                .ToListAsync();
+
+
+            if (toDelete.Count == 0)
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Không có mẻ thời hợp lệ để xóa.",
+                    alreadyDeleted,
+                });
+
+            foreach (var m in toDelete) m.Is_Delete = true;
+            var affected = await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Đã xóa mềm {toDelete.Count} mẻ thời.",
+                affectedCount = affected,
+                deletedIds = toDelete.Select(x => x.ID).ToList(),
+                alreadyDeleted,
+            });
+        }
+        [HttpPost]
+        public async Task<IActionResult> KhoiPhucMeThoi([FromBody] List<int> selectedIds)
+        {
+            if (selectedIds is null || selectedIds.Count == 0)
+                return BadRequest(new { success = false, message = "Danh sách ID trống." });
+
+            var ids = selectedIds.Distinct().ToList();
+
+            // Những bản ghi hợp lệ để khôi phục (đang bị xóa)
+            var toRestore = await _context.Tbl_MeThoi
+                .Where(x => ids.Contains(x.ID) && x.Is_Delete)
+                .ToListAsync();
+
+            // Những bản ghi chưa bị xóa (không cần khôi phục)
+            var notDeleted = await _context.Tbl_MeThoi
+                .Where(x => ids.Contains(x.ID) && !x.Is_Delete)
+                .Select(x => x.ID)
+                .ToListAsync();
+
+            // ID không tồn tại
+
+            if (toRestore.Count == 0)
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Không có mẻ thời hợp lệ để khôi phục.",
+                    notDeleted,
+                });
+
+            foreach (var m in toRestore) m.Is_Delete = false;
+            var affected = await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Đã khôi phục {toRestore.Count} mẻ thời.",
+                affectedCount = affected,
+                restoredIds = toRestore.Select(x => x.ID).ToList(),
+                notDeleted,
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetLatestCounter([FromBody] GetLatestCounterDto dto)
+        {
+            if(dto.id_LoThoi == null)
+                return BadRequest("Vui lòng chọn lò thổi");
+            var lothoi = await _context.Tbl_LoThoi.Where(x => x.ID == dto.id_LoThoi).FirstOrDefaultAsync();
+            if(lothoi == null)
+                return BadRequest("Không tìm thấy lò thổi");
+            var currentDate = dto.ngayLamViec;
+            string yearPart = (currentDate.Year % 100).ToString("D2");
+            string prefix = yearPart + lothoi.MaLoThoi;       // Ví dụ: 25A
+
+            var result = await _context.Tbl_Counter_MeThoi.Where(x => x.Prefix == prefix).FirstOrDefaultAsync();
+            
+            if(result != null)
+            {
+
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest("Không tồn tại mẻ ở lò thổi và năm làm việc này");
+            }
+        }
+    }
+}

@@ -1,0 +1,1656 @@
+﻿<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@using Data_Product.Repositorys;
+@using System.Security.Claims;
+@inject Data_Product.Repositorys.DataContext _context
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+}
+@{
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+
+}
+
+<style>
+    body {
+        overflow: hidden; /* Ngăn cuộn toàn bộ trang */
+    }
+    /* Tùy chỉnh thanh cuộn cho WebKit (Chrome, Safari) */
+    .table-content::-webkit-scrollbar {
+        width: 2px; /* Chiều rộng thanh cuộn mỏng hơn */
+    }
+
+    .table-content::-webkit-scrollbar-thumb {
+        background-color: #888; /* Màu thanh kéo */
+        border-radius: 1px; /* Bo góc thanh kéo */
+    }
+
+    .table-content::-webkit-scrollbar-thumb:hover {
+        background-color: #555; /* Màu khi hover */
+    }
+
+    .table-content::-webkit-scrollbar-track {
+        background-color: #f1f1f1; /* Màu nền thanh cuộn */
+    }
+
+    /* Tùy chỉnh thanh cuộn cho Firefox */
+    .table-content {
+        scrollbar-width: thin; /* Thanh cuộn mỏng */
+        scrollbar-color: #888 #f1f1f1; /* Màu thanh kéo và nền */
+    }
+
+    .hide-col{
+        display: none;
+    }
+
+    .status-card {
+        height: 35px;
+        width: 110px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 400;
+    }
+
+    .status-text {
+        padding: 0 !important;
+        font-size: 12px;
+    }
+
+    .btn-collapse{
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 5px;
+        background: none;
+        border: none;
+    }
+    
+
+    .rotate-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .rotate-icon.rotated {
+        transform: rotate(180deg);
+    }
+    /* Cố định cột đầu tiên đến cột thứ 8 */
+    .sticky-col-1, .sticky-col-2, .sticky-col-3, .sticky-col-4, .sticky-col-5,
+    .sticky-col-6, .sticky-col-7, .sticky-col-8 {
+        position: sticky;
+        z-index: 2;
+        background-color: #f8f9fa;
+    }
+   
+    /* ngay */
+    .sticky-col-1 { 
+        left: 0;
+        z-index: 1;
+    }
+    /* ca */
+    .sticky-col-2 {
+        left: 68px;
+        z-index: 1;
+    }
+    /* Kip */
+    .sticky-col-3 {
+        left: 123px; 
+        z-index: 1;
+    }
+    /* Ma thung gang */
+    .sticky-col-4 {
+        left: 183px; 
+        z-index: 1;
+    }
+    /* lo cao */
+    .sticky-col-5 {
+        left: 183px;
+        z-index: 1;
+    }
+    /* so me */
+    .sticky-col-6 {
+        left: 237px;
+        z-index: 1;
+    }
+    /* thung so */
+    .sticky-col-7 {
+        left: 353px; 
+        z-index: 1;
+    }
+    /* gio */
+    .sticky-col-8 {
+        left: 422px; 
+        z-index: 1;
+    }
+
+    #fixed-pagination {
+        position: absolute;
+        bottom: 60px;
+        left: 0;
+        right: 0;
+        z-index: 10; 
+        background-color: #fff;
+    }
+
+    .bg-chua-chuyen {
+        background-color: #6c757d;
+        color: #ffffff;
+        font-weight: bold;
+    }
+
+    .bg-da-chuyen {
+        background-color: #61bd63;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .bg-da-nhan {
+        background-color: #50cbde;
+        color: #000000;
+        font-weight: bold;
+    }
+
+    .bg-cho-xu-ly {
+        background-color: #ffc107;
+        color: #212529;
+        font-weight: bold;
+    }
+
+    .bg-da-chot {
+        background-color: #1e7e34;
+        color: #ffffff;
+        font-weight: bold;
+    }
+</style>
+
+<div id="main-container" class="d-flex flex-column vh-100" style="position: relative; padding-bottom: 30px;">
+    <!-- Collapse Filter -->
+    <div class="p-2">
+        <div class="row">
+            <div class="card" style="margin-bottom: 0;">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between" style="padding: 10px 0 10px 0;">
+                        <span class="text-start small pt-2 ps-1">
+                            <b style="color:#06428b;font-size: 15px;">
+                                DANH SÁCH THÙNG
+                            </b>
+                        </span>
+                          @if (TaiKhoan.ID_PhongBan == 70)
+                         {    
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
+                            <button class="btn btn-danger btn-sm px-4 status-card" id="btnHuyChotThung"> Hủy Chốt</button>
+                        </div>
+                         } 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="p-2" style="position: relative; font-size: 13px;">
+        <div class="collapse show" id="filterPanel">
+            <div class="card card-body" style="padding:20px">
+                <div class="col-12">
+                    <div class="row">
+                        <!-- Left Column (col-6) -->
+                        <div class="col-12 col-md-6 border">
+                             <div class="row">
+                                <!-- Từ ngày LG -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label for="TuNgayLG" class="form-label">Từ ngày LG:</label>
+                                    <input type="date" class="form-control form-control-sm" id="TuNgayLG" name="TuNgayLG"
+                                           onkeydown="return false;">
+                                </div>
+                                <!-- Đến ngày LG -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label for="DenNgayLG" class="form-label">Đến ngày LG:</label>
+                                    <input type="date" class="form-control form-control-sm" id="DenNgayLG" name="DenNgayLG"
+                                           onkeydown="return false;">
+                                </div>
+                               
+                                <!-- Ca LG -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Ca LG:</label>
+                                    <select class="form-select form-select-sm" id="CaLG" name="CaLG">
+                                        <option value="">-- Ca --</option>
+                                        <option value="1">Ca 1</option>
+                                        <option value="2">Ca 2</option>
+                                    </select>
+                                </div>
+                                <!-- Kíp LG -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Kíp LG:</label>
+                                    <select class="form-select form-select-sm" id="KipLG" name="KipLG">
+                                        <option value="">-- Kíp --</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </div>
+                                <!-- Tình trạng LG -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Tình trạng LG:</label>
+                                    <select class="form-select form-select-sm" id="TinhTrangLG" name="TinhTrangLG">
+                                        <option value="">-- Tình trạng --</option>
+                                        <option value="1">Chưa chuyển</option>
+                                        <option value="3">Đã chuyển</option>
+                                    </select>
+                                </div>
+                                <!-- Chuyển đến -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Chuyển đến:</label>
+                                    <select class="form-select form-select-sm" id="ChuyenDen" name="ChuyenDen">
+                                        <option value="">-- Chuyển đến --</option>
+                                        <option value="HRC1">HRC 1</option>
+                                        <option value="DUC1">Đúc 1</option>
+                                        <option value="HRC2">HRC 2</option>
+                                        <option value="DUC2">Đúc 2</option>
+                                    </select>
+                                </div>
+                                <!-- Lò Cao -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Lò Cao:</label>
+                                    <select class="form-select form-select-sm" id="LoCao" name="LoCao">
+                                        <option value="">-- Lò cao --</option>
+                                        @foreach (var locao in ViewBag.LoCaoList)
+                                        {
+                                            <option value="@locao.ID">@locao.TenLoCao</option>
+                                        }
+                                    </select>
+                                </div>
+                                <!-- Mã thùng gang -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Mã thùng gang:</label>
+                                    <input type="text" class="form-control form-control-sm" id="MaThungGang" />
+                                </div>
+                                <!-- Tình trạng chốt -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Tình trạng chốt:</label>
+                                    <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
+                                        <option value="">-- Tình trạng --</option>
+                                        <option value="2">Chờ xử lý</option>
+                                        <option value="5">Đã chốt</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 border">
+                            <div class="row">
+                                <!-- Từ ngày LT -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label for="TuNgayLT" class="form-label">Từ ngày LT:</label>
+                                    <input type="date" class="form-control form-control-sm" id="TuNgayLT" name="TuNgayLT"
+                                           onkeydown="return false;">
+                                </div>
+
+                                <!-- Đến ngày LT -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label for="DenNgayLT" class="form-label">Đến ngày LT:</label>
+                                    <input type="date" class="form-control form-control-sm" id="DenNgayLT" name="DenNgayLT"
+                                           onkeydown="return false;">
+                                </div>
+
+                                <!-- Ca LT -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Ca LT:</label>
+                                    <select class="form-select form-select-sm" id="CaLT" name="CaLT">
+                                        <option value="">-- Ca --</option>
+                                        <option value="1">Ca 1</option>
+                                        <option value="2">Ca 2</option>
+                                    </select>
+                                </div>
+                                <!-- Kíp LT -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Kíp LT:</label>
+                                    <select class="form-select form-select-sm" id="KipLT" name="KipLT">
+                                        <option value="">-- Kíp --</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                    </select>
+                                </div>
+                                <!-- Tình trạng LT -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Tình trạng LT:</label>
+                                    <select class="form-select form-select-sm" id="TinhTrangLT" name="TinhTrangLT">
+                                        <option value="">-- Tình trạng --</option>
+                                        <option value="2">Chờ xử lý</option>
+                                        <option value="4">Đã nhận</option>
+                                    </select>
+                                </div>
+                                <!-- Mã thùng thép -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Mã thùng thép:</label>
+                                    <input type="text" class="form-control form-control-sm" id="MaThungThep" />
+                                </div>
+                                <!-- Lò Thổi -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Lò Thổi:</label>
+                                    <select class="form-select form-select-sm" id="LoThoi" name="LoThoi">
+                                        <option value="">-- Lò Thổi --</option>
+                                        @foreach (var lothoi in ViewBag.LoThoiList)
+                                        {
+                                            <option value="@lothoi.ID">@lothoi.TenLoThoi</option>
+                                        }
+                                    </select>
+                                </div>
+                               
+                                <!-- Thùng số -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Thùng số:</label>
+                                    <input type="number" class="form-control form-control-sm" id="ThungSo" />
+                                </div>
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Mã mẻ thổi:</label>
+                                    <input type="text" class="form-control form-control-sm" id="MaMeThoi" />
+                                </div>
+                                <div class="col-12 d-flex gap-2">
+                                    <div class="col-sm-6 col-md-4 mb-2">
+                                        <label class="form-label">Tình trạng chia:</label>
+                                        <select class="form-select form-select-sm" id="IsChiaGang" name="IsChiaGang">
+                                            <option value="">-- Tình trạng --</option>
+                                            <option value="false">Chưa chia</option>
+                                            <option value="true">Đã được chia</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-7" style="display: flex;justify-content: flex-end;align-items: center;">
+                                        <div class="d-flex justify-content-end w-100 gap-2">
+                                            <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
+                                            <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
+                                            <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
+                                            <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                             </div>
+                            @* <div class="row">
+
+                                <div class="col-12" style="padding-bottom: 5px;">
+                                    <div class="col-4">
+                                            <label class="form-label">Tình trạng chia:</label>
+                                            <select class="form-select form-select-sm" id="IsChiaGang" name="IsChiaGang">
+                                                <option value="">-- Tình trạng --</option>
+                                                <option value="false">Chưa chia</option>
+                                                <option value="true">Đã được chia</option>
+                                            </select>
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="d-flex justify-content-end w-100 gap-2">
+                                            <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
+                                            <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
+                                            <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
+                                            <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> *@
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="btn-collapse" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel" aria-expanded="false" aria-controls="filterPanel">
+            <i class="bi bi-caret-down-fill rotate-icon" id="toggleIcon" style="font-size: 25px;"></i>
+        </button>
+    </div>
+
+    <!-- Bảng dữ liệu -->
+    <div class="flex-grow-1 px-2" style="min-height: 0; padding-bottom: 50px; margin-bottom: 40px;">
+        <div class="h-100 table-content" style="overflow: auto; font-size: 13px;">
+            <table class="table table-bordered text-center align-middle table-hover" id="tblDuLieu" style="min-width: 1500px;">
+                <thead class="table-light sticky-top bg-white" style="z-index: 2">
+                    <tr>
+                        <th class="sticky-col-1" style="min-width: 68px;">Ngày LG</th>
+                        <th class="sticky-col-2" style="min-width: 55px;">Ca LG</th>
+                        <th class="sticky-col-3" style="min-width: 60px;">Kíp LG</th>
+                        <th class="hide-col sticky-col-4" style="min-width: 116px;">Mã thùng gang</th>
+                        <th class="sticky-col-5" style="min-width: 54px;">Lò cao</th>
+                        <th class="sticky-col-6" style="min-width: 116px;">Số mẻ</th>
+                        <th class="sticky-col-7" style="min-width: 69px;">Thùng số</th>
+                        <th class="sticky-col-8" style="min-width: 53px;">Giờ</th>
+                        <th class="hide-col" style="min-width: 70px;">Phân loại</th>
+                        <th>KL xe goong</th>
+                        <th>KL thùng và gang</th>
+                        <th>KL thùng</th>
+                        <th>KL gang lỏng</th>
+                        <th class="hide-col">Chuyển đến</th>
+                        <th class="hide-col">KR</th>
+                        <th>Giờ NM</th>
+                        <th>Tình trạng LG</th>
+                        <th>Ngày LT</th>
+                        <th>Ca LT</th>
+                        <th>Kíp LT</th>
+                        <th class="hide-col">Mã thùng thép</th>
+                        <th class="hide-col">KL thùng & gang lỏng (T)</th>
+                        <th class="hide-col">KL thùng (T)</th>
+                        <th class="hide-col">KL gang lỏng (T)</th>
+                        <th class="hide-col">KL gang chia (T)</th>
+                        <th>KL Gang nhận (T)</th>
+                        <th>Lò thổi</th>
+                        <th>Thùng trung gian</th>
+                        <th>KL thùng & gang lỏng (T)</th>
+                        <th>KL thùng (T)</th>
+                        <th>KL phế (T)</th>
+                        <th>KL vào lò thổi (T)</th>
+                        <th>Mẻ</th>
+                        <th>Giờ bắt đầu thổi</th>
+                        <th>Tình trạng LT</th>
+                        <th>BP Nhận</th>
+                        <th style="min-width: 150px;">Người nhận</th>
+                        <th><input style="width: 45px; margin-bottom: 3px;" type="number" name="name" min="0" max="100" value="@ViewBag.PhanTram" id="percentDuc" @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") /> <button @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") style="border: none;" id="btn-percent"><i class="bi bi-floppy2"></i></button><br /> KL Đúc</th>
+                        <th>Chọn thùng 
+                            <input type="checkbox" id="cbx-selectAll" @(TaiKhoan.ID_PhongBan != 70 ? "disabled" : "") />
+                        </th>
+                        <th>Tình trạng</th>
+                        <th class="hide-col" style="min-width: 150px;">Người chốt</th>
+                        <th class="hide-col">KL chênh lệch</th>
+                        <th class="hide-col">Tỷ lệ chênh lệch</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                    <tr style="height: 50px;">
+                        <td colspan="10" class="total-space" style="font-weight: 600; text-align: start">Tổng</td>
+                        <td id="IDTongKLGangLong" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td  colspan="5" class="space-2"></td>
+                        <td class="hide-col" id="IDTongKLGangLongThep" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
+                        <td id="IDTongKLGangNhan" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="4"></td>
+                        <td id="IDTongKLPhe" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="9" class="space-4"></td>
+                        <td class="hide-col" id="IDTongKLChenhLech" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td class="hide-col" id="IDTongPhanTramChenhLech" style="font-weight: 600">
+                            0.00
+                        </td>
+                    </tr>
+
+                    <tr style="height: 50px;">
+                        <td colspan="10" class="total-space" style="font-weight: 600; text-align: start">Tổng Tất Cả</td>
+                        <td colspan="2" id="IDTongAllKLGangLong" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="4" class="space-3"></td>
+                        <td class="hide-col" id="IDTongAllKLGangLongThep" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td class="hide-col" id="IDTongAllKLGangChia" style="font-weight: 600">0.00</td>
+                        <td id="IDTongAllKLGangNhan" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="4"></td>
+                        <td id="IDTongAllKLPhe" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td id="IDTongAllKLVaoLoThoi" style="font-weight: 600">
+                            0.00
+                        </td>
+                        <td colspan="9" class="space-4"></td>
+                        <td class="hide-col" id="IDTongAllKLChenhLech" style="font-weight: 600">
+                            0.0
+                        </td>
+                        <td class="hide-col" id="IDTongAllPhanTramChenhLech" style="font-weight: 600">
+                            0.0
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <div id="fixed-pagination" class="bg-white border-top shadow-sm">
+        <nav class="py-2">
+            <ul id="pagination" class="pagination justify-content-center mb-0"></ul>
+        </nav>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modalShowChiaGang" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalChiaGang" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 50%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết chia gang</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalChiaGang"></button>
+            </div>
+            <div class="modal-body" id="chiaGangContent" style="overflow-x: hidden;">
+
+                <!-- 1. KL NM.LG -->
+                <h6 class="fw-bold">1. KL NM.LG:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblNMLG">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng gang</th>
+                            <th>Thùng số</th>
+                            <th>KL bên LG</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <!-- 2. KL đã rót NM.HRC -->
+                <h6 class="fw-bold mt-4">2. KL đã rót NM.HRC:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblNMLT">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng thép</th>
+                            <th>Thùng số</th>
+                            <th>KL thùng&gang</th>
+                            <th>KL thùng</th>
+                            <th>KL gang</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+                <!-- 3. KL Chia -->
+                <h6 class="fw-bold mt-4">3. KL Chia:</h6>
+                <table class="table table-bordered text-center align-middle" id="tblGangChia">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Lò cao</th>
+                            <th>Mã thùng thép</th>
+                            <th>Thùng số</th>
+                            <th>KL thùng&gang</th>
+                            <th>KL thùng</th>
+                            <th>KL Phế</th>
+                            <th>KL gang</th>
+                            <th>Tỷ lệ chia</th>
+                            <th>KL chia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnDongChiaGang" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+     let isHidden = true;
+     let currentPage = 1;
+     const pageSize = 20;
+     let danhSachThung = [];
+
+    // reset cacs filter search
+        function clearFilter(ids = []) {
+          ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            switch(el.type) {
+              case 'checkbox':
+                el.checked = false;
+                break;
+              case 'select-one':
+              case 'select-multiple':
+                el.selectedIndex = 0; // reset về option đầu tiên
+                break;
+              case 'date':
+              case 'text':
+              case 'number':
+              default:
+                el.value = '';
+            }
+          });
+        }
+        // setup range ngày
+        function setupDateRange(fromDateId, toDateId) {
+            const fromDate = document.getElementById(fromDateId);
+            const toDate = document.getElementById(toDateId);
+
+            if (!fromDate || !toDate) return;
+
+            const today = new Date().toISOString().split('T')[0];
+
+            fromDate.max = today;
+            toDate.max = today;
+
+            fromDate.addEventListener('change', function () {
+                toDate.min = this.value;
+
+                if (toDate.value && toDate.value < this.value) {
+                    toDate.value = '';
+                }
+            });
+
+            toDate.addEventListener('change', function () {
+                fromDate.max = this.value;
+
+                if (fromDate.value && fromDate.value > this.value) {
+                    fromDate.value = '';
+                }
+            });
+        }
+
+        // tinh sum
+       function TongKLGangLong(){
+            let total = 0;
+            $("#tblDuLieu .G_KL_GangLong").each(function () {
+                   const value = parseFloat($(this).text());
+                   if (!isNaN(value)) {
+                       total += value;
+                   }
+               });
+            $("#IDTongKLGangLong").text(total.toFixed(2));
+       }
+
+       function TongKLGangLongThep(){
+           let total = 0;
+            $("#tblDuLieu .T_KLGangLong").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLGangLongThep").text(total.toFixed(2));
+       }
+
+       function TongKLGangChia(){
+           let total = 0;
+            $("#tblDuLieu .KLGangChia").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLGangChia").text(total.toFixed(2));
+       }
+
+       function TongKLVaoLoThoi(){
+           let total = 0;
+           $("#tblDuLieu .KL_GangVaoLoThoi").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
+       }
+
+       function TongKLPhe(){
+           let total = 0;
+           $("#tblDuLieu .KLPhe").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLPhe").text(total.toFixed(2));
+       }
+
+       function TongKLGangNhan(){
+           let total = 0;
+           $("#tblDuLieu .Tong_KLGangNhan").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLGangNhan").text(total.toFixed(2));
+       }
+
+        function renderTongKLChenhLech(idGang, idThep, idKQ){
+            const g_KL = parseInt($(`#${idGang}`).text().trim());
+            const t_KL = parseInt($(`#${idThep}`).text().trim());
+
+            if (!isNaN(g_KL) && !isNaN(t_KL)) {
+                let total = KLChenhLech(g_KL, t_KL);
+                $(`#${idKQ}`).text(total !== null ? total : '');
+            } else {
+                $(`#${idKQ}`).text('');
+            }
+        }
+
+        function renderTongPhanTramChenhLech(idGang, idThep, idKQ){
+            const g_KL = parseInt($(`#${idGang}`).text().trim());
+            const t_KL = parseInt($(`#${idThep}`).text().trim());
+
+            if (!isNaN(g_KL) && !isNaN(t_KL)) {
+                let total = PhanTramChenhLech(g_KL, t_KL);
+                $(`#${idKQ}`).text(total !== null ? total + '%' : '');
+            } else {
+                $(`#${idKQ}`).text('');
+            }
+        }
+
+        // render card trạng thái
+         function renderStatusCard(tinhTrang) {
+            const statusMap = {
+                1: { label: "Chưa xử lý", bgClass: "bg-chua-chuyen" },
+                2: { label: "Chờ xử lý", bgClass: "bg-cho-xu-ly" },
+                3: { label: "Đã xử lý", bgClass: "bg-da-chuyen" },
+                4: { label: "Đã nhận", bgClass: "bg-da-nhan" },
+                5: { label: "Đã chốt", bgClass: "bg-da-chot" },
+            };
+
+            const { label, bgClass } = statusMap[tinhTrang] || {
+                label: "Không rõ", bgClass: "bg-light"
+            };
+
+            return `
+                <div class="status-card ${bgClass}">
+                <span class="status-text small pt-2 ps-1"">
+                        ${label}
+                    </span>
+                </div>
+            `;
+        }
+
+
+        function renderStatusPKH(item) {
+            if (item.iD_TrangThai === 5) {
+                // Nếu đã duyệt thì giữ nguyên
+                return renderStatusCard(item.iD_TrangThai);
+            }
+
+            const isValidValue = val => val !== null && val !== undefined;
+
+            const commonFields = [
+                item.t_ID_TrangThai === 4,
+                item.g_ID_TrangThai === 3,
+                isValidValue(item.iD_TTG),
+                isValidValue(item.soThungTG),
+                isValidValue(item.iD_MeThoi),
+                isValidValue(item.gioChonMe)
+            ];
+
+            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
+
+            let isValid = false;
+
+            if (item.isCopy) {
+                // Nếu là bản copy → chỉ cần commonFields
+                isValid = commonFields.every(Boolean);
+            } else {
+                // Nếu là bản gốc → cần thêm các field khác
+                const additionalFields = [
+                    isValidValue(item.kL_XeGoong),
+                    isValidValue(item.g_KLThungChua),
+                    isValidValue(item.g_KLThungVaGang),
+                    isValidValue(item.g_KLGangLong),
+                    isValidValue(item.chuyenDen),
+                    isValidValue(item.gio_NM)
+                ];
+
+                // Nếu không có klGangChia → kiểm tra thêm 3 field nữa
+                if (!hasKlGangChia) {
+                    additionalFields.push(
+                        isValidValue(item.t_KLThungVaGang),
+                        isValidValue(item.t_KLThungChua),
+                        isValidValue(item.t_KLGangLong),
+                        isValidValue(item.klThungVaGang_Thoi),
+                        isValidValue(item.klThung_Thoi),
+                        isValidValue(item.klGang_Thoi),
+                        isValidValue(item.kL_phe),
+                    );
+                }
+
+                isValid = [...commonFields, ...additionalFields].every(Boolean);
+            }
+
+            // Cập nhật trạng thái nếu đủ điều kiện
+            return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+        }
+
+
+        function KLChenhLech(g_KLGangLong, t_KLGangLong) {
+            if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
+                return parseFloat(t_KLGangLong - g_KLGangLong).toFixed(2);
+            }
+            return null; 
+        }
+
+        function PhanTramChenhLech(g_KLGangLong, t_KLGangLong) {
+            if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
+                const klChenh = KLChenhLech(g_KLGangLong, t_KLGangLong);
+
+                if (klChenh !== null) {
+                    const goc = parseFloat(t_KLGangLong);
+                    const result = (parseFloat(klChenh) / goc) * 100;
+
+                    if (!isNaN(result)) {
+                        return result.toFixed(1); 
+                    }
+                }
+            }
+            return '0.0'; 
+        }
+
+        function tinhTongTheoMaThungGang() {
+            const flatData = danhSachThung.flat();
+            const grouped = {};
+
+            flatData.forEach(item => {
+                const key = item.maThungGang;
+                if (!key) return;
+
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        maThungGang: key,
+                        sum_g_KLGangLong: 0,
+                        sum_t_KLGangLong: 0,
+                        sum_klGangChia: 0
+                    };
+                }
+
+                const g_KLGangLong = parseFloat(item.g_KLGangLong) || 0;
+                const t_KLGangLong = parseFloat(item.t_KLGangLong) || 0;
+                const klGangChia = parseFloat(item.klGangChia);
+
+                if (item.t_copy === false) {
+                    grouped[key].sum_g_KLGangLong += g_KLGangLong;
+                }
+
+                grouped[key].sum_t_KLGangLong += t_KLGangLong;
+
+                if (!isNaN(klGangChia)) {
+                    grouped[key].sum_klGangChia += klGangChia;
+                    grouped[key].hasValid_klGangChia = true;
+                } else if (!isNaN(t_KLGangLong)) {
+                    grouped[key].sum_klGangChia += t_KLGangLong;
+                }
+            });
+            // Giai đoạn sau cùng: nếu không có klGangChia hợp lệ thì reset sum_klGangChia về 0
+            for (const key in grouped) {
+                if (!grouped[key].hasValid_klGangChia) {
+                    grouped[key].sum_klGangChia = 0;
+                }
+                delete grouped[key].hasValid_klGangChia; // dọn dẹp
+            }
+
+            return grouped;
+        }
+         // Tính phần trăm chênh lệch khối lượng
+        function PhanTramKLChenhLech(maThungGang) {
+            const grouped = tinhTongTheoMaThungGang();
+            const record = grouped[maThungGang];
+            if (!record) return null;
+
+            const {
+                sum_klGangChia,
+                sum_t_KLGangLong,
+                sum_g_KLGangLong
+            } = record;
+
+            const isNumber = val => val !== null && !isNaN(val);
+
+            // Ưu tiên tính phần trăm theo klGangChia nếu có
+            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                const result = ((sum_klGangChia - sum_g_KLGangLong) / sum_klGangChia) * 100;
+                return result.toFixed(1);
+            }
+
+            // Nếu không có klGangChia → fallback sang t_KLGangLong
+            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                const result = ((sum_t_KLGangLong - sum_g_KLGangLong) / sum_t_KLGangLong) * 100;
+                return result.toFixed(1);
+            }
+
+            return null;
+        }
+
+
+        // Tính khối lượng chênh lệch
+        function KhoiLuongChenhLech(maThungGang) {
+            const grouped = tinhTongTheoMaThungGang();
+            const record = grouped[maThungGang];
+
+            if (!record) return null;
+            const {
+                sum_klGangChia,
+                sum_g_KLGangLong,
+                sum_t_KLGangLong
+            } = record;
+
+            const isNumber = val => val !== null && !isNaN(val);
+
+            // Ưu tiên sử dụng klGangChia nếu có
+            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                return (sum_klGangChia - sum_g_KLGangLong).toFixed(2);
+            }
+
+            // Nếu không có klGangChia → dùng t_KLGangLong
+            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong)  && sum_g_KLGangLong !== 0) {
+                return (sum_t_KLGangLong - sum_g_KLGangLong).toFixed(2);
+            }
+
+            return null;
+        }
+
+
+        // Tính khối lượng đúc theo phần trăm
+        function KhoiLuongDuc(maThungGang) {
+            const percent = parseFloat($("#percentDuc").val()) || 0;
+            const grouped = tinhTongTheoMaThungGang();
+            const record = grouped[maThungGang];
+
+            if (!record) return null;
+            const {
+                sum_klGangChia,
+                sum_g_KLGangLong,
+                sum_t_KLGangLong
+            } = record;
+
+            const isNumber = val => val !== null && !isNaN(val);
+
+            // Ưu tiên sử dụng klGangChia nếu có
+            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
+                // return (sum_klGangChia - sum_g_KLGangLong).toFixed(2);
+                return (sum_g_KLGangLong - sum_klGangChia) * (percent / 100);
+            }
+
+            // Nếu không có klGangChia → dùng t_KLGangLong
+            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong)  && sum_g_KLGangLong !== 0) {
+                return (record.sum_g_KLGangLong - record.sum_t_KLGangLong) * (percent / 100);
+            }
+
+            return null;
+        }
+
+        $("#btn-percent").click(function() {
+            const percent = parseInt($("#percentDuc").val());
+            if(percent < 0 || percent > 100){
+                alert('Phần trăm không được nhỏ hơn 0 và lớn hơn 100')
+                return ;
+            }
+            $.ajax({
+                url: '/BM16_GangThoi_PKH/LuuPhanTram',
+                 method: 'POST',
+                 contentType: 'application/json',
+                 data: JSON.stringify(percent),
+                 success: function (res) {
+                     // window.ReLoad();
+                     Search();
+                     alert("Lưu thành công");
+                 },
+                 error: function (err) {
+                     alert("Lỗi khi tìm kiếm dữ liệu");
+                 }
+             });
+        })
+
+        function getDayOnly(dateString) {
+            if (!dateString) return "";
+
+            const date = new Date(dateString);
+            if (isNaN(date)) return ""; 
+
+            return String(date.getDate()).padStart(2, '0');
+        }
+
+        // render khu vực xử lý số liệu
+        function renderTable(res) {
+            const tbody = $('#tblDuLieu tbody');
+                tbody.empty();
+            const data = res.data;
+            if (!data || data.length === 0) {
+                tbody.append(`<tr><td colspan="34" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                            Không tìm thấy dữ liệu
+                            </td></tr>`);
+                return;
+            }
+
+            $("#IDTongKLGangLong").text('0.00');
+            $("#IDTongKLGangLongThep").text('0.00');
+            $("#IDTongKLGangNhan").text('0.00');
+            $("#IDTongKLPhe").text('0.00');
+            $("#IDTongKLVaoLoThoi").text('0.00');
+            
+            data.forEach((group, groupIndex) => {
+                const rowspan = group.length;
+                let isFirstRow = true;
+
+                group.forEach(item => {
+
+                    const isCopy = item.isCopy;
+
+                    const row = $(`<tr data-group-id="${groupIndex}" data-id="${item.id}" data-idtrangthai="${item.iD_TrangThai}" data-mathungtg=${item.maThungTG}></tr>`);
+                    const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
+                    const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
+
+                    const tinhTrangHTML = renderStatusPKH(item);
+
+                    const ngayLG = getDayOnly(item.ngayTao);
+                    const ngayLT = getDayOnly(item.ngayLuyenThep);
+                    const isShow = checkCondition(item);
+                    const klChenh = item.t_copy || isCopy ? null : KhoiLuongChenhLech(item.maThungGang);
+                    const ptChenh = item.t_copy || isCopy ? null : PhanTramKLChenhLech(item.maThungGang);
+
+                    const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
+
+                    const displayedValue = hasKlGangChia ? item.klGangChia : (item.t_KLGangLong ?? '');
+                    const textColor = hasKlGangChia ? 'text-danger' : ''; // đỏ nếu có chia, đen nếu không
+                    const showButton = hasKlGangChia ? 'inline-block' : 'none';
+
+                    const klDuc = (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') && item.t_copy === false ? KhoiLuongDuc(item.maThungGang) : null;
+
+                    row.append(`<td class="sticky-col-1">${ngayLG ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-2">${item.g_Ca == null ? '' : (item.g_Ca === 1 ? 'N' : 'Đ')}</td>`);
+                    row.append(`<td class="sticky-col-3">${item.g_TenKip ?? ''}</td>`);
+                    row.append(`<td class="hide-col sticky-col-4">${item.maThungGang ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-5">${item.iD_Locao ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-6" ${item.t_copy || isCopy ? 'style="color: red;"' : ''}>${item.bkmiS_SoMe ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-7" style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
+                    row.append(`<td class="sticky-col-8">${item.bkmiS_Gio ?? ''}</td>`);
+                    row.append(`<td class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
+
+                    if(item.t_copy == true || isCopy){
+                        row.append(`<td></td>`);
+                        row.append(`<td></td>`);
+                        row.append(`<td></td>`);
+                        row.append(`<td class="G_KL_GangLong"></td>`);
+                    } else {
+                        row.append(`<td>${item.kL_XeGoong ?? ''}</td>`);
+                        row.append(`<td>${item.g_KLThungVaGang ?? ''}</td>`);
+                        row.append(`<td>${item.g_KLThungChua ?? ''}</td>`);
+                        row.append(`<td class="G_KL_GangLong">${item.g_KLGangLong ?? ''}</td>`);
+                    }
+                    row.append(`<td  class="hide-col ChuyenDen">${item.chuyenDen ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">
+                                    ${item.kr === true ?
+                                        `<input type="checkbox" ${item.kr ? "checked" : ""} onclick="return false;" style="pointer-events: none;"/>`
+                                        : ''
+                                    }
+                                </td>`);
+                    row.append(`<td>${item.gio_NM ?? ''}</td>`);
+                    row.append(`<td>${tinhTrangLGHTML ?? ''}</td>`);
+                    row.append(`<td>${ngayLT ?? ''}</td>`);
+                    row.append(`<td>${item.t_Ca == null ? '' : (item.t_Ca === 1 ? 'N' : 'Đ')}</td>`);
+                    row.append(`<td>${item.t_TenKip ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.maThungThep ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.t_KLThungVaGang ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.t_KLThungChua ?? ''}</td>`);
+                    row.append(`<td  class="hide-col T_KLGangLong">${item.t_KLGangLong ?? ''}</td>`);
+                    row.append(`
+                      <td class="hide-col ${textColor}" style="width: 100px;">
+                        <div class="d-flex align-items-center justify-content-center gap-2 ">
+                          <p class="KLGangChia" style="margin: 0;">${displayedValue}</p>
+                          <button class="btn p-0 border-0 bg-transparent btnDetailChiaGang" style="display: ${showButton}">
+                            <i class="bi bi-eye-fill"></i>
+                          </button>
+                        </div>
+                      </td>
+                    `);
+                    if (isFirstRow) {
+                        row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
+                        row.append(`<td style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" rowspan="${rowspan}">${item.soThungTG ?? ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.klThungVaGang_Thoi?.toFixed(2) || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.klThung_Thoi?.toFixed(2) || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}" class="KLPhe">${item.kL_phe?.toFixed(2) || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}" class="KL_GangVaoLoThoi">${item.klGang_Thoi?.toFixed(2) || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.maMeThoi || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}">${item.gioChonMe || ''}</td>`);
+                        
+                    }
+
+                    row.append(`<td>${tinhTrangLTHTML}</td>`);
+                    row.append(`<td>${item.tenPhongBan ?? ''}</td>`);
+                    row.append(`<td>${item.hoVaTen ?? ''}</td>`);
+                    row.append(`<td style="color: ${klDuc < 0 ? 'red;':''}" class="KLDuc">${klDuc ?? ''}</td>`);
+                    if(isFirstRow){
+                        row.append(`<td rowspan="${rowspan}">
+                                    ${ isShow ? `<input type="checkbox" class="cbx-chotThung" />`
+                                        : ''
+                                    }
+                                  </td>`);
+                        isFirstRow = false;
+                    }
+                    
+                    row.append(`<td>${tinhTrangHTML}</td>`);
+                    row.append(`<td class="hide-col">${item.hoTenNguoiChot ?? ''}</td>`);
+                    row.append(`<td class="hide-col">${klChenh ?? ''}</td>`);
+                    row.append(`<td class="hide-col">${ptChenh ? ptChenh + '%' : ''}</td>`);
+                    tbody.append(row);
+                });
+                TongKLGangLong();
+                TongKLGangLongThep();
+                TongKLVaoLoThoi();
+                TongKLPhe();
+                TongKLGangChia();
+                TongKLGangNhan();
+                renderTongKLChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongKLChenhLech');
+                renderTongPhanTramChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongPhanTramChenhLech');
+                applyColumnVisibility();
+            });
+             $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toFixed(2) : $("#IDTongKLGangLong").text().trim());
+             $("#IDTongAllKLGangLongThep").text(res.sumKLGangLongThep !== 0 ? res.sumKLGangLongThep.toFixed(2) : $("#IDTongKLGangLongThep").text().trim());
+             $("#IDTongAllKLGangChia").text(res.sumKLGangChia !== 0 ? res.sumKLGangChia.toFixed(2) : $("#IDTongKLGangChia").text().trim());
+             $("#IDTongAllKLGangNhan").text(res.sumKLGangNhan !== 0 ? res.sumKLGangNhan.toFixed(2) : $("#IDTongKLGangNhan").text().trim());
+             $("#IDTongAllKLPhe").text(res.sumKLPhe !== 0 ? res.sumKLPhe.toFixed(2) : $("#IDTongKLPhe").text().trim());
+             $("#IDTongAllKLVaoLoThoi").text(res.sumKLVaoLoThoi !== 0 ? res.sumKLVaoLoThoi.toFixed(2) : $("#IDTongKLVaoLoThoi").text().trim());
+             renderTongKLChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllKLChenhLech');
+             renderTongPhanTramChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllPhanTramChenhLech');
+        }
+
+        function checkCondition(item){
+            if(item.isCopy){
+                return false;
+            }
+            const isDUC = item.chuyenDen === "DUC1" || item.chuyenDen === "DUC2";
+
+            if (isDUC && item.t_ID_TrangThai === 4 && item.g_ID_TrangThai === 3) {
+                return true;
+            }
+            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '' ;
+
+            if(hasKlGangChia && item.klGangChia <= 0){
+                return false;
+            }
+            // Danh sách điều kiện bắt buộc phải có
+            const requiredFields = [
+                item.t_ID_TrangThai === 4,
+                item.g_ID_TrangThai === 3,
+                item.kL_XeGoong != null,
+                item.g_KLThungChua != null,
+                item.g_KLThungVaGang != null,
+                item.g_KLGangLong != null,
+                item.chuyenDen != null,
+                item.gio_NM != null,
+                item.iD_TTG != null,
+                item.soThungTG != null,
+                item.iD_MeThoi != null,
+                item.gioChonMe != null
+            ];
+
+            // Nếu không có klGangChia thì phải kiểm tra thêm 3 trường này
+            if (!hasKlGangChia) {
+                requiredFields.push(
+                    item.t_KLThungVaGang != null,
+                    item.t_KLThungChua != null,
+                    item.t_KLGangLong != null,
+                    item.klThungVaGang_Thoi != null,
+                    item.klThung_Thoi != null,
+                    item.klGang_Thoi != null,
+                    item.kL_phe != null,
+                );
+            }
+
+            return requiredFields.every(cond => cond === true);
+           
+        }
+        
+        // export Excel
+        function exportToExcel(){
+
+            const dto = getSearchPayload();
+
+            fetch('/BM16_GangThoi_PKH/ExportToExcel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            }).then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+                return response.blob();
+            }).then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "QTGN Gang lỏng Gang thỏi - PKH.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }).catch(err => {
+                alert("Lỗi: " + err.message);
+            });
+        }
+
+        function getSearchPayload(){
+            const ID_LoCao = $("#LoCao").val() || null;
+            const ID_LoThoi = $("#LoThoi").val() || null;
+            const TuNgayLG = $("#TuNgayLG").val() || null;
+            const DenNgayLG = $("#DenNgayLG").val() || null;
+            const TuNgayLT = $("#TuNgayLT").val() || null;
+            const DenNgayLT = $("#DenNgayLT").val() || null;
+            const CaLT = $("#CaLT").val() || null;
+            const CaLG = $("#CaLG").val() || null;
+            const KipLT = $("#KipLT").val() || null;
+            const KipLG = $("#KipLG").val() || null;
+            const ChuyenDen = $("#ChuyenDen").val() || null;
+            const ThungSo = $("#ThungSo").val() || null;
+            const TinhTrangLT = $("#TinhTrangLT").val() || null;
+            const TinhTrangLG = $("#TinhTrangLG").val() || null;
+            const MaThungGang = $("#MaThungGang").val() || null;
+            const MaThungThep = $("#MaThungThep").val() || null;
+            const TinhTrangChot = $("#TinhTrangChot").val() || null;
+            const MaMeThoi = $("#MaMeThoi").val() || null;
+            const chiagangVal = $("#IsChiaGang").val(); 
+            // Ép về true | false | null
+            const IsChiaGang = chiagangVal === null || chiagangVal === "" ? null
+                               : chiagangVal === "true"           ? true
+                               : chiagangVal === "false"          ? false
+                               : null; // fallback
+            return dto = {
+                ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
+                ID_LoThoi: ID_LoThoi ? parseInt(ID_LoThoi) : null,
+                TuNgay_LG: TuNgayLG || null,
+                DenNgay_LG: DenNgayLG || null,
+                TuNgay_LT: TuNgayLT || null,
+                DenNgay_LT: DenNgayLT || null,
+                Ca_LT: CaLT ? parseInt(CaLT) : null,
+                Ca_LG: CaLG ? parseInt(CaLG) : null,
+                ID_Kip_LT: KipLT ? KipLT : null,
+                ID_Kip_LG: KipLG ? KipLG : null,
+                ChuyenDen: ChuyenDen || null,
+                ThungSo: ThungSo || null,
+                ID_TinhTrang_LT: TinhTrangLT ? parseInt(TinhTrangLT) : null,
+                ID_TinhTrang_LG: TinhTrangLG ? parseInt(TinhTrangLG) : null,
+                ID_TinhTrang: TinhTrangChot ? parseInt(TinhTrangChot) : null,
+                MaThungGang: MaThungGang || null,
+                MaThungThep: MaThungThep || null,
+                MaMeThoi: MaMeThoi || null,
+                IsChiaGang: IsChiaGang
+            };
+        }
+
+
+        function renderPagination(totalRecords) {
+            const totalPages = Math.ceil(totalRecords / pageSize);
+            const pagination = $('#pagination');
+            pagination.empty();
+
+            if (totalPages <= 1) return; // Không cần phân trang nếu chỉ có 1 trang
+
+            const createPageItem = (page, label = page, isActive = false, isDisabled = false) => {
+                return `
+                    <li class="page-item ${isActive ? 'active' : ''} ${isDisabled ? 'disabled' : ''}">
+                        <a class="page-link" href="javascript:void(0)" data-page="${page}">${label}</a>
+                    </li>
+                `;
+            };
+
+            // << Prev
+            pagination.append(createPageItem(currentPage - 1, '«', false, currentPage === 1));
+
+            let startPage, endPage;
+
+            if (totalPages <= 5) {
+                startPage = 1;
+                endPage = totalPages;
+            } else {
+                if (currentPage <= 3) {
+                    startPage = 1;
+                    endPage = 4;
+                } else if (currentPage >= totalPages - 2) {
+                    startPage = totalPages - 3;
+                    endPage = totalPages;
+                } else {
+                    startPage = currentPage - 1;
+                    endPage = currentPage + 1;
+                }
+            }
+
+            // First page and ellipsis
+            if (startPage > 1) {
+                pagination.append(createPageItem(1, '1', false));
+                if (startPage > 2) {
+                    pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                }
+            }
+
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                pagination.append(createPageItem(i, i, i === currentPage));
+            }
+
+            // Last page and ellipsis
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                }
+                pagination.append(createPageItem(totalPages, totalPages, false));
+            }
+
+            // >> Next
+            pagination.append(createPageItem(currentPage + 1, '»', false, currentPage === totalPages));
+
+            // Click event
+            $('#pagination .page-link').on('click', function () {
+                const page = parseInt($(this).data('page'));
+                if (!isNaN(page) && page !== currentPage) {
+                    currentPage = page;
+                    Search();
+                }
+            });
+        }
+
+         // Search 
+         function Search() {
+             const dto = getSearchPayload();
+             dto.PageSize = pageSize;
+             dto.PageNumber = currentPage;
+
+             $.ajax({
+                url: '/BM16_GangThoi_PKH/Search',
+                 method: 'POST',
+                 contentType: 'application/json',
+                 data: JSON.stringify(dto),
+                 success: function (res) {
+                    danhSachThung = res.data;
+                    renderTable(res);
+                    renderPagination(res.totalRecords);
+                    $('#cbx-selectAll').prop('checked', false);
+                 },
+                 error: function (err) {
+                     alert("Lỗi khi tìm kiếm dữ liệu");
+                 }
+             });
+         }
+
+       // logic chot thung
+        $('#btnChotThung').click(function () {
+            let selectedIds = [];
+            let hasLocked = false;
+
+            // Duyệt qua tất cả các checkbox đã chọn
+            $('.cbx-chotThung:checked').each(function () {
+                const $row = $(this).closest('tr');
+                const groupId = $row.data('group-id');
+
+                // Lấy tất cả các hàng trong cùng group
+                const rowsInGroup = $(`tr[data-group-id="${groupId}"]`);
+
+                rowsInGroup.each(function () {
+                    const id = $(this).data('id');
+                    const idTrangThai = $(this).data('idtrangthai');
+
+                    if (idTrangThai == 5) {
+                        hasLocked = true;
+                        return false; // thoát each trong group
+                    }
+
+                    selectedIds.push({ id: id });
+                });
+
+                if (hasLocked) return false; // thoát each checkbox
+            });
+
+            if (hasLocked) {
+                alert("Vui lòng không chọn các thùng đã chốt.");
+                Search();
+                return;
+            }
+
+            if (selectedIds.length === 0) {
+                alert("Vui lòng chọn ít nhất 1 dòng.");
+                Search();
+                return;
+            }
+
+            $.ajax({
+                url: "/BM16_GangThoi_PKH/CheckChotThung",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(selectedIds),
+                processData: false,
+                success: function (res) {
+                    if (res.isValid) {
+                        $.ajax({
+                            url: "/BM16_GangThoi_PKH/ChotThung",
+                            type: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify(selectedIds),
+                            processData: false,
+                            success: function (res) {
+                                alert("Đã chốt thùng thành công");
+                                Search(); 
+                            },
+                            error: function () {
+                                alert("Lỗi khi nhận dữ liệu!");
+                            }
+                        });
+                    } else {
+                        alert("Vui lòng kiểm tra dữ liệu các thùng");
+                        Search();
+                    }
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
+        });
+
+        $('#btnHuyChotThung').click(function () {
+              let selectedIds = [];
+              let hasLocked = false;
+
+               // Duyệt qua tất cả các checkbox đã chọn
+              $('.cbx-chotThung:checked').each(function () {
+                    const $row = $(this).closest('tr');
+                    const groupId = $row.data('group-id');
+
+                    // Lấy tất cả các hàng trong cùng group
+                    const rowsInGroup = $(`tr[data-group-id="${groupId}"]`);
+
+                    rowsInGroup.each(function () {
+                        const id = $(this).data('id');
+                        const idTrangThai = $(this).data('idtrangthai');
+
+                        if (idTrangThai == 2) {
+                            hasLocked = true;
+                            return false; // thoát each trong group
+                        }
+
+                        selectedIds.push({ id: id });
+                    });
+
+                    if (hasLocked) return false; // thoát each checkbox
+              });
+              if (hasLocked) {
+                  alert("Vui lòng không chọn các thùng chưa chốt.");
+                  Search();
+                  return;
+              }
+              if (selectedIds.length === 0) {
+                  alert("Vui lòng chọn ít nhất 1 dòng.");
+                  Search();
+                  return;
+              }
+
+              $.ajax({
+                  url: "/BM16_GangThoi_PKH/HuyChotThung",
+                  type: "POST",
+                  contentType: "application/json",
+                  data: JSON.stringify(selectedIds),
+                  processData: false,
+                  success: function (res) {
+                      alert("Đã Hủy chốt thùng thành công")
+                      Search();
+                  },
+                  error: function () {
+                      alert("Lỗi khi nhận dữ liệu!");
+                  }
+              });
+        });
+
+        $("#btnTimKiem").click(function() {
+            currentPage = 1;
+            Search();   
+        })
+
+        $("#btnReset").click(function() {
+            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi']);
+            currentPage = 1;
+            Search();
+        })
+         
+        $("#btnXuatExcel").click(function() {
+            const TuNgayLG = $("#TuNgayLG").val() || null;
+            const DenNgayLG = $("#DenNgayLG").val() || null;
+            if(!TuNgayLG){
+                alert("Vui lòng chọn Từ Ngày Luyện Gang"); return;
+            }
+
+            if(!DenNgayLG){
+                alert("Vui lòng chọn Đến Ngày Luyện Gang"); return;
+            }
+            exportToExcel();
+        })
+
+        $('#BtnAnHien').click(function() {
+            isHidden = !isHidden;
+
+            applyColumnVisibility();
+        });
+
+        $('#tblDuLieu').on('click', '.btnDetailChiaGang', function() {
+            const row = $(this).closest('tr');
+            const idThung = row.data('id'); 
+            if(!idThung){
+                alert('lỗi không lấy được ID');
+                return;
+            }
+            $.ajax({
+                  url: "/BM16_GangThoi_PKH/GetDetailChiaGang",
+                  type: "POST",
+                  contentType: "application/json",
+                  data: JSON.stringify(idThung),
+                  processData: false,
+                  success: function (res) {
+                      const modalChiaGang = new bootstrap.Modal(document.getElementById('modalShowChiaGang'));
+                        modalChiaGang.show();
+
+                        const tbodyNMLG = $('#tblNMLG tbody');
+                        tbodyNMLG.empty();
+
+                        const tbodyNMLT = $('#tblNMLT tbody');
+                        tbodyNMLT.empty();
+
+                        const tbodyGangChia = $('#tblGangChia tbody');
+                        tbodyGangChia.empty();
+
+                        let htmlNMLG = ``
+                        let htmlNMLT = ``;
+                        let htmlGangChia = ``;
+
+                        res.thungGoc.forEach(item => {
+                                            htmlNMLG += `
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungGang}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td class="text-danger fw-bold">${item.g_KLGangLong ?? ''}</td>
+                                                </tr>`;
+                        });
+                        tbodyNMLG.append(htmlNMLG);
+
+                        res.thungDaCoKL.forEach(item => {
+                                    htmlNMLT += `
+                                                <tr>
+                                                    <td>${item.iD_Locao}</td>
+                                                    <td>${item.maThungThep}</td>
+                                                    <td>${item.bkmiS_ThungSo}</td>
+                                                    <td>${item.t_KLThungVaGang ?? ''}</td>
+                                                    <td>${item.t_KLThungChua ?? ''}</td>
+                                                    <td class="text-danger fw-bold">${item.t_KLGangLong ?? ''}</td>
+                                                </tr>`;
+                        });
+                        tbodyNMLT.append(htmlNMLT);
+
+                         res.thungAll.forEach(item => {
+                         htmlGangChia += `
+                                        <tr>
+                                            <td>${item.iD_Locao}</td>
+                                            <td>${item.maThungThep}</td>
+                                            <td>${item.bkmiS_ThungSo}</td>
+                                            <td>${item.t_KLThungVaGang ?? ''}</td>
+                                            <td>${item.t_KLThungChua ?? ''}</td>
+                                            <td>${item.kL_Phe ?? ''}</td>
+                                            <td>${item.t_KLGangLong ?? ''}</td>
+                                            <td class="text-danger fw-bold">${item.tyLeChia ? item.tyLeChia + "%" :''}</td>
+                                            <td class="bg-warning fw-bold">${item.klChia ?? ''}</td>
+                                        </tr>`;
+                         });
+                        tbodyGangChia.append(htmlGangChia);
+                      // Search();
+                  },
+                  error: function () {
+                      alert("Lỗi khi nhận dữ liệu!");
+                  }
+              });
+        }) 
+
+
+        function applyColumnVisibility() {
+            const display = isHidden ? 'none' : 'table-cell';
+
+            // Cột cần ẩn/hiện
+            $('.hide-col').css('display', display);
+
+            $('.total-space').attr('colspan', isHidden ? 10 : 12);
+            $('.space-2').attr('colspan', isHidden ? 5 : 10);
+
+            $('.space-3').attr('colspan', isHidden ? 4 : 9);
+            $('.space-4').attr('colspan', isHidden ? 9 : 9);
+
+            if(!isHidden){
+                $(".sticky-col-5").css("left", "299px");
+                $(".sticky-col-6").css("left", "353px");
+                $(".sticky-col-7").css("left", "469px");
+                $(".sticky-col-8").css("left", "538px");
+            }else{
+                $(".sticky-col-5").css("left", "183px");
+                $(".sticky-col-6").css("left", "237px");
+                $(".sticky-col-7").css("left", "353px");
+                $(".sticky-col-8").css("left", "422px");
+            }
+        }
+
+        $('#cbx-selectAll').on('change', function () {
+            const isChecked = $(this).is(':checked');
+
+            // Chọn hoặc bỏ chọn tất cả checkbox có class cbx-item
+            $('.cbx-chotThung:visible').prop('checked', isChecked);
+        });
+
+        // xu ly khi load
+        $(document).ready(function () {
+            // cho luyen gang
+            setupDateRange('TuNgayLG','DenNgayLG');
+
+             // cho luyen thep
+            setupDateRange('TuNgayLT','DenNgayLT');
+        });
+</script>

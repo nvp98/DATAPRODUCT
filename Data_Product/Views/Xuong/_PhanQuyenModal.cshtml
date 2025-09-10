@@ -1,0 +1,83 @@
+﻿@* Partial View: Modal phân quyền *@
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<div class="modal fade" id="phanQuyenModal" tabindex="-1" aria-labelledby="phanQuyenModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Phân quyền nhiều dòng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="phanQuyenForm">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Tài khoản</th>
+                                <th>Danh sách Xưởng</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="phanQuyenTableBody">
+                            <tr>
+                                <td>
+                                    <select name="TaiKhoan" class="form-select select-taikhoan" id="TKList">
+                                        @foreach (var item in (SelectList)ViewBag.TKList)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <select name="DanhSachXuong" class="form-select select-xuong" multiple id="XList">
+                                        @foreach (var item in (SelectList)ViewBag.XList)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm" onclick="xoaDong(this)">Xóa</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-secondary" onclick="themDong()">+ Thêm dòng</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="submitPhanQuyen()">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(".select-taikhoan").chosen({
+        width: "100%"
+    });
+    $(".select-xuong").chosen({
+        width: "100%"
+    });
+    $("#IDChucVu").chosen({
+        width: "100%"
+    });
+    $("#IDQuyen").chosen({
+        width: "100%"
+    });
+    $('#multiSelect').chosen({
+        width: '100%'
+    });
+    $('#multiSelectPB').chosen({
+        width: '100%'
+    });
+    // Chuyển danh sách từ ViewBag sang định dạng JSON
+    var defaultValues = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.SelectedValue));
+    //const defaultValues = @ViewBag.SelectedValue; // Các giá trị mặc định
+    $("#multiSelect").val(defaultValues).trigger("chosen:updated");
+
+    // Chuyển danh sách từ ViewBag sang định dạng JSON
+    var defaultValuesPB = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.SelectedValuePB));
+    //const defaultValues = @ViewBag.SelectedValue; // Các giá trị mặc định
+    $("#multiSelectPB").val(defaultValuesPB).trigger("chosen:updated");
+</script>

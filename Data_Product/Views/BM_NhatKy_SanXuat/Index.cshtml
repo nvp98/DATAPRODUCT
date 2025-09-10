@@ -79,8 +79,10 @@
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Số Phiếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Kíp làm việc</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Ngày dừng sản xuất</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhân viên xử lý BTBD</th>
                                         <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Người tạo</th>
+                                        <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Ghi Chú</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -97,7 +99,7 @@
                                                     RowNo++;
                                                 }
                                             </td>
-                                            @if (item.IsLock == true)
+                                            @if (item.IsLock == true || item.TinhTrang != 0)
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
                                                     <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
@@ -108,7 +110,7 @@
                                             else
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("Edit", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>
@@ -117,17 +119,18 @@
                                                 @item.Ca@item.Kip
                                             </td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayDungSX.ToString("dd/MM/yyyy")</td>
-                                            @if(item.TinhTrang == 0)
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.HoTen_NhanVien_BTBD</td>
+                                            @if (item.TinhTrang == 0)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
                                                     <button type="button" class="btn btn-warning" style="width: 150px;">
                                                         <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đang lưu
+                                                            Đã gửi
                                                         </span>
                                                     </button>
                                                 </td>
                                             }
-                                            else
+                                            else if (item.TinhTrang == 1)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
                                                     <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
@@ -137,10 +140,42 @@
                                                     </button>
                                                 </td>
                                             }
+                                            else if (item.TinhTrang == -1)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Không xác nhận
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.TinhTrang == 2)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-primary" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Đang xóa phiếu
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
+                                            else if (item.TinhTrang == 3)
+                                            {
+                                                <td class="text-center" style="font-size:14px;">
+                                                    <button id="btn-add" type="button" type="button" class="btn btn-danger" style="width: 150px;">
+                                                        <span class="small pt-2 ps-1" style="color: white;">
+                                                            Đã xóa phiếu
+                                                        </span>
+                                                    </button>
+                                                </td>
+                                            }
                                             <td style="font-size:14px;">
                                                 @item.Tbl_TaiKhoan.TenTaiKhoan - @item.Tbl_TaiKhoan.HoVaTen
                                             </td>
-
+                                            <td>
+                                                @item.GhiChu
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>

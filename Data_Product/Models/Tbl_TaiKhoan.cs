@@ -41,5 +41,7 @@ namespace Data_Product.Models
         [NotMapped]
         public string[] ListQuyen_Them { get; set; }
         public Nullable<int> ID_TrangThai { get; set; }
+        public string? PhongBan_API { get; set; }
+        public string? Xuong_API { get; set; }
     }
 }

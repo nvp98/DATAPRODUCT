@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using Data_Product.Common;
+using Data_Product.DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using DocumentFormat.OpenXml.InkML;
@@ -9,7 +10,9 @@ using ExcelDataReader;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.DotNet.MSIdentity.Shared;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System.Data;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -55,7 +58,9 @@ namespace Data_Product.Controllers
                                  ChuKy = a.ChuKy,
                                  ID_TrangThai = (int)a.ID_TrangThai,
                                  PhongBan_Them = a.PhongBan_Them,
-                                 Quyen_Them = a.Quyen_Them
+                                 Quyen_Them = a.Quyen_Them,
+                                 PhongBan_API = a.PhongBan_API,
+                                 Xuong_API = a.Xuong_API
                              }).OrderBy(x=>x.TenTaiKhoan).ToListAsync();
 
             if (search != null)
@@ -653,17 +658,23 @@ namespace Data_Product.Controllers
                                 ChuKy = a.ChuKy,
                                 ID_TrangThai = (int)a.ID_TrangThai,
                                 PhongBan_Them = a.PhongBan_Them,
-                                Quyen_Them = a.Quyen_Them
+                                Quyen_Them = a.Quyen_Them,
+                                PhongBan_API = a.PhongBan_API,
+                                Xuong_API = a.Xuong_API
                             }).OrderBy(x => x.TenTaiKhoan).ToList();
             using (var workbook = new XLWorkbook())
             {
                 var worksheet = workbook.Worksheets.Add("TaiKhoan");
                 //Header
                 worksheet.Cell(1, 1).Value = "STT";
-                worksheet.Cell(1, 2).Value = "Họ và tên";
-                worksheet.Cell(1, 3).Value = "Phòng Ban";
-                worksheet.Cell(1, 4).Value = "Chức vụ";
-                worksheet.Cell(1, 5).Value = "Quyền đăng nhập";
+                worksheet.Cell(1, 2).Value = "Mã nhân viên";
+                worksheet.Cell(1, 3).Value = "Họ và tên";
+                worksheet.Cell(1, 4).Value = "Phòng Ban";
+                worksheet.Cell(1, 5).Value = "Xưởng";
+                worksheet.Cell(1, 6).Value = "Chức vụ";
+                worksheet.Cell(1, 7).Value = "Phòng Ban NS";
+                worksheet.Cell(1, 8).Value = "Xưởng NS";
+                worksheet.Cell(1, 9).Value = "Quyền đăng nhập";
                 //value
                 //worksheet.Cell(2, 1).Value = 1;
                 //worksheet.Cell(2, 2).Value = "John Doe";
@@ -672,10 +683,14 @@ namespace Data_Product.Controllers
                 foreach (var item in TaiKhoan)
                 {
                     worksheet.Cell(row, 1).Value = stt;
-                    worksheet.Cell(row, 2).Value = item.HoVaTen;
-                    worksheet.Cell(row, 3).Value = item.TenPhongBan;
-                    worksheet.Cell(row, 4).Value = item.TenChucVu;
-                    worksheet.Cell(row, 5).Value = item.TenQuyen;
+                    worksheet.Cell(row, 2).Value = item.TenTaiKhoan;
+                    worksheet.Cell(row, 3).Value = item.HoVaTen;
+                    worksheet.Cell(row, 4).Value = item.TenPhongBan;
+                    worksheet.Cell(row, 5).Value = item.TenXuong;
+                    worksheet.Cell(row, 6).Value = item.TenChucVu;
+                    worksheet.Cell(row, 7).Value = item.PhongBan_API;
+                    worksheet.Cell(row, 8).Value = item.Xuong_API;
+                    worksheet.Cell(row, 9).Value = item.TenQuyen;
                     row++;stt++;
                 }
 
@@ -687,5 +702,97 @@ namespace Data_Product.Controllers
             }
 
         }
+        public async Task<string> CallApiWithTokenAsync(string apiUrl, string token)
+        {
+            using (var httpClient = new HttpClient())
+            {
+                // Gắn token vào header Authorization
+                httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                try
+                {
+                    // Gửi GET request
+                    HttpResponseMessage response = await httpClient.GetAsync(apiUrl);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        // Đọc kết quả trả về dưới dạng chuỗi JSON
+                        string result = await response.Content.ReadAsStringAsync();
+                        return result;
+                    }
+                    else
+                    {
+                        // Xử lý lỗi HTTP
+                        return $"Lỗi: {(int)response.StatusCode} - {response.ReasonPhrase}";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return $"Lỗi Exception: {ex.Message}";
+                }
+            }
+        }
+        public async Task<IActionResult> GoiApi()
+        {
+            try {
+                var danhSachNhanVien = _context.Tbl_TaiKhoan.ToList(); // Entity từ database
+                string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXNfdXNlcl9wayI6IjExNDIzIiwidXNlcm5hbWUiOiJIUERRMTg0NjEiLCJDbGllbnROYW1lIjoiaHBkcSIsIkNsaWVudFBhc3MiOiJIUERRMiIsInJvbGUiOiJBZG1pbmlzdHJhdG9yIiwianRpIjoiYTlkNjI3NzYtN2M1ZC00OGFlLWEzN2QtYjI4MjUxNzJkZjQwIiwibmJmIjoxNzQ4Mzk1NDA1LCJleHAiOjE3NDg0MDk4MDUsImlhdCI6MTc0ODM5NTQwNSwiaXNzIjoiYWRtaW50dnMiLCJhdWQiOiJyZWFkZXJzIn0.b0nNOATMyNOoxQxKFd71qA86KBq0encfN4_GbaR-hPU"; // JWT Token từ login
+                string apiUrl = "https://hr.hoaphatdungquat.vn/hpdq_api/api/HPDQ/GetEmployeeInfo";
+                string result = await CallApiWithTokenAsync(apiUrl, token);
+
+                NhanVienAPI listFromApi = JsonConvert.DeserializeObject<NhanVienAPI>(result);
+                foreach (var nvApi in listFromApi.data)
+                {
+                    var nvDb = danhSachNhanVien.FirstOrDefault(nv => nv.TenTaiKhoan == nvApi.manv);
+                    if (nvDb != null)
+                    {
+                        // Nếu tồn tại thì cập nhật dữ liệu
+                        nvDb.PhongBan_API = nvApi.phongban;
+                        nvDb.Xuong_API = nvApi.phanxuong;
+                        if(nvApi.tinhtranglamviec == "0")
+                        {
+                            nvDb.ID_TrangThai = 0;
+                        }
+                        else
+                        {
+                            nvDb.ID_TrangThai = 1;
+                        }
+                        _context.SaveChanges();
+                    }
+                }
+
+                // Gửi ra View hoặc JSON
+                return Json(new { success = true, message = "Đồng bộ dữ liệu thành công!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi khi đồng bộ dữ liệu! " + ex });
+            }
+           
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> FilterNhanVien([FromBody] SearchTaiKhoanTextDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.searchText))
+                return Ok(new List<object>());
+
+
+            var result = await _context.Tbl_TaiKhoan
+                .Where(x =>
+                    x.TenTaiKhoan.Contains(dto.searchText) ||
+                    x.HoVaTen.Contains(dto.searchText))
+                .Select(x => new
+                {
+                    id = x.ID_TaiKhoan,
+                    text = x.TenTaiKhoan + " - " + x.HoVaTen
+                })
+                .Take(50)
+                .ToListAsync();
+
+            return Ok(result);
+        }
+
     }
 }

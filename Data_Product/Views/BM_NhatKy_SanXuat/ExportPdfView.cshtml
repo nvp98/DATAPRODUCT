@@ -1,0 +1,262 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+@*@model IEnumerable<Data_Product.Models.Tbl_ChiTiet_BienBanGiaoNhan>*@
+@model dynamic
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/PrintView.cshtml";
+}
+@{
+    int ID = Convert.ToInt32(@Model.id);
+    var NhatKy = _context.Tbl_NhatKy_SanXuat.Where(x => x.ID == ID).FirstOrDefault();
+    var PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == NhatKy.ID_PhongBan_SX);
+    var Xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == NhatKy.ID_Xuong_SX);
+
+    //Thông tin BTBD
+    var ThongTin_BTBD = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == NhatKy.ID_NhanVien_BTBD).FirstOrDefault();
+    //Thông tin NhanVien SX
+    var ThongTin_SX = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == NhatKy.ID_NhanVien_SX).FirstOrDefault();
+
+    var ListChiTiet = await (from a in _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == ID)
+                     join xuong in _context.Tbl_Xuong on a.ID_Xuong equals xuong.ID_Xuong
+                             select new Tbl_NhatKy_SanXuat_ChiTietExport
+                             {
+                                IDCT = a.IDCT,
+                                ID_Xuong =a.ID_Xuong,
+                                TenXuong = xuong.TenXuong,
+                                ThoiDiemDung = a.ThoiDiemDung,
+                                ThoiDiemChay =a.ThoiDiemChay,
+                                LyDo_DungThietBi = a.LyDo_DungThietBi,
+                                NoiDungDung = a.NoiDungDung,
+                                GhiChu =a.GhiChu,
+                                ThoiGianDung = a.ThoiGianDung
+                             }).ToListAsync();
+    TimeSpan tgdungThietbi = TimeSpan.FromMinutes(ListChiTiet.Where(x => x.LyDo_DungThietBi == 1).Sum(x => x.ThoiGianDung) ?? 0);
+    TimeSpan tgdungCongNge = TimeSpan.FromMinutes(ListChiTiet.Where(x => x.LyDo_DungThietBi == 2).Sum(x => x.ThoiGianDung) ?? 0);
+    TimeSpan DungSuCoCN = TimeSpan.FromMinutes(ListChiTiet.Where(x => x.LyDo_DungThietBi == 3).Sum(x => x.ThoiGianDung) ?? 0);
+    TimeSpan DungKhachQuan = TimeSpan.FromMinutes(ListChiTiet.Where(x => x.LyDo_DungThietBi == 4).Sum(x => x.ThoiGianDung) ?? 0);
+    TimeSpan TongTgianDung = TimeSpan.FromMinutes(ListChiTiet.Sum(x => x.ThoiGianDung) ?? 0);
+
+
+    string DungTB = tgdungThietbi.TotalHours.ToString("F2");
+    string DungCN = tgdungCongNge.TotalHours.ToString("F2");
+    string DungSuCo = DungSuCoCN.TotalHours.ToString("F2");
+    string DungKQuan = DungKhachQuan.TotalHours.ToString("F2");
+    string TongTgian = TongTgianDung.TotalHours.ToString("F2");
+}
+
+<div style="padding:0px 30px 0px 50px">
+    <div>
+        <div class="" style="text-align: left;display: flex;margin-bottom:0">
+            <div style="flex: 0 0 50%;width:80%;  float: left; font-weight: bold; font-size: 1rem; text-transform: uppercase;">
+                <img alt="Hòa Phát Dung Quất" src="https://report.hoaphatdungquat.vn/img/logoHP.png" width="205" />
+                <div class="" style="margin-top: 0; font-weight:bold">CÔNG TY CỔ PHẦN THÉP</div>
+                <div class="" style="font-weight:bold;margin-left:10px ">HÒA PHÁT DUNG QUẤT</div>
+                @*<div style="width:40%;text-align:center;">
+                    <div style=" font-size: 10px; padding-top:0.5%;">
+                       Số: @NhatKy.SoPhieu
+                    </div>
+                </div>*@
+            </div>
+           
+            <div style="flex: 0 0 50%;width:20%; float:right;text-align:right; font-weight: bold;">
+                <span style="font-weight:bold">BM.12/QT.05</span>
+                <div style="margin-top:0"><span style="font-style:italic;">Ngày hiệu lực:</span> 10/07/2024</div>
+                <div style="margin-top:0"><span style="font-style:italic;">Lần sửa đổi:</span> 00</div>
+            </div>
+        </div><!-- End Recent Sales -->
+        <div style="flex: 0 0 100%; width: 100%; margin-top:0">
+            <div style="text-align:center;margin-top:0; font-size: 1.5rem;font-weight:bold; text-transform:uppercase">
+                NHẬT KÝ DỪNG SẢN XUẤT
+            </div>
+            <div class="text-muted small pt-0" style="text-align:center; margin-top:0;font-style: italic;">
+                @if (NhatKy.Ca == "1")
+                {
+                    <small>
+                        Kíp:@NhatKy.Ca@NhatKy.Kip Từ 08h00 ngày @NhatKy.NgayDungSX.ToString("dd") tháng @NhatKy.NgayDungSX.ToString("MM") đến 20h00 ngày @NhatKy.NgayDungSX.ToString("dd") tháng @NhatKy.NgayDungSX.ToString("MM") năm @NhatKy.NgayDungSX.ToString("yyyy")
+                    </small>
+
+                }
+                else
+                {
+                    <small>
+                        Kíp:@NhatKy.Ca@NhatKy.Kip Từ 20h00 ngày @NhatKy.NgayDungSX.ToString("dd") tháng @NhatKy.NgayDungSX.ToString("MM") đến 08h00 ngày @NhatKy.NgayDungSX.AddDays(1).ToString("dd") tháng @NhatKy.NgayDungSX.AddDays(1).ToString("MM") năm @NhatKy.NgayDungSX.ToString("yyyy")
+                    </small>
+                }
+            </div>
+        </div>
+        <div class="row">
+            Nhà máy: @PhongBan.TenPhongBan
+        </div>
+        
+    </div>
+ 
+    <div class="card-body" style="padding-top:1%;">
+        <div class="table-responsive">
+            <table  style="border-collapse: collapse; width: 100%; " cellpadding="0">
+                <thead> 
+                    <tr>
+                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 5%;">STT</th>
+                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 25%;">Xưởng</th>
+                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Thời điểm dừng</th>
+                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Thời điểm chạy lại máy</th>
+                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Dừng máy do thiết bị</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Dừng máy do sự cố Công nghệ</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Dừng máy do Chờ công nghệ</th>
+                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Dừng máy do khách quan</th>
+                        @*<th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 25%;">Nội dung dừng máy</th>*@
+                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int RowNo = 1;
+                    }
+                    @foreach (var item in ListChiTiet)
+                    {
+                        <tr>
+                            <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;">
+                                @RowNo@{
+                                    RowNo++;
+                                }
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                                @item.TenXuong
+                            </td>
+                            <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;text-align:center">
+                                @item.ThoiDiemDung.ToString(@"hh\:mm")
+                            </td>
+                            <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;text-align:center">
+                                @item.ThoiDiemChay.ToString(@"hh\:mm")
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
+                                @if (item.LyDo_DungThietBi == 1)
+                                {
+                                    <label>X</label>
+                                }
+                            </td>
+                             <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
+                                @if (item.LyDo_DungThietBi == 2)
+                                {
+                                    <label>X</label>
+                                }
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
+                                @if (item.LyDo_DungThietBi == 3)
+                                {
+                                    <label>X</label>
+                                }
+                            </td>
+                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
+                                @if (item.LyDo_DungThietBi == 4)
+                                {
+                                    <label>X</label>
+                                }
+                            </td>
+                           @* <td style="font-size:14px;vertical-align:middle;text-align: right;padding-right:8px; border: 1px solid black;">
+                                @item.NoiDungDung
+                            </td>*@
+                            <td style="font-size:14px;vertical-align:middle;padding:8px;text-align: left;padding-right:8px; border: 1px solid black;">
+                                @item.GhiChu
+                            </td>
+                        </tr>
+                        
+                    }
+                    <tr>
+                        <td colspan="3" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Tổng từng loại</td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Giờ</td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">@DungTB </td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">@DungCN </td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">@DungSuCo</td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">@DungKQuan </td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>
+                        @*<td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>*@
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Tổng thời gian dừng</td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Giờ</td>
+                        <td colspan="4" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"> @TongTgian</td>
+                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>
+                        @*<td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>*@
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+    <div class="col-lg-12" style="text-align: left;height: 150px;display: flex;">
+        <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
+
+            <div style="text-align: center;  padding-top:8px;">
+                ĐƠN VỊ BTBD
+            </div>
+            <div style="text-align: center;  padding:2%;">
+                @if (ThongTin_BTBD.ChuKy != null)
+                {
+                    var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_BTBD.ChuKy;
+                    <img src="@lin" alt="" height="50">
+                }
+                else
+                {
+                    <div style="height:50px" class="text-danger">Đã ký<br /> (Chưa có chữ ký)</div>
+                }
+            </div>
+            <div style="text-align: center; margin-top:8px ">
+                @ThongTin_BTBD.HoVaTen
+            </div>
+        </div>
+        <div class="col-xxl-6 col-md-6" style="width: 50%;font-weight:bold;font-size:20px">
+
+            <div style="text-align: center; padding-top:8px;">
+                NM.SX
+            </div>
+            <div style="text-align: center;  padding:2%;">
+                @if (ThongTin_SX.ChuKy != null)
+                {
+                    var lin = "https://report.hoaphatdungquat.vn" + @ThongTin_SX.ChuKy;
+                    <img src="@lin" alt="" height="50">
+                }
+                else
+                {
+                    <div style="height:50px" class="text-danger">Đã ký<br /> (Chưa có chữ ký)</div>
+                }
+                @*<img src="https://report.hoaphatdungquat.vn/img/logoHP.png" alt="">*@
+            </div>
+            <div style="text-align: center; margin-top:8px">
+                @ThongTin_SX.HoVaTen
+            </div>
+        </div>
+
+    </div>
+    <br />
+    <br />
+    <u class="col-md-12 float-left" style="padding-top:1%;font-weight:bold;font-style:italic;">
+        Ghi chú:
+    </u>
+    <div class="col-md-12 float-left">
+        <span style="font-style:italic;">
+            - Dừng máy do khách quan bao gồm các yếu tố tự nhiên thiên tai, bão lũ, sét đánh đường dây truyền tải… <br />
+            - BM ghi chép sử dụng cho KTV/PT/Tổ trưởng VH và T/P kíp <br />
+            - Chỉ ghi chép ngày nào dừng máy, ngày không dừng không cần ghi.
+        </span>
+
+    </div>
+
+</div>

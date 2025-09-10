@@ -1,0 +1,179 @@
+﻿@model IEnumerable<Data_Product.Models.Tbl_XeGoong>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
+
+@if (TempData["msgSuccess"] != null)
+{
+	@Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+	@Html.Raw(TempData["msgError"])
+}
+@{
+	ViewData["Title"] = "Index";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	Pager pager = new Pager();
+	int pageNo = 0;
+	if (ViewBag.Pager != null)	
+	{
+		pager = ViewBag.Pager;
+		pageNo = pager.CurrentPage;
+	}
+
+}
+<div class="app-main__outer">
+	<div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+		<div class="tab-content">
+			<div class="row">
+				<div class="card">
+					<div class="row" style="height: 120px;">
+						<div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width:-webkit-fill-available;">
+							<div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
+
+								<span class="text-muted small pt-2 ps-1">
+									<b style="color:#06428b;font-size: 15px;">
+										DANH SÁCH KÍP XE GOONG
+									</b>
+								</span>
+							</div>
+							<div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%; ">
+								<button id="btn-add" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+									<i class="bi bi-plus-lg"></i>
+									<span class="small pt-2 ps-1" style="color: white;">Thêm mới</span>
+								</button>
+							</div><!-- End Recent Sales -->
+						</div>
+
+					</div>
+					@await Html.PartialAsync("_CreateXeGoongModal", new Tbl_XeGoong())
+
+					<div id="modalContainer"></div>
+					<div class="card-header" style="border-bottom: 0px; padding-bottom:2%;">
+						<div class="row">
+							<div class="col-md-5">
+								<input type="text" id="txtsearch" name="searchBox" placeholder="Tìm kiếm" class="form-control" value="">
+							</div>
+							<div class="col-md-2" style="text-align:left;">
+								<button class="btn btn-primary" id="btn-search" style="border-radius: 5px;">
+									<i class="bi bi-search"></i>
+									<span class="small pt-2 ps-1" style="color: white;">
+										Tìm kiếm
+									</span>
+								</button>
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="table-responsive" style="height: 550px;">
+							<table class="table table-bordered table-hover" id="tableXeGoong" cellpadding="0">
+								<thead style="height: 60px;font-size: 14px;">
+									<tr>
+										<th class="text-center" width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+										<th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Lò Cao</th>
+										<th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Khối Lượng Xe</th>
+										<th class="text-center" rowspan="3" width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
+									</tr>
+								</thead>
+								<tbody>
+									@{
+										int pageno = (int)pager.CurrentPage;
+										int itemperpage = (int)pager.PageSize;
+										int RowNo = ((pageno - 1) * itemperpage) + 1;
+									}
+									@foreach (var item in Model)
+									{
+										<tr>
+											<td class="text-center" name ="stt">
+												@RowNo@{
+													RowNo++;
+												}
+											</td>
+											<td class="text-center" name ="idLocao" style="font-size:14px;">@item.ID_LoCao </td>
+											<td class="text-center" style="font-size:14px;">@item.KL_Xe </td>
+											<td class="text-center">
+												<a class="btn btn-danger btn-sm btnDeleteXeGoong" data-id="@item.Id" title="Xóa">
+													<i class="bi bi-trash"></i>
+												</a>
+												<a class="btn btn-primary btn-sm btn-edit" data-id="@item.Id" title="Chỉnh sửa">
+													<i class="bi bi-pencil-square"></i>
+												</a>
+
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+@section Scripts {
+<script>
+		$(document).on('click', '.btn-edit', function (e) {
+			e.preventDefault();
+			var id = $(this).data('id');
+			$.get('/XeGoong/Edit', { id: id }, function (html) {
+				$('#modalContainer').html(html);
+				$('#editModal').modal('show');
+			});
+		});
+			$(document).on("submit", "#formEditXeGoong", function (e) {
+			e.preventDefault();
+
+			var form = $(this);
+			$.ajax({
+				url: form.attr("action"),
+				method: form.attr("method"),
+				data: form.serialize(),
+				success: function (res) {
+					if (res.success) {
+						$('#editModal').modal('hide');
+						alert("Cập nhật thành công");
+						location.reload(); // hoặc gọi hàm loadData();
+					} else {
+						$('#modalContainer').html(res);
+						$('#editModal').modal('show');
+					}
+				},
+				error: function () {
+					alert("Có lỗi xảy ra khi lưu dữ liệu.");
+				}
+			});
+		});
+		$(document).ready(function () {
+			function filterTable() {
+				var value = $('#txtsearch').val().toLowerCase();
+				console.log('value',value)
+
+				$('#tableXeGoong  tbody tr').filter(function () {
+					const stt = $(this).find('td[name="stt"]').text().toLowerCase();
+					const loCao = $(this).find('td[name="idLocao"]').text().toLowerCase();
+
+					const isMatch = stt.includes(value) || loCao.includes(value);
+					$(this).toggle(isMatch);
+				});
+			}
+
+			$('#txtsearch').on('keyup', function () {
+				filterTable();
+			});
+
+			$('#btn-search').on('click', function (e) {
+				e.preventDefault();
+				filterTable();
+			});
+		});
+
+
+
+</script>
+	<partial name="_ValidationScriptsPartial" />
+}

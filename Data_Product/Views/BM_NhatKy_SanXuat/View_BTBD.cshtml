@@ -1,0 +1,435 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims;
+@using Data_Product.Repositorys;
+@using Microsoft.EntityFrameworkCore;
+@inject Data_Product.Repositorys.DataContext _context
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@model Data_Product.Models.Tbl_NhatKy_SanXuat
+@inject IJsonHelper Json
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+}
+<style>
+    .radio-square {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border: 2px solid #555;
+        border-radius: 4px; /* 0 cho hình vuông hoàn toàn */
+        position: relative;
+        cursor: pointer;
+    }
+
+        .radio-square:checked::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 12px;
+            height: 12px;
+            background-color: #0d6efd; /* màu xanh Bootstrap */
+        }
+</style>
+
+@Html.HiddenFor(model => model.ID)
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="row">
+                        <div class="d-flex gap-2">
+                            @if(Model.TinhTrang == 0)
+                            {
+                                <button class="btn btn-success btn-sm btn-xacnhan" data-id="@Model.ID">
+                                    ✅ Xác nhận
+                                </button>
+                                @*<button class="btn btn-danger btn-sm btn-khongxacnhan" data-id="@Model.ID">
+                                    ❌ Không xác nhận
+                                </button>*@
+                                <!-- Nút mở modal -->
+                                <button type="button" class="btn  btn-danger" onclick="openGhiChuModal(@Model.ID)">
+                                    ❌ Không xác nhận
+                                </button>
+                            }
+                            else if(Model.TinhTrang == 2)
+                            {
+                                <button class="btn btn-success btn-sm btn-xacnhanxoa" data-id="@Model.ID">
+                                    ✅ Xác nhận xóa
+                                </button>
+                                <button class="btn btn-danger btn-sm btn-khongxacnhanxoa" data-id="@Model.ID">
+                                    ❌ Không xác nhận xóa
+                                </button>
+                            }
+
+
+                           
+                            
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xxl-6 col-md-6">
+                            <img src="~/img/logoHP.png" alt="">
+                            <div style="text-align: center; width: 30%; font-size: 14px; padding-top:0.5%;">
+                                <b>
+                                    CÔNG TY CỔ PHẦN THÉP<br />
+                                    HÒA PHÁT DUNG QUẤT
+                                </b>
+
+                            </div>
+                            <small class="font-">Số phiếu: @Model.SoPhieu</small>
+
+                        </div>
+                        <div class="col-xxl-6 col-md-6" style="text-align: right;">
+                            <div style="text-align:right;font-size:14px;">
+                                <b>BM.12/QT.05</b>
+                            </div>
+                            <div style="text-align:right;font-size:14px;">
+                                <b> <i>Ngày hiệu lực:</i> 10/07/2024</b>
+                            </div>
+                            <div style="text-align:right;font-size:14px;">
+                                <b> <i>Lần sửa đổi:</i> 00</b>
+                            </div>
+                        </div>
+                        <div class="col-xxl-12 col-md-12" style="text-align:center;">
+                            <h4>
+                                <b>
+                                    NHẬT KÝ DỪNG SẢN XUẤT
+                                </b>
+                            </h4>
+                        </div>
+                        <div class="col-xxl-12 col-md-12 mt-0" style="text-align:center;">
+                            @if (Model.Ca == "1")
+                            {
+                                <small>
+                                    Kíp:@Model.Ca@Model.Kip Từ 08h00 ngày @Model.NgayDungSX.ToString("dd") tháng @Model.NgayDungSX.ToString("MM") đến 20h00 ngày @Model.NgayDungSX.ToString("dd") tháng @Model.NgayDungSX.ToString("MM") năm @Model.NgayDungSX.ToString("yyyy")
+                                </small>
+
+                            }
+                            else
+                            {
+                                <small>
+                                    Kíp:@Model.Ca@Model.Kip Từ 20h00 ngày @Model.NgayDungSX.ToString("dd") tháng @Model.NgayDungSX.ToString("MM") đến 08h00 ngày @Model.NgayDungSX.AddDays(1).ToString("dd") tháng @Model.NgayDungSX.AddDays(1).ToString("MM") năm @Model.NgayDungSX.ToString("yyyy")
+                                </small>
+                            }
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        Nhà máy: @ViewBag.ID_PhongBan
+                    </div>
+
+
+                    <div class="card-body p-2" style="">
+
+                        <div class="table-responsive pb-2" style="">
+                            <table class="table table-bordered table-hover" id="dataTable" cellpadding="0">
+                                <div id="warning-message" style="display: none; color: white; background-color: red; padding: 10px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; border-radius: 5px;"></div>
+                                <thead>
+                                    <tr style="font-size:14px;">
+                                        <th class="text-center" width="70px" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Xưởng</th>
+                                        <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Thời điểm dừng</th>
+                                        <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Thời điểm chạy lại máy</th>
+                                        <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do thiết bị</th>
+                                        <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do sự cố Công nghệ</th>
+                                        <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do Chờ công nghệ</th>
+                                        <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do khách quan</th>
+                                        <th width="300px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Nội dung dừng máy</th>
+                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int index = 0;
+                                        //var dungThietbi = TimeSpan.FromMinutes(ViewBag.DungThietBi);
+                                        //var DungCongNghe = TimeSpan.FromMinutes(ViewBag.DungCongNghe);
+                                        //var DungSuCoCN = TimeSpan.FromMinutes(ViewBag.DungSuCoCN);
+                                        //var DungKhachQuan = TimeSpan.FromMinutes(ViewBag.DungKhachQuan);
+                                        //var TongTgianDung = TimeSpan.FromMinutes(ViewBag.TongTgianDung);
+                                    }
+                                    @foreach (var item in Model.NhatKy_SanXuat_ChiTiet)
+                                    {
+                                        var xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == item.ID_Xuong);
+                                        <tr class="data-row">
+                                            <td class="text-center">@(index + 1)</td>
+                                            <td>
+                                                @xuong?.TenXuong
+                                            </td>
+                                            <td class="text-center">@item.ThoiDiemDung.ToString(@"hh\:mm")</td>
+                                            <td class="text-center">@item.ThoiDiemChay.ToString(@"hh\:mm")</td>
+                                            <td class="text-center">
+                                                @if (item.LyDo_DungThietBi == 1)
+                                                {
+                                                    <label>X</label>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (item.LyDo_DungThietBi == 2)
+                                                {
+                                                    <label>X</label>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (item.LyDo_DungThietBi == 3)
+                                                {
+                                                    <label>X</label>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (item.LyDo_DungThietBi == 4)
+                                                {
+                                                    <label>X</label>
+                                                }
+                                            </td>
+                                            <td>@item.NoiDungDung</td>
+                                            <td>@item.GhiChu</td>
+
+                                        </tr>
+                                        index++;
+                                    }
+                                    <tr>
+                                        <td colspan="3" class="text-center">Tổng từng loại</td>
+                                        <td class="text-center">Giờ</td>
+                                        <td class="text-center">@ViewBag.DungThietBi </td>
+                                        <td class="text-center">@ViewBag.DungCongNghe </td>
+                                        <td class="text-center">@ViewBag.DungSuCoCN</td>
+                                        <td class="text-center">@ViewBag.DungKhachQuan </td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-center">Tổng thời gian dừng</td>
+                                        <td class="text-center">Giờ</td>
+                                        <td colspan="4" class="text-center"> @ViewBag.TongTgianDung</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-lg-12" style="text-align: left;height: 150px;display: flex;">
+                            <div class="col-xxl-6 col-md-6">
+
+                                <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
+                                    <b>
+                                        ĐƠN VỊ BTBD
+                                    </b>
+                                </div>
+                                @{
+                                    var taiKhoanBTBD = ViewBag.taikhoanBTBD as Tbl_TaiKhoan;
+                                }
+                                @if (taiKhoanBTBD != null && Model.TinhTrang ==1)
+                                {
+                                    <div style="text-align: center; font-size: 14px; padding:2%;">
+                                        @if (taiKhoanBTBD.ChuKy != null)
+                                        {
+                                            <img src="@taiKhoanBTBD.ChuKy" alt="" height="50px">
+                                        }
+                                        else
+                                        {
+                                            <div style="height:50px" class="text-danger">Đã ký<br /> (Chưa có chữ ký)</div>
+                                        }
+                                    </div>
+                                    <div style="text-align: center; font-size: 14px;">
+                                        <b>
+                                            @taiKhoanBTBD.HoVaTen
+                                        </b>
+                                    </div>
+                                }
+                                else if (taiKhoanBTBD != null && Model.TinhTrang == -1)
+                                {
+                                    <div style="text-align: center; font-size: 14px;">
+                                        <div style="height:50px" class="text-danger">Không xác nhận</div>
+                                    </div>
+                                }
+                                else if (Model.TinhTrang == 2)
+                                {
+                                    <div style="text-align: center; font-size: 14px;">
+                                        <div style="height:50px" class="text-danger">Chờ xóa phiếu</div>
+                                    </div>
+                                }
+                                else if (Model.TinhTrang == 3)
+                                {
+                                    <div style="text-align: center; font-size: 14px;">
+                                        <div style="height:50px" class="text-danger">Đã xóa phiếu</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="text-align: center; font-size: 14px;">
+                                       
+                                    </div>
+                                    
+                                }
+                            </div>
+                            <div class="col-xxl-6 col-md-6">
+
+                                <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
+                                    <b>
+                                        NM.SX
+                                    </b>
+                                </div>
+                                @{
+                                    var taiKhoan = ViewBag.taikhoan as Tbl_TaiKhoan;
+                                }
+                                @if (taiKhoan != null)
+                                {
+                                    <div style="text-align: center; font-size: 14px; padding:2%;">
+                                         @if (taiKhoan.ChuKy != null)
+                                    {
+                                    <img src="@taiKhoan.ChuKy" alt="" height="50px">
+                                    }
+                                    else
+                                    {
+                                    <div style="height:50px" class="text-danger">Đã ký<br /> (Chưa có chữ ký)</div>
+                                    }
+                                    </div>
+                                    <div style="text-align: center; font-size: 14px;">
+                                        <b>
+                                            @taiKhoan.HoVaTen
+                                        </b>
+                                    </div>
+                                }
+                                
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- Modal Ghi chú -->
+<div class="modal fade" id="ghiChuModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nhập Lý do không xác nhận</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                @*<input type="hidden" id="recordId" />*@
+                <textarea id="ghiChuInput" class="form-control" rows="4" placeholder="Nhập lý do..."></textarea>
+            </div>
+            <div class="modal-footer">
+               @* <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>*@
+                <button type="button" class="btn btn-success btn-khongxacnhan" data-id="@Model.ID" >💾 Gửi</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function openGhiChuModal(id) {
+        $('#ghiChuInput').val('');
+        $('#ghiChuModal').modal('show');
+    }
+    $(document).ready(function () {
+        // Xác nhận
+        $(".btn-xacnhan").click(function () {
+            const id = $(this).data("id");
+            if (confirm("Bạn chắc chắn muốn xác nhận phiếu này?")) {
+                $.ajax({
+                    url: '@Url.Action("XacNhanPhieu", "BM_NhatKy_SanXuat")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function (result) {
+                        alert(result.message);
+                        location.reload(); // hoặc cập nhật vùng dữ liệu nếu cần
+                    },
+                    error: function () {
+                        alert("Đã xảy ra lỗi khi xác nhận phiếu.");
+                    }
+                });
+            }
+        });
+
+        // Không xác nhận
+        $(".btn-khongxacnhan").click(function () {
+            const id = $(this).data("id");
+            const ghichu = $('#ghiChuInput').val();
+            if (confirm("Bạn muốn từ chối xác nhận phiếu này?")) {
+                $.ajax({
+                    url: '@Url.Action("TuChoiPhieu", "BM_NhatKy_SanXuat")',
+                    type: 'POST',
+                    data: { id: id, ghichu: ghichu },
+                    success: function (result) {
+                        alert(result.message);
+                        $('#ghiChuModal').modal('hide');
+                        location.reload();
+                    },
+                    error: function () {
+                        alert("Đã xảy ra lỗi khi từ chối phiếu.");
+                    }
+                });
+            }
+        });
+    });
+    // Xác nhận
+    $(".btn-xacnhanxoa").click(function () {
+        const id = $(this).data("id");
+        if (confirm("Bạn chắc chắn muốn xác nhận xóa phiếu này?")) {
+            $.ajax({
+                url: '@Url.Action("XacNhanXoaPhieu", "BM_NhatKy_SanXuat")',
+                type: 'POST',
+                data: { id: id },
+                success: function (result) {
+                    alert(result.message);
+                    location.reload(); // hoặc cập nhật vùng dữ liệu nếu cần
+                },
+                error: function () {
+                    alert("Đã xảy ra lỗi khi xác nhận phiếu.");
+                }
+            });
+        }
+    });
+
+    // Không xác nhận
+    $(".btn-khongxacnhanxoa").click(function () {
+        const id = $(this).data("id");
+        if (confirm("Bạn muốn từ chối xóa phiếu này?")) {
+            $.ajax({
+                url: '@Url.Action("TuChoiXoaPhieu", "BM_NhatKy_SanXuat")',
+                type: 'POST',
+                data: { id: id },
+                success: function (result) {
+                    alert(result.message);
+                    location.reload();
+                },
+                error: function () {
+                    alert("Đã xảy ra lỗi khi từ chối phiếu.");
+                }
+            });
+        }
+    });
+ 
+</script>
