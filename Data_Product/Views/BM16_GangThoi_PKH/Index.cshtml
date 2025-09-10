@@ -192,13 +192,13 @@
                                 DANH SÁCH THÙNG
                             </b>
                         </span>
-                          @if (TaiKhoan.ID_PhongBan == 70)
+                        @if (TaiKhoan.ID_PhongBan == 70)
                          {    
                         <div style="display: flex; gap: 10px;">
                             <button class="btn btn-primary btn-sm px-4 status-card" id="btnChotThung">Chốt</button>
                             <button class="btn btn-danger btn-sm px-4 status-card" id="btnHuyChotThung"> Hủy Chốt</button>
                         </div>
-                         } 
+                          }
                     </div>
                 </div>
             </div>
@@ -1189,8 +1189,7 @@
                 item.gio_NM != null,
                 item.iD_TTG != null,
                 item.soThungTG != null,
-                item.iD_MeThoi != null,
-                item.gioChonMe != null
+               
             ];
 
             // Nếu không có klGangChia thì phải kiểm tra thêm 3 trường này
@@ -1203,6 +1202,9 @@
                     item.klThung_Thoi != null,
                     item.klGang_Thoi != null,
                     item.kL_phe != null,
+                    item.iD_MeThoi != null,
+                    item.gioChonMe != null
+                    
                 );
             }
 
