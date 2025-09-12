@@ -2041,7 +2041,6 @@
                 groups[groupKey].push($row);
             });
 
-
             let isValidLuu = true;
             for (const key in groups) {
                 const groupRows = groups[key];
@@ -2050,6 +2049,8 @@
                 const maThungTG = $firstRow.attr('data-mathungtg') || null;
                 const maThungTG_Copy = $firstRow.attr('data-mathungcopy') || null;
                 const isCopy = String($firstRow.attr('data-copy')).toLowerCase() === 'true';
+
+                
 
                 const parent = {
                     MaThungTG: maThungTG,
@@ -2067,7 +2068,8 @@
                     Tong_KLGangNhan: 0,
                     ID_MeThoi: null,
                     GioChonMe: null,
-                    DanhSachThungGang: []
+                    DanhSachThungGang: [],
+                    MaChia: $firstRow.attr('data-machia') || null
                 };
 
                 // Lấy dữ liệu từ dòng đầu tiên
@@ -2110,6 +2112,7 @@
                 }
 
                 thungTrungGianMap[key] = parent;
+                
             }
 
             if (!isValidLuu) {
@@ -2117,8 +2120,24 @@
                 return null;
             }
 
-            const result = Object.values(thungTrungGianMap);
-            return result;
+
+            const list  = Object.values(thungTrungGianMap);
+
+            // group theo MaChia và gán chung ID_MeThoi, GioChonMe
+            const byMaChia = list.reduce((m, p) => {
+              if (!p.MaChia) return m;
+              (m[p.MaChia] ??= []).push(p);
+              return m;
+            }, {});
+
+            Object.values(byMaChia).forEach(group => {
+              const id  = group.find(x => x.ID_MeThoi != null)?.ID_MeThoi ?? null;
+              const gio = group.find(x => !!x.GioChonMe)?.GioChonMe ?? null;
+              if (id != null && gio) {
+                group.forEach(x => { x.ID_MeThoi = id; x.GioChonMe = gio; });
+              }
+            });
+            return list ;
         }
 
         $('#BtnChiaGang').click(function() {
