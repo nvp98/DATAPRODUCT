@@ -1089,8 +1089,15 @@ namespace Data_Product.Controllers
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLGangLong;
 
                                 var cellKLGangChia = worksheet.Cell(row, colIndex++);
-                                cellKLGangChia.Value = item.KLGangChia;
-                                cellKLGangChia.Style.Font.FontColor = XLColor.Red;
+                                if (item.KLGangChia.HasValue)
+                                {
+                                    cellKLGangChia.Value = item.KLGangChia;
+                                    cellKLGangChia.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
+                                }
+                                else
+                                {
+                                    cellKLGangChia.Value = item.T_KLGangLong.HasValue ? item.T_KLGangLong : "";
+                                }
 
                                 if (isFirst)
                                 {
@@ -1230,7 +1237,7 @@ namespace Data_Product.Controllers
                         var usedRange = worksheet.Range($"A7:AM{sumAllRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.NumberFormat.SetFormat("General");
-                        usedRange.Style.Font.FontColor = XLColor.Black;
+                        //usedRange.Style.Font.FontColor = XLColor.Black;
                         usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
