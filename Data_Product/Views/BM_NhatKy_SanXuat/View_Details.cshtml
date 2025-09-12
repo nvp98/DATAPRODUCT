@@ -1,4 +1,5 @@
-﻿@using Data_Product.Models
+﻿@using Data_Product.DTO
+@using Data_Product.Models
 @using System.Security.Claims;
 @using Data_Product.Repositorys;
 @using Microsoft.EntityFrameworkCore;
@@ -85,6 +86,19 @@
                                 <button class="btn btn-success"
                                         onclick="requestHieuChinh(@Model.ID)">
                                     Đề nghị hiệu chỉnh
+                                </button>
+                            }
+                            @if ((Model.TinhTrang == ConstantsDungSX.DaGui || Model.TinhTrang == ConstantsDungSX.KhongDinhTre || Model.TinhTrang == ConstantsDungSX.KhongXacNhan) && Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock == false && Model.IsDelete == false))
+                            {
+                                <button class="btn btn-danger"
+                                        onclick="requestThuHoi(@Model.ID)">
+                                    Thu hồi
+                                </button>
+                                <button type="button" class="btn btn-warning" id="btnReset" data-id="@Model.ID">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Reset phiếu
+                                    </span>
                                 </button>
                             }
                             @if (Model.TinhTrang == 1)
@@ -364,9 +378,57 @@
         }
     }
     function requestHieuChinh(phieuId) {
-        console.log(phieuId)
+
         if (confirm("Bạn có chắc chắn muốn gửi yêu cầu hiệu chỉnh phiếu này không?")) {
             window.location.href = '@Url.Action("Edit", "BM_NhatKy_SanXuat")' + '?IDNKSX=' + phieuId + '&isHieuChinh=1';
         }
     }
+
+     function requestThuHoi(phieuId) {
+
+        if (confirm("Bạn có chắc chắn muốn thu hồi phiếu này không?")) {
+                $.ajax({
+                url: '/BM_NhatKy_SanXuat/ThuHoiPhieu',
+                type: 'POST',
+                // contentType: 'application/json',
+                data: { IDPhieus: phieuId },
+                success: function (res) {
+                    alert(res.message);
+                    window.location.href = "/BM_NhatKy_SanXuat/Index"; // redirect sang trang Index
+                },
+                error: function (err) {
+                    alert("Có lỗi xảy ra: " + err.responseText);
+                }
+            });
+            // window.location.href = '@Url.Action("Edit", "BM_NhatKy_SanXuat")' + '?IDNKSX=' + phieuId + '&isHieuChinh=1';
+        }
+    }
+     // Reset Phiếu
+    $("#btnReset").click(function () {
+        var selected = $(this).data("id");
+
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 phiếu!");
+            return;
+        }
+         // Thêm confirm
+        if (!confirm("Bạn có chắc muốn reset phiếu này?")) {
+            return; // nếu bấm Cancel thì thoát luôn
+        }
+        $.ajax({
+            url: '/BM_NhatKy_SanXuat/ResetPhieu',
+            type: 'POST',
+            // contentType: 'application/json',
+            data: { IDPhieus: selected },
+            success: function (res) {
+                alert(res.message);
+                window.location.href = "/BM_NhatKy_SanXuat/Index"; // redirect sang trang Index
+            },
+            error: function (err) {
+                alert("Có lỗi xảy ra: " + err.responseText);
+            }
+        });
+    });
+
+
 </script>

@@ -1,5 +1,6 @@
 ﻿@model IEnumerable<Data_Product.Models.Tbl_NhatKy_SanXuat>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@using Data_Product.DTO
 @using Data_Product.Repositorys;
 @inject Data_Product.Repositorys.DataContext _context
 
@@ -69,6 +70,23 @@
                                 </button>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-2" style="text-align:left;">
+                                <button class="btn btn-warning" id="btnXacNhan" style="border-radius: 5px;">
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Xác nhận không đình trệ
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="col-md-2" style="text-align:left;">
+                                <button class="btn btn-success" id="btnTaoPhieu" style="border-radius: 5px;">
+                                    <span class="small pt-2 ps-1" style="color: white;">
+                                        Tạo phiếu
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                       
                     </div>
                     <div class="card-body">
                         <div class="table-responsive" style="height: 550px;">
@@ -76,6 +94,9 @@
                                 <thead style="height: 60px;font-size: 14px;">
                                     <tr>
                                         <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f7f7f7;">STT</th>
+                                        <th class="text-center" width="50px" style="vertical-align:middle;background-color: #f7f7f7;">
+                                            <input type="checkbox" id="chkAll" /> Chọn Tất Cả<br />
+                                        </th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Số Phiếu</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Kíp làm việc</th>
                                         <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Ngày dừng sản xuất</th>
@@ -93,16 +114,35 @@
                                     }
                                     @foreach (var item in Model)
                                     {
-                                        <tr>
+                                        <tr class="@(item.IsLock == true ? "table-secondary" : "")">
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                 @RowNo@{
                                                     RowNo++;
                                                 }
                                             </td>
-                                            @if (item.IsLock == true || item.TinhTrang != 0)
+                                            @if (item.TinhTrang == ConstantsDungSX.ChoXuLy && item.IsLock == false)
+                                            {
+                                                <td class="text-center">
+                                                    <input type="checkbox" class="itemCheckbox" data-id="@item.ID" />
+                                                </td>
+                                            }
+                                            else if(item.TinhTrang == ConstantsDungSX.KhongDinhTre && item.IsLock ==false)
+                                            {
+                                                <td class="text-center">
+                                                    <button class="btn btn-sm btn-danger btnReset" data-id="@item.ID" >Reset</button>
+                                                </td>
+                                            }
+                                            else
+                                            {
+                                                <td class="text-center">
+                                                   @*  <input type="checkbox" class="itemCheckbox" name="selectedItems" value="@item.ID" /> *@
+                                                </td>
+                                            }
+
+                                            @if (item.IsLock == true || item.TinhTrang != ConstantsDungSX.ChoXuLy )
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new { IDNKSX = item.ID })">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>
@@ -110,7 +150,7 @@
                                             else
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                <a class="nav-link collapsed" href="@Url.Action("Edit", "BM_NhatKy_SanXuat", new { IDNKSX = item.ID })">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>
@@ -120,58 +160,15 @@
                                             </td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.NgayDungSX.ToString("dd/MM/yyyy")</td>
                                             <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.HoTen_NhanVien_BTBD</td>
-                                            @if (item.TinhTrang == 0)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button type="button" class="btn btn-warning" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đã gửi
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item.TinhTrang == 1)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-success" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Hoàn tất
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item.TinhTrang == -1)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-danger" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Không xác nhận
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item.TinhTrang == 2)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-primary" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đang xóa phiếu
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
-                                            else if (item.TinhTrang == 3)
-                                            {
-                                                <td class="text-center" style="font-size:14px;">
-                                                    <button id="btn-add" type="button" type="button" class="btn btn-danger" style="width: 150px;">
-                                                        <span class="small pt-2 ps-1" style="color: white;">
-                                                            Đã xóa phiếu
-                                                        </span>
-                                                    </button>
-                                                </td>
-                                            }
+                                            <td class="text-center" style="font-size:14px;">
+                                                <button id="btn-add" type="button" type="button" class="btn btn-sm" style="width: 150px;background-color:@ConstantsDungSX.Mau(item.TinhTrang)">
+                                                    <span class="small pt-2 ps-1" style="color: white;">
+                                                        @ConstantsDungSX.TinhTrang(item.TinhTrang)
+                                                    </span>
+                                                </button>
+                                            </td>
                                             <td style="font-size:14px;">
-                                                @item.Tbl_TaiKhoan.TenTaiKhoan - @item.Tbl_TaiKhoan.HoVaTen
+                                                @item.Tbl_TaiKhoan?.TenTaiKhoan - @item.Tbl_TaiKhoan?.HoVaTen
                                             </td>
                                             <td>
                                                 @item.GhiChu
@@ -222,6 +219,87 @@
 
 </div>
 <script type="text/javascript">
+    // check all
+    $("#chkAll").on("change", function () {
+        $(".itemCheckbox").prop("checked", $(this).prop("checked"));
+    });
+    // xác nhận k đình trệ
+
+        // Nút xác nhận
+    $("#btnXacNhan").click(function () {
+        var selected = [];
+
+        $(".itemCheckbox:checked").each(function () {
+            selected.push($(this).data("id")); // lấy số phiếu từ data-id phiếu
+        });
+
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 phiếu!");
+            return;
+        }
+
+        $.ajax({
+            url: '/BM_NhatKy_SanXuat/XacNhanKhongDinhTre',
+            type: 'POST',
+            // contentType: 'application/json',
+            data: { IDPhieus: selected },
+            success: function (res) {
+                alert(res.message);
+                location.reload(); // hoặc cập nhật lại UI
+            },
+            error: function (err) {
+                alert("Có lỗi xảy ra: " + err.responseText);
+            }
+        });
+    });
+    // Reset Phiếu
+    $(".btnReset").click(function () {
+        var selected = $(this).data("id");
+
+        if (selected.length === 0) {
+            alert("Vui lòng chọn ít nhất 1 phiếu!");
+            return;
+        }
+
+        $.ajax({
+            url: '/BM_NhatKy_SanXuat/ResetPhieu',
+            type: 'POST',
+            // contentType: 'application/json',
+            data: { IDPhieus: selected },
+            success: function (res) {
+                alert(res.message);
+                location.reload(); // hoặc cập nhật lại UI
+            },
+            error: function (err) {
+                alert("Có lỗi xảy ra: " + err.responseText);
+            }
+        });
+    });
+    // Tạo phiếu tự động
+    $("#btnTaoPhieu").click(function () {
+        // var selected = $(this).data("id");
+
+        // if (selected.length === 0) {
+        //     alert("Vui lòng chọn ít nhất 1 phiếu!");
+        //     return;
+        // }
+
+        $.ajax({
+            url: '/BM_NhatKy_SanXuat/TaoPhieu',
+            type: 'POST',
+            // contentType: 'application/json',
+            // data: { IDPhieus: selected },
+            success: function (res) {
+                alert(res.message);
+                location.reload(); // hoặc cập nhật lại UI
+            },
+            error: function (err) {
+                alert("Có lỗi xảy ra: " + err.responseText);
+            }
+        });
+    });
+
+
     localStorage.setItem("IsShowBT", "0");
     $("#btn-search").on('click', function () {
         var ID_TrangThai = $('#ID_TrangThai').val();

@@ -1,0 +1,141 @@
+﻿@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+               <div class="card">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="col-xxl-6 col-md-6">
+                            <img src="~/img/logoHP.png" alt="">
+                            <div style="text-align: center; width: 30%; font-size: 14px; padding-top:0.5%;">
+                                <b>
+                                    CÔNG TY CỔ PHẦN THÉP<br />
+                                    HÒA PHÁT DUNG QUẤT
+                                </b>
+
+                            </div>
+                            @* <small class="font-">Số phiếu: @Model.SoPhieu</small> *@
+                        </div>
+                        <div class="col-xxl-6 col-md-6 text-end">
+                            <div style="text-align:right;font-size:14px;">
+                                <b>BM.38/QT.09</b>
+                            </div>
+                            <div style="text-align:right;font-size:14px;">
+                                <b> <i>Ngày hiệu lực:</i> 01/09/2024</b>
+                            </div>
+                            <div style="text-align:right;font-size:14px;">
+                                <b> <i>Lần sửa đổi:</i> 01</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Title -->
+                    <h5 class="text-center fw-bold mb-3">BẢNG THỐNG KÊ CHỈ SỐ THIẾT BỊ PHỤC VỤ TÍNH TOÁN KPIs</h5>
+                    <p class="mb-0">BP: Xưởng Cơ điện Luyện thép - NM.CD6</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm align-middle">
+                            <thead>
+                                <tr style="vertical-align:middle;background-color: #f9f9f9">
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Ngày/Tháng</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Ca/kíp</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Cụm thiết bị</th>
+                                    <th colspan="3" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Mốc thời điểm</th>
+                                    <th colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thiết bị điện</th>
+                                    <th colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thiết bị cơ</th>
+                                    <th rowspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thời gian xử lý SC Công nghệ (h)</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">TG dừng khác (h)</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Tổng TG chạy máy (h)</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">TG chờ xử lý sự cố (h)</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">TG phối hợp cùng CN chạy lại máy</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Gây dừng cụm thiết bị</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Gây dừng dây chuyền</th>
+                                    <th rowspan="2" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                </tr>
+                                <tr >
+                                    <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Bắt đầu SC có điện</th>
+                                    <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Bắt đầu sửa chữa</th>
+                                    <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Hoàn thành CV sửa chữa</th>
+                                    <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Số sự cố (lần)</th>
+                                    <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thời gian xử lý SC điện (h)</th>
+                                    <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Số sự cố (lần)</th>
+                                    <th class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thời gian xử lý SC cơ (h)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-center">16</td>
+                                    <td class="text-center">20/01/2025</td>
+                                    <td class="text-center">2B</td>
+                                    <td class="text-center">2-T47-LT2-06</td>
+                                    <td class="text-center">23:30</td>
+                                    <td class="text-center">23:30</td>
+                                    <td class="text-center">4:10</td>
+                                    <td class="text-center">2</td>
+                                    <td class="text-center">4.67</td>
+                                    <td class="text-center">1</td>
+                                    <td class="text-center">4.67</td>
+                                    <td class="text-center">0</td>
+                                    <td class="text-center">0</td>
+                                    <td class="text-center">7.33</td>
+                                    <td class="text-center">0</td>
+                                    <td class="text-center">0</td>
+                                    <td class="text-center">Có</td>
+                                    <td class="text-center">Có</td>
+                                    <td>Van hơi đường dầu…</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">16</td>
+                                    <td class="text-center">20/01/2025</td>
+                                    <td class="text-center">2B</td>
+                                    <td class="text-center">2-T47-LT2-06</td>
+                                    <td class="text-center">23:30</td>
+                                    <td class="text-center">23:30</td>
+                                    <td class="text-center">4:10</td>
+                                    <td class="text-center">2</td>
+                                    <td class="text-center">4.67</td>
+                                    <td class="text-center">1</td>
+                                    <td class="text-center">4.67</td>
+                                    <td class="text-center">0</td>
+                                    <td class="text-center">0</td>
+                                    <td class="text-center">7.33</td>
+                                    <td class="text-center">0</td>
+                                    <td class="text-center">0</td>
+                                    <td class="text-center">Có</td>
+                                    <td class="text-center">Có</td>
+                                    <td>Van hơi đường dầu…</td>
+                                </tr>
+                                <!-- Thêm các dòng khác -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-end mt-3 fst-italic">Quảng Ngãi, ngày 03 tháng 02 năm 2025</p>
+                    <!-- Chữ ký -->
+                    <div class="row signature-block">
+                        <div class="col text-center">
+                            <p>BP.SD</p>
+                            <br><br><br>
+                            <p>(Ký, ghi rõ họ tên)</p>
+                        </div>
+                        <div class="col text-center">
+                            <p>T/PBP</p>
+                            <br><br><br>
+                            <p>(Ký, ghi rõ họ tên)</p>
+                        </div>
+                        <div class="col text-center">
+                            <p>Người lập</p>
+                            <br><br><br>
+                            <p>(Ký, ghi rõ họ tên)</p>
+                        </div>
+                    </div>
+               </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

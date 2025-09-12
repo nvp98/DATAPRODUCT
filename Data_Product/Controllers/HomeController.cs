@@ -21,6 +21,7 @@ namespace Data_Product.Controllers
         {
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            if(TaiKhoan == null) return RedirectToAction("Index","DangNhap");
             int ID_NhanVien = TaiKhoan.ID_TaiKhoan;
             ViewBag.ID_Quyen = TaiKhoan.ID_Quyen;
             var listViecDenToi = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_NhanVien_BN == ID_NhanVien && x.NgayTao.Date == DateTime.Now.Date && x.ID_TrangThai_BG == 1).ToList();
