@@ -328,7 +328,7 @@
 														</ul>
 													}
 												</td>
-												<td>@(item.KL_GangChia != null && item.KL_GangChia != 0 ? item.KL_GangChia : (item.T_KLGangLong != null && item.T_KLGangLong != 0 ? item.T_KLGangLong : 0))</td>
+												<td name="KLGangChia" style="color:red;font-weight: bold">@item.TongKL_TheoMe</td>
 												<td class="toggle-col">@item.NguoiLuu</td>
 												<td name="ChotThung">
 													@if (item.TrangThai == 1)
@@ -875,6 +875,7 @@
 		$(document).ready(function() {
 			function tinhTongKL() {
 				let tong = 0;
+				let tongKLGangChia = 0;
 
 				$('input[name="KLGangLong"]').each(function() {
 					let val = parseFloat($(this).val());
@@ -882,7 +883,12 @@
 						tong += val;
 					}
 				});
-
+				$('td[name="KLGangChia"]').each(function() {
+					let val = parseFloat($(this).text());
+					if (!isNaN(val)) {
+						tongKLGangChia += val;
+					}
+				});
 				$('#dataTable tbody tr.tong-row').remove();
 
 			let tongRow = `
@@ -890,8 +896,10 @@
 					<td colspan="3"></td>
 					<td>${soLuongMe}</td>
 					<td colspan="8"></td>
-					<td>${tong.toFixed(2)}</td>
-					<td colspan="14"></td>
+					<td>${tong.toFixed(2)}</td>					
+					<td colspan="8"></td>
+					<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
+					<td colspan="3"></td>
 				</tr>
 			`;
 
