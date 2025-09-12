@@ -231,11 +231,11 @@ namespace Data_Product.Controllers
             ViewBag.noidungDung = noidungDung;
             ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", IDXuong);
             ViewBag.XuongSelect = IDXuong ?? 0;
-           
+
             var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x => !x.IsDelete)
                         join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan into gj
-                        from b in gj.DefaultIfEmpty()  
-                        let c = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == a.ID).ToList()
+                        from b in gj.DefaultIfEmpty()
+                        //let c = chiTietQuery.Where(x => x.ID_NhatKy == a.ID).ToList()
                         let btbd = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == a.ID_NhanVien_BTBD)
                         let xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == a.ID_Xuong_SX)
                         select new Tbl_NhatKy_SanXuat
@@ -248,7 +248,7 @@ namespace Data_Product.Controllers
                             SoPhieu = a.SoPhieu,
                             NgayTao = a.NgayTao,
                             Tbl_TaiKhoan = b,
-                            NhatKy_SanXuat_ChiTiet = c != null ? c : new List<Tbl_NhatKy_SanXuat_ChiTiet>(),
+                            //NhatKy_SanXuat_ChiTiet = c != null ? c : new List<Tbl_NhatKy_SanXuat_ChiTiet>(),
                             ID_PhongBan_SX = a.ID_PhongBan_SX,
                             IsLock = a.IsLock,
                             TinhTrangCheckPhieu = _context.Tbl_PKHXuLyPhieu.FirstOrDefault(x => x.ID_NKDSX == a.ID && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan) != null ? 1 : 0,
@@ -288,10 +288,10 @@ namespace Data_Product.Controllers
             if (ID_TrangThai != null) query = query.Where(x => x.TinhTrang == ID_TrangThai);
             if (IDCa != null) query = query.Where(x => x.Ca == IDCa);
             if (IDPhongBan != null) query = query.Where(x => x.ID_PhongBan_SX == IDPhongBan);
-            if (IDXuong != null) query = query.Where(x => x.NhatKy_SanXuat_ChiTiet.Any(a => a.ID_Xuong == IDXuong));
-            if (LyDoDung != null) query = query.Where(x => x.NhatKy_SanXuat_ChiTiet.Any(a => a.LyDo_DungThietBi == LyDoDung));
+            if (IDXuong != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.ID_Xuong == IDXuong));
+            if (LyDoDung != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.LyDo_DungThietBi == LyDoDung));
             if (startDay != default && endDay != default) query = query.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay);
-            if (noidungDung != null) query = query.Where(x => x.NhatKy_SanXuat_ChiTiet.Any(a => (!string.IsNullOrEmpty(a.NoiDungDung) && a.NoiDungDung.ToLower().Contains(noidungDung.ToLower()))));
+            if (noidungDung != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => (!string.IsNullOrEmpty(a.NoiDungDung) && a.NoiDungDung.ToLower().Contains(noidungDung.ToLower()))));
 
             // Thực thi truy vấn tại đây
             var res = await query.OrderByDescending(x => x.NgayDungSX).ToListAsync();
@@ -804,7 +804,7 @@ namespace Data_Product.Controllers
                 XLWorkbook Workbook = new XLWorkbook(fileNamemau);
                 IXLWorksheet Worksheet = Workbook.Worksheet("BM");
                 var res = from a in _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => (!IDXuong.HasValue || x.ID_Xuong == IDXuong))
-                          join b in _context.Tbl_NhatKy_SanXuat.Where(x => (!begind.HasValue || x.NgayDungSX >= begind) && (!endd.HasValue || x.NgayDungSX <= endd) && (!ID_TrangThai.HasValue || x.TinhTrang == ID_TrangThai)) on a.ID_NhatKy equals b.ID
+                          join b in _context.Tbl_NhatKy_SanXuat.Where(x => (!begind.HasValue || x.NgayDungSX >= begind) && (!endd.HasValue || x.NgayDungSX <= endd) && (!ID_TrangThai.HasValue || x.TinhTrang == ID_TrangThai) && !x.IsDelete) on a.ID_NhatKy equals b.ID
                           join c in _context.Tbl_PhongBan.Where(x => (!IDPhongBan.HasValue || x.ID_PhongBan == IDPhongBan)) on b.ID_PhongBan_SX equals c.ID_PhongBan
                           join d in _context.Tbl_Xuong on a.ID_Xuong equals d.ID_Xuong
                           select new Tbl_NhatKy_SanXuat_ChiTietExport
@@ -826,6 +826,23 @@ namespace Data_Product.Controllers
                               TinhTrang = b.TinhTrang
 
                           };
+                var query = from nks in _context.Tbl_NhatKy_SanXuat.Where(x => (!begind.HasValue || x.NgayDungSX >= begind) && (!endd.HasValue || x.NgayDungSX <= endd) && (!ID_TrangThai.HasValue || x.TinhTrang == ID_TrangThai) && !x.IsDelete)
+                            where !(from ct in _context.Tbl_NhatKy_SanXuat_ChiTiet
+                            select ct.ID_NhatKy).Contains(nks.ID)
+                            join c in _context.Tbl_PhongBan.Where(x => (!IDPhongBan.HasValue || x.ID_PhongBan == IDPhongBan)) on nks.ID_PhongBan_SX equals c.ID_PhongBan
+                            join d in _context.Tbl_Xuong on nks.ID_Xuong_SX equals d.ID_Xuong
+                            select new Tbl_NhatKy_SanXuat_ChiTietExport
+                            {
+                                SoPhieu = nks.SoPhieu,
+                                TinhTrang = nks.TinhTrang,
+                                GhiChu = nks.GhiChu,
+                                NgayDungSX = nks.NgayDungSX,
+                                Ca = nks.Ca,
+                                Kip = nks.Kip,
+                                ID_Xuong = d.ID_Xuong,
+                                TenXuong = d.TenXuong,
+                                TenPhongBan = c.TenPhongBan,
+                            };
 
                 if (IDCa != null) res = res.Where(x => x.Ca == IDCa);
                 if (LyDoDung != null) res = res.Where(x => x.LyDo_DungThietBi == LyDoDung);
@@ -834,6 +851,8 @@ namespace Data_Product.Controllers
 
                 // Thực thi truy vấn tại đây
                 var Data = await res.ToListAsync();
+                var DataNew = await query.ToListAsync();
+                Data.AddRange(DataNew);
 
                 TimeSpan tgdungTB = TimeSpan.FromMinutes(Data.Where(x => x.LyDo_DungThietBi == 1).Sum(x => x.ThoiGianDung) ?? 0);
                 TimeSpan tgdungCongNge = TimeSpan.FromMinutes(Data.Where(x => x.LyDo_DungThietBi == 2).Sum(x => x.ThoiGianDung) ?? 0);
@@ -974,28 +993,28 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
                         icol++;
-                        string tinhtrang = "";
-                        if (item.TinhTrang == -1)
-                        {
-                            tinhtrang = "Không xác nhận";
-                        }
-                        else if (item.TinhTrang == 1)
-                        {
-                            tinhtrang = "Hoàn tất";
-                        }
-                        else if (item.TinhTrang == 0)
-                        {
-                            tinhtrang = "Đã gửi";
-                        }
-                        else if (item.TinhTrang == 2)
-                        {
-                            tinhtrang = "Đang xóa phiếu";
-                        }
-                        else if (item.TinhTrang == 3)
-                        {
-                            tinhtrang = "Đã xóa phiếu";
-                        }
-                        Worksheet.Cell(row, icol).Value = tinhtrang;
+                        //string tinhtrang = "";
+                        //if (item.TinhTrang == -1)
+                        //{
+                        //    tinhtrang = "Không xác nhận";
+                        //}
+                        //else if (item.TinhTrang == 1)
+                        //{
+                        //    tinhtrang = "Hoàn tất";
+                        //}
+                        //else if (item.TinhTrang == 0)
+                        //{
+                        //    tinhtrang = "Đã gửi";
+                        //}
+                        //else if (item.TinhTrang == 2)
+                        //{
+                        //    tinhtrang = "Đang xóa phiếu";
+                        //}
+                        //else if (item.TinhTrang == 3)
+                        //{
+                        //    tinhtrang = "Đã xóa phiếu";
+                        //}
+                        Worksheet.Cell(row, icol).Value = ConstantsDungSX.TinhTrang(item.TinhTrang);
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
