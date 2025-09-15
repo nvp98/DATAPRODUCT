@@ -307,6 +307,8 @@ namespace Data_Product.Controllers
             }
         }
 
+
+
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
         {
             var query = _context.Tbl_BM_16_GangLong.OrderByDescending(x => x.NgayTao).ThenBy(x => x.ID_Locao).ThenByDescending(x => x.G_Ca).ThenByDescending(x => x.MaThungGang).ThenBy(x => x.MaThungThep).AsQueryable();
@@ -317,6 +319,10 @@ namespace Data_Product.Controllers
             decimal sumKLVaoLoThoi = 0;
             decimal sumKLGangChia = 0;
 
+            if (dto.ID_HRC.HasValue)
+            {
+                query = query.Where(x => _context.Tbl_TaiKhoan.Any(tk => tk.ID_TaiKhoan == x.T_ID_NguoiNhan && tk.ID_PhongBan == dto.ID_HRC));
+            }
 
             if (dto.ID_LoCao.HasValue)
             {
@@ -421,6 +427,24 @@ namespace Data_Product.Controllers
                 var denNgay = dto.DenNgay_LT.Value.Date.AddDays(1);
                 query = query.Where(x => x.NgayLuyenThep >= tuNgay && x.NgayLuyenThep < denNgay);
 
+                sumKLGang = query.Where(x => x.T_copy != true).Sum(x => x.G_KLGangLong ?? 0);
+                sumKLGangLongThep = query.Sum(x => x.T_KLGangLong ?? 0);
+                sumKLGangChia = query.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0);
+
+                var maThungTGList = (
+                    from a in query
+                    join ttgRoot in _context.Tbl_BM_16_ThungTrungGian
+                        on a.ID_TTG equals ttgRoot.ID
+                    select ttgRoot.MaThungTG
+                ).Distinct().ToList();
+
+                var relatedThung = _context.Tbl_BM_16_ThungTrungGian
+                    .Where(x => maThungTGList.Contains(x.MaThungTG))
+                    .ToList();
+
+                sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
+                sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
+                sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
             }
            
             if (dto.TuNgay_LG.HasValue && dto.DenNgay_LG.HasValue)
@@ -428,6 +452,8 @@ namespace Data_Product.Controllers
                 var tuNgay = dto.TuNgay_LG.Value.Date;
                 var denNgay = dto.DenNgay_LG.Value.Date.AddDays(1);
                 query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
+
+
                 sumKLGang = query.Where(x => x.T_copy != true).Sum(x => x.G_KLGangLong ?? 0);
                 sumKLGangLongThep = query.Sum(x => x.T_KLGangLong ?? 0);
                 sumKLGangChia = query.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0);
@@ -446,8 +472,6 @@ namespace Data_Product.Controllers
                  sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
                  sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
                  sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
-
-                 
             }
             
             // Tổng số bản ghi
@@ -689,290 +713,7 @@ namespace Data_Product.Controllers
                 GioChonMe = null
             };
         }
-
-
-        //[HttpPost]
-        //public async Task<IActionResult> ExportToExcel([FromBody] SearchDto dto)
-        //{
-        //    try
-        //    {
-        //        var res = await SearchByPayload(dto);
-        //        var thungList = res.Data;
-        //        var totalRecords = res.TotalRecords;
-        //        var sumKLGang = res.SumKLGang;
-
-        //        if (thungList == null || !thungList.Any())
-        //            return BadRequest("Danh sách trống.");
-
-        //        //var groupByTTG = thungList.GroupBy(x => x.ID_TTG).ToList();
-        //        //var groupByTTG = thungList
-        //        //                .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
-        //        //                .OrderByDescending(g => g.Max(x => x.NgayTao))
-        //        //                .ToList();
-        //        var groupByTTG = thungList;
-        //        // Đường dẫn đến template
-        //        string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "QTGN_Gang_Long_PKH.xlsx");
-        //        using (var ms = new MemoryStream())
-        //        {
-        //            using (var workbook = new XLWorkbook(filePath))
-        //            {
-        //                var worksheet = workbook.Worksheet("Sheet1");
-
-        //                // Xóa dữ liệu cũ (nếu có)
-        //                var lastRow = Math.Max(worksheet.LastRowUsed()?.RowNumber() ?? 8, 8);
-        //                if (lastRow >= 8)
-        //                {
-        //                    var rangeClear = worksheet.Range($"A8:AE{lastRow}");
-        //                    rangeClear.Clear(XLClearOptions.Contents | XLClearOptions.NormalFormats);
-        //                }
-
-        //                int row = 8, stt = 1;
-        //                foreach (var group in groupByTTG)
-        //                {
-        //                    int rowspan = group.Count();
-        //                    bool isFirst = true;
-
-        //                    foreach (var item in group)
-        //                    {
-
-        //                        int colIndex = 1;
-        //                        worksheet.Cell(row, colIndex++).Value = stt;
-        //                        worksheet.Cell(row, colIndex++).Value = item.NgayTao?.Day.ToString();
-        //                        worksheet.Cell(row, colIndex++).Value = item.G_Ca == 1 ? "N" : item.G_Ca == 2 ? "Đ" : "";
-        //                        worksheet.Cell(row, colIndex++).Value = item.G_TenKip;
-        //                        worksheet.Cell(row, colIndex++).Value = item.MaThungGang;
-        //                        var LoCaocell = worksheet.Cell(row, colIndex++);
-        //                        LoCaocell.Value = item.ID_Locao;
-        //                        LoCaocell.Style.NumberFormat.NumberFormatId = 0;
-
-        //                        var cellSoMe = worksheet.Cell(row, colIndex++);
-        //                        cellSoMe.Value = item.BKMIS_SoMe;
-
-        //                        var cellThungSo = worksheet.Cell(row, colIndex++);
-        //                        cellThungSo.Value = item.BKMIS_ThungSo;
-
-        //                        worksheet.Cell(row, colIndex++).Value = item.BKMIS_Gio;
-        //                        worksheet.Cell(row, colIndex++).Value = item.BKMIS_PhanLoai;
-
-        //                        if(item.T_copy == true || item.IsCopy == true)
-        //                        {
-        //                            cellSoMe.Style.Font.FontColor = XLColor.Red;
-        //                            cellThungSo.Style.Font.FontColor = XLColor.Red;
-
-        //                            worksheet.Cell(row, colIndex++).Value = "";
-        //                            worksheet.Cell(row, colIndex++).Value = "";
-        //                            worksheet.Cell(row, colIndex++).Value = "";
-        //                            worksheet.Cell(row, colIndex++).Value = "";
-        //                        }
-        //                        else
-        //                        {
-        //                            worksheet.Cell(row, colIndex++).Value = item.KL_XeGoong;
-        //                            worksheet.Cell(row, colIndex++).Value = item.G_KLThungVaGang;
-        //                            worksheet.Cell(row, colIndex++).Value = item.G_KLThungChua;
-        //                            var cellKLGangLong = worksheet.Cell(row, colIndex++);
-        //                            if (item.G_KLGangLong.HasValue)
-        //                            {
-        //                                cellKLGangLong.Value = item.G_KLGangLong.Value;
-        //                                cellKLGangLong.Style.NumberFormat.Format = "0.00";
-        //                                cellKLGangLong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //                                cellKLGangLong.Style.Font.Bold = true;
-        //                            }
-        //                        }
-        //                        worksheet.Cell(row, colIndex++).Value = item.ChuyenDen;
-        //                        worksheet.Cell(row, colIndex++).Value = item.Gio_NM;
-        //                        worksheet.Cell(row, colIndex++).Value = item.KR == true ? "X" : "";
-
-
-        //                        var tinhTrangG_cell = worksheet.Cell(row, colIndex++);
-        //                        RenderTrangThaiCell(tinhTrangG_cell, item.TrangThaiLG, item.G_ID_TrangThai);
-
-        //                        worksheet.Cell(row, colIndex++).Value = item.NgayLuyenThep?.Day.ToString();
-        //                        worksheet.Cell(row, colIndex++).Value = item.T_Ca == 1 ? "N" : item.T_Ca == 2 ? "Đ" : "";
-        //                        worksheet.Cell(row, colIndex++).Value = item.T_TenKip;
-        //                        worksheet.Cell(row, colIndex++).Value = item.MaThungThep;
-
-        //                        worksheet.Cell(row, colIndex++).Value = item.T_KLThungVaGang;
-        //                        worksheet.Cell(row, colIndex++).Value = item.T_KLThungChua;
-        //                        worksheet.Cell(row, colIndex++).Value = item.T_KLGangLong;
-
-        //                        int mergedColumnCount = 0;
-        //                        if (isFirst)
-        //                        {
-        //                            var cellTongKLGang = worksheet.Cell(row, colIndex);
-
-        //                            cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //                            cellTongKLGang.Style.Font.Bold = true;
-
-        //                            if (item.IsCopy == true)
-        //                            {
-        //                                cellTongKLGang.Value = "TTG Copy";
-        //                                cellTongKLGang.Style.Font.FontColor = XLColor.Red;
-        //                            }
-        //                            else if (item.Tong_KLGangNhan.HasValue)
-        //                            {
-        //                                cellTongKLGang.Value = item.Tong_KLGangNhan.Value;
-        //                                cellTongKLGang.Style.NumberFormat.Format = "0.00";
-        //                            }
-        //                            else
-        //                            {
-        //                                cellTongKLGang.Value = "";
-        //                            }
-
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge();
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.ID_LoThoi;
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.SoThungTG;
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.KLThungVaGang_Thoi;
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.KLThung_Thoi;
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.KL_phe;
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            var cellKLGang_Thoi = worksheet.Cell(row, colIndex);
-        //                            if (item.KLGang_Thoi.HasValue)
-        //                            {
-        //                                cellKLGang_Thoi.Value = item.KLGang_Thoi.Value;
-        //                                cellKLGang_Thoi.Style.NumberFormat.Format = "0.00";
-        //                                cellKLGang_Thoi.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        //                                cellKLGang_Thoi.Style.Font.Bold = true;
-        //                            }
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge();
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.MaMeThoi;
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.GioChonMe;
-        //                            colIndex++; mergedColumnCount++;
-
-        //                            isFirst = false;
-        //                        }
-        //                        else
-        //                        {
-        //                            colIndex += mergedColumnCount; // Skip các cột merge
-        //                        }
-
-        //                        var tinhTrangT_cell = worksheet.Cell(row, colIndex++);
-        //                        RenderTrangThaiCell(tinhTrangT_cell, item.TrangThaiLT, item.T_ID_TrangThai);
-
-        //                        worksheet.Cell(row, colIndex++).Value = item.TenPhongBan;
-        //                        worksheet.Cell(row, colIndex++).Value = item.HoVaTen;
-
-        //                        var tinhTrang_cell = worksheet.Cell(row, colIndex++);
-        //                        RenderTrangThaiCell(tinhTrang_cell, item.TrangThai, item.ID_TrangThai);
-
-        //                        row++;
-        //                        stt++;
-        //                    }
-        //                }
-                       
-        //                // Dòng tổng
-        //                int sumRow = row;
-        //                var totalLabel = worksheet.Range($"A{sumRow}:M{sumRow}");
-        //                totalLabel.Merge();
-        //                totalLabel.Value = "Tổng:";
-        //                totalLabel.Style.Font.SetBold();
-        //                totalLabel.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-
-        //                // Tổng cột 14
-        //                worksheet.Cell(sumRow, 14).FormulaA1 = $"=SUM(N8:N{row - 1})";
-        //                worksheet.Cell(sumRow, 14).Style.NumberFormat.Format = "#,##0.00";
-        //                worksheet.Cell(sumRow, 14).Style.Font.SetBold();
-        //                worksheet.Cell(sumRow, 14).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-        //                // Merge các cột O -> Y (15 -> 25)
-        //                var mergeRange1 = worksheet.Range(sumRow, 15, sumRow, 25);
-        //                mergeRange1.Merge();
-        //                mergeRange1.Value = ""; 
-        //                mergeRange1.Style.Fill.BackgroundColor = XLColor.White; 
-
-        //                // Tổng cột 26
-        //                worksheet.Cell(sumRow, 26).FormulaA1 = $"=SUM(Z8:Z{row - 1})";
-        //                worksheet.Cell(sumRow, 26).Style.NumberFormat.Format = "#,##0.00";
-        //                worksheet.Cell(sumRow, 26).Style.Font.SetBold();
-        //                worksheet.Cell(sumRow, 26).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-        //                // Merge các cột Z -> AE (27 -> 31)
-        //                var mergeRange2 = worksheet.Range(sumRow, 27, sumRow, 31);
-        //                mergeRange2.Merge();
-        //                mergeRange2.Value = "";
-        //                mergeRange2.Style.Fill.BackgroundColor = XLColor.White;
-
-        //                // Tổng cột 32
-        //                worksheet.Cell(sumRow, 32).FormulaA1 = $"=SUM(AF8:AF{row - 1})";
-        //                worksheet.Cell(sumRow, 32).Style.NumberFormat.Format = "#,##0.00";
-        //                worksheet.Cell(sumRow, 32).Style.Font.SetBold();
-        //                worksheet.Cell(sumRow, 32).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-        //                // Merge các cột AG -> AL (33 -> 38)
-        //                var mergeRange3 = worksheet.Range(sumRow, 33, sumRow, 38);
-        //                mergeRange3.Merge();
-        //                mergeRange3.Value = "";
-        //                mergeRange3.Style.Fill.BackgroundColor = XLColor.White;
-
-        //                // Dòng tổng All
-        //                int sumAllRow = row+1;
-        //                var totalAllLabel = worksheet.Range($"A{sumAllRow}:M{sumAllRow}");
-        //                totalAllLabel.Merge();
-        //                totalAllLabel.Value = "Tổng Tất Cả:";
-        //                totalAllLabel.Style.Font.SetBold();
-        //                totalAllLabel.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-
-        //                // Tổng cột 14
-        //                worksheet.Cell(sumAllRow, 14).Value = sumKLGang;
-        //                worksheet.Cell(sumAllRow, 14).Style.NumberFormat.Format = "#,##0.00";
-        //                worksheet.Cell(sumAllRow, 14).Style.Font.SetBold();
-        //                worksheet.Cell(sumAllRow, 14).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-        //                // Merge các cột O -> U (15 -> 21)
-        //                var mergeRangeAll = worksheet.Range(sumAllRow, 15, sumAllRow, 38);
-        //                mergeRangeAll.Merge();
-        //                mergeRangeAll.Value = "";
-        //                mergeRangeAll.Style.Fill.BackgroundColor = XLColor.White;
-
-        //                // Format toàn bảng
-        //                var usedRange = worksheet.Range($"A7:AL{sumAllRow}");
-        //                usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
-        //                usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        //                usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        //                usedRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        //                usedRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        //                usedRange.Style.Alignment.WrapText = true;
-
-
-        //                // Chiều cao dòng
-        //                for (int i = 8; i <= sumRow; i++)
-        //                {
-        //                    worksheet.Row(i).Height = 25;
-        //                }
-
-        //                // Ghi workbook vào MemoryStream (không lưu ra ổ đĩa)
-        //                workbook.SaveAs(ms);
-        //            }
-        //            // Trả file ra MemoryStream
-        //            ms.Position = 0;
-
-        //            string outputName = $"QTGN_Gang_Long_Gang_Thoi_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-        //            return File(ms.ToArray(),
-        //                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        //                        outputName);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
-
-        //        return RedirectToAction("Index", "BM_GangThoi_PKH");
-        //    }
-        //}
+        
 
         [HttpPost]
         public async Task<IActionResult> ExportToExcel([FromBody] SearchDto dto)
