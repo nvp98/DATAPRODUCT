@@ -1389,6 +1389,8 @@ namespace Data_Product.Controllers
 
                     if (soNguoiConNhan == 0)
                     {
+                        var chuyenDen = thung.ChuyenDen ?? "";
+
                         // Không còn ai nhận -> reset thùng gốc
                         thung.MaThungThep = null;
                         thung.T_ID_Kip = null;
@@ -1407,7 +1409,7 @@ namespace Data_Product.Controllers
                         thung.ID_MeThoi = null;
                         thung.T_Ca = null;
                         thung.T_ID_NguoiHuyNhan = payload.idNguoiHuyNhan;
-                        thung.T_ID_TrangThai = (int)TinhTrang.ChoXuLy;
+                        thung.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? (int)TinhTrang.DaNhan : (int)TinhTrang.ChoXuLy;
                         thung.ID_TTG = null;
                         thung.T_ID_NguoiNhan = null;
                         thung.KLGangChia = null;

@@ -289,6 +289,11 @@
                                         <option value="5">Đã chốt</option>
                                     </select>
                                 </div>
+                                <!-- Thùng số -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Thùng số:</label>
+                                    <input type="number" class="form-control form-control-sm" id="ThungSo" />
+                                </div>
                             </div>
                         </div>
                         <div class="col-12 col-md-6 border">
@@ -354,8 +359,12 @@
                                
                                 <!-- Thùng số -->
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
-                                    <label class="form-label">Thùng số:</label>
-                                    <input type="number" class="form-control form-control-sm" id="ThungSo" />
+                                    <label class="form-label">Bộ phận nhận:</label>
+                                    <select class="form-select form-select-sm" id="ID_HRC" name="ID_HRC">
+                                        <option value="">-- Bộ phận --</option>
+                                        <option value="60">HRC 1</option>
+                                        <option value="61">HRC 2</option>
+                                    </select>
                                 </div>
                                 <div class="col-12 col-sm-6 col-md-4 mb-2">
                                     <label class="form-label">Mã mẻ thổi:</label>
@@ -971,20 +980,16 @@
                 sum_t_KLGangLong
             } = record;
 
-            const isNumber = val => val !== null && !isNaN(val);
+            const isNum = v => typeof v === 'number' && isFinite(v);
 
-            // Ưu tiên sử dụng klGangChia nếu có
-            if (isNumber(sum_klGangChia) && sum_klGangChia !== 0 && isNumber(sum_g_KLGangLong) && sum_g_KLGangLong !== 0) {
-                // return (sum_klGangChia - sum_g_KLGangLong).toFixed(2);
-                return (sum_g_KLGangLong - sum_klGangChia) * (percent / 100);
-            }
+            if (!isNum(sum_g_KLGangLong)) return null; 
 
-            // Nếu không có klGangChia → dùng t_KLGangLong
-            if (isNumber(sum_t_KLGangLong) && sum_t_KLGangLong !== 0 && isNumber(sum_g_KLGangLong)  && sum_g_KLGangLong !== 0) {
-                return (record.sum_g_KLGangLong - record.sum_t_KLGangLong) * (percent / 100);
-            }
+            const base =
+              (isNum(sum_klGangChia) && sum_klGangChia !== 0) ? sum_klGangChia :
+              (isNum(sum_t_KLGangLong) && sum_t_KLGangLong !== 0) ? sum_t_KLGangLong :
+              0;
 
-            return null;
+            return (sum_g_KLGangLong - base) * (percent / 100);
         }
 
         $("#btn-percent").click(function() {
@@ -1264,6 +1269,8 @@
                                : chiagangVal === "true"           ? true
                                : chiagangVal === "false"          ? false
                                : null; // fallback
+
+            const ID_HRC = $("#ID_HRC").val() || null;
             return dto = {
                 ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
                 ID_LoThoi: ID_LoThoi ? parseInt(ID_LoThoi) : null,
@@ -1283,7 +1290,8 @@
                 MaThungGang: MaThungGang || null,
                 MaThungThep: MaThungThep || null,
                 MaMeThoi: MaMeThoi || null,
-                IsChiaGang: IsChiaGang
+                IsChiaGang: IsChiaGang,
+                ID_HRC : ID_HRC || null
             };
         }
 
@@ -1361,6 +1369,7 @@
          // Search 
          function Search() {
              const dto = getSearchPayload();
+             console.log(dto)
              dto.PageSize = pageSize;
              dto.PageNumber = currentPage;
 
@@ -1513,7 +1522,7 @@
         })
 
         $("#btnReset").click(function() {
-            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi']);
+            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi', 'ID_HRC']);
             currentPage = 1;
             Search();
         })
