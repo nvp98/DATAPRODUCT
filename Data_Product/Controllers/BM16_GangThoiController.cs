@@ -801,7 +801,7 @@ namespace Data_Product.Controllers
 
                 bool daNhan = await _context.Tbl_BM_16_TaiKhoan_Thung.AnyAsync(x => x.MaThungGang == thung.MaThungGang);
                 //  Xử lý trạng thái chuyển đến
-                thung.T_ID_TrangThai = daNhan ? 4 : (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : thung.T_ID_TrangThai;
+                thung.T_ID_TrangThai = daNhan ? 4 : (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : 2;
 
                 //  Kiểm tra dữ liệu đầy đủ
                 bool duDuLieu = item.KL_XeGoong != null &&
