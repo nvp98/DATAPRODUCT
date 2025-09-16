@@ -343,7 +343,7 @@
                 }
             });
         });
-       $(".btnuncheck").click(function () {
+     $(document).on("click", ".btnuncheck", function () {
         var btn = $(this);
         var id = btn.data("id");
 
@@ -367,6 +367,9 @@
             }
         });
     });
+    //    $(".btnuncheck").click(function () {
+        
+    // });
     });
 </script>
 
