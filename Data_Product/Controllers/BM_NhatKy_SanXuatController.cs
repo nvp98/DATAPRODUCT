@@ -255,7 +255,8 @@ namespace Data_Product.Controllers
                             ID_NhanVien_BTBD = a.ID_NhanVien_BTBD,
                             HoTen_NhanVien_BTBD = (btbd.TenTaiKhoan ?? "") + " - " + (btbd.HoVaTen ?? ""),
                             TenXuong_SX = xuong.TenXuong ?? "",
-                            GhiChu = a.GhiChu
+                            GhiChu = a.GhiChu,
+                            ID_Xuong_SX = a.ID_Xuong_SX
                         };
 
 
@@ -288,7 +289,7 @@ namespace Data_Product.Controllers
             if (ID_TrangThai != null) query = query.Where(x => x.TinhTrang == ID_TrangThai);
             if (IDCa != null) query = query.Where(x => x.Ca == IDCa);
             if (IDPhongBan != null) query = query.Where(x => x.ID_PhongBan_SX == IDPhongBan);
-            if (IDXuong != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.ID_NhatKy == x.ID && a.ID_Xuong == IDXuong));
+            if (IDXuong != null) query = query.Where(x => x.ID_Xuong_SX == IDXuong);
             if (LyDoDung != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.ID_NhatKy == x.ID && a.LyDo_DungThietBi == LyDoDung));
             if (startDay != default && endDay != default) query = query.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay);
             if (noidungDung != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.ID_NhatKy == x.ID && (!string.IsNullOrEmpty(a.NoiDungDung) && a.NoiDungDung.ToLower().Contains(noidungDung.ToLower()))));
