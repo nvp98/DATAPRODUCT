@@ -10,7 +10,7 @@ namespace Data_Product.DTO.BM_16_DTO
         public string? MaThungGang { get; set; }
   
         public string? BKMIS_SoMe { get; set; }
-      
+        
         public string? BKMIS_ThungSo { get; set; }
      
         public string? BKMIS_Gio { get; set; }
@@ -33,6 +33,6 @@ namespace Data_Product.DTO.BM_16_DTO
        
         public string? Gio_NM { get; set; }
         public string G_GhiChu { get; set; }
-
+        public int? G_SanRaGang { get; set; }
     }
 }

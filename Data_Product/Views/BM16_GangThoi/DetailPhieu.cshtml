@@ -12,32 +12,32 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <style>
 	table th {
-	text-align: center;
+		text-align: center;
 	}
 
 	#dataTable input {
-	border-radius: 0px !important;
+		border-radius: 0px !important;
 	}
 
 	/* th.toggle-col, td.toggle-col {
-	display: none;
-	} */
+		display: none;
+		} */
 
 	.is-invalid {
-	border: 1px solid red !important;
-	background-color: #ffe6e6 !important;
+		border: 1px solid red !important;
+		background-color: #ffe6e6 !important;
 	}
 	/* td.deleteItem {
-	display: none;
-	} */
+		display: none;
+		} */
 	/* Container và table cần thiết lập overflow */
 	.table-container {
-	overflow-x: auto;
-	position: relative;
+		overflow-x: auto;
+		position: relative;
 	}
 
 	table {
-	border-collapse: collapse;
+		border-collapse: collapse;
 	}
 
 	/* Bắt đầu từ cột đầu tiên cần sticky */
@@ -168,7 +168,8 @@
 										<button type="button" class="btn btn-danger btnhuyxacnhan">
 											<i class="bi bi-x-circle me-1"></i>Hủy xác nhận
 										</button>
-									} else 
+									}
+									else
 									{
 										<button type="button" id="btnLuuThungMoi" class="btn btn-primary">
 											<i class="bi bi-save"></i> Lưu
@@ -188,7 +189,7 @@
 											Xuất Excel
 										</button>
 										<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
-									@* 	<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
+										@* 	<button id="toggleColumnsBtn" type="button" class="btn btn-outline-secondary btn-sm mb-2">
 											Ẩn/Hiện
 										</button> *@
 									}
@@ -210,6 +211,7 @@
 										<th rowspan="2" class="sticky-col thung-so">Thùng số</th>
 										<th rowspan="2" class="sticky-col gio">Giờ</th>
 										<th rowspan="2" class="sticky-col phan-loai">Phân loại</th>
+										<th rowspan="2">Sàn ra gang</th>
 										<th rowspan="2">KL thùng & xe</th>
 										<th rowspan="2">KL thùng & gang & xe</th>
 										<th rowspan="2">KL xe goong</th>
@@ -229,6 +231,7 @@
 										<th rowspan="2">Tình trạng</th>
 										<th rowspan="2" class="toggle-col">Nơi nhận </th>
 										<th rowspan="2">KL HRC</th>
+										<th rowspan="2">KL ĐÚC</th>
 										<th rowspan="2" class="toggle-col">Người chỉnh sửa </th>
 										<th rowspan="2">Chốt thùng</th>
 										<th rowspan="2">Xác nhận QLCL</th>
@@ -243,7 +246,7 @@
 								</thead>
 								<tbody>
 									@if (ViewBag.DanhSachThung != null)
-									{ 
+									{
 										foreach (var item in ViewBag.DanhSachThung)
 										{
 											<tr>
@@ -255,7 +258,7 @@
 												{
 													<td class='text-center deleteItem'>
 														@if (!item.MaThung.EndsWith(".00"))
-														{ 
+														{
 															<a class="btn btn-danger btn-sm" title="Xóa">
 																<i class="bi bi-trash"></i>
 															</a>
@@ -278,15 +281,19 @@
 												<td name="Gio" class="sticky-col gio">@item.GioNhaMay</td>
 												<td name="PhanLoai" class="sticky-col phan-loai">@item.PhanLoai</td>
 												<td>
+													<input type="number" name="G_SanRaGang" step="1" min="0" class="form-control" value="@item.G_SanRaGang"
+														   style="width: 50px; padding: 4px;" @disabledAttr />
+												</td>
+												<td>
 													<input type="number" name="KLThungVaXe" step="0.01" class="form-control" value="@item.KL_XeVaThung"
 														   style="width: 100px; padding: 4px;" @disabledAttr />
 												</td>
 												<td>
 													<input type="number" name="KLThungGangXe" step="0.01" class="form-control" value="@item.KL_XeThungVaGang"
-														   style="width: 100px; padding: 4px;"@disabledAttr />
-												</td>																				
+														   style="width: 100px; padding: 4px;" @disabledAttr />
+												</td>
 												<td>
-													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;"@disabledAttr />
+													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;" @disabledAttr />
 												</td>
 												<td>
 													<input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung" style="width: 100px; padding: 4px;" disabled>
@@ -295,14 +302,14 @@
 													<input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung_GangLong" style="width: 100px; padding: 4px;" disabled>
 												</td>
 												<td>
-													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;"disabled>
+													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;" disabled>
 												</td>
 												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM" @disabledAttr></td>
-												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;"@disabledAttr>@item.GhiChu</textarea></td>
+												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;" @disabledAttr>@item.GhiChu</textarea></td>
 												@if (PhongBan?.TenNgan == "P.QLCL")
 												{
 													<td><input type="checkbox" class="chon-thung-checkbox" /></td>
@@ -329,6 +336,7 @@
 													}
 												</td>
 												<td name="KLGangChia" style="color:red;font-weight: bold">@item.TongKL_TheoMe</td>
+												<td name="KLDuc" style="color:red;font-weight: bold">@item.KLDuc</td>
 												<td class="toggle-col">@item.NguoiLuu</td>
 												<td name="ChotThung">
 													@if (item.TrangThai == 1)
@@ -343,10 +351,10 @@
 													{
 														<button type="button" class="btn btn-success btn-sm">Đã chốt</button>
 													}
-												</td>		
+												</td>
 
 												<td name="XacNhan">
-													@if(item.XacNhan == true)
+													@if (item.XacNhan == true)
 													{
 														<span class="badge bg-success">Đã xác nhận</span>
 													}
@@ -386,7 +394,7 @@
 				$('#selectAll').prop('checked', allChecked);
 			});
 
-			
+
 			// xác nhận thùng
 			$('.btnxacnhan').click(function () {
 				const maPhieu = $('#PhieuID').val() || 0;
@@ -454,13 +462,13 @@
 			// 	isHidden = !isHidden;
 			// });
 
-			$("#btnLamMoi").click(function() {
-			
-				getLastThungIndex();
-			});
+			// $("#btnLamMoi").click(function() {
+
+			// 	getLastThungIndex();
+			// });
 
 			//  $("#btnLuuThungMoi").click(function () {
-				
+
 			// 	 saveGangThoiVaoPhieu();
 			// });
 			$('#BtnXuatPhieuExcel').on('click', function () {
@@ -471,7 +479,7 @@
 				ExportToPDF();
 				})
 			});
-			
+
 			$(document).on("click", ".deleteItem", function () {
 				const row = $(this).closest("tr");
 				const maThung = row.find('td[name="maThung"]').text().trim();
@@ -512,7 +520,7 @@
 				});
 				// ===== Function==========
 
-				$(document).ready(function () {
+		$(document).ready(function () {
 					// Đánh dấu dòng thay đổi khi người dùng nhập liệu
 					$('#dataTable tbody').on('change', 'input, textarea', function () {
 						const $row = $(this).closest('tr');
@@ -563,159 +571,51 @@
 					});
 				});
 
-			// Hàm tạo mã thùng
-		function generateMaThung(dateStr, loCao, ca, stt) {
-				const date = new Date(dateStr);
-				const dd = String(date.getDate()).padStart(2, '0');
-				const mm = String(date.getMonth() + 1).padStart(2, '0');
-				const yy = String(date.getFullYear()).slice(-2);
-				//const caChar = (ca === '1') ? 'N' : 'D';
-				const caChar = (ca === '1') ? 'N' : 'D';
-				const sttFormatted = String(stt).padStart(3, '0');
+		$(document).ready(function () {
+			  function postDongBoBkMis($btn) {
+				const maPhieu = $('#PhieuID').val()?.trim();
+				const ngayStr = $('#ID_Day').val();
+				// Ưu tiên hidden ID số; fallback sang ô hiện có nếu đã là số
+				const idLoCao = parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val());
+				const idKip   = $('#ID_Kip').val(); // đã là ID thật
+				const idCa    = parseInt($('#IDCaNum').val() || $('#IDCa').val());
+				//const token   = $('input[name="__RequestVerificationToken"]').val();
 
-				return `${dd}${mm}${yy}L${loCao}${caChar}${sttFormatted}.00`;
-		}
-			function getLastThungIndex() {
-		const maPhieu = $('#PhieuID').val()?.trim();
-		if (!maPhieu) return;
+				if (!maPhieu || !ngayStr || !idLoCao || !idKip || !idCa) {
+				  alert('Thiếu dữ liệu để đồng bộ (mã phiếu / ngày / lò cao / kíp / ca).');
+				  return;
+				}
+				if (!confirm('Làm mới cho phiếu này?')) return;
 
-		$.get("/BM16_GangThoi/GetLastThungIndex", { maPhieu }, function (data) {
-			const lastIndex = (data && data.lastStt !== undefined) ? data.lastStt : 0;
-			loadThemSoMeMoi(lastIndex);
-		});
-	}
+				const originalHtml = $btn.html();
+				$btn.prop('disabled', true).html('<i class="bi bi-arrow-clockwise"></i> Đang đồng bộ...');
 
-	function loadThemSoMeMoi(lastIndexFromServer) {
-		$("#btnLamMoi").prop("disabled", true);
-		const ngay = $("#ID_Day").val();
-		const idLoCao = $("#ID_Locao").val();
-		const idKip = $("#ID_Kip").val();
-		const idCa = $("#IDCa").val();
-		const maPhieu = $('#PhieuID').val()?.trim();
-		const tableBody = $("#dataTable tbody");
-		const soMesTrongBangHTML = [];
-		$("#dataTable tbody tr").each(function () {
-			const soMe = $(this).find("td[name='soMe']").text().trim();
-			if (soMe) soMesTrongBangHTML.push(soMe);
-		});
-
-		$.get("/BM16_GangThoi/GetSoMeDaCoTrongPhieu", { maPhieu }, function (res) {
-			const soMeHienTai = res.soMes.map(soMe => ({
-				maThung: res.data?.find(item => item.soMe === soMe)?.maThung || "",
-				soMe: soMe
-			})) || [];
-			const soMeDaCoTrongDB = res.soMes || [];
-			//console.log ("soMeDaCoTrongDB",soMeDaCoTrongDB)
-			const listSoMeHienTai = soMeHienTai.map(x => x.soMe);
-			//console.log ("listSoMeHienTai",listSoMeHienTai)
-			const updateList = [];
-
-			$.get("/BM16_GangThoi/GetSoMeGangBKMis", { ngay, ID_LoCao: idLoCao, IDKip: idKip }, function (data) {
-				const soMeMoi = data.map(item => item.testPatternCode || "");
-				//console.log ("data",data)
-				const soMeCanXoa = listSoMeHienTai.filter(x => !soMeMoi.includes(x));
-				//	console.log ("soMeCanXoa",soMeCanXoa)
-				$.get("/XeGoong/KLXeLoCao", { idlocao: idLoCao }, function (xeData) {
-					const klxe = (xeData.success && xeData.klXe) ? xeData.klXe : "";
-					let lastIndex = lastIndexFromServer || 0;
-
-					data.forEach(item => {
-						const soMe = item.testPatternCode || "";
-						const matchedList = soMeHienTai.filter(x => x.soMe === soMe);
-						//console.log("matchedList",matchedList)
-						const phanLoai = item.classifyName || "";
-						const time = item.patterntime || "";
-
-					   //if (soMeDaCoTrongDB.includes(soMe) || soMesTrongBangHTML.includes(soMe)) return;
-
-						if (matchedList.length === 0) {
-							  if (soMeDaCoTrongDB.includes(soMe) || soMesTrongBangHTML.includes(soMe)) return;
-							lastIndex++;
-							const maThung = generateMaThung(ngay, idLoCao, idCa, lastIndex);
-							const thungSo = soMe.length >= 2 ? soMe.slice(-2) : "";
-							let row = `
-								<tr class="row-new" data-new="true" data-so-me="${soMe}">
-									<td class='text-center deleteItem'><a class="btn btn-danger btn-sm"><i class="bi bi-trash"></i></a></td>
-									<td class='text-center copyItem'><a class="btn btn-secondary btn-sm"><i class="bi bi-copy"></i></a></td>
-									<td name="maThung">${maThung}</td>
-									<td name="soMe">${soMe}</td>
-									<td name="ThungSo">${thungSo}</td>
-									<td name="Gio">${time}</td>
-									<td name="PhanLoai">${phanLoai}</td>
-									<td><input name="KLThungVaXe" type="number" class="form-control" style="width: 100px;"></td>
-									<td><input type="number" name="KLThungGangXe" class="form-control" style="width: 100px;"></td>
-									<td><input type="number" name="KhoiLuongXeGoong" class="form-control" value="${klxe}" style="width: 100px;"></td>
-									<td><input name="KhoiLuongThung" type="number" class="form-control" style="width: 100px;"></td>
-									<td><input name="KLThungGangLong" type="number" class="form-control" style="width: 100px;"></td>
-									<td><input name="KLGangLong" type="number" class="form-control" style="width: 100px;"></td>
-									<td><input type="checkbox" name="VanChuyenHRC1" class="form-check-input"></td>
-									<td><input type="checkbox" name="VanChuyenHRC2" class="form-check-input"></td>
-									<td><input type="checkbox" name="VanChuyenDUC1" class="form-check-input"></td>
-									<td><input type="checkbox" name="VanChuyenDUC2" class="form-check-input"></td>
-									<td><input type="time" name="GioNM" class="form-control"></td>
-									<td><textarea name="GhiChu" class="form-control" style="width: 100px;"></textarea></td>
-									<td><input type="checkbox" class="chon-thung-checkbox"/></td>
-									<td></td>
-									<td></td>
-									<td class="toggle-col"></td>
-									<td></td>
-								</tr>`;
-							tableBody.append(row);
-						} else {
-							matchedList.forEach(matched => {
-								updateList.push({
-									MaThungGang: matched.maThung,
-									BKMIS_SoMe: soMe,
-									BKMIS_PhanLoai: phanLoai,
-									BKMIS_Gio: item.patterntime || ""
-								});
-							});
-						}
-					});
-					//console.log("updateList",updateList)
-					if (updateList.length > 0 && maPhieu) {
-						$.ajax({
-							url: "/BM16_GangThoi/CapNhatThung",
-							type: "POST",
-							contentType: "application/json",
-							data: JSON.stringify({ maPhieu, DsMaThung: updateList }),
-							success: function () {
-								alert("Đã cập nhật các thùng có trạng thái cho phép.");
-							},
-							error: function () {
-								alert("Lỗi khi cập nhật thùng.");
-							}
-						});
-					}
-
-					if (soMeCanXoa.length > 0 && maPhieu) {
-						$.ajax({
-							url: "/BM16_GangThoi/XoaNhungSoMeKhongConTrongBK",
-							type: "POST",
-							contentType: "application/json",
-							data: JSON.stringify({ maPhieu, soMes: soMeCanXoa }),
-							success: function (res) {
-								const danhSachKhongXoa = res.soMesKhongXoaDuoc || [];
-								tableBody.find("tr").each(function () {
-									const soMe = $(this).find("td[name='soMe']").text().trim();
-									if (soMeCanXoa.includes(soMe) && !danhSachKhongXoa.includes(soMe)) {
-										$(this).remove();
-									}
-								});
-							},
-							error: function () {
-								alert("Lỗi khi xóa số mẻ cũ.");
-							}
-						});
-					}
+				$.ajax({
+				  url: '/BM16_GangThoi/DongBoBkMis',
+				  type: 'POST',
+				  data: {
+					maPhieu: maPhieu,
+					ngayStr: ngayStr,
+					idLoCao: idLoCao,
+					idKip:   idKip,
+					idCa:    idCa
+					//__RequestVerificationToken: token
+				  },
+				  success: function () {
+					location.reload();
+				  },
+				  error: function (xhr) {
+					alert('Đồng bộ thất bại: ' + (xhr.responseText || 'Lỗi không xác định'));
+					$btn.prop('disabled', false).html(originalHtml);
+				  }
 				});
-			});
+			  }
 
-			setTimeout(() => {
-				$("#btnLamMoi").prop("disabled", false);
-			}, 10000);
-		});
-	}
+			  // Chỉ một nút Làm mới để gọi server
+			  $('#btnLamMoi').on('click', function () {
+				postDongBoBkMis($(this));
+			  });
+			});
 
 		function saveGangThoiVaoPhieu(callback) {
 			let phieuID = $("#PhieuID").val();
@@ -724,7 +624,7 @@
 			let ngay = $("#ID_Day").val();
 			let danhSachThung = [];
 			let isValidAll = true;
-		
+
 			$("#dataTable tbody tr[data-new='true']").each(function () {
 				let row = $(this);
 				let isValid = true;
@@ -736,7 +636,7 @@
 
 				// Xác định nơi chuyển đến
 				let chuyenDen = vanChuyenHRC1 ? "HRC1" :
-								vanChuyenHRC2 ? "HRC2" : 
+								vanChuyenHRC2 ? "HRC2" :
 								vanChuyenDUC1 ? "DUC1" :
 								vanChuyenDUC2 ? "DUC2" :
 								null;
@@ -794,10 +694,11 @@
 					G_KLThungVaGang: parseFloat(row.find("input[name='KLThungGangLong']").val()) || null,
 					G_KLGangLong: parseFloat(row.find("input[name='KLGangLong']").val()) || null,
 					ChuyenDen: chuyenDen,
-					Gio_NM : row.find("input[name='GioNM']").val() || null,
-					G_GhiChu: row.find("textarea[name='GhiChu']").val()
+					Gio_NM : row.find("input[name='GioNM']").val() || null, 
+					G_GhiChu: row.find("textarea[name='GhiChu']").val(),
+					G_SanRaGang : row.find("input[name='G_SanRaGang']").val()
 				});
-				//console.log('danhSachThung',danhSachThung)	
+				//console.log('danhSachThung',danhSachThung)
 			});
 				if (!isValidAll) {
 				alert("Vui lòng kiểm tra lại các ô dữ liệu bị đánh dấu đỏ.");
@@ -816,7 +717,7 @@
 				DanhSachThung: danhSachThung
 			};
 
-			///console.log("==dataToSend==",dataToSend)
+			//console.log("==dataToSend==",dataToSend)
 
 			$.ajax({
 				url: "/BM16_GangThoi/SaveThung",
@@ -868,7 +769,7 @@
 					$klThungGangXeInput
 						.attr("title", "KL Thùng & Gang + Xe < KL Xe Goòng")
 						.addClass("tooltip-error");
-				}				
+				}
 			});
 
 
@@ -876,6 +777,7 @@
 			function tinhTongKL() {
 				let tong = 0;
 				let tongKLGangChia = 0;
+				let tongKLDuc = 0;
 
 				$('input[name="KLGangLong"]').each(function() {
 					let val = parseFloat($(this).val());
@@ -889,16 +791,23 @@
 						tongKLGangChia += val;
 					}
 				});
+				$('td[name="KLDuc"]').each(function() {
+					let val = parseFloat($(this).text());
+					if (!isNaN(val)) {
+						tongKLDuc += val;
+					}
+				});
 				$('#dataTable tbody tr.tong-row').remove();
 
 			let tongRow = `
 				<tr class="tong-row" style="font-weight:bold; background-color:#f0f0f0;">
 					<td colspan="3"></td>
 					<td>${soLuongMe}</td>
-					<td colspan="8"></td>
-					<td>${tong.toFixed(2)}</td>					
+					<td colspan="9"></td>
+					<td>${tong.toFixed(2)}</td>
 					<td colspan="8"></td>
 					<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
+					<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
 					<td colspan="3"></td>
 				</tr>
 			`;
@@ -907,7 +816,7 @@
 			}
 			tinhTongKL();
 				});
-		
+
 	function exportExcel(maPhieu) {
 			if (!maPhieu) {
 				alert("Không có mã phiếu!");
@@ -992,7 +901,7 @@
 			});
 
 			//console.log('clonedRow====',clonedRow)
-			
+
 			// Chèn vào đúng vị trí theo thứ tự tăng dần mã thùng
 			let inserted = false;
 			$("#dataTable tbody tr").each(function () {
@@ -1081,6 +990,7 @@
 							row.find('input[name="VanChuyenHRC2"]').is(':checked') ? "HRC2" :
 							row.find('input[name="VanChuyenDUC1"]').is(':checked') ? "DUC1" :
 							row.find('input[name="VanChuyenDUC2"]').is(':checked') ? "DUC2" : null;
+				const gSanRaGang = parseFloat(row.find('input[name="G_SanRaGang"]').val()) || null;
 
 			danhSach.push({
 				MaPhieu: '@ViewBag.MaPhieu',
@@ -1097,7 +1007,8 @@
 				G_KLGangLong: parseFloat(row.find('input[name="KLGangLong"]').val()) || null,
 				Gio_NM: row.find('input[name="GioNM"]').val() || null,
 				G_GhiChu: row.find('textarea[name="GhiChu"]').val() || null,
-				ChuyenDen: chuyenDen
+				ChuyenDen: chuyenDen,
+				G_SanRaGang: gSanRaGang
 			});
 		});
 

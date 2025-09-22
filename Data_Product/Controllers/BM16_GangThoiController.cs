@@ -42,10 +42,13 @@ namespace Data_Product.Controllers
         private readonly ICompositeViewEngine _viewEngine;
         private readonly ILogger<BM16_GangThoiController> _logger;
         private readonly IChiaGangService _chiaGangService;
-        public BM16_GangThoiController(DataContext _context, ICompositeViewEngine viewEngine, ILogger<BM16_GangThoiController> logger, IChiaGangService chiaGangService)
+        private readonly GetBkmisService _getBKmisService;
+
+        public BM16_GangThoiController(DataContext _context, ICompositeViewEngine viewEngine, ILogger<BM16_GangThoiController> logger, IChiaGangService chiaGangService, GetBkmisService getBkmisService)
         {
             this._context = _context;
             this._chiaGangService = chiaGangService;
+            this._getBKmisService = getBkmisService;
             _viewEngine = viewEngine;
             _logger = logger;
         }
@@ -585,6 +588,59 @@ namespace Data_Product.Controllers
                     })
                     .OrderBy(x => x.SoMe)
                     .ToListAsync();
+            // 1) Lấy % đúc
+            var phanTramDuc = await _context.Tbl_BM_16_PhanTramDuc
+                .Where(x => x.ID == 1)
+                .FirstOrDefaultAsync();
+
+            decimal phanTramDucValue = phanTramDuc?.PhanTram ?? 0m;
+
+            // 2) Gom theo "Số Mẻ" (BKMIS_SoMe) và chuẩn bị các tổng cần thiết
+            //    - SumG: chỉ cộng ở bản ghi gốc (T_Copy == false)
+            //    - SumT: cộng toàn bộ T_KLGangLong
+            //    - SumChiaRaw: tổng KLGangChia (kể cả khi tất cả là null/0)
+            //    - HasChia: có ít nhất 1 bản ghi có KLGangChia hợp lệ (> 0)
+            var tongKLTheoMeRaw = await _context.Tbl_BM_16_GangLong
+                .Where(t => t.MaPhieu == id
+                         && t.ChuyenDen != "HRC1"
+                         && t.ChuyenDen != "HRC2"
+                         && !string.IsNullOrEmpty(t.BKMIS_SoMe))
+                .GroupBy(t => t.BKMIS_SoMe)
+                .Select(g => new
+                {
+                    SoMe = g.Key,
+                    SumG = g.Where(x => x.T_copy == false).Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
+                    SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m,
+                    SumChiaRaw = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
+                    HasChia = g.Any(x => x.KLGangChia != null && x.KLGangChia > 0),
+                    ChuyenDen = g.Select(x => x.ChuyenDen).FirstOrDefault()
+                })
+                .ToListAsync();
+
+            // 3) Áp logic JS: nếu không có KLGangChia hợp lệ → SumChia = 0; ngược lại = SumChiaRaw
+            var tongKLTheoMe = tongKLTheoMeRaw
+                .Select(x => new
+                {
+                    x.SoMe,
+                    x.SumG,
+                    x.SumT,
+                    SumChia = x.HasChia ? x.SumChiaRaw : 0m,
+                    x.ChuyenDen
+                })
+                .ToList();
+
+            // 4) Tính KL_Đúc cho từng "Số Mẻ"
+            //    Base = (SumChia > 0 ? SumChia : SumT)
+            //    KL_Đúc = (SumG - Base) * (%Đúc / 100)
+            var klDucByMe = tongKLTheoMe.ToDictionary(
+                x => x.SoMe,
+                x =>
+                {
+                    var @base = x.SumChia > 0m ? x.SumChia : x.SumT;
+                    var value = (x.SumG - @base) * (phanTramDucValue / 100m);
+                    return Math.Round(value, 2);
+                }
+            );
 
             // Chuyển sang view model nhẹ cho hiển thị
             var viewData = danhSachThung.Select(t => new
@@ -613,8 +669,13 @@ namespace Data_Product.Controllers
                 : null,
                 NguoiNhanList = userStats.ContainsKey(t.MaThungGang) ? userStats[t.MaThungGang] : new List<string>(),
                 XacNhan = t.XacNhan,
+                G_SanRaGang = t.G_SanRaGang,
                 TongKL_TheoMe = tongTheoMe.FirstOrDefault(x => x.SoMe == t.BKMIS_SoMe)?.Tong ?? 0m,
-
+                KLDuc = (t.ChuyenDen == "DUC1" || t.ChuyenDen == "DUC2")
+                    && !string.IsNullOrEmpty(t.BKMIS_SoMe)
+                    && klDucByMe.TryGetValue(t.BKMIS_SoMe, out var klducVal)
+                        ? (decimal?)klducVal
+                        : null,
                 // Dùng để sort:
                 //MaThungPrefix = t.MaThungGang.Split('.')[0],
                 //MaThungSuffix = int.Parse(t.MaThungGang.Split('.')[1])
@@ -646,7 +707,9 @@ namespace Data_Product.Controllers
                     x.NguoiLuu,
                     x.NguoiNhanList,
                     x.XacNhan,
-                    x.TongKL_TheoMe
+                    x.TongKL_TheoMe,
+                    x.KLDuc,
+                    x.G_SanRaGang
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
@@ -747,7 +810,8 @@ namespace Data_Product.Controllers
                         T_ID_TrangThai = (item.ChuyenDen == "DUC1" || item.ChuyenDen == "DUC2") ? 4 : 2,
                         ID_TrangThai = 2,
                         T_copy = false,
-                        NgayLuyenGang = DateTime.Now
+                        NgayLuyenGang = DateTime.Now,
+                        G_SanRaGang = item.G_SanRaGang
                     };
 
                     _context.Tbl_BM_16_GangLong.Add(gangThoi);
@@ -797,6 +861,7 @@ namespace Data_Product.Controllers
                 thung.Gio_NM = item.Gio_NM;
                 thung.ChuyenDen = item.ChuyenDen;
                 thung.G_ID_NguoiLuu = idNhanVienLuu;
+                thung.G_SanRaGang = item.G_SanRaGang;
 
 
                 bool daNhan = await _context.Tbl_BM_16_TaiKhoan_Thung.AnyAsync(x => x.MaThungGang == thung.MaThungGang);
@@ -831,6 +896,7 @@ namespace Data_Product.Controllers
                     copy.Gio_NM = item.Gio_NM;
                     copy.ChuyenDen = item.ChuyenDen;
                     copy.G_ID_NguoiLuu = idNhanVienLuu;
+                    copy.G_SanRaGang = item.G_SanRaGang;
 
                     copy.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : copy.T_ID_TrangThai;
                     copy.G_ID_TrangThai = duDuLieu ? 3 : 1;
@@ -846,98 +912,6 @@ namespace Data_Product.Controllers
                 await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(thung.MaThungGang);
             }
             return Ok("Đã cập nhật thành công.");
-        }
-        [HttpPost]
-        public async Task <IActionResult> CapNhatThung([FromBody] CapNhatRequest req)
-        {
-            if (req == null || string.IsNullOrEmpty(req.MaPhieu) || req.DsMaThung == null || !req.DsMaThung.Any())
-            {
-                return BadRequest("Danh sách cập nhật rỗng.");
-            }
-            //ChuaXuLy = 1, ChoXuLy = 2, DaXuLy = 3, DaNhan = 4, DaChot = 5
-            var danhSachTrung = new List<string>();
-            foreach (var item in req.DsMaThung)
-            {
-                // check duplicate 
-                var isDuplicateSoMe = _context.Tbl_BM_16_GangLong.Any(x =>
-                                    x.MaPhieu == req.MaPhieu &&
-                                    x.BKMIS_SoMe == item.BKMIS_SoMe &&
-                                    x.MaThungGang != item.MaThungGang);
-
-                if (isDuplicateSoMe)
-                {
-                    danhSachTrung.Add(item.BKMIS_SoMe);
-                    continue;
-                }
-                var thung = _context.Tbl_BM_16_GangLong
-                    .FirstOrDefault(x => x.MaPhieu == req.MaPhieu 
-                        && x.MaThungGang == item.MaThungGang 
-                        && x.BKMIS_SoMe == item.BKMIS_SoMe
-                        && (x.G_ID_TrangThai == 1 || x.G_ID_TrangThai == 3)
-                        && x.XacNhan == false
-                        && ( x.T_ID_TrangThai == 2 || x.T_ID_TrangThai == 4)
-                        &&  x.ID_TrangThai == 2 ) ;
-
-                if (thung != null)
-                {
-                    thung.BKMIS_PhanLoai = item.BKMIS_PhanLoai;
-                    thung.BKMIS_Gio = item.BKMIS_Gio;
-                    //thung.BKMIS_SoMe = item.BKMIS_SoMe;
-                    thung.BKMIS_ThungSo = !string.IsNullOrEmpty(item.BKMIS_SoMe) && item.BKMIS_SoMe.Length >= 2
-                    ? item.BKMIS_SoMe.Substring(item.BKMIS_SoMe.Length - 2): null;
-                }
-            }
-            await _context.SaveChangesAsync();
-            return Ok(new { success = true });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> XoaNhungSoMeKhongConTrongBK([FromBody] XoaSoMeRequest req)
-        {
-            if (req == null || string.IsNullOrEmpty(req.MaPhieu) ||req.SoMes == null || !req.SoMes.Any())
-            {
-                return BadRequest("Danh sách số mẻ cần xóa bị trống.");
-            }
-            //ChuaXuLy = 1, ChoXuLy = 2, DaXuLy = 3, DaNhan = 4, DaChot = 5
-            try
-            {
-                var allThung = await _context.Tbl_BM_16_GangLong
-                    .Where(x => x.MaPhieu == req.MaPhieu && req.SoMes.Contains(x.BKMIS_SoMe))
-                    .ToListAsync();
-
-                // Những thùng được phép xóa
-                var thungCanXoa = allThung
-                  .Where(x => (x.XacNhan == false || x.XacNhan == null)
-                  && (x.G_ID_TrangThai == 1 || x.G_ID_TrangThai == 3)
-                  && x.T_ID_TrangThai == 2
-                  && x.ID_TrangThai == 2
-                  )
-                  .ToList();
-
-                // Những số mẻ không được xóa (đã xác nhận hoặc trạng thái khác)
-                var soMesKhongXoaDuoc = allThung
-                    .Where(x => !thungCanXoa.Contains(x))
-                    .Select(x => x.BKMIS_SoMe)
-                    .Distinct()
-                    .ToList();
-
-                if (thungCanXoa.Any())
-                {
-                    _context.Tbl_BM_16_GangLong.RemoveRange(thungCanXoa);
-                    await _context.SaveChangesAsync();
-                }
-
-                return Ok(new
-                {
-                    success = true,
-                    message = thungCanXoa.Any() ? "Đã xóa thành công." : "Không có thùng nào cần xóa.",
-                    thungdaxoa = thungCanXoa
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Lỗi khi xóa.", error = ex.Message });
-            }
         }
 
         [HttpPost]
@@ -1064,39 +1038,6 @@ namespace Data_Product.Controllers
                 return BadRequest(new { success = false, message = "Lỗi khi hủy xác nhận thùng", error = ex.Message });
             }
         }
-        [HttpGet]
-        public IActionResult GetLastThungIndex(string maPhieu)
-        {
-            var lastStt = _context.Tbl_BM_16_GangLong
-                .Where(x => x.MaPhieu == maPhieu)
-                .Select(x => x.MaThungGang)
-                .ToList()
-                .Select(ma =>
-                {
-                    var match = Regex.Match(ma ?? "", @"(\d{3})\.00$");
-                    return match.Success ? int.Parse(match.Groups[1].Value) : 0;
-                })
-                .DefaultIfEmpty(0)
-                .Max();
-
-            return Ok(new { lastStt });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetSoMeDaCoTrongPhieu(string maPhieu)
-        {
-            var list = await _context.Tbl_BM_16_GangLong
-                .Where(x => x.MaPhieu == maPhieu)
-                .Select(x => new { soMe = x.BKMIS_SoMe, maThung = x.MaThungGang })
-                .ToListAsync();
-
-            return Json(new
-            {
-                success = true,
-                soMes = list.Select(x => x.soMe).ToList(),
-                data = list
-            });
-        }
 
         public async Task<IActionResult> ExportToExcel(string MaPhieu)
         {
@@ -1117,6 +1058,70 @@ namespace Data_Product.Controllers
                     .ThenBy(x => x.MaThungSuffix)
                     .Select(x => x.Thung)
                     .ToList();
+                // 3) Sum by SoMe (for the "Tổng KL theo Mẻ" column)
+                var tongTheoMeDict = await _context.Tbl_BM_16_GangLong
+                    .Where(t => t.MaPhieu == MaPhieu && !string.IsNullOrEmpty(t.BKMIS_SoMe))
+                    .GroupBy(t => t.BKMIS_SoMe)
+                    .Select(g => new
+                    {
+                        SoMe = g.Key,
+                        Tong = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0m)) ?? 0m
+                    })
+                    .ToDictionaryAsync(k => k.SoMe, v => v.Tong);
+                // 1) Lấy % đúc
+                var phanTramDuc = await _context.Tbl_BM_16_PhanTramDuc
+                    .Where(x => x.ID == 1)
+                    .FirstOrDefaultAsync();
+
+                decimal phanTramDucValue = phanTramDuc?.PhanTram ?? 0m;
+
+                // 2) Gom theo "Số Mẻ" (BKMIS_SoMe) và chuẩn bị các tổng cần thiết
+                //    - SumG: chỉ cộng ở bản ghi gốc (T_Copy == false)
+                //    - SumT: cộng toàn bộ T_KLGangLong
+                //    - SumChiaRaw: tổng KLGangChia (kể cả khi tất cả là null/0)
+                //    - HasChia: có ít nhất 1 bản ghi có KLGangChia hợp lệ (> 0)
+                var tongKLTheoMeRaw = await _context.Tbl_BM_16_GangLong
+                    .Where(t => t.MaPhieu == MaPhieu
+                             && t.ChuyenDen != "HRC1"
+                             && t.ChuyenDen != "HRC2"
+                             && !string.IsNullOrEmpty(t.BKMIS_SoMe))
+                    .GroupBy(t => t.BKMIS_SoMe)
+                    .Select(g => new
+                    {
+                        SoMe = g.Key,
+                        SumG = g.Where(x => x.T_copy == false).Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
+                        SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m,
+                        SumChiaRaw = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
+                        HasChia = g.Any(x => x.KLGangChia != null && x.KLGangChia > 0),
+                        ChuyenDen = g.Select(x => x.ChuyenDen).FirstOrDefault()
+                    })
+                    .ToListAsync();
+
+                // 3) Áp logic JS: nếu không có KLGangChia hợp lệ → SumChia = 0; ngược lại = SumChiaRaw
+                var tongKLDucTheoMe = tongKLTheoMeRaw
+                    .Select(x => new
+                    {
+                        x.SoMe,
+                        x.SumG,
+                        x.SumT,
+                        SumChia = x.HasChia ? x.SumChiaRaw : 0m,
+                        x.ChuyenDen
+                    })
+                    .ToList();
+
+                // 4) Tính KL_Đúc cho từng "Số Mẻ"
+                //    Base = (SumChia > 0 ? SumChia : SumT)
+                //    KL_Đúc = (SumG - Base) * (%Đúc / 100)
+                var klDucByMe = tongKLDucTheoMe.ToDictionary(
+                    x => x.SoMe,
+                    x =>
+                    {
+                        var @base = x.SumChia > 0m ? x.SumChia : x.SumT;
+                        var value = (x.SumG - @base) * (phanTramDucValue / 100m);
+                        return Math.Round(value, 2);
+                    }
+                );
+
                 // Lấy thông tin dòng đầu tiên (vì tất cả chung MaPhieu)
                 var firstItem = dsachthung.First();
                 var ngayLuyen = firstItem.NgayLuyenGang?.ToString("dd/MM/yyyy") ?? "";
@@ -1137,17 +1142,17 @@ namespace Data_Product.Controllers
                     {
                         var worksheet = workbook.Worksheet("Sheet1");
 
-
                         var infoRange = worksheet.Range("A5:R5");
                         infoRange.Merge();
                         infoRange.Value = $"Ngày luyện: {ngayLuyen} - Ca: {ca} - Kíp: {tenKip} - Lò cao: {tenLoCao}";
                         infoRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         infoRange.Style.Font.SetBold();
-                        // Xóa dữ liệu cũ (nếu có)
+
+                        // Xóa dữ liệu cũ (nếu có) (mở rộng vùng tới U để chắc chắn bao phủ cột mới)
                         var lastRow = Math.Max(worksheet.LastRowUsed()?.RowNumber() ?? 8, 8);
                         if (lastRow >= 9)
                         {
-                            var rangeClear = worksheet.Range($"A9:AE{lastRow}");
+                            var rangeClear = worksheet.Range($"A9:U{lastRow}");
                             rangeClear.Clear(XLClearOptions.Contents | XLClearOptions.NormalFormats);
                         }
 
@@ -1157,69 +1162,107 @@ namespace Data_Product.Controllers
                         {
                             int icol = 1;
 
-                            worksheet.Cell(row, icol++).Value = stt++;                               // A: STT
-                            worksheet.Cell(row, icol++).Value = item.MaThungGang;                    // B
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_SoMe;                     // C
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_ThungSo;                  // D
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_Gio;                      // E
-                            worksheet.Cell(row, icol++).Value = item.BKMIS_PhanLoai;                 // F
+                            worksheet.Cell(row, icol++).Value = stt++;                // A: STT (1)
+                            worksheet.Cell(row, icol++).Value = item.MaThungGang;     // B (2)
+                            worksheet.Cell(row, icol++).Value = item.BKMIS_SoMe;      // C (3)
+                            worksheet.Cell(row, icol++).Value = item.BKMIS_ThungSo;   // D (4)
+                            worksheet.Cell(row, icol++).Value = item.BKMIS_Gio;       // E (5)
+                            worksheet.Cell(row, icol++).Value = item.BKMIS_PhanLoai;  // F (6)
 
-                            var cell7 = worksheet.Cell(row, icol++);                                 // G
+                            // NEW COLUMN: G_SanRaGang -> G (7)
+                            worksheet.Cell(row, icol++).Value = item.G_SanRaGang;     // G (7) - đảm bảo property tồn tại
+
+                            // KL_XeGoong giờ ở cột H (8)
+                            var cellKLXe = worksheet.Cell(row, icol++);
                             if (item.KL_XeGoong.HasValue)
                             {
-                                cell7.Value = item.KL_XeGoong.Value;
-                                cell7.Style.NumberFormat.Format = "0.00";
-                                cell7.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cell7.Style.Font.Bold = true;
+                                cellKLXe.Value = item.KL_XeGoong.Value;
+                                cellKLXe.Style.NumberFormat.Format = "0.00";
+                                cellKLXe.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellKLXe.Style.Font.Bold = true;
                             }
 
-                            var cell8 = worksheet.Cell(row, icol++);                                 // H
+                            // G_KLThungChua -> I (9)
+                            var cellThungChua = worksheet.Cell(row, icol++);
                             if (item.G_KLThungChua.HasValue)
                             {
-                                cell8.Value = item.G_KLThungChua.Value;
-                                cell8.Style.NumberFormat.Format = "0.00";
-                                cell8.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cell8.Style.Font.Bold = true;
+                                cellThungChua.Value = item.G_KLThungChua.Value;
+                                cellThungChua.Style.NumberFormat.Format = "0.00";
+                                cellThungChua.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellThungChua.Style.Font.Bold = true;
                             }
 
-                            var cell9 = worksheet.Cell(row, icol++);                                 // I
+                            // G_KLThungVaGang -> J (10)
+                            var cellThungVaGang = worksheet.Cell(row, icol++);
                             if (item.G_KLThungVaGang.HasValue)
                             {
-                                cell9.Value = item.G_KLThungVaGang.Value;
-                                cell9.Style.NumberFormat.Format = "0.00";
-                                cell9.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cell9.Style.Font.Bold = true;
+                                cellThungVaGang.Value = item.G_KLThungVaGang.Value;
+                                cellThungVaGang.Style.NumberFormat.Format = "0.00";
+                                cellThungVaGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellThungVaGang.Style.Font.Bold = true;
                             }
 
-                            var cell10 = worksheet.Cell(row, icol++);                                // J
+                            // G_KLGangLong -> K (11)
+                            var cellGangLong = worksheet.Cell(row, icol++);
                             if (item.G_KLGangLong.HasValue)
                             {
-                                cell10.Value = item.G_KLGangLong.Value;
-                                cell10.Style.NumberFormat.Format = "0.00";
-                                cell10.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                                cell10.Style.Font.Bold = true;
+                                cellGangLong.Value = item.G_KLGangLong.Value;
+                                cellGangLong.Style.NumberFormat.Format = "0.00";
+                                cellGangLong.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellGangLong.Style.Font.Bold = true;
                             }
 
+                            // Chuyển đích: HRC1..DUC2
                             var chuyenDenStr = item.ChuyenDen ?? "";
-                            var denList = chuyenDenStr.Split(',').Select(x => x.Trim()).ToList();
+                            var denList = chuyenDenStr.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                                      .Select(x => x.Trim())
+                                                      .ToList();
 
-                            // Các cột K (11), L (12), M (13), N (14)
-                            worksheet.Cell(row, 11).Value = denList.Contains("HRC1") ? "X" : ""; // NM.HRC1 ở cột K
-                            worksheet.Cell(row, 12).Value = denList.Contains("HRC2") ? "X" : ""; // NM.HRC2 ở cột L
-                            worksheet.Cell(row, 13).Value = denList.Contains("DUC1") ? "X" : ""; // NM.DUC1 ở cột M
-                            worksheet.Cell(row, 14).Value = denList.Contains("DUC2") ? "X" : ""; // NM.DUC2 ở cột N
+                            worksheet.Cell(row, 12).Value = denList.Contains("HRC1") ? "X" : ""; // L (12)
+                            worksheet.Cell(row, 13).Value = denList.Contains("HRC2") ? "X" : ""; // M (13)
+                            worksheet.Cell(row, 14).Value = denList.Contains("DUC1") ? "X" : ""; // N (14)
+                            worksheet.Cell(row, 15).Value = denList.Contains("DUC2") ? "X" : ""; // O (15)
 
-                            icol = 15;
-                            worksheet.Cell(row, icol++).Value = item.Gio_NM;                         // O
-                            worksheet.Cell(row, icol++).Value = item.G_GhiChu;                       // P
-                            RenderTrangThaiCell(worksheet.Cell(row, 17), item.G_ID_TrangThai);   // cột Q
-                            RenderTrangThaiCell(worksheet.Cell(row, 18), item.ID_TrangThai);
+                            // Tiếp tục: Gio_NM -> P (16)
+                            worksheet.Cell(row, 16).Value = item.Gio_NM;
+                            // Ghi chú -> Q (17)
+                            worksheet.Cell(row, 17).Value = item.G_GhiChu;
+
+                            // Trạng thái -> R (18), S (19)
+                            RenderTrangThaiCell(worksheet.Cell(row, 18), item.G_ID_TrangThai); // R
+                            RenderTrangThaiCell(worksheet.Cell(row, 19), item.ID_TrangThai);   // S
+
+                            // Tổng KL theo Mẻ (SoMe) -> T (20)
+                            decimal tongKLTheoMe = 0m;
+                            if (!string.IsNullOrWhiteSpace(item.BKMIS_SoMe))
+                                tongKLTheoMe = tongTheoMeDict.TryGetValue(item.BKMIS_SoMe, out var val) ? val : 0m;
+
+                            var cellTongMe = worksheet.Cell(row, 20);
+                            cellTongMe.Value = tongKLTheoMe;
+                            cellTongMe.Style.NumberFormat.Format = "0.00";
+                            cellTongMe.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                            cellTongMe.Style.Font.Bold = true;
+
+                            // KL_Đúc -> U (21)
+                            var cellKLDuc = worksheet.Cell(row, 21);
+                            bool isDuc = denList.Contains("DUC1") || denList.Contains("DUC2");
+                            if (isDuc && !string.IsNullOrEmpty(item.BKMIS_SoMe)
+                                     && klDucByMe.TryGetValue(item.BKMIS_SoMe, out var klducVal))
+                            {
+                                cellKLDuc.Value = klducVal;
+                                cellKLDuc.Style.NumberFormat.Format = "#,##0.00";
+                                cellKLDuc.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellKLDuc.Style.Font.Bold = true;
+                            }
 
                             worksheet.Row(row).Height = 25;
 
-                            for (int col = 1; col <= 18; col++)
+                            // Chuẩn hóa NumberFormat (nếu cần) cho tất cả cột đến U (21)
+                            for (int col = 1; col <= 21; col++)
                             {
-                                worksheet.Cell(row, col).Style.NumberFormat.SetNumberFormatId(0);
+                                // Chỉ reset về General cho các ô chưa đặt riêng
+                                if (worksheet.Cell(row, col).Style.NumberFormat.Format == "")
+                                    worksheet.Cell(row, col).Style.NumberFormat.SetNumberFormatId(0);
                             }
 
                             row++;
@@ -1227,29 +1270,40 @@ namespace Data_Product.Controllers
 
                         // Dòng tổng
                         int sumRow = row;
-                        var totalLabel = worksheet.Range($"A{sumRow}:I{sumRow}");
+                        // Mở rộng label đến cột trước cột số liệu đầu tiên tính tổng K (11) => tức J (10) => index 10 = J
+                        var totalLabel = worksheet.Range($"A{sumRow}:J{sumRow}");
                         totalLabel.Merge();
                         totalLabel.Value = "Tổng:";
                         totalLabel.Style.Font.SetBold();
                         totalLabel.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                        // Tổng cột J (cột 10 - G_KLGangLong)
-                        worksheet.Cell(sumRow, 10).FormulaA1 = $"=SUM(J9:J{row - 1})";
-                        worksheet.Cell(sumRow, 10).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 10).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng G_KLGangLong: cột K (11)
+                        worksheet.Cell(sumRow, 11).FormulaA1 = $"=SUM(K9:K{row - 1})";
+                        worksheet.Cell(sumRow, 11).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 11).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 11).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Format toàn bảng A8:R{sumRow}
-                        var usedRange = worksheet.Range($"A9:R{sumRow}");
-                        usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
+                        // Tổng T (20) = Tổng KL theo Mẻ
+                        worksheet.Cell(sumRow, 20).FormulaA1 = $"=SUM(T9:T{row - 1})";
+                        worksheet.Cell(sumRow, 20).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 20).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 20).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                        // Tổng U (21) = KL_Đúc
+                        worksheet.Cell(sumRow, 21).FormulaA1 = $"=SUM(U9:U{row - 1})";
+                        worksheet.Cell(sumRow, 21).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 21).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 21).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                        // Format vùng dữ liệu (A9:U{sumRow})
+                        var usedRange = worksheet.Range($"A9:U{sumRow}");
+                        usedRange.Style.Font.SetFontName("Times New Roman").Font.SetFontSize(11);
                         usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                         usedRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         usedRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                         usedRange.Style.Alignment.WrapText = true;
 
-
-                        // Chiều cao dòng
                         for (int i = 9; i <= sumRow; i++)
                         {
                             worksheet.Row(i).Height = 25;
@@ -1551,6 +1605,145 @@ namespace Data_Product.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> DongBoBkMis(string maPhieu, string ngayStr, int idLoCao, string idKip, int idCa)
+        {
+            if (string.IsNullOrWhiteSpace(maPhieu) || !DateTime.TryParse(ngayStr, out var ngay))
+            {
+                TempData["msgError"] = "Thiếu dữ liệu đồng bộ.";
+                return RedirectToAction(nameof(DetailPhieu), new { id = maPhieu });
+            }
 
+            // 1. Lấy danh sách thùng trong phiếu hiện tại
+            var thungTrongPhieu = await _context.Tbl_BM_16_GangLong
+                .Where(x => x.MaPhieu == maPhieu)
+                .ToListAsync();
+
+            // Map số mẻ -> thùng trong phiếu này
+            //var mapSoMeToThung = thungTrongPhieu
+            //  .Where(x => !string.IsNullOrEmpty(x.BKMIS_SoMe))
+            //    .ToDictionary(x => x.BKMIS_SoMe, x => x);
+
+            var mapSoMeToThung = thungTrongPhieu
+            .Where(x => !string.IsNullOrEmpty(x.BKMIS_SoMe))
+            .GroupBy(x => x.BKMIS_SoMe)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+            // 2. Lấy dữ liệu mới từ BK-MIS
+            var bkData = await _getBKmisService.GetSoMeBKMisAsync(ngayStr, idLoCao, idKip);
+            var klXe = await _getBKmisService.GetKhoiLuongXeLoCaoAsync(idLoCao);
+
+            var soMeBK = bkData
+                .Select(x => x.TestPatternCode)
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToHashSet();
+
+            int cntUpdate = 0, cntInsert = 0, cntDelete = 0;
+
+            // 3. Lấy số thứ tự (stt) lớn nhất hiện có trong danh sách mã thùng
+            int lastStt = thungTrongPhieu
+                .Select(x => x.MaThungGang)
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Select(ma =>
+                {
+                    // Regex lấy 3 chữ số trước ".00" ở cuối chuỗi
+                    var m = System.Text.RegularExpressions.Regex.Match(ma, @"(\d{3})\.00$");
+                    return m.Success ? int.Parse(m.Groups[1].Value) : 0;
+                })
+                .DefaultIfEmpty(0)
+                .Max();
+
+            // 4. Cập nhật hoặc thêm mới thùng
+            foreach (var rec in bkData)
+            {
+                var soMe = rec.TestPatternCode;
+                if (string.IsNullOrEmpty(soMe)) continue;
+
+                if (mapSoMeToThung.TryGetValue(soMe, out var danhSachThung))
+                {
+                    foreach (var thung in danhSachThung)
+                    {
+                        // Kiểm tra trạng thái thùng cho phép cập nhật
+                        bool choPhepCapNhat =
+                            (thung.G_ID_TrangThai == 1 || thung.G_ID_TrangThai == 3) &&
+                            thung.XacNhan == false &&
+                            (thung.T_ID_TrangThai == 2 || thung.T_ID_TrangThai == 4) &&
+                            thung.ID_TrangThai == 2;
+
+                        if (!choPhepCapNhat) continue;
+
+                        // Cập nhật thông tin mới từ BK-MIS
+                        thung.BKMIS_PhanLoai = rec.ClassifyName;
+                        thung.BKMIS_Gio = rec.Patterntime ?? string.Empty;
+                        thung.BKMIS_ThungSo = soMe.Length >= 2 ? soMe[^2..] : null;
+
+                        cntUpdate++;
+                    }
+                }
+                else
+                {
+                    // Thêm mới thùng → tăng lastStt lên 1 rồi tạo mã mới
+                    lastStt++;
+
+                    var maThung = GenerateMaThung(ngay, idLoCao, idCa, lastStt);
+                    var thungSo = soMe.Length >= 2 ? soMe[^2..] : null;
+
+                    _context.Tbl_BM_16_GangLong.Add(new Tbl_BM_16_GangLong
+                    {
+                        MaPhieu = maPhieu,
+                        MaThungGang = maThung,
+                        BKMIS_SoMe = soMe,
+                        BKMIS_ThungSo = thungSo,
+                        BKMIS_Gio = rec.Patterntime ?? string.Empty,
+                        BKMIS_PhanLoai = rec.ClassifyName,
+                        KL_XeGoong = klXe,
+                        G_ID_TrangThai = 1,
+                        T_ID_TrangThai = 2,
+                        ID_TrangThai = 2,
+                        T_copy = false,
+                        ID_Locao = idLoCao,
+                        G_ID_Kip = int.TryParse(idKip, out var kipInt2) ? kipInt2 : 0,
+                        G_Ca = idCa,
+                        NgayLuyenGang = DateTime.Now,
+                        NgayTao = DateTime.Now
+                    });
+
+                    cntInsert++;
+                }
+            }
+
+            // 5. Xóa thùng có số mẻ không còn trong BK-MIS
+            var thungCanXoa = thungTrongPhieu
+                .Where(x => !soMeBK.Contains(x.BKMIS_SoMe))
+                .Where(x =>
+                    (x.XacNhan == false || x.XacNhan == null) &&
+                    (x.G_ID_TrangThai == 1 || x.G_ID_TrangThai == 3) &&
+                    x.T_ID_TrangThai == 2 &&
+                    x.ID_TrangThai == 2)
+                .ToList();
+
+            cntDelete = thungCanXoa.Count;
+
+            if (cntDelete > 0)
+                _context.Tbl_BM_16_GangLong.RemoveRange(thungCanXoa);
+
+            await _context.SaveChangesAsync();
+
+            TempData["msgSuccess"] = $"Đồng bộ BK-MIS: cập nhật {cntUpdate}, thêm mới {cntInsert}, xóa {cntDelete}.";
+
+            return RedirectToAction(nameof(DetailPhieu), new { id = maPhieu });
+        }
+
+        private static string GenerateMaThung(DateTime date, int loCao, int ca, int stt)
+        {
+            string dd = date.Day.ToString("00");
+            string mm = date.Month.ToString("00");
+            string yy = (date.Year % 100).ToString("00");
+            string caChar = (ca == 1) ? "N" : "D"; // 1: N, else: D
+            string sttFormatted = stt.ToString("000");
+            return $"{dd}{mm}{yy}L{loCao}{caChar}{sttFormatted}.00";
+        }
+
+      
     }
 }
