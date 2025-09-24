@@ -950,7 +950,7 @@ namespace Data_Product.Controllers
                 var maThungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
 
                 var thungs = await _context.Tbl_BM_16_GangLong
-                    .Where(t => t.MaPhieu == req.MaPhieu && maThungList.Contains(t.MaThungGang) && t.T_copy == false)
+                    .Where(t => t.MaPhieu == req.MaPhieu && maThungList.Contains(t.MaThungGang))
                     .ToListAsync();
                 if (!thungs.Any())
                 {
@@ -998,14 +998,14 @@ namespace Data_Product.Controllers
                 var maThungList = req.DsMaThung.Select(x => x.MaThungGang).ToList();
 
                 var thungs = await _context.Tbl_BM_16_GangLong
-                    .Where(t => t.MaPhieu == req.MaPhieu && maThungList.Contains(t.MaThungGang) && t.T_copy == false)
+                    .Where(t => t.MaPhieu == req.MaPhieu && maThungList.Contains(t.MaThungGang))
                     .ToListAsync();
 
                 if (!thungs.Any())
                     return BadRequest(new { success = false, message = "Không tìm thấy thùng nào" });
 
                 // Thùng chưa xác nhận
-                var thungChuaXacNhan = thungs.Where(t => t.XacNhan ==false).ToList();
+                var thungChuaXacNhan = thungs.Where(t => t.XacNhan == false).ToList();
                 if (thungChuaXacNhan.Any())
                 {
                     var maThungs = string.Join(", ", thungChuaXacNhan.Select(t => t.MaThungGang));

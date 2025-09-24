@@ -602,6 +602,7 @@
 					//__RequestVerificationToken: token
 				  },
 				  success: function () {
+					alert('Làm mới thành công');
 					location.reload();
 				  },
 				  error: function (xhr) {
@@ -976,7 +977,7 @@
 					location.reload();
 				},
 				error: function () {
-					alert('Thùng đã được chốt không thể hủy');
+					alert('Lỗi không thể hủy');
 				}
 		});
 		}
