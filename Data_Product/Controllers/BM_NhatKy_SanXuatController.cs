@@ -1951,6 +1951,10 @@ namespace Data_Product.Controllers
             if (IDPhieus == null || IDPhieus.Count == 0)
                 return BadRequest("Không có phiếu nào được chọn.");
 
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            int ID_NhanVien_SX = TaiKhoan.ID_TaiKhoan;
+
             // Xử lý cập nhật trạng thái "Không đình trệ"
             foreach (var id in IDPhieus)
             {
@@ -1959,6 +1963,7 @@ namespace Data_Product.Controllers
                 if (phieu != null)
                 {
                     phieu.TinhTrang = ConstantsDungSX.KhongDinhTre; // 5 = Không đình trệ
+                    phieu.ID_NhanVien_SX = ID_NhanVien_SX;
                 }
                 if (chitietphieu != null)
                 {
