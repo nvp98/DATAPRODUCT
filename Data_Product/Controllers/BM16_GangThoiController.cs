@@ -1467,8 +1467,8 @@ namespace Data_Product.Controllers
                                      from pb in g_pb.DefaultIfEmpty()
                                      join vt in _context.Tbl_ViTri on user.ID_ChucVu equals vt.ID_ViTri into g_vt
                                      from vt in g_vt.DefaultIfEmpty()
-                                     where gl.MaPhieu == MaPhieu //&& gl.MaThungGang
-                                      select new NguoiInfo
+                                     where gl.MaPhieu == MaPhieu && gl.ID_TrangThai == 5  //&& gl.MaThungGang
+                                       select new NguoiInfo
                                      {
                                          HoVaTen = user.HoVaTen,
                                          TenPhongBan = pb != null ? pb.TenNgan : "",
@@ -1482,8 +1482,8 @@ namespace Data_Product.Controllers
                                        from pb in g_pb.DefaultIfEmpty()
                                        join vt in _context.Tbl_ViTri on user.ID_ChucVu equals vt.ID_ViTri into g_vt
                                        from vt in g_vt.DefaultIfEmpty()
-                                       where gl.MaPhieu == MaPhieu //&& gl.MaThungGang
-                                       select new NguoiInfo
+                                       where gl.MaPhieu == MaPhieu && gl.ID_TrangThai == 5 //&& gl.MaThungGang
+                                        select new NguoiInfo
                                        {
                                            HoVaTen = user.HoVaTen,
                                            TenPhongBan = pb != null ? pb.TenNgan : "",
@@ -1498,7 +1498,7 @@ namespace Data_Product.Controllers
                                      from pb in g_pb.DefaultIfEmpty()
                                      join vt in _context.Tbl_ViTri on user.ID_ChucVu equals vt.ID_ViTri into g_vt
                                      from vt in g_vt.DefaultIfEmpty()
-                                     where tkThung.MaPhieu == MaPhieu //&& tkThung.MaThungGang
+                                     where tkThung.MaPhieu == MaPhieu  //&& tkThung.MaThungGang
                                      select new NguoiInfo
                                      {
                                          HoVaTen = user.HoVaTen,
