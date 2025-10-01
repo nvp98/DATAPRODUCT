@@ -73,6 +73,7 @@ namespace Data_Product.Controllers
                              into gj
                              from b in gj.DefaultIfEmpty()
                              let c = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == a.ID_NhanVien_BTBD)
+                             let xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == a.ID_Xuong_SX)
                              select new Tbl_NhatKy_SanXuat
                              {
                                  ID = a.ID,
@@ -86,7 +87,9 @@ namespace Data_Product.Controllers
                                  IsLock = a.IsLock,
                                  ID_NhanVien_BTBD = a.ID_NhanVien_BTBD,
                                  HoTen_NhanVien_BTBD = (c.TenTaiKhoan ?? "") + " - " + (c.HoVaTen ?? ""),
-                                 GhiChu = a.GhiChu
+                                 GhiChu = a.GhiChu,
+                                 TenXuong_SX = xuong.TenXuong ?? "",
+                                 ID_Xuong_SX = xuong.ID_Xuong
                              }).OrderByDescending(x => x.NgayDungSX).ToListAsync();
             if (ID_TrangThai != null) res = res.Where(x => x.TinhTrang == ID_TrangThai).ToList();
             if (begind != null && endd != null) res = res.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay).ToList();
