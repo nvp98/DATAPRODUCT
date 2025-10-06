@@ -1065,7 +1065,10 @@ namespace Data_Product.Controllers
                             T_ID_NguoiNhan = payload.idNguoiNhan,
                             T_ID_Kip = kip.ID_Kip,
                             ID_TTG = idThungTG,
-                            T_ReceiveSeq = nextSeq
+                            T_ReceiveSeq = nextSeq,
+                            XacNhan = t.XacNhan,
+                            ID_NguoiXacNhan = t.ID_NguoiXacNhan,
+                            G_SanRaGang = t.G_SanRaGang
                         };
                         _context.Tbl_BM_16_GangLong.Add(clone);
                         currentMaxSeq = nextSeq;
