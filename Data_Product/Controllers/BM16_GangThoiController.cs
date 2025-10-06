@@ -1626,7 +1626,7 @@ namespace Data_Product.Controllers
 
             var mapSoMeToThung = thungTrongPhieu
             .Where(x => !string.IsNullOrEmpty(x.BKMIS_SoMe))
-            .GroupBy(x => x.BKMIS_SoMe)
+            .GroupBy(x => x.BKMIS_SoMe.Trim())
             .ToDictionary(g => g.Key, g => g.ToList());
 
             // 2. Lấy dữ liệu mới từ BK-MIS
@@ -1634,7 +1634,7 @@ namespace Data_Product.Controllers
             var klXe = await _getBKmisService.GetKhoiLuongXeLoCaoAsync(idLoCao);
 
             var soMeBK = bkData
-                .Select(x => x.TestPatternCode)
+                .Select(x => x.TestPatternCode.Trim())
                 .Where(s => !string.IsNullOrEmpty(s))
                 .ToHashSet();
 
@@ -1656,7 +1656,7 @@ namespace Data_Product.Controllers
             // 4. Cập nhật hoặc thêm mới thùng
             foreach (var rec in bkData)
             {
-                var soMe = rec.TestPatternCode;
+                var soMe = rec.TestPatternCode.Trim();
                 if (string.IsNullOrEmpty(soMe)) continue;
 
                 if (mapSoMeToThung.TryGetValue(soMe, out var danhSachThung))
@@ -1714,7 +1714,7 @@ namespace Data_Product.Controllers
 
             // 5. Xóa thùng có số mẻ không còn trong BK-MIS
             var thungCanXoa = thungTrongPhieu
-                .Where(x => !soMeBK.Contains(x.BKMIS_SoMe))
+                .Where(x => !soMeBK.Contains(x.BKMIS_SoMe.Trim()))
                 .Where(x =>
                     (x.XacNhan == false || x.XacNhan == null) &&
                     (x.G_ID_TrangThai == 1 || x.G_ID_TrangThai == 3) &&
