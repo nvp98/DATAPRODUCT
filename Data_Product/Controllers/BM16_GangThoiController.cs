@@ -1705,7 +1705,7 @@ namespace Data_Product.Controllers
                         G_ID_Kip = int.TryParse(idKip, out var kipInt2) ? kipInt2 : 0,
                         G_Ca = idCa,
                         NgayLuyenGang = DateTime.Now,
-                        NgayTao = DateTime.Now
+                        NgayTao = ngay
                     });
 
                     cntInsert++;
