@@ -57,19 +57,29 @@
                 <div class="" style="margin-top: 0; font-weight:bold">CÔNG TY CỔ PHẦN THÉP</div>
                 <div class="" style="font-weight:bold;margin-left:10px ">HÒA PHÁT DUNG QUẤT</div>
             </div>
-           
-            <div style="flex: 0 0 50%;width:20%; float:right;text-align:right; font-weight: bold;">
-                <span style="font-weight:bold">BM.01/QT.05.10</span>
-                <div style="margin-top:0"><span style="font-style:italic;">Ngày hiệu lực:</span> 01/09/2023</div>
-                <div style="margin-top:0"><span style="font-style:italic;">Lần sửa đổi:</span> 01</div>
-            </div>
+            @if (phongBan == "HRC1")
+            {
+                <div style="flex: 0 0 50%;width:20%; float:right;text-align:right; font-weight: bold;">
+                    <span style="font-weight:bold">BM.01/QT.05.10</span>
+                    <div style="margin-top:0"><span style="font-style:italic;">Ngày hiệu lực:</span> 10/08/2025</div>
+                    <div style="margin-top:0"><span style="font-style:italic;">Lần sửa đổi:</span> 02</div>
+                </div>
+            }
         </div><!-- End Recent Sales -->
         <br />
         <br />
         <div style="flex: 0 0 100%; width: 100%; margin-top:0">
-            <div style="text-align:center;margin-top:0; font-size: 1.5rem;font-weight:bold; text-transform:uppercase">
-                BIÊN BẢN GIAO NHẬN GANG LỎNG - NM.@phongBan
-            </div>
+            @if (phongBan == "HRC1"){
+                <div style="text-align:center;margin-top:0; font-size: 1.5rem;font-weight:bold; text-transform:uppercase">
+                    BIÊN BẢN GIAO NHẬN GANG LỎNG
+                </div>
+            }
+            else
+            {
+                <div style="text-align:center;margin-top:0; font-size: 1.5rem;font-weight:bold; text-transform:uppercase">
+                    BIÊN BẢN GIAO NHẬN GANG LỎNG - NM.@phongBan
+                </div>
+            }
             <div class="text-muted small pt-0" style="text-align:center; margin-top:0;font-style: italic;">
                 Kíp @thongtin.T_Ca@thongtin.T_Kip
                 @if (thongtin.T_Ca == "1")
@@ -118,14 +128,14 @@
                         <tr>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 5%;">STT</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">Lò cao</th>
+                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 13%;">Mẻ</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 6%;">Thùng số</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">Thời gian</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 13%;">Số ID</th>
-                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 13%;">Số mẻ</th>
-                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL thùng & gang lỏng (T)</th>
-                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL thùng (T)</th>
-                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL phế nạp (T)</th>
-                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL gang lỏng (T)</th>
+                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL thùng & gang lỏng (tấn)</th>
+                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL thùng (tấn)</th>
+                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL phế nạp (tấn)</th>
+                            <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 9%;">KL gang lỏng (tấn)</th>
                             <th rowspan="2" style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 12%;">Ghi chú </th>
                         </tr>
                     </thead>
@@ -150,6 +160,12 @@
                                     <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
                                         @item.ID_LoCao
                                     </td>
+                                    @if (i == 0)
+                                    {
+                                        <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
+                                            @ttg.MaMeThoi
+                                        </td>
+                                    }
                                     <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
                                         @item.BKMIS_ThungSo
                                     </td>
@@ -161,9 +177,6 @@
                                     </td>
                                     @if (i == 0)
                                     {
-                                        <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
-                                            @ttg.MaMeThoi
-                                        </td>
                                         <td rowspan="@rowspan" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;padding: 8px 2px;">
                                             @ttg.KLThungVaGang_Thoi
                                         </td>
