@@ -803,6 +803,20 @@
                 isValidValue(item.gioChonMe)
             ];
 
+            // Trường hợp DUC1 / DUC2
+            if (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') {
+                const ducFields = [
+                    isValidValue(item.kL_XeGoong),
+                    isValidValue(item.g_KLThungChua),
+                    isValidValue(item.g_KLThungVaGang),
+                    isValidValue(item.g_KLGangLong),
+                    isValidValue(item.gio_NM)
+                ];
+                const allValid = ducFields.every(Boolean);
+                // Nếu đủ dữ liệu thì “chưa xử lý” (1), thiếu thì “chờ xử lý” (0)
+                return renderStatusCard(allValid ? 1 : 2);
+            }
+
             const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
 
             let isValid = false;
