@@ -17,48 +17,56 @@ namespace Data_Product.Controllers
             this._context = _context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-            if(TaiKhoan == null) return RedirectToAction("Index","DangNhap");
+            var TaiKhoan = await _context.Tbl_TaiKhoan.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.TenTaiKhoan == TenTaiKhoan);
+
+            if (TaiKhoan == null)
+                return RedirectToAction("Index", "DangNhap");
+
             int ID_NhanVien = TaiKhoan.ID_TaiKhoan;
             ViewBag.ID_Quyen = TaiKhoan.ID_Quyen;
-            var listViecDenToi = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_NhanVien_BN == ID_NhanVien && x.NgayTao.Date == DateTime.Now.Date && x.ID_TrangThai_BG == 1).ToList();
-            var listViecToiBatDau = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_NhanVien_BG == ID_NhanVien && x.NgayTao.Date == DateTime.Now.Date).ToList();
-            ViewBag.ViecDenToi = listViecDenToi.Count();
-            ViewBag.DaXuLy = listViecDenToi.Where(x=>x.ID_TrangThai_BN == 1).Count();
-            ViewBag.ChuaXuLy = listViecDenToi.Where(x => x.ID_TrangThai_BN == 0).Count();
-            ViewBag.ViecToiBatDau = listViecToiBatDau.Count();
-            // Tổng dữ liệu
-            var listPhieuNhatKySX = _context.Tbl_NhatKy_SanXuat.AsNoTracking().ToList();
-            var resultTG = listPhieuNhatKySX.Where(x=>x.TinhTrang ==1)
-            .Select(pb => new
+
+            var today = DateTime.Today;
+
+            var listViecDenToi = await _context.Tbl_BienBanGiaoNhan
+                .AsNoTracking()
+                .Where(x => x.ID_NhanVien_BN == ID_NhanVien && x.NgayTao.Date == today && x.ID_TrangThai_BG == 1)
+                .ToListAsync();
+
+            var listViecToiBatDau = await _context.Tbl_BienBanGiaoNhan
+                .AsNoTracking()
+                .Where(x => x.ID_NhanVien_BG == ID_NhanVien && x.NgayTao.Date == today)
+                .ToListAsync();
+
+            ViewBag.ViecDenToi = listViecDenToi.Count;
+            ViewBag.DaXuLy = listViecDenToi.Count(x => x.ID_TrangThai_BN == 1);
+            ViewBag.ChuaXuLy = listViecDenToi.Count(x => x.ID_TrangThai_BN == 0);
+            ViewBag.ViecToiBatDau = listViecToiBatDau.Count;
+
+            var tongPhieu = await _context.Tbl_NhatKy_SanXuat.CountAsync();
+            var PhieuDaXuLy = await _context.Tbl_NhatKy_SanXuat.CountAsync(x => x.TinhTrang == 1);
+            var PhieuChuaXuLy = tongPhieu - PhieuDaXuLy;
+
+            var tongPhieuBBGN = await _context.Tbl_BienBanGiaoNhan.CountAsync();
+            var PhieuDaXuLyBBGN = await _context.Tbl_BienBanGiaoNhan.CountAsync(x => x.ID_TrangThai_BBGN == 1);
+            var PhieuChuaXuLyBBGN = tongPhieuBBGN - PhieuDaXuLyBBGN;
+
+            //var TGDung = await _context.Tbl_NhatKy_SanXuat_ChiTiet
+            //                       .Where(ct => ct.Tbl_NhatKy_SanXuat.TinhTrang == 1)
+            //                       .SumAsync(p => (int?)p.ThoiGianDung) ?? 0;
+
+            ViewBag.TongPhieuNhatKy = new Dictionary<string, int>
             {
-                ID_NhatKy = pb.ID,
-                TongGioDungMay = _context.Tbl_NhatKy_SanXuat_ChiTiet
-                                  .Where(p => p.ID_NhatKy == pb.ID)
-                                  .Sum(p => (int?)p.ThoiGianDung) ?? 0
-            })
-            .ToList();
-            float TGDung = resultTG?.Sum(x => x.TongGioDungMay) ?? 0;
-            int tongPhieu = listPhieuNhatKySX.Count();
-            int PhieuDaXuLy = listPhieuNhatKySX.Where(x => x.TinhTrang == 1).Count();
-            int PhieuChuaXuLy = listPhieuNhatKySX.Where(x => x.TinhTrang != 1).Count();
-            var listPhieuBBGN = _context.Tbl_BienBanGiaoNhan.AsNoTracking().ToList();
-            int tongPhieuBBGN = listPhieuBBGN.Count();
-            int PhieuDaXuLyBBGN = listPhieuBBGN.Where(x => x.ID_TrangThai_BBGN == 1).Count();
-            int PhieuChuaXuLyBBGN = listPhieuBBGN.Where(x => x.ID_TrangThai_BBGN != 1).Count();
-            var DataNhatKy = new Dictionary<string, int>
-            {
-                { "Tong_NK", tongPhieu },
-                { "DaXuLy_NK", PhieuDaXuLy },
-                { "ChuaXuLy_NK", PhieuChuaXuLy },
-                { "Tong_BBGN", tongPhieuBBGN },
-                { "DaXuLy_BBGN", PhieuDaXuLyBBGN },
-                { "ChuaXuLy_BBGN", PhieuChuaXuLyBBGN },
+                ["Tong_NK"] = tongPhieu,
+                ["DaXuLy_NK"] = PhieuDaXuLy,
+                ["ChuaXuLy_NK"] = PhieuChuaXuLy,
+                ["Tong_BBGN"] = tongPhieuBBGN,
+                ["DaXuLy_BBGN"] = PhieuDaXuLyBBGN,
+                ["ChuaXuLy_BBGN"] = PhieuChuaXuLyBBGN,
             };
-            ViewBag.TongPhieuNhatKy = DataNhatKy;
 
             return View();
         }
