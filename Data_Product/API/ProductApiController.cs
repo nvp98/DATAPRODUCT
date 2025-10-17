@@ -107,6 +107,66 @@ namespace Data_Product.API
                 });
             }
         }
+
+        [HttpGet("GetKhoiLuongGang")]
+
+        public async Task<IActionResult> GetKhoiLuongGang(DateTime? tuNgay, DateTime? denNgay, int? IDLoCao)
+        {
+
+            try
+            {
+                if (!BasicAuth.IsAuthorized(HttpContext, "api", "123456a@"))
+                {
+                    Response.Headers["WWW-Authenticate"] = "Basic";
+                    return Unauthorized("Bạn không có quyền truy cập.");
+                }
+                var result = new List<KhoiLuongGangDto>();
+
+                using var conn = _context.Database.GetDbConnection();
+                await conn.OpenAsync();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "sp_GetKhoiLuongGang";
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter("@TuNgay", tuNgay ?? (object)DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@DenNgay", denNgay ?? (object)DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@IDLoCao", IDLoCao ?? (object)DBNull.Value));
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var dto = new KhoiLuongGangDto
+                    {
+                        ID_LOCAO = reader.GetInt32(reader.GetOrdinal("ID_LOCAO")),
+                        NGAY_TAO = reader.GetDateTime(reader.GetOrdinal("NGAY_TAO")),
+                        G_KLGANGLONG = reader.IsDBNull(reader.GetOrdinal("G_KLGANGLONG"))? 0 : reader.GetDecimal(reader.GetOrdinal("G_KLGANGLONG")),
+                        SO_ME = reader["SO_ME"]?.ToString(),
+                    };
+
+                    result.Add(dto);
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Total = result != null ? result.Count() : 0,
+                    Message = "Thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Đã xảy ra lỗi trong quá trình xử lý.",
+                    error = ex.Message
+                });
+            }
+        }
+
+
+
         public string GetTinhTrangPhieu(string tinhtrang)
         {
             switch (tinhtrang)
