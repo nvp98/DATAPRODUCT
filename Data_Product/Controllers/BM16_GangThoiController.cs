@@ -1636,7 +1636,7 @@ namespace Data_Product.Controllers
             var soMeBK = bkData
                 .Select(x => x.TestPatternCode.Trim())
                 .Where(s => !string.IsNullOrEmpty(s))
-                .ToList();
+                .ToHashSet();
 
             int cntUpdate = 0, cntInsert = 0, cntDelete = 0;
 

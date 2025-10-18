@@ -606,7 +606,7 @@
 					location.reload();
 				  },
 				  error: function (xhr) {
-					alert('Đồng bộ thất bại: ' + (xhr.responseText || 'Lỗi không xác định'));
+					alert('Kết nối tới BKMIS bị gián đoạn ' + ('Vui lòng thử lại!!!'));
 					$btn.prop('disabled', false).html(originalHtml);
 				  }
 				});
