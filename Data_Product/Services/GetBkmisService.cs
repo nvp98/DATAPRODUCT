@@ -40,6 +40,10 @@ namespace Data_Product.Services
                     shiftName = ca?.TenCa + ca?.TenKip; // VD: 1A, 2A...
                 }
 
+                await using var conn = new MySqlConnection(_connStr);
+                await conn.OpenAsync();
+                Console.WriteLine("Kết nối thành công!");
+
                 // Xác định tên bảng dựa theo idLoCao
                 var table = idLoCao switch
                 {
@@ -53,14 +57,11 @@ namespace Data_Product.Services
                 };
 
                 string query = $@"
-                    SELECT TestPatternCode, ClassifyName, ProductionDate, ShiftName, 
-                           InputTime, Patterntime, TestPatternName
-                    FROM bkmis_kcshpsdq.{table}
-                    WHERE ProductionDate = @ProductionDate AND ShiftName = @ShiftName
-                ";
-
-                await using var conn = new MySqlConnection(_connStr);
-                await conn.OpenAsync();
+                  SELECT TestPatternCode, ClassifyName, ProductionDate, ShiftName, 
+                         InputTime, Patterntime, TestPatternName
+                  FROM bkmis_kcshpsdq.{table}
+                  WHERE ProductionDate = @ProductionDate AND ShiftName = @ShiftName
+              ";
 
                 await using var cmd = new MySqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@ProductionDate", DateTime.Parse(ngay).Date);
@@ -71,7 +72,7 @@ namespace Data_Product.Services
                 {
                     result.Add(new Bkmis_view
                     {
-                        TestPatternCode = reader["TestPatternCode"]?.ToString(),
+                        TestPatternCode = reader["TestPatternCode"]?.ToString()?.Trim(),
                         ClassifyName = reader["ClassifyName"]?.ToString(),
                         ProductionDate = reader["ProductionDate"]?.ToString(),
                         ShiftName = reader["ShiftName"]?.ToString(),
@@ -84,13 +85,10 @@ namespace Data_Product.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi lấy dữ liệu BK-MIS: Ngày={Ngay}, Lò cao={LoCao}, Ca={Ca}", ngay, idLoCao, idKip);
+                throw;
             }
 
-            // Giữ đúng rule sort như cũ
-            return result
-                .Where(x => !string.IsNullOrEmpty(x.TestPatternCode) && x.TestPatternCode!.Length > 9)
-                .OrderBy(x => int.Parse(x.TestPatternCode!.Substring(9)))
-                .ToList();
+            return result;
         }
         public async Task<decimal?> GetKhoiLuongXeLoCaoAsync(int idLoCao)
         {
