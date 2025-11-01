@@ -494,7 +494,8 @@
                                     <th>KL thùng & gang lỏng (T)</th>
                                     <th>KL thùng (T)</th>
                                     <th>KL gang lỏng (T)</th>
-                                    <th class="hide-col">KL gang chia (T)</th> 
+                                    <th class="hide-col">KL gang chia CCT (T)</th> 
+                                    <th>KL gang chia CR (T)</th>
                                     <th class="hrc2">Thao tác</th>
                                     <th>KL gang nhận (T)</th>
                                     <th>Thùng trung gian</th>
@@ -520,6 +521,7 @@
                                     <td id="IDTongKLGangLong" style="font-weight: 600">0.00</td>
                                     <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
                                     <td style="@(PhongBan != "HRC2" ? "display:none;" : "")"></td>
+                                    <td class="total-space-tmp"></td>
                                     <td id="IDTongKLGangNhan" style="font-weight: 600">
                                         0.00
                                     </td>
@@ -711,7 +713,7 @@
               row += `
                 <td class="hide-col">
                   <input type="checkbox" class="cbx-chiaGang" style="display:${isCopyTTG ? 'none' : 'inline-block'}"
-                         name="ChonThung" ${thung.iD_TrangThai == 5 || thung.klGangChia !== null || maChiaNorm ? "disabled readonly" : ""}/>
+                         name="ChonThung" ${thung.iD_TrangThai == 5 || (thung.klGangChia !== null && thung.klGangChia > 0) || maChiaNorm ? "disabled readonly" : ""}/>
                 </td>
                 <td class="hide-col maThungThep" data-mathungganggoc="${thung.maThungGang || ''}">${thung.maThungThep ?? ''}</td>
                 <td>${thung.iD_LoCao ?? ''}</td>
@@ -744,6 +746,9 @@
               row += `<td class="hide-col KLGangChia" style="color:${isCopyTTG ? '' : (thung.klGangChia !== null ? 'red' : 'black')}">
                         ${isCopyTTG ? '' : (thung.klGangChia !== null ? thung.klGangChia : (thung.t_KLGangLong ?? ''))}
                       </td>`;
+              row += `<td class="KLGangChiaCR" style="color:${(thung.kL_GangChiaCR !== null ? 'red' : 'black')}">
+                    ${(thung.kL_GangChiaCR !== null ? thung.kL_GangChiaCR ?? '': (thung.g_KLGangLong ?? ''))}
+              </td>`;
 
               // CÁC CỘT CẤP TTG (render ở mọi hàng – lát nữa merge)
               const actionHtml = tg.isCopy
@@ -1366,11 +1371,15 @@
                         tgCopy.maMeThoi  = null;
                         tgCopy.ghiChu  = null;
                         tgCopy.gioChonMe = null;
+                        for(let i = 0;i < tgCopy.danhSachThungGang.length; i++ ){
+                            const thungGangItem = tgCopy.danhSachThungGang[i];
+                            thungGangItem.kL_GangChiaCR = 0;
+                        }
                         // Tìm vị trí sau tất cả bản sao hoặc thùng con cùng maThungTG
                         let insertAfter = indexGoc;
+                       
                         for (let i = indexGoc + 1; i < dataThungDaNhan.length; i++) {
                             const item = dataThungDaNhan[i];
-
                             // Nếu là bản sao hoặc thùng con có liên quan đến thùng gốc
                             if (
                                 (item.isCopy && item.maThungTG === maThungTG) ||

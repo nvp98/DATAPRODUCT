@@ -178,6 +178,98 @@
         color: #ffffff;
         font-weight: bold;
     }
+
+    tr[data-mathungthep].highlight-green {
+        background-color: #dcfce7 !important;
+        transition: background-color 0.3s ease;
+    }
+
+    .cr-detail-box {
+        font: 14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+        color: #222;
+    }
+
+    .cr-detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 6px;
+        font-size: 14px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 6px rgba(0,0,0,0.05);
+    }
+
+    .cr-detail-table thead {
+        background: linear-gradient(to right, #f1f5f9, #e2e8f0);
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    .cr-detail-table th,
+    .cr-detail-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .cr-detail-table th {
+        text-align: center;
+        letter-spacing: 0.5px;
+    }
+
+    .cr-detail-table td {
+        text-align: right;
+        background-color: #fff;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    .cr-detail-table td:first-child {
+        text-align: left;
+        font-weight: 500;
+        color: #111827;
+    }
+
+    .cr-detail-table tbody tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    .tr-copy td {
+        background-color: #ffeaea !important;
+        color: #b91c1c;
+    }
+
+    .cr-detail-table tfoot td {
+        background: #f9fafb;
+        font-weight: 600;
+    }
+
+    .tr-copy td:first-child {
+        border-left: 4px solid #ef4444;
+        padding-left: 8px;
+    }
+
+    /* màu đỏ nhẹ cho TTG copy */
+
+    .cr-current {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 10px;
+        background: #f9fafb;
+        font-size: 14px
+    }
+
+    .cr-current .label {
+        color: #666
+    }
+
+    .cr-highlight {
+        font-weight: 700
+    }
+
+    .tr-copy {
+        background: #ffeaea
+    }
 </style>
 
 <div id="main-container" class="d-flex flex-column vh-100" style="position: relative; padding-bottom: 30px;">
@@ -451,7 +543,8 @@
                         <th class="hide-col">KL thùng & gang lỏng (T)</th>
                         <th class="hide-col">KL thùng (T)</th>
                         <th class="hide-col">KL gang lỏng (T)</th>
-                        <th class="hide-col">KL gang chia (T)</th>
+                        <th class="hide-col">KL gang chia CCT (T)</th>
+                        <th class="hide-col">KL gang chia CR (T)</th>
                         <th>KL Gang nhận (T)</th>
                         <th>Lò thổi</th>
                         <th>Thùng trung gian</th>
@@ -487,6 +580,7 @@
                             0.00
                         </td>
                         <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
+                        <td class="hide-col" id="IDTongKLGangChiaCR" style="font-weight: 600">0.00</td>
                         <td id="IDTongKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -516,6 +610,7 @@
                             0.00
                         </td>
                         <td class="hide-col" id="IDTongAllKLGangChia" style="font-weight: 600">0.00</td>
+                        <td class="hide-col" id="IDTongAllKLGangChiaCR" style="font-weight: 600">0.00</td>
                         <td id="IDTongAllKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -549,7 +644,7 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width: 50%;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Chi tiết chia gang</h5>
+                <h5 class="modal-title">Chi tiết chia gang CTT</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalChiaGang"></button>
             </div>
             <div class="modal-body" id="chiaGangContent" style="overflow-x: hidden;">
@@ -613,6 +708,44 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalShowChiaGangCR" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalChiaGangCR" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 50%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                 <h5 class="modal-title">Chi tiết chia gang Cân Ray</h5> 
+                @* <h5 class="fw-bold mb-3 text-primary">
+                    Chi tiết chia gang: <span id="maThungGang">131025L6N003.00</span>
+                </h5> *@
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModalChiaGangCR"></button>
+            </div>
+            <div class="modal-body" style="overflow-x: hidden;">
+                <div id="cr-current" class="cr-current"></div>
+                <div class="cr-detail-box">
+                    <table class="cr-detail-table" id="tblChiaGangCR">
+                        <thead>
+                            <tr>
+                                <th>Mã thùng thép</th>
+                                <th>KL HRC </th>
+                                <th>Tỷ lệ</th>
+                                <th>KL Chia Cân Ray</th>
+                                <th>Copy</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnDongChiaGangCR" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <script>
      let isHidden = true;
@@ -703,6 +836,17 @@
                }
            });
           $("#IDTongKLGangChia").text(total.toFixed(2));
+       }
+
+       function TongKLGangChiaCR(){
+           let total = 0;
+            $("#tblDuLieu .KLGangChiaCR").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+          $("#IDTongKLGangChiaCR").text(total.toFixed(2));
        }
 
        function TongKLVaoLoThoi(){
@@ -1063,7 +1207,7 @@
 
                     const isCopy = item.isCopy;
 
-                    const row = $(`<tr data-group-id="${groupIndex}" data-id="${item.id}" data-idtrangthai="${item.iD_TrangThai}" data-mathungtg=${item.maThungTG}></tr>`);
+                    const row = $(`<tr data-group-id="${groupIndex}" data-id="${item.id}" data-idtrangthai="${item.iD_TrangThai}" data-mathungtg=${item.maThungTG} data-iscopy=${item.isCopy} data-mathungthep=${item.maThungThep}></tr>`);
                     const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
 
@@ -1076,10 +1220,16 @@
                     const ptChenh = item.t_copy || isCopy ? null : PhanTramKLChenhLech(item.maThungGang);
 
                     const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
+                    const hasKlGangChiaCR = item.kL_GangChiaCR != null && item.kL_GangChiaCR !== '' && item.kL_GangChiaCR > 0;
+                    const isSaiChuyenDen = item.isSaiChuyenDen;
 
                     const displayedValue = hasKlGangChia ? item.klGangChia : (item.t_KLGangLong ?? '');
+                    const displayedValueCR = isSaiChuyenDen ? 'Sai' : hasKlGangChiaCR ? item.kL_GangChiaCR : (item.g_KLGangLong ?? '');
                     const textColor = hasKlGangChia ? 'text-danger' : ''; // đỏ nếu có chia, đen nếu không
+                    const textColorCR = isSaiChuyenDen || hasKlGangChiaCR ? 'text-danger' : '';
+
                     const showButton = hasKlGangChia ? 'inline-block' : 'none';
+                    const showButtonCR = hasKlGangChiaCR ? 'inline-block' : 'none';
 
                     const klDuc = (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') && item.t_copy === false ? KhoiLuongDuc(item.maThungGang) : null;
 
@@ -1130,6 +1280,16 @@
                         </div>
                       </td>
                     `);
+                    row.append(`
+                      <td class="hide-col ${textColorCR}" style="width: 100px;">
+                        <div class="d-flex align-items-center justify-content-center gap-2 ">
+                          <p class="KLGangChiaCR" style="margin: 0;">${displayedValueCR}</p>
+                          <button class="btn p-0 border-0 bg-transparent btnDetailChiaGangCR" style="display: ${showButtonCR}">
+                            <i class="bi bi-eye-fill"></i>
+                          </button>
+                        </div>
+                      </td>
+                    `);
                     if (isFirstRow) {
                         row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
@@ -1167,6 +1327,7 @@
                 TongKLVaoLoThoi();
                 TongKLPhe();
                 TongKLGangChia();
+                TongKLGangChiaCR();
                 TongKLGangNhan();
                 renderTongKLChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongKLChenhLech');
                 renderTongPhanTramChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongPhanTramChenhLech');
@@ -1175,6 +1336,7 @@
              $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toFixed(2) : $("#IDTongKLGangLong").text().trim());
              $("#IDTongAllKLGangLongThep").text(res.sumKLGangLongThep !== 0 ? res.sumKLGangLongThep.toFixed(2) : $("#IDTongKLGangLongThep").text().trim());
              $("#IDTongAllKLGangChia").text(res.sumKLGangChia !== 0 ? res.sumKLGangChia.toFixed(2) : $("#IDTongKLGangChia").text().trim());
+             $("#IDTongAllKLGangChiaCR").text(res.sumKLGangChiaCR !== 0 ? res.sumKLGangChiaCR.toFixed(2) : $("#IDTongKLGangChiaCR").text().trim());
              $("#IDTongAllKLGangNhan").text(res.sumKLGangNhan !== 0 ? res.sumKLGangNhan.toFixed(2) : $("#IDTongKLGangNhan").text().trim());
              $("#IDTongAllKLPhe").text(res.sumKLPhe !== 0 ? res.sumKLPhe.toFixed(2) : $("#IDTongKLPhe").text().trim());
              $("#IDTongAllKLVaoLoThoi").text(res.sumKLVaoLoThoi !== 0 ? res.sumKLVaoLoThoi.toFixed(2) : $("#IDTongKLVaoLoThoi").text().trim());
@@ -1383,7 +1545,6 @@
          // Search 
          function Search() {
              const dto = getSearchPayload();
-             console.log(dto)
              dto.PageSize = pageSize;
              dto.PageNumber = currentPage;
 
@@ -1562,16 +1723,16 @@
 
         $('#tblDuLieu').on('click', '.btnDetailChiaGang', function() {
             const row = $(this).closest('tr');
-            const idThung = row.data('id'); 
-            if(!idThung){
-                alert('lỗi không lấy được ID');
+            const maThungThep = row.data('mathungthep');
+            if(!maThungThep){
+                alert('lỗi không lấy được maThungThep');
                 return;
             }
             $.ajax({
                   url: "/BM16_GangThoi_PKH/GetDetailChiaGang",
                   type: "POST",
                   contentType: "application/json",
-                  data: JSON.stringify(idThung),
+                  data: JSON.stringify(maThungThep),
                   processData: false,
                   success: function (res) {
                       const modalChiaGang = new bootstrap.Modal(document.getElementById('modalShowChiaGang'));
@@ -1616,7 +1777,7 @@
 
                          res.thungAll.forEach(item => {
                          htmlGangChia += `
-                                        <tr>
+                                        <tr data-mathungthep="${item.maThungThep}">
                                             <td>${item.iD_Locao}</td>
                                             <td>${item.maThungThep}</td>
                                             <td>${item.bkmiS_ThungSo}</td>
@@ -1629,13 +1790,110 @@
                                         </tr>`;
                          });
                         tbodyGangChia.append(htmlGangChia);
-                      // Search();
+
+                        tbodyGangChia.find(`tr[data-mathungthep='${maThungThep}']`).addClass('highlight-green');
                   },
                   error: function () {
                       alert("Lỗi khi nhận dữ liệu!");
                   }
               });
         }) 
+
+        $('#tblDuLieu').on('click', '.btnDetailChiaGangCR', function() {
+            const row = $(this).closest('tr');
+            const idThung = row.data('id');
+            const mathungtg = row.data('mathungtg');
+            const isCopy = row.data('iscopy');
+            const maThungThep = row.data('mathungthep');
+            if(!idThung ){
+                alert('lỗi không lấy được ID');
+                return;
+            }
+            const payload = {
+                idThung: idThung,
+                mathungtg: mathungtg,
+                isCopy: isCopy
+            }
+            $.ajax({
+                  url: "/BM16_GangThoi_PKH/GetDetailChiaGangCR",
+                  type: "POST",
+                  contentType: "application/json",
+                  data: JSON.stringify(payload),
+                  processData: false,
+                  success: function (res) {
+                     renderChiaGangCR(res, maThungThep)
+                  },
+                  error: function () {
+                      alert("Lỗi khi nhận dữ liệu!");
+                  }
+              });
+        })
+        
+        function fmt(v, d=2){
+          if (v == null || isNaN(v)) return '';
+          return Number(v).toLocaleString('vi-VN',{minimumFractionDigits:d, maximumFractionDigits:d});
+        }
+
+        function renderChiaGangCR(resp, maThungThep) {
+          const modalChiaGang = new bootstrap.Modal(document.getElementById('modalShowChiaGangCR'));
+          modalChiaGang.show();
+
+          const $tb = $('#tblChiaGangCR tbody').empty();
+          const $cur = $('#cr-current').empty();
+
+          if (!resp || !resp.listThung) return;
+
+          // ===== 1) Tìm item đang xem detail theo maThungThep =====
+          const curItem = resp.listThung.find(x => x?.thungGang?.maThungThep === maThungThep);
+
+          if (curItem) {
+            const g = curItem.thungGang || {};
+            const p = curItem.phanBo || {};
+            const isCopy = curItem.isCopy === true;
+
+            // KL HRC base hiển thị: ưu tiên KLGangChia, nếu null thì lấy T_KLGangLong (nhưng nếu là TTG copy thì ẩn theo yêu cầu trước đó)
+            const base = (g.klGangChia != null) ? g.klGangChia : (isCopy ? null : g.tklGangLong);
+            const tile = (p.tyLeTrongMaTTG != null) ? (p.tyLeTrongMaTTG * 100).toFixed(2) + '%' : '';
+
+            $cur.append(`
+              <div>
+                <span class="label">Đang xem: </span>
+                <span class="cr-highlight">${g.maThungThep || ''}</span>
+                ${isCopy ? `<span class="cr-highlight" style="color:#b91c1c;"> (TTG copy)</span>` : ''}
+              </div>
+              <div class="mt-1">
+                <span class="label">KL HRC: </span><b>${base != null ? fmt(base) : ''}</b>
+                &nbsp;|&nbsp; <span class="label">% trong tổng G_KLGangLong: </span><b>${tile}</b>
+                &nbsp;|&nbsp; <span class="label">KL CR phân bổ: </span><b>${fmt(p.klPhanBoCR)}</b>
+              </div>
+            `);
+          } else {
+            $cur.append(`
+              <div>
+                <span class="label">Đang xem: </span>
+                <span class="cr-highlight">${maThungThep || ''}</span>
+                <span class="label"> — không tìm thấy dữ liệu khớp trong response.</span>
+              </div>
+            `);
+          }
+
+          // ===== 2) Render bảng chi tiết như cũ =====
+          resp.listThung.forEach(item => {
+            const g = item.thungGang || {};
+            const p = item.phanBo || {};
+            const isCopy = item.isCopy === true;
+
+            const tr = $('<tr>').toggleClass('tr-copy', isCopy);
+            tr.append(`<td>${g.maThungThep || ''}</td>`);
+            tr.append(`<td>${fmt(g.klGangChia ? g.klGangChia : isCopy ? '' : g.tklGangLong)}</td>`);
+            tr.append(`<td>${p.tyLeTrongMaTTG != null ? (p.tyLeTrongMaTTG * 100).toFixed(2) + '%' : ''}</td>`);
+            tr.append(`<td>${fmt(p.klPhanBoCR)}</td>`);
+            tr.append(`<td style="text-align:center">${isCopy ? 'TTG copy' : ''}</td>`);
+
+            $tb.append(tr);
+          });
+        }
+
 
 
         function applyColumnVisibility() {

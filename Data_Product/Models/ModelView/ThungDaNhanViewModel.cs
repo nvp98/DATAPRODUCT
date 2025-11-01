@@ -34,6 +34,8 @@ namespace Data_Product.Models.ModelView
         public string? MaChiaGang { get; set; }
         public int? T_ReceiveSeq { get; set; }
 
+        public decimal KL_GangChiaCR { get; set; }
+
     }
 
     public class ThungTrungGianGroupViewModel
@@ -58,6 +60,8 @@ namespace Data_Product.Models.ModelView
         public string MaMeThoi { get; set; }
         [JsonIgnore] public int __Sort_HasMeThoi { get; set; }
         [JsonIgnore] public int __Sort_MinReceiveSeq { get; set; }
+
+        public decimal? SumKL_GangChiaCR { get; set; }
         public List<GangLongItemViewModel> DanhSachThungGang { get; set; } = new();
     }
 
