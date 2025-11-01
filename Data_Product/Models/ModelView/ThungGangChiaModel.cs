@@ -30,4 +30,42 @@
         public List<ThungGangChiaModel> ListAll { get; set; }
 
     }
+
+    public class ChiTietChiaGangResponse
+    {
+        public string MaThungGang { get; set; }
+        public List<TtgBasicDto> listThung { get; set; } = new();
+    }
+
+    public class ThungGangDetailDto
+    {
+        public int Id { get; set; }
+        public string MaThungGang { get; set; }
+        public string MaThungThep { get; set; }
+        public bool IsCopy { get; set; }
+        public decimal? GKLGangLong { get; set; }
+        public decimal? TKLGangLong { get; set; }
+        public decimal? KLGangChia { get; set; }
+        public int? IdTTG { get; set; }
+    }
+
+    public class PhanBoRowDto
+    {
+        public int IdTtg { get; set; }
+        public string MaThungTG { get; set; }
+        public bool IsTTGCopy { get; set; }
+        public decimal? TyLeTrongMaTTG { get; set; }
+        public decimal? KLPhanBoCR { get; set; }
+    }
+
+    public class TtgBasicDto
+    {
+        public int Id { get; set; }
+        public string MaThungTG { get; set; }
+        public bool IsCopy { get; set; }
+        public decimal? KLGangThoi { get; set; }
+        public ThungGangDetailDto thungGang { get; set; }
+        public PhanBoRowDto PhanBo { get; set; } = new();
+    }
+
 }

@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using Data_Product.Common.Enums;
+using Data_Product.DTO;
 using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Models.ModelView;
@@ -296,111 +297,443 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetDetailChiaGang([FromBody] int idThung)
+        public async Task<IActionResult> GetDetailChiaGang([FromBody] string maThungThep)
         {
             try
             {
-                var result = await _chiaGangService.GetDetailChiaGangAsync(idThung);
+                var result = await _chiaGangService.GetDetailChiaGangAsync(maThungThep);
                 return Ok(result);
             } catch(Exception ex){ 
                 return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
             }
         }
 
+        
+        [HttpPost]
+        public async Task<IActionResult> GetDetailChiaGangCR([FromBody] DetailChiaGangCRDto dto)
+        {
+            try
+            {
+                var result = await _chiaGangService.GetDetailChiaGangCRAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+            }
+        }
+
+        //private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
+        //{
+        //    var query = _context.Tbl_BM_16_GangLong.OrderByDescending(x => x.NgayTao).ThenBy(x => x.ID_Locao).ThenByDescending(x => x.G_Ca).ThenByDescending(x => x.MaThungGang).ThenBy(x => x.MaThungThep).AsQueryable();
+        //    decimal sumKLGang = 0;
+        //    decimal sumKLGangLongThep = 0;
+        //    decimal sumKLGangNhan = 0;
+        //    decimal sumKLPhe = 0;
+        //    decimal sumKLVaoLoThoi = 0;
+        //    decimal sumKLGangChia = 0;
+
+        //    if (dto.ID_HRC.HasValue)
+        //    {
+        //        query = query.Where(x => _context.Tbl_TaiKhoan.Any(tk => tk.ID_TaiKhoan == x.T_ID_NguoiNhan && tk.ID_PhongBan == dto.ID_HRC));
+        //    }
+
+        //    if (dto.ID_LoCao.HasValue)
+        //    {
+        //        query = query.Where(x => x.ID_Locao == dto.ID_LoCao.Value);
+        //    }
+
+        //    if (dto.ID_LoThoi.HasValue)
+        //    {
+        //        query = query.Where(x => x.ID_LoThoi == dto.ID_LoThoi.Value);
+        //    }
+
+        //    if (dto.Ca_LT.HasValue)
+        //    {
+        //        query = query.Where(x => x.T_Ca == dto.Ca_LT.Value);
+        //    }
+
+        //    if (dto.Ca_LG.HasValue)
+        //    {
+        //        query = query.Where(x => x.G_Ca == dto.Ca_LG.Value);
+        //    }
+
+        //    if (!string.IsNullOrEmpty(dto.ID_Kip_LT))
+        //    {
+        //        query = query.Where(thung =>
+        //                            thung.T_ID_Kip != null &&
+        //                            _context.Tbl_Kip
+        //                                .Where(k => k.TenKip == dto.ID_Kip_LT)
+        //                                .Select(k => k.ID_Kip)
+        //                                .Contains(thung.T_ID_Kip.Value)
+        //                        );
+        //    }
+
+        //    if (!string.IsNullOrEmpty(dto.ID_Kip_LG))
+        //    {
+        //        query = query.Where(thung =>
+        //                            thung.G_ID_Kip != null &&
+        //                            _context.Tbl_Kip
+        //                                .Where(k => k.TenKip == dto.ID_Kip_LG)
+        //                                .Select(k => k.ID_Kip)
+        //                                .Contains(thung.G_ID_Kip.Value)
+        //                        );
+        //    }
+
+        //    if (!string.IsNullOrEmpty(dto.ChuyenDen))
+        //    {
+        //        query = query.Where(x => x.ChuyenDen.Contains(dto.ChuyenDen));
+        //    }
+
+        //    if (!string.IsNullOrEmpty(dto.ThungSo))
+        //    {
+        //        query = query.Where(x => x.BKMIS_ThungSo.Contains(dto.ThungSo));
+        //    }
+
+        //    if (dto.ID_TinhTrang.HasValue)
+        //    {
+        //        query = query.Where(x => x.ID_TrangThai == dto.ID_TinhTrang.Value);
+        //    }
+
+        //    if (dto.ID_TinhTrang_LT.HasValue)
+        //    {
+        //        query = query.Where(x => x.T_ID_TrangThai == dto.ID_TinhTrang_LT.Value);
+        //    }
+
+        //    if (dto.ID_TinhTrang_LG.HasValue)
+        //    {
+        //        query = query.Where(x => x.G_ID_TrangThai == dto.ID_TinhTrang_LG.Value);
+        //    }
+
+        //    if (!string.IsNullOrEmpty(dto.MaThungGang))
+        //    {
+        //        query = query.Where(x => x.MaThungGang.Contains(dto.MaThungGang));
+        //    }
+
+        //    if (!string.IsNullOrEmpty(dto.MaThungThep))
+        //    {
+        //        query = query.Where(x => x.MaThungThep.Contains(dto.MaThungThep));
+        //    }
+
+        //    if (!string.IsNullOrEmpty(dto.MaMeThoi))
+        //    {
+        //        var idTTGList = await _context.Tbl_BM_16_ThungTrungGian
+        //            .Where(x => x.ID_MeThoi.HasValue &&
+        //                        _context.Tbl_MeThoi
+        //                            .Where(m => m.MaMeThoi.Contains(dto.MaMeThoi))
+        //                            .Select(m => m.ID)
+        //                            .Contains(x.ID_MeThoi.Value))
+        //            .Select(x => x.ID)
+        //            .ToListAsync();
+
+        //         query = query.Where(x => x.ID_TTG.HasValue && idTTGList.Contains(x.ID_TTG.Value));
+
+        //    }
+
+        //    if (dto.IsChiaGang.HasValue)
+        //    {
+        //        query = dto.IsChiaGang == true ? query.Where(x => x.KLGangChia.HasValue) : query.Where(x => !x.KLGangChia.HasValue);
+        //    }
+
+        //    if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
+        //    {
+        //        var tuNgay = dto.TuNgay_LT.Value.Date;
+        //        var denNgay = dto.DenNgay_LT.Value.Date.AddDays(1);
+        //        query = query.Where(x => x.NgayLuyenThep >= tuNgay && x.NgayLuyenThep < denNgay);
+
+        //        sumKLGang = query.Where(x => x.T_copy != true).Sum(x => x.G_KLGangLong ?? 0);
+        //        sumKLGangLongThep = query.Sum(x => x.T_KLGangLong ?? 0);
+        //        sumKLGangChia = query.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0);
+
+        //        var maThungTGList = (
+        //            from a in query
+        //            join ttgRoot in _context.Tbl_BM_16_ThungTrungGian
+        //                on a.ID_TTG equals ttgRoot.ID
+        //            select ttgRoot.MaThungTG
+        //        ).Distinct().ToList();
+
+        //        var relatedThung = _context.Tbl_BM_16_ThungTrungGian
+        //            .Where(x => maThungTGList.Contains(x.MaThungTG))
+        //            .ToList();
+
+        //        sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
+        //        sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
+        //        sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
+        //    }
+
+        //    if (dto.TuNgay_LG.HasValue && dto.DenNgay_LG.HasValue)
+        //    {
+        //        var tuNgay = dto.TuNgay_LG.Value.Date;
+        //        var denNgay = dto.DenNgay_LG.Value.Date.AddDays(1);
+        //        query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
+
+
+        //        sumKLGang = query.Where(x => x.T_copy != true).Sum(x => x.G_KLGangLong ?? 0);
+        //        sumKLGangLongThep = query.Sum(x => x.T_KLGangLong ?? 0);
+        //        sumKLGangChia = query.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0);
+
+        //        var maThungTGList = (
+        //            from a in query
+        //            join ttgRoot in _context.Tbl_BM_16_ThungTrungGian
+        //                on a.ID_TTG equals ttgRoot.ID
+        //            select ttgRoot.MaThungTG
+        //        ).Distinct().ToList();
+
+        //        var relatedThung = _context.Tbl_BM_16_ThungTrungGian
+        //            .Where(x => maThungTGList.Contains(x.MaThungTG))
+        //            .ToList(); 
+
+        //         sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
+        //         sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
+        //         sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
+        //    }
+
+        //    // Tổng số bản ghi
+        //    var totalRecords = await query.CountAsync();
+
+        //    // Check nếu không có pageNumber và pageSize sẽ lấy dữ liệu để xuất excel
+        //    if (dto.PageNumber.HasValue && dto.PageSize.HasValue)
+        //    {
+        //        int page = dto.PageNumber.Value;
+        //        int pageSize = dto.PageSize.Value;
+
+        //        query = query.Skip((page - 1) * pageSize).Take(pageSize);
+        //    }
+
+        //    var gocData = await (from a in query
+        //                    join trangThai in _context.Tbl_BM_16_TrangThai on a.ID_TrangThai equals trangThai.ID into g_tt
+        //                    from trangThai in g_tt.DefaultIfEmpty()
+
+        //                    join trangThaiLG in _context.Tbl_BM_16_TrangThai on a.G_ID_TrangThai equals trangThaiLG.ID into g_TrangThai
+        //                    from trangThaiLG in g_TrangThai.DefaultIfEmpty()
+
+        //                    join trangThaiLT in _context.Tbl_BM_16_TrangThai on a.T_ID_TrangThai equals trangThaiLT.ID into t_TrangThai
+        //                    from trangThaiLT in t_TrangThai.DefaultIfEmpty()
+
+        //                    join loCao in _context.Tbl_LoCao on a.ID_Locao equals loCao.ID into g_lc
+        //                    from loCao in g_lc.DefaultIfEmpty()
+
+        //                    join kipG in _context.Tbl_Kip on a.G_ID_Kip equals kipG.ID_Kip into g_kipG
+        //                    from kipG in g_kipG.DefaultIfEmpty()
+
+        //                    join kipT in _context.Tbl_Kip on a.T_ID_Kip equals kipT.ID_Kip into g_kipT
+        //                    from kipT in g_kipT.DefaultIfEmpty()
+
+        //                    join thungUser in _context.Tbl_BM_16_TaiKhoan_Thung on a.MaThungThep equals thungUser.MaThungThep into g_thungUser
+        //                    from thungUser in g_thungUser.DefaultIfEmpty()
+
+        //                    join user in _context.Tbl_TaiKhoan on thungUser.ID_taiKhoan equals user.ID_TaiKhoan into g_user
+        //                    from user in g_user.DefaultIfEmpty()
+
+        //                    join phongban in _context.Tbl_PhongBan on user.ID_PhongBan equals phongban.ID_PhongBan into g_phongban
+        //                    from phongban in g_phongban.DefaultIfEmpty()
+
+        //                    join pkh_user in _context.Tbl_TaiKhoan on a.ID_NguoiChot equals pkh_user.ID_TaiKhoan into tk_user
+        //                    from pkh_user in tk_user.DefaultIfEmpty()
+
+        //                    join ttg in _context.Tbl_BM_16_ThungTrungGian on a.ID_TTG equals ttg.ID into t_ttg
+        //                    from ttg in t_ttg.DefaultIfEmpty()
+
+        //                    join methoi in _context.Tbl_MeThoi on ttg.ID_MeThoi equals methoi.ID into g_mt
+        //                    from methoi in g_mt.DefaultIfEmpty()
+
+        //                    //orderby a.NgayTao descending, a.G_Ca, a.MaThungGang, a.MaThungThep
+        //                    select new Tbl_BM_16_GangLong
+        //                    {
+        //                        ID = a.ID,
+        //                        NgayTao = a.NgayTao,
+        //                        NgayLuyenGang = a.NgayLuyenGang,
+        //                        G_Ca = a.G_Ca,
+        //                        G_TenKip = kipG != null ? kipG.TenKip : null,
+        //                        MaThungGang = a.MaThungGang,
+        //                        ID_Locao = a.ID_Locao,
+        //                        BKMIS_SoMe = a.BKMIS_SoMe,
+        //                        BKMIS_ThungSo = a.BKMIS_ThungSo,
+        //                        BKMIS_Gio = a.BKMIS_Gio,
+        //                        BKMIS_PhanLoai = a.BKMIS_PhanLoai,
+        //                        KL_XeGoong = a.KL_XeGoong,
+        //                        G_KLThungChua = a.G_KLThungChua,
+        //                        G_KLThungVaGang = a.G_KLThungVaGang,
+        //                        G_KLGangLong = a.G_KLGangLong,
+        //                        ChuyenDen = a.ChuyenDen,
+        //                        Gio_NM = a.Gio_NM,
+        //                        G_ID_TrangThai = a.G_ID_TrangThai,
+        //                        NgayLuyenThep = a.NgayLuyenThep,
+        //                        T_Ca = a.T_Ca,
+        //                        T_TenKip = kipT != null ? kipT.TenKip : null,
+        //                        MaThungThep = a.MaThungThep != null ? a.MaThungThep : null,
+        //                        KR = a.KR,
+        //                        T_KLThungVaGang = a.T_KLThungVaGang,
+        //                        T_KLThungChua = a.T_KLThungChua,
+        //                        T_KLGangLong = a.T_KLGangLong,
+        //                        T_ID_TrangThai = a.T_ID_TrangThai,
+        //                        ID_TrangThai = a.ID_TrangThai,
+        //                        TenLoCao = loCao.TenLoCao,
+        //                        T_KL_phe = a.T_KL_phe,
+        //                        TrangThai = trangThai.TenTrangThai,
+        //                        TrangThaiLG = trangThaiLG.TenTrangThai,
+        //                        TrangThaiLT = trangThaiLT.TenTrangThai,
+        //                        T_copy = a.T_copy,
+        //                        KLGangChia = a.KLGangChia,
+        //                        ID_NguoiChot = a.ID_NguoiChot,
+        //                        HoTenNguoiChot = pkh_user.HoVaTen,
+
+        //                        HoVaTen = user.HoVaTen,
+        //                        TenPhongBan = phongban.TenNgan,
+
+        //                        ID_TTG = a.ID_TTG,
+        //                        MaThungTG = ttg.MaThungTG,
+        //                        ID_MeThoi = ttg.ID_MeThoi,
+        //                        IsCopy = ttg.IsCopy,
+        //                        MaMeThoi = methoi.MaMeThoi,
+        //                        ID_LoThoi = ttg.ID_LoThoi,
+        //                        SoThungTG = ttg.SoThungTG,
+        //                        KLThungVaGang_Thoi = ttg.KLThungVaGang_Thoi,
+        //                        KLThung_Thoi = ttg.KLThung_Thoi,
+        //                        KLGang_Thoi = ttg.KLGang_Thoi,
+        //                        KL_phe = ttg.KL_phe,
+        //                        Tong_KLGangNhan = ttg.Tong_KLGangNhan,
+        //                        GioChonMe = ttg.GioChonMe
+        //                    }).ToListAsync();
+
+        //    var maTTGs = gocData.Where(x => !string.IsNullOrEmpty(x.MaThungTG)).Select(x => x.MaThungTG).Distinct();
+        //    var thungTG_Copies = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.IsCopy == true && maTTGs.Contains(x.MaThungTG)).ToListAsync();
+
+        //    // Final result list để hiển thị
+        //    var finalData = new List<Tbl_BM_16_GangLong>();
+
+        //    foreach (var item in gocData)
+        //    {
+        //        // Thêm dòng gốc
+        //        finalData.Add(item);
+
+        //        // Nếu không có ID_TTG hoặc là bản copy rồi thì bỏ qua
+        //        if (!item.ID_TTG.HasValue || item.IsCopy == true) continue;
+
+        //        // Tìm các bản copy tương ứng
+        //        var copies = thungTG_Copies
+        //            .Where(x => x.MaThungTG == item.MaThungTG)
+        //            .ToList();
+
+        //        foreach (var copy in copies)
+        //        {
+        //            var clone = CloneGangLong(item);
+
+        //            var methoi = await _context.Tbl_MeThoi
+        //                .FirstOrDefaultAsync(x => x.ID == copy.ID_MeThoi);
+
+        //            // Gán lại thông tin từ bản sao
+        //            clone.ID_TTG = copy.ID;
+        //            clone.IsCopy = true;
+        //            clone.SoThungTG = copy.SoThungTG;
+        //            clone.KLThungVaGang_Thoi = copy.KLThungVaGang_Thoi;
+        //            clone.KLThung_Thoi = copy.KLThung_Thoi;
+        //            clone.KLGang_Thoi = copy.KLGang_Thoi;
+        //            clone.KL_phe = copy.KL_phe;
+        //            clone.ID_MeThoi = methoi?.ID;
+        //            clone.MaMeThoi = methoi?.MaMeThoi;
+        //            clone.GioChonMe = copy.GioChonMe;
+
+        //            // Thêm vào danh sách kết quả
+        //            finalData.Add(clone);
+        //        }
+        //    }
+        //    //var test = gocData;
+        //    var groupedData = finalData
+        //                        .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
+        //                        //.OrderByDescending(g => g.Max(x => x.NgayTao))
+        //                        .Select(g => g.ToList())
+        //                        .ToList();
+
+        //    return new PageResultViewModel<List<Tbl_BM_16_GangLong>>
+        //    {
+        //            TotalRecords = totalRecords,
+        //            SumKLGang = sumKLGang,
+        //            SumKLGangLongThep = sumKLGangLongThep,
+        //            SumKLGangNhan = sumKLGangNhan,
+        //            SumKLPhe = sumKLPhe,
+        //            SumKLVaoLoThoi = sumKLVaoLoThoi,
+        //            SumKLGangChia = sumKLGangChia,
+        //            Data = groupedData
+        //    };
+        //}
 
 
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
         {
-            var query = _context.Tbl_BM_16_GangLong.OrderByDescending(x => x.NgayTao).ThenBy(x => x.ID_Locao).ThenByDescending(x => x.G_Ca).ThenByDescending(x => x.MaThungGang).ThenBy(x => x.MaThungThep).AsQueryable();
+            var query = _context.Tbl_BM_16_GangLong
+                .OrderByDescending(x => x.NgayTao)
+                .ThenBy(x => x.ID_Locao)
+                .ThenByDescending(x => x.G_Ca)
+                .ThenByDescending(x => x.MaThungGang)
+                .ThenBy(x => x.MaThungThep)
+                .AsQueryable();
+
             decimal sumKLGang = 0;
             decimal sumKLGangLongThep = 0;
             decimal sumKLGangNhan = 0;
             decimal sumKLPhe = 0;
             decimal sumKLVaoLoThoi = 0;
             decimal sumKLGangChia = 0;
+            decimal sumKLGangChiaCR = 0;
 
             if (dto.ID_HRC.HasValue)
             {
-                query = query.Where(x => _context.Tbl_TaiKhoan.Any(tk => tk.ID_TaiKhoan == x.T_ID_NguoiNhan && tk.ID_PhongBan == dto.ID_HRC));
+                query = query.Where(x =>
+                    _context.Tbl_TaiKhoan.Any(tk => tk.ID_TaiKhoan == x.T_ID_NguoiNhan && tk.ID_PhongBan == dto.ID_HRC));
             }
 
             if (dto.ID_LoCao.HasValue)
-            {
                 query = query.Where(x => x.ID_Locao == dto.ID_LoCao.Value);
-            }
 
             if (dto.ID_LoThoi.HasValue)
-            {
                 query = query.Where(x => x.ID_LoThoi == dto.ID_LoThoi.Value);
-            }
-            
+
             if (dto.Ca_LT.HasValue)
-            {
                 query = query.Where(x => x.T_Ca == dto.Ca_LT.Value);
-            }
 
             if (dto.Ca_LG.HasValue)
-            {
                 query = query.Where(x => x.G_Ca == dto.Ca_LG.Value);
-            }
 
             if (!string.IsNullOrEmpty(dto.ID_Kip_LT))
             {
                 query = query.Where(thung =>
-                                    thung.T_ID_Kip != null &&
-                                    _context.Tbl_Kip
-                                        .Where(k => k.TenKip == dto.ID_Kip_LT)
-                                        .Select(k => k.ID_Kip)
-                                        .Contains(thung.T_ID_Kip.Value)
-                                );
+                    thung.T_ID_Kip != null &&
+                    _context.Tbl_Kip.Where(k => k.TenKip == dto.ID_Kip_LT)
+                        .Select(k => k.ID_Kip)
+                        .Contains(thung.T_ID_Kip.Value));
             }
 
             if (!string.IsNullOrEmpty(dto.ID_Kip_LG))
             {
                 query = query.Where(thung =>
-                                    thung.G_ID_Kip != null &&
-                                    _context.Tbl_Kip
-                                        .Where(k => k.TenKip == dto.ID_Kip_LG)
-                                        .Select(k => k.ID_Kip)
-                                        .Contains(thung.G_ID_Kip.Value)
-                                );
+                    thung.G_ID_Kip != null &&
+                    _context.Tbl_Kip.Where(k => k.TenKip == dto.ID_Kip_LG)
+                        .Select(k => k.ID_Kip)
+                        .Contains(thung.G_ID_Kip.Value));
             }
 
             if (!string.IsNullOrEmpty(dto.ChuyenDen))
-            {
                 query = query.Where(x => x.ChuyenDen.Contains(dto.ChuyenDen));
-            }
 
             if (!string.IsNullOrEmpty(dto.ThungSo))
-            {
                 query = query.Where(x => x.BKMIS_ThungSo.Contains(dto.ThungSo));
-            }
 
             if (dto.ID_TinhTrang.HasValue)
-            {
                 query = query.Where(x => x.ID_TrangThai == dto.ID_TinhTrang.Value);
-            }
 
             if (dto.ID_TinhTrang_LT.HasValue)
-            {
                 query = query.Where(x => x.T_ID_TrangThai == dto.ID_TinhTrang_LT.Value);
-            }
 
             if (dto.ID_TinhTrang_LG.HasValue)
-            {
                 query = query.Where(x => x.G_ID_TrangThai == dto.ID_TinhTrang_LG.Value);
-            }
 
             if (!string.IsNullOrEmpty(dto.MaThungGang))
-            {
                 query = query.Where(x => x.MaThungGang.Contains(dto.MaThungGang));
-            }
 
             if (!string.IsNullOrEmpty(dto.MaThungThep))
-            {
                 query = query.Where(x => x.MaThungThep.Contains(dto.MaThungThep));
-            }
-            
+
             if (!string.IsNullOrEmpty(dto.MaMeThoi))
             {
                 var idTTGList = await _context.Tbl_BM_16_ThungTrungGian
@@ -411,15 +744,14 @@ namespace Data_Product.Controllers
                                     .Contains(x.ID_MeThoi.Value))
                     .Select(x => x.ID)
                     .ToListAsync();
-                
-                 query = query.Where(x => x.ID_TTG.HasValue && idTTGList.Contains(x.ID_TTG.Value));
-                
+
+                query = query.Where(x => x.ID_TTG.HasValue && idTTGList.Contains(x.ID_TTG.Value));
             }
 
             if (dto.IsChiaGang.HasValue)
-            {
-                query = dto.IsChiaGang == true ? query.Where(x => x.KLGangChia.HasValue) : query.Where(x => !x.KLGangChia.HasValue);
-            }
+                query = dto.IsChiaGang == true
+                    ? query.Where(x => x.KLGangChia.HasValue)
+                    : query.Where(x => !x.KLGangChia.HasValue);
 
             if (dto.TuNgay_LT.HasValue && dto.DenNgay_LT.HasValue)
             {
@@ -429,186 +761,201 @@ namespace Data_Product.Controllers
 
                 sumKLGang = query.Where(x => x.T_copy != true).Sum(x => x.G_KLGangLong ?? 0);
                 sumKLGangLongThep = query.Sum(x => x.T_KLGangLong ?? 0);
-                sumKLGangChia = query.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0);
+                sumKLGangChia = query.Sum(x => (x.KLGangChia ?? x.T_KLGangLong) ?? 0);
 
                 var maThungTGList = (
                     from a in query
-                    join ttgRoot in _context.Tbl_BM_16_ThungTrungGian
-                        on a.ID_TTG equals ttgRoot.ID
+                    join ttgRoot in _context.Tbl_BM_16_ThungTrungGian on a.ID_TTG equals ttgRoot.ID
                     select ttgRoot.MaThungTG
                 ).Distinct().ToList();
 
-                var relatedThung = _context.Tbl_BM_16_ThungTrungGian
+                var relatedThung = await _context.Tbl_BM_16_ThungTrungGian
                     .Where(x => maThungTGList.Contains(x.MaThungTG))
-                    .ToList();
+                    .ToListAsync();
 
                 sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
                 sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
                 sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
+
+                var gangIdsFiltered_LT = await query.Select(x => x.ID).ToListAsync();
+                var ttgTargetIds_LT = relatedThung.Select(x => x.ID).ToList();
+
+                sumKLGangChiaCR = await _context.Tbl_BM_16_PhanBoGangCR
+                    .Where(pb => gangIdsFiltered_LT.Contains(pb.ID_GangLong)
+                              && ttgTargetIds_LT.Contains(pb.ID_TTG_Target))
+                    .SumAsync(pb => (decimal?)(pb.KL_PhanBo_CR ?? 0m)) ?? 0m;
             }
-           
+
             if (dto.TuNgay_LG.HasValue && dto.DenNgay_LG.HasValue)
             {
                 var tuNgay = dto.TuNgay_LG.Value.Date;
                 var denNgay = dto.DenNgay_LG.Value.Date.AddDays(1);
                 query = query.Where(x => x.NgayTao >= tuNgay && x.NgayTao < denNgay);
 
-
                 sumKLGang = query.Where(x => x.T_copy != true).Sum(x => x.G_KLGangLong ?? 0);
                 sumKLGangLongThep = query.Sum(x => x.T_KLGangLong ?? 0);
-                sumKLGangChia = query.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0);
+                sumKLGangChia = query.Sum(x => (x.KLGangChia ?? x.T_KLGangLong) ?? 0);
 
                 var maThungTGList = (
                     from a in query
-                    join ttgRoot in _context.Tbl_BM_16_ThungTrungGian
-                        on a.ID_TTG equals ttgRoot.ID
+                    join ttgRoot in _context.Tbl_BM_16_ThungTrungGian on a.ID_TTG equals ttgRoot.ID
                     select ttgRoot.MaThungTG
                 ).Distinct().ToList();
 
-                var relatedThung = _context.Tbl_BM_16_ThungTrungGian
+                var relatedThung = await _context.Tbl_BM_16_ThungTrungGian
                     .Where(x => maThungTGList.Contains(x.MaThungTG))
-                    .ToList(); 
+                    .ToListAsync();
 
-                 sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
-                 sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
-                 sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
+                sumKLGangNhan = relatedThung.Sum(x => x.Tong_KLGangNhan ?? 0);
+                sumKLPhe = relatedThung.Sum(x => x.KL_phe ?? 0);
+                sumKLVaoLoThoi = relatedThung.Sum(x => x.KLGang_Thoi ?? 0);
+
+                var gangIdsFiltered_LG = await query.Select(x => x.ID).ToListAsync();
+                var ttgTargetIds_LG = relatedThung.Select(x => x.ID).ToList();
+
+                sumKLGangChiaCR = await _context.Tbl_BM_16_PhanBoGangCR
+                    .Where(pb => gangIdsFiltered_LG.Contains(pb.ID_GangLong)
+                              && ttgTargetIds_LG.Contains(pb.ID_TTG_Target))
+                    .SumAsync(pb => (decimal?)(pb.KL_PhanBo_CR ?? 0m)) ?? 0m;
             }
-            
+
             // Tổng số bản ghi
             var totalRecords = await query.CountAsync();
 
-            // Check nếu không có pageNumber và pageSize sẽ lấy dữ liệu để xuất excel
+            // Paging (nếu có)
             if (dto.PageNumber.HasValue && dto.PageSize.HasValue)
             {
                 int page = dto.PageNumber.Value;
                 int pageSize = dto.PageSize.Value;
-
                 query = query.Skip((page - 1) * pageSize).Take(pageSize);
             }
 
+            // Truy vấn dữ liệu hiển thị
             var gocData = await (from a in query
-                            join trangThai in _context.Tbl_BM_16_TrangThai on a.ID_TrangThai equals trangThai.ID into g_tt
-                            from trangThai in g_tt.DefaultIfEmpty()
+                                 join trangThai in _context.Tbl_BM_16_TrangThai on a.ID_TrangThai equals trangThai.ID into g_tt
+                                 from trangThai in g_tt.DefaultIfEmpty()
 
-                            join trangThaiLG in _context.Tbl_BM_16_TrangThai on a.G_ID_TrangThai equals trangThaiLG.ID into g_TrangThai
-                            from trangThaiLG in g_TrangThai.DefaultIfEmpty()
+                                 join trangThaiLG in _context.Tbl_BM_16_TrangThai on a.G_ID_TrangThai equals trangThaiLG.ID into g_TrangThai
+                                 from trangThaiLG in g_TrangThai.DefaultIfEmpty()
 
-                            join trangThaiLT in _context.Tbl_BM_16_TrangThai on a.T_ID_TrangThai equals trangThaiLT.ID into t_TrangThai
-                            from trangThaiLT in t_TrangThai.DefaultIfEmpty()
+                                 join trangThaiLT in _context.Tbl_BM_16_TrangThai on a.T_ID_TrangThai equals trangThaiLT.ID into t_TrangThai
+                                 from trangThaiLT in t_TrangThai.DefaultIfEmpty()
 
-                            join loCao in _context.Tbl_LoCao on a.ID_Locao equals loCao.ID into g_lc
-                            from loCao in g_lc.DefaultIfEmpty()
+                                 join loCao in _context.Tbl_LoCao on a.ID_Locao equals loCao.ID into g_lc
+                                 from loCao in g_lc.DefaultIfEmpty()
 
-                            join kipG in _context.Tbl_Kip on a.G_ID_Kip equals kipG.ID_Kip into g_kipG
-                            from kipG in g_kipG.DefaultIfEmpty()
+                                 join kipG in _context.Tbl_Kip on a.G_ID_Kip equals kipG.ID_Kip into g_kipG
+                                 from kipG in g_kipG.DefaultIfEmpty()
 
-                            join kipT in _context.Tbl_Kip on a.T_ID_Kip equals kipT.ID_Kip into g_kipT
-                            from kipT in g_kipT.DefaultIfEmpty()
+                                 join kipT in _context.Tbl_Kip on a.T_ID_Kip equals kipT.ID_Kip into g_kipT
+                                 from kipT in g_kipT.DefaultIfEmpty()
 
-                            join thungUser in _context.Tbl_BM_16_TaiKhoan_Thung on a.MaThungThep equals thungUser.MaThungThep into g_thungUser
-                            from thungUser in g_thungUser.DefaultIfEmpty()
+                                 join thungUser in _context.Tbl_BM_16_TaiKhoan_Thung on a.MaThungThep equals thungUser.MaThungThep into g_thungUser
+                                 from thungUser in g_thungUser.DefaultIfEmpty()
 
-                            join user in _context.Tbl_TaiKhoan on thungUser.ID_taiKhoan equals user.ID_TaiKhoan into g_user
-                            from user in g_user.DefaultIfEmpty()
+                                 join user in _context.Tbl_TaiKhoan on thungUser.ID_taiKhoan equals user.ID_TaiKhoan into g_user
+                                 from user in g_user.DefaultIfEmpty()
 
-                            join phongban in _context.Tbl_PhongBan on user.ID_PhongBan equals phongban.ID_PhongBan into g_phongban
-                            from phongban in g_phongban.DefaultIfEmpty()
+                                 join phongban in _context.Tbl_PhongBan on user.ID_PhongBan equals phongban.ID_PhongBan into g_phongban
+                                 from phongban in g_phongban.DefaultIfEmpty()
 
-                            join pkh_user in _context.Tbl_TaiKhoan on a.ID_NguoiChot equals pkh_user.ID_TaiKhoan into tk_user
-                            from pkh_user in tk_user.DefaultIfEmpty()
+                                 join pkh_user in _context.Tbl_TaiKhoan on a.ID_NguoiChot equals pkh_user.ID_TaiKhoan into tk_user
+                                 from pkh_user in tk_user.DefaultIfEmpty()
 
-                            join ttg in _context.Tbl_BM_16_ThungTrungGian on a.ID_TTG equals ttg.ID into t_ttg
-                            from ttg in t_ttg.DefaultIfEmpty()
+                                 join ttg in _context.Tbl_BM_16_ThungTrungGian on a.ID_TTG equals ttg.ID into t_ttg
+                                 from ttg in t_ttg.DefaultIfEmpty()
 
-                            join methoi in _context.Tbl_MeThoi on ttg.ID_MeThoi equals methoi.ID into g_mt
-                            from methoi in g_mt.DefaultIfEmpty()
+                                 join methoi in _context.Tbl_MeThoi on ttg.ID_MeThoi equals methoi.ID into g_mt
+                                 from methoi in g_mt.DefaultIfEmpty()
 
-                            //orderby a.NgayTao descending, a.G_Ca, a.MaThungGang, a.MaThungThep
-                            select new Tbl_BM_16_GangLong
-                            {
-                                ID = a.ID,
-                                NgayTao = a.NgayTao,
-                                NgayLuyenGang = a.NgayLuyenGang,
-                                G_Ca = a.G_Ca,
-                                G_TenKip = kipG != null ? kipG.TenKip : null,
-                                MaThungGang = a.MaThungGang,
-                                ID_Locao = a.ID_Locao,
-                                BKMIS_SoMe = a.BKMIS_SoMe,
-                                BKMIS_ThungSo = a.BKMIS_ThungSo,
-                                BKMIS_Gio = a.BKMIS_Gio,
-                                BKMIS_PhanLoai = a.BKMIS_PhanLoai,
-                                KL_XeGoong = a.KL_XeGoong,
-                                G_KLThungChua = a.G_KLThungChua,
-                                G_KLThungVaGang = a.G_KLThungVaGang,
-                                G_KLGangLong = a.G_KLGangLong,
-                                ChuyenDen = a.ChuyenDen,
-                                Gio_NM = a.Gio_NM,
-                                G_ID_TrangThai = a.G_ID_TrangThai,
-                                NgayLuyenThep = a.NgayLuyenThep,
-                                T_Ca = a.T_Ca,
-                                T_TenKip = kipT != null ? kipT.TenKip : null,
-                                MaThungThep = a.MaThungThep != null ? a.MaThungThep : null,
-                                KR = a.KR,
-                                T_KLThungVaGang = a.T_KLThungVaGang,
-                                T_KLThungChua = a.T_KLThungChua,
-                                T_KLGangLong = a.T_KLGangLong,
-                                T_ID_TrangThai = a.T_ID_TrangThai,
-                                ID_TrangThai = a.ID_TrangThai,
-                                TenLoCao = loCao.TenLoCao,
-                                T_KL_phe = a.T_KL_phe,
-                                TrangThai = trangThai.TenTrangThai,
-                                TrangThaiLG = trangThaiLG.TenTrangThai,
-                                TrangThaiLT = trangThaiLT.TenTrangThai,
-                                T_copy = a.T_copy,
-                                KLGangChia = a.KLGangChia,
-                                ID_NguoiChot = a.ID_NguoiChot,
-                                HoTenNguoiChot = pkh_user.HoVaTen,
+                                 select new Tbl_BM_16_GangLong
+                                 {
+                                     ID = a.ID,
+                                     NgayTao = a.NgayTao,
+                                     NgayLuyenGang = a.NgayLuyenGang,
+                                     G_Ca = a.G_Ca,
+                                     G_TenKip = kipG != null ? kipG.TenKip : null,
+                                     MaThungGang = a.MaThungGang,
+                                     ID_Locao = a.ID_Locao,
+                                     BKMIS_SoMe = a.BKMIS_SoMe,
+                                     BKMIS_ThungSo = a.BKMIS_ThungSo,
+                                     BKMIS_Gio = a.BKMIS_Gio,
+                                     BKMIS_PhanLoai = a.BKMIS_PhanLoai,
+                                     KL_XeGoong = a.KL_XeGoong,
+                                     G_KLThungChua = a.G_KLThungChua,
+                                     G_KLThungVaGang = a.G_KLThungVaGang,
+                                     G_KLGangLong = a.G_KLGangLong,
+                                     ChuyenDen = a.ChuyenDen,
+                                     Gio_NM = a.Gio_NM,
+                                     G_ID_TrangThai = a.G_ID_TrangThai,
+                                     NgayLuyenThep = a.NgayLuyenThep,
+                                     T_Ca = a.T_Ca,
+                                     T_TenKip = kipT != null ? kipT.TenKip : null,
+                                     MaThungThep = a.MaThungThep,
+                                     KR = a.KR,
+                                     T_KLThungVaGang = a.T_KLThungVaGang,
+                                     T_KLThungChua = a.T_KLThungChua,
+                                     T_KLGangLong = a.T_KLGangLong,
+                                     T_ID_TrangThai = a.T_ID_TrangThai,
+                                     ID_TrangThai = a.ID_TrangThai,
+                                     TenLoCao = loCao.TenLoCao,
+                                     T_KL_phe = a.T_KL_phe,
+                                     TrangThai = trangThai.TenTrangThai,
+                                     TrangThaiLG = trangThaiLG.TenTrangThai,
+                                     TrangThaiLT = trangThaiLT.TenTrangThai,
+                                     T_copy = a.T_copy,
+                                     KLGangChia = a.KLGangChia,
+                                     ID_NguoiChot = a.ID_NguoiChot,
+                                     HoTenNguoiChot = pkh_user.HoVaTen,
 
-                                HoVaTen = user.HoVaTen,
-                                TenPhongBan = phongban.TenNgan,
+                                     HoVaTen = user.HoVaTen,
+                                     TenPhongBan = phongban.TenNgan,
 
-                                ID_TTG = a.ID_TTG,
-                                MaThungTG = ttg.MaThungTG,
-                                ID_MeThoi = ttg.ID_MeThoi,
-                                IsCopy = ttg.IsCopy,
-                                MaMeThoi = methoi.MaMeThoi,
-                                ID_LoThoi = ttg.ID_LoThoi,
-                                SoThungTG = ttg.SoThungTG,
-                                KLThungVaGang_Thoi = ttg.KLThungVaGang_Thoi,
-                                KLThung_Thoi = ttg.KLThung_Thoi,
-                                KLGang_Thoi = ttg.KLGang_Thoi,
-                                KL_phe = ttg.KL_phe,
-                                Tong_KLGangNhan = ttg.Tong_KLGangNhan,
-                                GioChonMe = ttg.GioChonMe
-                            }).ToListAsync();
+                                     ID_TTG = a.ID_TTG,
+                                     MaThungTG = ttg != null ? ttg.MaThungTG : null,
+                                     ID_MeThoi = ttg != null ? ttg.ID_MeThoi : null,
+                                     IsCopy = ttg != null ? ttg.IsCopy : (bool?)null,
+                                     MaMeThoi = methoi != null ? methoi.MaMeThoi : null,
+                                     ID_LoThoi = ttg != null ? ttg.ID_LoThoi : (int?)null,
+                                     SoThungTG = ttg != null ? ttg.SoThungTG : null,
+                                     KLThungVaGang_Thoi = ttg != null ? ttg.KLThungVaGang_Thoi : null,
+                                     KLThung_Thoi = ttg != null ? ttg.KLThung_Thoi : null,
+                                     KLGang_Thoi = ttg != null ? ttg.KLGang_Thoi : null,
+                                     KL_phe = ttg != null ? ttg.KL_phe : null,
+                                     Tong_KLGangNhan = ttg != null ? ttg.Tong_KLGangNhan : null,
+                                     GioChonMe = ttg != null ? ttg.GioChonMe : null
+                                 }).ToListAsync();
 
-            var maTTGs = gocData.Where(x => !string.IsNullOrEmpty(x.MaThungTG)).Select(x => x.MaThungTG).Distinct();
-            var thungTG_Copies = await _context.Tbl_BM_16_ThungTrungGian.Where(x => x.IsCopy == true && maTTGs.Contains(x.MaThungTG)).ToListAsync();
+            // Lấy danh sách TTG copy để nhân bản hiển thị
+            var maTTGs = gocData.Where(x => !string.IsNullOrEmpty(x.MaThungTG))
+                                .Select(x => x.MaThungTG)
+                                .Distinct()
+                                .ToList();
 
-            // Final result list để hiển thị
+            var thungTG_Copies = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => x.IsCopy == true && maTTGs.Contains(x.MaThungTG))
+                .ToListAsync();
+
+            // Final result (gốc + copy TTG)
             var finalData = new List<Tbl_BM_16_GangLong>();
-           
+
             foreach (var item in gocData)
             {
                 // Thêm dòng gốc
                 finalData.Add(item);
 
-                // Nếu không có ID_TTG hoặc là bản copy rồi thì bỏ qua
+                // Bỏ qua nếu không có TTG gốc hoặc bản ghi gốc đã là copy
                 if (!item.ID_TTG.HasValue || item.IsCopy == true) continue;
 
-                // Tìm các bản copy tương ứng
-                var copies = thungTG_Copies
-                    .Where(x => x.MaThungTG == item.MaThungTG)
-                    .ToList();
+                // Lấy các bản TTG copy tương ứng
+                var copies = thungTG_Copies.Where(x => x.MaThungTG == item.MaThungTG).ToList();
 
                 foreach (var copy in copies)
                 {
-                    var clone = CloneGangLong(item);
+                    var clone = CloneGangLong(item); // giả sử bạn đã có helper này
 
-                    var methoi = await _context.Tbl_MeThoi
-                        .FirstOrDefaultAsync(x => x.ID == copy.ID_MeThoi);
+                    var methoi = await _context.Tbl_MeThoi.FirstOrDefaultAsync(x => x.ID == copy.ID_MeThoi);
 
-                    // Gán lại thông tin từ bản sao
                     clone.ID_TTG = copy.ID;
                     clone.IsCopy = true;
                     clone.SoThungTG = copy.SoThungTG;
@@ -620,27 +967,86 @@ namespace Data_Product.Controllers
                     clone.MaMeThoi = methoi?.MaMeThoi;
                     clone.GioChonMe = copy.GioChonMe;
 
-                    // Thêm vào danh sách kết quả
                     finalData.Add(clone);
                 }
             }
-            //var test = gocData;
+
+            // ======= GÁN KL_GangChiaCR từ bảng phân bổ (KHÔNG ảnh hưởng logic khác) =======
+            var gangIdsAll = finalData.Select(x => x.ID).Distinct().ToList();
+            var ttgIdsAll = finalData.Where(x => x.ID_TTG.HasValue)
+                                     .Select(x => x.ID_TTG!.Value)
+                                     .Distinct()
+                                     .ToList();
+
+            if (gangIdsAll.Count > 0 && ttgIdsAll.Count > 0)
+            {
+                var allocRows = await _context.Tbl_BM_16_PhanBoGangCR
+                    .Where(pb => gangIdsAll.Contains(pb.ID_GangLong) && ttgIdsAll.Contains(pb.ID_TTG_Target))
+                    .Select(pb => new { pb.ID_GangLong, pb.ID_TTG_Target, pb.KL_PhanBo_CR, pb.IsSaiChuyenDen })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                // Tách 2 dict: KL và Cờ sai
+                var allocCrDict = allocRows.ToDictionary(
+                    k => (k.ID_GangLong, k.ID_TTG_Target),
+                    v => v.KL_PhanBo_CR ?? 0m
+                );
+
+                var allocErrDict = allocRows.ToDictionary(
+                    k => (k.ID_GangLong, k.ID_TTG_Target),
+                    v => v.IsSaiChuyenDen // bool? giữ nguyên null/true/false theo DB
+                );
+
+                foreach (var item in finalData)
+                {
+                    if (item.ID_TTG.HasValue)
+                    {
+                        var key = (item.ID, item.ID_TTG.Value);
+
+                        if (allocCrDict.TryGetValue(key, out var kl))
+                            item.KL_GangChiaCR = kl;
+                        else
+                            item.KL_GangChiaCR = 0m;
+
+                        if (allocErrDict.TryGetValue(key, out var errFlag))
+                            item.IsSaiChuyenDen = errFlag;
+                        else
+                            item.IsSaiChuyenDen = false; // mặc định hợp lệ nếu không có dòng phân bổ
+                    }
+                    else
+                    {
+                        item.KL_GangChiaCR = 0m;
+                        item.IsSaiChuyenDen = null; // không thuộc TTG → không áp cờ
+                    }
+                }
+            }
+            else
+            {
+                foreach (var item in finalData)
+                {
+                    item.KL_GangChiaCR = 0m;
+                    item.IsSaiChuyenDen = item.ID_TTG.HasValue ? false : (bool?)null;
+                }
+            }
+            // ============================================================================
+
+            // Group như cũ để hiển thị
             var groupedData = finalData
-                                .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
-                                //.OrderByDescending(g => g.Max(x => x.NgayTao))
-                                .Select(g => g.ToList())
-                                .ToList();
+                .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
+                .Select(g => g.ToList())
+                .ToList();
 
             return new PageResultViewModel<List<Tbl_BM_16_GangLong>>
             {
-                    TotalRecords = totalRecords,
-                    SumKLGang = sumKLGang,
-                    SumKLGangLongThep = sumKLGangLongThep,
-                    SumKLGangNhan = sumKLGangNhan,
-                    SumKLPhe = sumKLPhe,
-                    SumKLVaoLoThoi = sumKLVaoLoThoi,
-                    SumKLGangChia = sumKLGangChia,
-                    Data = groupedData
+                TotalRecords = totalRecords,
+                SumKLGang = sumKLGang,
+                SumKLGangLongThep = sumKLGangLongThep,
+                SumKLGangNhan = sumKLGangNhan,
+                SumKLPhe = sumKLPhe,
+                SumKLVaoLoThoi = sumKLVaoLoThoi,
+                SumKLGangChia = sumKLGangChia,
+                SumKLGangChiaCR = sumKLGangChiaCR,
+                Data = groupedData
             };
         }
 

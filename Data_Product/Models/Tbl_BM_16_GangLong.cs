@@ -187,5 +187,9 @@ namespace Data_Product.Models
         public string? HoTenNguoiChot { get; set; }
 
         public int? G_SanRaGang { get; set; }
+        [NotMapped]
+        public decimal? KL_GangChiaCR { get; set; }
+        [NotMapped]
+        public bool? IsSaiChuyenDen { get; set; }   // NEW: cờ sai tuyến cho dòng này
     }
 }
