@@ -1705,12 +1705,27 @@
         $("#btnXuatExcel").click(function() {
             const TuNgayLG = $("#TuNgayLG").val() || null;
             const DenNgayLG = $("#DenNgayLG").val() || null;
-            if(!TuNgayLG){
-                alert("Vui lòng chọn Từ Ngày Luyện Gang"); return;
+
+            const TuNgayLT = $("#TuNgayLT").val() || null;
+            const DenNgayLT = $("#DenNgayLT").val() || null;
+
+            const coLG = TuNgayLG && DenNgayLG;
+            const coLT = TuNgayLT && DenNgayLT;
+
+            // Không có cặp nào hợp lệ
+            if (!coLG && !coLT) {
+                alert("Vui lòng chọn ít nhất một trong hai khoảng ngày: Luyện Gang hoặc Luyện Thép (phải có cả Từ và Đến).");
+                return;
             }
 
-            if(!DenNgayLG){
-                alert("Vui lòng chọn Đến Ngày Luyện Gang"); return;
+            // Nếu nhập thiếu trong một cặp
+            if ((TuNgayLG && !DenNgayLG) || (!TuNgayLG && DenNgayLG)) {
+                alert("Vui lòng nhập đầy đủ Từ và Đến cho Luyện Gang.");
+                return;
+            }
+            if ((TuNgayLT && !DenNgayLT) || (!TuNgayLT && DenNgayLT)) {
+                alert("Vui lòng nhập đầy đủ Từ và Đến cho Luyện Thép.");
+                return;
             }
             exportToExcel();
         })

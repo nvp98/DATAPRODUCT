@@ -1246,6 +1246,19 @@ namespace Data_Product.Controllers
                                     cellKLGangChia.Value = item.T_KLGangLong.HasValue ? item.T_KLGangLong : "";
                                 }
 
+                                var cellKLGangChiaCR = worksheet.Cell(row, colIndex++);
+
+                                if (item.IsSaiChuyenDen == true)
+                                    cellKLGangChiaCR.Value = "Sai";
+                                else
+                                {
+                                    if (item.KL_GangChiaCR.HasValue)
+                                        cellKLGangChiaCR.Value = item.KL_GangChiaCR;
+                                    else
+                                        cellKLGangChiaCR.Value = item.T_KLGangLong.HasValue ? item.T_KLGangLong : "";
+                                }
+                                cellKLGangChiaCR.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
+
                                 if (isFirst)
                                 {
                                     mergedColumnCount = 0;
@@ -1341,24 +1354,24 @@ namespace Data_Product.Controllers
                         worksheet.Cell(sumRow, 15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge P -> Y (16 -> 26)
-                        worksheet.Range(sumRow, 16, sumRow, 26).Merge().Value = "";
-                        worksheet.Range(sumRow, 16, sumRow, 26).Style.Fill.BackgroundColor = XLColor.White;
+                        worksheet.Range(sumRow, 16, sumRow, 27).Merge().Value = "";
+                        worksheet.Range(sumRow, 16, sumRow, 27).Style.Fill.BackgroundColor = XLColor.White;
 
-                        // Tổng cột AA (27)
-                        worksheet.Cell(sumRow, 27).FormulaA1 = $"=SUM(AA8:AA{row - 1})";
-                        worksheet.Cell(sumRow, 27).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 27).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 27).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột AA (28)
+                        worksheet.Cell(sumRow, 28).FormulaA1 = $"=SUM(AB8:AB{row - 1})";
+                        worksheet.Cell(sumRow, 28).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 28).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 28).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Merge AA -> AE (28 -> 32)
-                        worksheet.Range(sumRow, 28, sumRow, 32).Merge().Value = "";
-                        worksheet.Range(sumRow, 28, sumRow, 32).Style.Fill.BackgroundColor = XLColor.White;
+                        // Merge AA -> AE (29 -> 33)
+                        worksheet.Range(sumRow, 29, sumRow, 33).Merge().Value = "";
+                        worksheet.Range(sumRow, 29, sumRow, 33).Style.Fill.BackgroundColor = XLColor.White;
 
-                        // Tổng cột AG (33)
-                        worksheet.Cell(sumRow, 33).FormulaA1 = $"=SUM(AG8:AG{row - 1})";
-                        worksheet.Cell(sumRow, 33).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 33).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 33).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột AG (34)
+                        worksheet.Cell(sumRow, 34).FormulaA1 = $"=SUM(AH8:AH{row - 1})";
+                        worksheet.Cell(sumRow, 34).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 34).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 34).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge AH -> AM (34 -> 39)
                         worksheet.Range(sumRow, 34, sumRow, 39).Merge().Value = "";
@@ -1381,7 +1394,7 @@ namespace Data_Product.Controllers
                         worksheet.Range(sumAllRow, 16, sumAllRow, 39).Style.Fill.BackgroundColor = XLColor.White;
 
                         // Format toàn bảng
-                        var usedRange = worksheet.Range($"A7:AM{sumAllRow}");
+                        var usedRange = worksheet.Range($"A7:AN{sumAllRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.NumberFormat.SetFormat("General");
                         //usedRange.Style.Font.FontColor = XLColor.Black;
