@@ -792,32 +792,47 @@ namespace Data_Product.Services
                 }
 
                 // ===== 6) THÉP KHÔNG GỘP (tránh steels đã assigned/handled)
-                var steelsNoGroup = steelsOfGang
-                    .Where(s => !handledSteels.Contains(s) && !assignedSteels.Contains(s))
+                var steelsNoGroup = affectedSteels
+                    .Where(s => rowsBySteel.ContainsKey(s)
+                             && !handledSteels.Contains(s)
+                             && !assignedSteels.Contains(s))
                     .ToList();
 
                 if (steelsNoGroup.Count > 0)
                 {
-                    if (gangIsDuc)
+                    // Gom theo gang để chia đúng logic từng gang
+                    var byGang = steelsNoGroup
+                        .GroupBy(s => rowsBySteel[s].First().MaThungGang!, StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var grp in byGang)
                     {
-                        foreach (var s in steelsNoGroup)
+                        var gcode = grp.Key;
+                        var steelsInGang = grp.Distinct(StringComparer.OrdinalIgnoreCase)
+                                              .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                        // 6.a) Thép ĐÚC: set theo KLGangChia/T_KLGangLong từng dòng
+                        foreach (var s in steelsInGang.Where(s => steelIsDuc.TryGetValue(s, out var b) && b))
                         {
                             foreach (var row in rowsBySteel[s])
                             {
-                                var val = steelHasKLGangChia.Contains(s)
-                                    ? (row.KLGangChia ?? 0m)
+                                var val = (row.KLGangChia.HasValue && row.KLGangChia.Value > 0m)
+                                    ? row.KLGangChia.Value
                                     : (row.T_KLGangLong ?? 0m);
                                 SetCrIfNotAssigned(row, val);
                             }
+                            handledSteels.Add(s);
                         }
-                    }
-                    else
-                    {
-                        var gcode = maThungGang;
-                        var gangSteels = rowsByGang[gcode].Select(x => x.MaThungThep!)
-                                                          .Distinct(StringComparer.OrdinalIgnoreCase)
-                                                          .ToHashSet(StringComparer.OrdinalIgnoreCase);
-                        DistributeByGangForSteels(gcode, gangSteels, markHandledSteels: true);
+
+                        // 6.b) Thép không ĐÚC: phân bổ theo gang (dựa trên tổng base toàn gang),
+                        // chỉ ghi cho các steels còn lại trong gang
+                        var nonDucSet = steelsInGang
+                            .Where(s => !steelIsDuc.GetValueOrDefault(s))
+                            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                        if (nonDucSet.Count > 0)
+                        {
+                            DistributeByGangForSteels(gcode, nonDucSet, markHandledSteels: true);
+                        }
                     }
                 }
 
@@ -949,12 +964,6 @@ namespace Data_Product.Services
                 return false;
             }
         }
-
-
-
-
-
-
 
         public async Task<ChiTietChiaGangResponse?> GetDetailChiaGangCRAsync(DetailChiaGangCRDto input)
         {
