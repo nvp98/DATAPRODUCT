@@ -14,6 +14,13 @@ namespace Data_Product.Models
         public string? GhiChu { get; set; }
         public string? NoiDungDung { get; set; }
         public int? ThoiGianDung { get; set; }
+        public int? ID_CumTB { get; set; }
+        public int? CoDien_SoLan { get; set; }
+        public double? CoDien_ChoXL { get; set; }
+        public double? CoDien_TGianXL { get; set; }
+        public double? CoDien_TGianSC { get; set; }
+        public bool? DungDayChuyen { get; set; }
+        public double? TGian_KH_BTBD { get; set; }
     }
     public class Tbl_NhatKy_SanXuat_ChiTietExport : Tbl_NhatKy_SanXuat_ChiTiet
     {
@@ -28,5 +35,17 @@ namespace Data_Product.Models
         public float SoGioDung { get; set; }
         public string TenPhongBan { get; set; }
         public int TinhTrang { get; set; }
+        public string? TenCumTB { get; set; }
+    }
+    public class TongHopThoiGianModel
+    {
+        public int ID_Xuong { get; set; }
+        public string? TenXuong { get; set; }
+        public int? ID_CumTB { get; set; }
+        public string? TenCumTB { get; set; }
+        public double? TongThoiGian { get; set; }
+        public double? TongTG_DungDayChuyen { get; set; }
+        public double? TongTG_ChayMay { get; set; }
+        public string? GhiChu { get; set; }
     }
 }

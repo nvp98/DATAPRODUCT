@@ -238,43 +238,99 @@
                                                 { id: "4", text: "Lò cao 4" }
                                             ];
                                             const Xuong = @Html.Raw(Json.Serialize(ViewBag.IDXuong));
-
+                                            const CumThietBi = @Html.Raw(Json.Serialize(ViewBag.CumThietBi))
+                                            console.log(jsonData);
                                             jsonData.forEach((row, indexx) => {
-                                                if (indexx === 0) return; // Bỏ qua tiêu đề (nếu có)
+                                                if (indexx < 7) return; // Bỏ qua tiêu đề (nếu có)
 
                                                 let TenXuong = row[1];
-
-                                                let timeValueDung = row[2];
-                                                let timeValueChay = row[3];
+                                                let TenCumTB = row[2];
+                                                let timeValueDung = row[3];
+                                                let timeValueChay = row[4];
                                                 let formattedTimeDung = excelTimeToHHMM(timeValueDung);
                                                 let formattedTimeChay = excelTimeToHHMM(timeValueChay);
+                                                let NoidungDung = row[5];
+                                                let soLanSC = row[6];
+                                                let TGianChoXL = row[7];
+                                                let TGianXL = row[8];
+                                                let TGianSC = row[9];
+                                                let SuCoCN = (row[10] || "").trim();
+                                                let ChoCN = (row[11] || "").trim();
+                                                let KhachQuan = (row[12] || "").trim();
+                                                let ChoKhac = (row[13] || "").trim();
+                                                let DungBTBD = (row[14] || "").trim();
+                                                let TGianKH_BTBD = row[15];
+                                                let DungDayChuyen = row[16];
+                                                let GhiChu = (row[17] || "").trim();
 
                                                 // Lọc dữ liệu từ file Excel cho SoThung để chỉ giữ số
                                                 let soThungValue = (row[3] || "").toString().replace(/[^0-9]/g, '');
 
+                                                let cumObj = CumThietBi.find(x => x.text.trim() === TenCumTB);
+                                                let cumValue = cumObj ? cumObj.value : "";
+
                                                 //index 0->n
-                                                let index = indexx - 6;
+                                                let index = indexx - 7;
 
                                                 let newRow = `
-                                                                                                                            <tr class="data-row">
-                                                                                                                                <td>
-                                                                                                                                   <select name="NhatKy_SanXuat_ChiTiet[${index}].ID_Xuong" class="form-control marginTB5 LoCao">
-                                                                                                                                    ${Xuong.map(option =>
-                                                    `<option value="${option.value}" selected>${option.text}</option>`
-                                                ).join("")}
-                                                                                                                                    </select>
-                                                                                                                                </td>
-                                                                                                                                <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemDung" value="${formattedTimeDung || ""}"  class="form-control" required></td>
-                                                                                                                                <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemChay"  value="${formattedTimeChay || ""}" class="form-control" required></td>
-                                                                                                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[4] ? "checked" : ""} value="1" class="radio-square" required></td>
-                                                                                                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[5] ? "checked" : ""} value="2" class="radio-square" ></td>
-                                                                                                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[6] ? "checked" : ""} value="3" class="radio-square" ></td>
-                                                                                                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${row[7] ? "checked" : ""} value="4" class="radio-square" ></td>
-                                                                                                                                <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].NoiDungDung" value="${row[8] || ""}" class="form-control" required></td>
-                                                                                                                                <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].GhiChu" value="${row[9] || ""}" class="form-control" ></td>
-                                                                                                                                <td><button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button></td>
-                                                                                                                            </tr>
-                                                                                                                        `;
+                                                <tr class="data-row">
+                                                    <!-- Xưởng -->
+                                                    <td>
+                                                        <select class="form-control marginTB5 LoCao" name="NhatKy_SanXuat_ChiTiet[${index}].ID_Xuong" required>
+                                                            ${Xuong.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join("")}
+                                                        </select>
+                                                    </td>
+
+                                                    <!-- Cụm thiết bị -->
+                                                    <td>
+                                                        <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[${index}].ID_CumTB" required>
+                                                            ${CumThietBi.map(opt =>
+                                                                `<option value="${opt.value}" ${opt.value == cumValue ? "selected" : ""}>${opt.text}</option>`
+                                                            ).join("")}
+                                                        </select>
+                                                    </td>
+
+                                                                                       <!-- Thời điểm dừng -->
+                                                    <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemDung" value="${formattedTimeDung}" class="form-control" required></td>
+
+                                                    <!-- Thời điểm chạy lại -->
+                                                    <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemChay" value="${formattedTimeChay}" class="form-control" required></td>
+
+                                                    <!-- Nội dung dừng máy -->
+                                                    <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].NoiDungDung" value="${NoidungDung}" class="form-control" required></td>
+
+                                                    <!-- Thiết bị Cơ điện -->
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_SoLan" value="${soLanSC}" class="form-control text-center" min="0" step="1"></td>
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_ChoXL" value="${TGianChoXL}" class="form-control text-center CoDien_ChoXL" min="0" step="0.1"></td>
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_TGianXL" value="${TGianXL}" class="form-control text-center CoDien_TGianXL" min="0" step="0.1"></td>
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_TGianSC" value="${TGianSC}" class="form-control text-center CoDien_TGianSC" min="0" step="0.1" readonly></td>
+
+                                                    <!-- Công nghệ -->
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${SuCoCN != "" ? "checked" : ""} value="1" class="radio-square"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoCN != "" ? "checked" : ""} value="2" class="radio-square"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${KhachQuan != "" ? "checked" : ""} value="3" class="radio-square"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoKhac != "" ? "checked" : ""} value="4" class="radio-square"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${DungBTBD != "" ? "checked" : ""} value="5" class="radio-square"></td>
+
+                                                    <!-- Thời gian kế hoạch BTBD -->
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].TGian_KH_BTBD" value="${TGianKH_BTBD}" class="form-control text-center" min="0" step="0.1"></td>
+
+                                                    <!-- Gây dừng dây chuyền -->
+                                                    <td>
+                                                        <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[${index}].DungDayChuyen" required>
+                                                            <option value="true" ${DungDayChuyen.trim === "có" ? "selected" : ""}>Có</option>
+                                                            <option value="false" ${DungDayChuyen.trim === "không" ? "selected" : ""}>Không</option>
+                                                        </select>
+                                                    </td>
+
+                                                    <!-- Ghi chú -->
+                                                    <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].GhiChu" value="${GhiChu}" class="form-control"></td>
+
+                                                    <!-- Nút xóa -->
+                                                    <td class="text-center"><button type="button" class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button></td>
+                                                </tr>
+                                                `;
+
 
                                                 $("#dataTable tbody").append(newRow);
 
@@ -326,17 +382,36 @@
                                 <table class="table table-bordered table-hover" id="dataTable" cellpadding="0">
                                     <div id="warning-message" style="display: none; color: white; background-color: red; padding: 10px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; border-radius: 5px;"></div>
                                     <thead>
-                                        <tr style="font-size:14px;">
-                                            <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Xưởng</th>
-                                            <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Thời điểm dừng</th>
-                                            <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Thời điểm chạy lại máy</th>
-                                            <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do thiết bị</th>
-                                            <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do sự cố Công nghệ</th>
-                                            <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do Chờ công nghệ</th>
-                                            <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do khách quan</th>
-                                            <th width="300px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Nội dung dừng máy</th>
-                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
-                                            <th width="50px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9"></th>
+                                        <tr>
+                                            <th rowspan="2" style="width:150px;">Xưởng</th>
+                                            <th rowspan="2" style="width:200px;">Cụm thiết bị</th>
+                                            <th rowspan="2" style="width:100px;">Thời điểm dừng</th>
+                                            <th rowspan="2" style="width:100px;">Thời điểm chạy lại</th>
+                                            <th rowspan="2" style="width:250px;">Nội dung dừng máy</th>
+
+                                            <!-- Nhóm 1: Thiết bị Cơ điện -->
+                                            <th colspan="4" class="text-center">Thiết bị Cơ điện</th>
+
+                                            <!-- Nhóm 2: Công nghệ -->
+                                            <th colspan="2">Công nghệ</th>
+
+                                            <!-- Các cột thời gian khác -->
+                                            <th rowspan="2" style="width:100px;">TG dừng khách quan</th>
+                                            <th rowspan="2" style="width:100px;">TG chờ khác</th>
+                                            <th rowspan="2" style="width:100px;">TG dừng BTBD thực tế</th>
+                                            <th rowspan="2" style="width:120px;">TG dừng theo KH BTBD tháng (giờ)</th>
+                                            <th rowspan="2" style="width:100px;">Gây dừng dây chuyền</th>
+                                            <th rowspan="2" style="width:150px;">Ghi chú</th>
+                                        </tr>
+
+                                        <tr>
+                                            <th style="width:100px;">Số sự cố<br>(lần)</th>
+                                            <th style="width:120px;">TG chờ xử lý SC<br>(phút)</th>
+                                            <th style="width:120px;">Thời gian xử lý SC<br>(phút)</th>
+                                            <th style="width:120px;">Thời gian sự cố<br>(phút)</th>
+
+                                            <th style="width:120px;">Dừng máy do Sự cố công nghệ</th>
+                                            <th style="width:120px;">Dừng máy do Chờ công nghệ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -361,13 +436,41 @@
                                                         }
                                                     </select>
                                                 </td>
+                                                <td>
+                                                    <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_Xuong" style="width: 100%" required>
+                                                        @foreach (var it in ViewBag.IDXuong)
+                                                        {
+                                                            if (item.ID_Xuong.ToString() == @it.Value)
+                                                            {
+                                                                <option value='@it.Value' selected>@it.Text</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value='@it.Value'>@it.Text</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </td>
                                                 <td><input type="time" name="NhatKy_SanXuat_ChiTiet[@index].ThoiDiemDung" value="@item.ThoiDiemDung" class="form-control" required></td>
                                                 <td><input type="time" name="NhatKy_SanXuat_ChiTiet[@index].ThoiDiemChay" value="@item.ThoiDiemChay" class="form-control" required></td>
+                                                <td><input type="text" name="NhatKy_SanXuat_ChiTiet[@index].NoiDungDung" class="form-control" value="@item.NoiDungDung" required></td>
+                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_SoLan" value="@item.CoDien_SoLan" class="form-control" ></td>
+                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_ChoXL" value="@item.CoDien_ChoXL" class="form-control"></td>
+                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_ChoXL" value="@item.CoDien_ChoXL" class="form-control"></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="1" @(item.LyDo_DungThietBi == 1 ? "checked" : "") class="radio-square" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="2" @(item.LyDo_DungThietBi == 2 ? "checked" : "") class="radio-square" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="3" @(item.LyDo_DungThietBi == 3 ? "checked" : "") class="radio-square" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="4" @(item.LyDo_DungThietBi == 4 ? "checked" : "") class="radio-square" required></td>
-                                                <td><input type="text" name="NhatKy_SanXuat_ChiTiet[@index].NoiDungDung" class="form-control" value="@item.NoiDungDung" required></td>
+                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="3" @(item.LyDo_DungThietBi == 5 ? "checked" : "") class="radio-square" required></td>
+                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="4" @(item.LyDo_DungThietBi == 6 ? "checked" : "") class="radio-square" required></td>
+
+                                                <td>
+                                                    <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[@index].DungDayChuyen" style="width:100%;" required>
+                                                        <option value="true">Có</option>
+                                                        <option value="false">Không</option>
+                                                    </select>
+                                                </td>
+
                                                 <td><input type="text" name="NhatKy_SanXuat_ChiTiet[@index].GhiChu" value="@item.GhiChu" class="form-control" ></td>
                                                 <td>
                                                     <button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
@@ -381,29 +484,84 @@
                             </div>
                             <!-- Template ẩn chứa HTML cho dòng mới -->
                             <script type="text/template" id="rowTemplate">
-                                 <tr class="data-row">
-                                            <td>
-                                              <select class="form-control marginTB5 LoCao" name="NhatKy_SanXuat_ChiTiet[{index}].ID_Xuong" style="width: 100%" required>
-                                @foreach (var item in ViewBag.IDXuong)
-                                {
-                                                                        <option value='@item.Value'>@item.Text</option>
+                                <tr class="data-row">
 
-                                }
-                                                </select>
-                                            </td>
-                                            <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemDung"  class="form-control" required></td>
-                                            <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemChay"  class="form-control" required></td>
-                                          <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="1" class="radio-square" required></td>
-                                          <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="2" class="radio-square" required></td>
-                                          <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="3" class="radio-square" required></td>
-                                          <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="4" class="radio-square" required></td>
-                                            <td><input type="text" name="NhatKy_SanXuat_ChiTiet[{index}].NoiDungDung" class="form-control" required></td>
-                                           <td><input type="text" name="NhatKy_SanXuat_ChiTiet[{index}].GhiChu" class="form-control" ></td>
-                                            <td >
-                                                <button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
-                                            </td>
-                                 </tr>
+                                  <!-- Xưởng -->
+                                  <td>
+                                    <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].ID_Xuong" required>
+                                      @foreach (var item in ViewBag.IDXuong)
+                                      {
+                                            <option value='@item.Value'>@item.Text</option>
+                                      }
+                                    </select>
+                                  </td>
+
+                                  <!-- Cụm thiết bị -->
+                                  <td>
+                                    <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].ID_CumTB" required>
+                                      @foreach (var item in ViewBag.CumThietBi)
+                                      {
+                                            <option value='@item.Value'>@item.Text</option>
+                                      }
+                                    </select>
+                                  </td>
+
+                                  <!-- Thời điểm dừng -->
+                                  <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemDung" class="form-control" required></td>
+
+                                  <!-- Thời điểm chạy lại -->
+                                  <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemChay" class="form-control" required></td>
+
+                                
+                                  <!-- Nội dung dừng máy -->
+                                  <td><input type="text" name="NhatKy_SanXuat_ChiTiet[{index}].NoiDungDung" class="form-control" required></td>
+
+                                  <!-- Thiết bị cơ điện -->
+                                  <td><input type="number" name="NhatKy_SanXuat_ChiTiet[{index}].CoDien_SoLan" class="form-control text-center" min="0" step="1"></td>
+                                  <td><input type="number" name="NhatKy_SanXuat_ChiTiet[{index}].CoDien_ChoXL" class="form-control text-center CoDien_ChoXL" min="0" step="0.1"></td>
+                                  <td><input type="number" name="NhatKy_SanXuat_ChiTiet[{index}].CoDien_TGianXL" class="form-control text-center CoDien_TGianXL" min="0" step="0.1"></td>
+                                  <td><input type="number" name="NhatKy_SanXuat_ChiTiet[{index}].CoDien_TGianSC" class="form-control text-center CoDien_TGianSC" min="0" step="0.1" readonly></td>
+
+                                  <!-- Công nghệ -->
+                                 <td class="text-center">
+                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="1" class="radio-square" required>
+                                </td>
+                                <td class="text-center">
+                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="2" class="radio-square" required>
+                                </td>
+
+                                  <!-- Các nguyên nhân khác -->
+                                 <td class="text-center">
+                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="3" class="radio-square" required>
+                                </td>
+                                 <td class="text-center">
+                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="4" class="radio-square" required>
+                                </td>
+                                <td class="text-center">
+                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="5" class="radio-square" required>
+                                </td>
+
+                                 <td><input type="number" name="NhatKy_SanXuat_ChiTiet[{index}].TGian_KH_BTBD" class="form-control text-center" min="0" step="0.1"></td>
+
+                                  <!-- Gây dừng dây chuyền -->
+                                  <td>
+                                    <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].DungDayChuyen" required>
+                                      <option value="true">Có</option>
+                                      <option value="false">Không</option>
+                                    </select>
+                                  </td>
+
+                                  <!-- Ghi chú -->
+                                  <td><input type="text" name="NhatKy_SanXuat_ChiTiet[{index}].GhiChu" class="form-control"></td>
+
+                                  <!-- Nút xóa -->
+                                  <td class="text-center">
+                                    <button type="button" class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
+                                  </td>
+
+                                </tr>
                             </script>
+
                             <script>
                                 $(document).ready(function () {
                                     let rowIndex = 0; // Biến đếm index
@@ -458,6 +616,15 @@
         </div>
     </div>
 }
+
+<script>
+    $(document).on('input', '.CoDien_ChoXL, .CoDien_TGianXL', function () {
+        const row = $(this).closest('tr'); // dòng hiện tại
+        const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
+        const tgXL  = parseFloat(row.find('.CoDien_TGianXL').val()) || 0;
+        row.find('.CoDien_TGianSC').val(choXL + tgXL);
+    });
+</script>
 <script type="text/javascript">
     $(document).ready(function () {
         function normalizeTime(timeStr) {

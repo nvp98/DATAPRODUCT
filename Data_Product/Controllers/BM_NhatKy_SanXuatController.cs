@@ -445,7 +445,14 @@ namespace Data_Product.Controllers
                             ThoiDiemChay = item.ThoiDiemChay,
                             NoiDungDung = item.NoiDungDung,
                             GhiChu = item.GhiChu,
-                            ThoiGianDung = (int)(end - start).TotalMinutes
+                            ThoiGianDung = (int)(end - start).TotalMinutes,
+                            CoDien_ChoXL = item.CoDien_ChoXL,
+                            CoDien_SoLan = item.CoDien_SoLan,
+                            CoDien_TGianSC = item.CoDien_TGianSC,
+                            CoDien_TGianXL = item.CoDien_TGianXL,
+                            DungDayChuyen = item.DungDayChuyen,
+                            ID_CumTB = item.ID_CumTB,
+                            TGian_KH_BTBD = item.TGian_KH_BTBD
                         };
                         _context.Tbl_NhatKy_SanXuat_ChiTiet.Add(nhatkychitiet);
                     }
@@ -490,6 +497,11 @@ namespace Data_Product.Controllers
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
 
             ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong), "ID_Xuong", "TenXuong");
+
+            ViewBag.CumThietBi = new SelectList(_context.Tbl_NhatKy_CumTB
+                .Where(cum => _context.Tbl_NhatKy_CumTB_Xuong
+                .Any(link => link.CumTB_ID == cum.ID && link.Xuong_ID == TaiKhoan.ID_PhanXuong))
+                , "ID", "TenCumTB");
 
 
             ViewBag.IsHieuChinh = isHieuChinh;
@@ -590,7 +602,14 @@ namespace Data_Product.Controllers
                                 ThoiDiemChay = item.ThoiDiemChay,
                                 NoiDungDung = item.NoiDungDung,
                                 GhiChu = item.GhiChu,
-                                ThoiGianDung = (int)(end - start).TotalMinutes
+                                ThoiGianDung = (int)(end - start).TotalMinutes,
+                                CoDien_ChoXL = item.CoDien_ChoXL,
+                                CoDien_SoLan = item.CoDien_SoLan,
+                                CoDien_TGianSC = item.CoDien_TGianSC,
+                                CoDien_TGianXL = item.CoDien_TGianXL,
+                                DungDayChuyen = item.DungDayChuyen,
+                                ID_CumTB = item.ID_CumTB,
+                                TGian_KH_BTBD = item.TGian_KH_BTBD
                             };
                             _context.Tbl_NhatKy_SanXuat_ChiTiet.Add(nhatkychitiet);
                         }
@@ -651,7 +670,14 @@ namespace Data_Product.Controllers
                                 ThoiDiemChay = item.ThoiDiemChay,
                                 NoiDungDung = item.NoiDungDung,
                                 GhiChu = item.GhiChu,
-                                ThoiGianDung = (int)(end - start).TotalMinutes
+                                ThoiGianDung = (int)(end - start).TotalMinutes,
+                                CoDien_ChoXL = item.CoDien_ChoXL,
+                                CoDien_SoLan = item.CoDien_SoLan,
+                                CoDien_TGianSC = item.CoDien_TGianSC,
+                                CoDien_TGianXL = item.CoDien_TGianXL,
+                                DungDayChuyen = item.DungDayChuyen,
+                                ID_CumTB = item.ID_CumTB,
+                                TGian_KH_BTBD = item.TGian_KH_BTBD
                             };
                             _context.Tbl_NhatKy_SanXuat_ChiTiet.Add(nhatkychitiet_hc);
                         }
@@ -716,9 +742,53 @@ namespace Data_Product.Controllers
             ViewBag.taikhoanBTBD = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.ID_TaiKhoan == res.ID_NhanVien_BTBD);
             ViewBag.ID_PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == res.ID_PhongBan_SX)?.TenPhongBan;
 
+
+            // Tổng thời gian
+            double tongThoiGianCa = 12; // ví dụ 12 giờ
+
+            var query = res.NhatKy_SanXuat_ChiTiet
+                .GroupBy(x => new { x.ID_Xuong, x.ID_CumTB })
+                .Select(g => new TongHopThoiGianModel
+                {
+                    ID_Xuong = g.Key.ID_Xuong,
+                    ID_CumTB = g.Key.ID_CumTB,
+
+                    // Tổng thời gian ca (giờ)
+                    TongThoiGian = tongThoiGianCa,
+
+                    // Tổng thời gian dừng dây chuyền (giờ)
+                    TongTG_DungDayChuyen = g
+                        .Where(x => x.DungDayChuyen == true)
+                        .Sum(x => (double?)(
+                            x.ThoiGianDung.HasValue
+                                ? x.ThoiGianDung.Value
+                                : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                        )) / 60.0 ?? 0,
+
+                    // Tổng thời gian chạy máy (giờ)
+                    TongTG_ChayMay = tongThoiGianCa -
+                        (g.Where(x => x.DungDayChuyen == true)
+                         .Sum(x => (double?)(
+                             x.ThoiGianDung.HasValue
+                                 ? x.ThoiGianDung.Value
+                                 : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                         )) / 60.0 ?? 0),
+
+                    // Gộp ghi chú
+                    GhiChu = string.Join("; ",
+                        g.Select(x => x.GhiChu)
+                         .Where(gc => !string.IsNullOrEmpty(gc)))
+                })
+                .ToList();
+            ViewBag.TongHop = query;
+
+
+
+
+            TimeSpan tgdungCongNge = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 1).Sum(x => x.ThoiGianDung) ?? 0);
+            TimeSpan DungSuCoCN = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 2).Sum(x => x.ThoiGianDung) ?? 0);
             TimeSpan tgdungThietbi = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 1).Sum(x => x.ThoiGianDung) ?? 0);
-            TimeSpan tgdungCongNge = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 2).Sum(x => x.ThoiGianDung) ?? 0);
-            TimeSpan DungSuCoCN = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 3).Sum(x => x.ThoiGianDung) ?? 0);
+
             TimeSpan DungKhachQuan = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 4).Sum(x => x.ThoiGianDung) ?? 0);
             TimeSpan TongTgianDung = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Sum(x => x.ThoiGianDung) ?? 0);
 
@@ -782,6 +852,45 @@ namespace Data_Product.Controllers
                     .Where(x => x.LyDo_DungThietBi == lyDo)
                     .Sum(x => (double?)x.ThoiGianDung) ?? 0;
 
+            // Tổng thời gian
+            double tongThoiGianCa = 12; // ví dụ 12 giờ
+
+            var query = res.NhatKy_SanXuat_ChiTiet
+                .GroupBy(x => new { x.ID_Xuong, x.ID_CumTB })
+                .Select(g => new TongHopThoiGianModel
+                {
+                    ID_Xuong = g.Key.ID_Xuong,
+                    ID_CumTB = g.Key.ID_CumTB,
+
+                    // Tổng thời gian ca (giờ)
+                    TongThoiGian = tongThoiGianCa,
+
+                    // Tổng thời gian dừng dây chuyền (giờ)
+                    TongTG_DungDayChuyen = g
+                        .Where(x => x.DungDayChuyen == true)
+                        .Sum(x => (double?)(
+                            x.ThoiGianDung.HasValue
+                                ? x.ThoiGianDung.Value
+                                : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                        )) / 60.0 ?? 0,
+
+                    // Tổng thời gian chạy máy (giờ)
+                    TongTG_ChayMay = tongThoiGianCa -
+                        (g.Where(x => x.DungDayChuyen == true)
+                         .Sum(x => (double?)(
+                             x.ThoiGianDung.HasValue
+                                 ? x.ThoiGianDung.Value
+                                 : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                         )) / 60.0 ?? 0),
+
+                    // Gộp ghi chú
+                    GhiChu = string.Join("; ",
+                        g.Select(x => x.GhiChu)
+                         .Where(gc => !string.IsNullOrEmpty(gc)))
+                })
+                .ToList();
+            ViewBag.TongHop = query;
+
             TimeSpan tgdungThietbi = TimeSpan.FromMinutes(SumMinutes(1));
             TimeSpan tgdungCongNge = TimeSpan.FromMinutes(SumMinutes(2));
             TimeSpan DungSuCoCN = TimeSpan.FromMinutes(SumMinutes(3));
@@ -827,7 +936,14 @@ namespace Data_Product.Controllers
                               LyDo_DungThietBi = a.LyDo_DungThietBi,
                               NoiDungDung = a.NoiDungDung,
                               GhiChu = a.GhiChu,
-                              TinhTrang = b.TinhTrang
+                              TinhTrang = b.TinhTrang,
+                              TenCumTB = _context.Tbl_NhatKy_CumTB.FirstOrDefault(x=>x.ID == a.ID_CumTB).TenCumTB,
+                              CoDien_ChoXL =a.CoDien_ChoXL,
+                              CoDien_SoLan =a.CoDien_SoLan,
+                              CoDien_TGianSC =a.CoDien_TGianSC,
+                              CoDien_TGianXL = a.CoDien_TGianXL,
+                              TGian_KH_BTBD =a.TGian_KH_BTBD,
+                              DungDayChuyen =a.DungDayChuyen
 
                           };
                 var query = from nks in _context.Tbl_NhatKy_SanXuat.Where(x => (!begind.HasValue || x.NgayDungSX >= begind) && (!endd.HasValue || x.NgayDungSX <= endd) && (!ID_TrangThai.HasValue || x.TinhTrang == ID_TrangThai) && !x.IsDelete)
@@ -928,6 +1044,12 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.TenCumTB;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
 
                         icol++;
                         Worksheet.Cell(row, icol).Value = item.ThoiDiemDung.ToString(@"hh\:mm");
@@ -944,6 +1066,36 @@ namespace Data_Product.Controllers
                         TimeSpan tgdungThietbi = TimeSpan.FromMinutes(item.ThoiGianDung ?? 0);
                         icol++;
                         Worksheet.Cell(row, icol).Value = tgdungThietbi.TotalHours.ToString("F2");
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.NoiDungDung;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.CoDien_SoLan;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.CoDien_ChoXL;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.CoDien_TGianXL;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.CoDien_TGianSC;
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -978,7 +1130,13 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
                         icol++;
-                        Worksheet.Cell(row, icol).Value = item.NoiDungDung;
+                        Worksheet.Cell(row, icol).Value = item.LyDo_DungThietBi == 5 ? "X" : "";
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.TGian_KH_BTBD;
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -1089,7 +1247,14 @@ namespace Data_Product.Controllers
                               LyDo_DungThietBi = a.LyDo_DungThietBi,
                               NoiDungDung = a.NoiDungDung,
                               GhiChu = a.GhiChu,
-                              TinhTrang = b.TinhTrang
+                              TinhTrang = b.TinhTrang,
+                              TenCumTB = _context.Tbl_NhatKy_CumTB.FirstOrDefault(x => x.ID == a.ID_CumTB).TenCumTB,
+                              CoDien_ChoXL = a.CoDien_ChoXL,
+                              CoDien_SoLan = a.CoDien_SoLan,
+                              CoDien_TGianSC = a.CoDien_TGianSC,
+                              CoDien_TGianXL = a.CoDien_TGianXL,
+                              TGian_KH_BTBD = a.TGian_KH_BTBD,
+                              DungDayChuyen = a.DungDayChuyen,
 
                           };
 
@@ -1167,6 +1332,12 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.TenCumTB;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
 
                         icol++;
                         Worksheet.Cell(row, icol).Value = item.ThoiDiemDung.ToString(@"hh\:mm");
@@ -1183,6 +1354,36 @@ namespace Data_Product.Controllers
                         TimeSpan tgdungThietbi = TimeSpan.FromMinutes(item.ThoiGianDung ?? 0);
                         icol++;
                         Worksheet.Cell(row, icol).Value = tgdungThietbi.TotalHours.ToString("F2");
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.NoiDungDung;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.CoDien_SoLan;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.CoDien_ChoXL;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.CoDien_TGianXL;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.CoDien_TGianSC;
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -1217,7 +1418,13 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
                         icol++;
-                        Worksheet.Cell(row, icol).Value = item.NoiDungDung;
+                        Worksheet.Cell(row, icol).Value = item.LyDo_DungThietBi == 5 ? "X" : "";
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.TGian_KH_BTBD;
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
