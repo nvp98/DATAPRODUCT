@@ -1251,12 +1251,15 @@ namespace Data_Product.Controllers
                                     cellKLGangChiaCR.Value = "Sai";
                                 else
                                 {
-                                    if (item.KL_GangChiaCR.HasValue)
+                                    if (item.KL_GangChiaCR.HasValue && item.KL_GangChiaCR != 0)
+                                    {
                                         cellKLGangChiaCR.Value = item.KL_GangChiaCR;
+                                        cellKLGangChiaCR.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
+                                    }
                                     else
                                         cellKLGangChiaCR.Value = item.G_KLGangLong.HasValue ? item.G_KLGangLong : "";
                                 }
-                                cellKLGangChiaCR.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
+                                //cellKLGangChiaCR.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
 
                                 if (isFirst)
                                 {
