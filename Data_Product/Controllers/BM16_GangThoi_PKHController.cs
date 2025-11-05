@@ -1247,7 +1247,6 @@ namespace Data_Product.Controllers
                                 }
 
                                 var cellKLGangChiaCR = worksheet.Cell(row, colIndex++);
-
                                 if (item.IsSaiChuyenDen == true)
                                     cellKLGangChiaCR.Value = "Sai";
                                 else
@@ -1255,7 +1254,7 @@ namespace Data_Product.Controllers
                                     if (item.KL_GangChiaCR.HasValue)
                                         cellKLGangChiaCR.Value = item.KL_GangChiaCR;
                                     else
-                                        cellKLGangChiaCR.Value = item.T_KLGangLong.HasValue ? item.T_KLGangLong : "";
+                                        cellKLGangChiaCR.Value = item.G_KLGangLong.HasValue ? item.G_KLGangLong : "";
                                 }
                                 cellKLGangChiaCR.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
 
