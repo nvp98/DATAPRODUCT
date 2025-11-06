@@ -813,7 +813,9 @@
                        total += value;
                    }
                });
-            $("#IDTongKLGangLong").text(total.toFixed(2));
+            $("#IDTongKLGangLong").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
        }
 
        function TongKLGangLongThep(){
@@ -824,7 +826,9 @@
                    total += value;
                }
            });
-          $("#IDTongKLGangLongThep").text(total.toFixed(2));
+            $("#IDTongKLGangLongThep").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
        }
 
        function TongKLGangChia(){
@@ -835,7 +839,9 @@
                    total += value;
                }
            });
-          $("#IDTongKLGangChia").text(total.toFixed(2));
+            $("#IDTongKLGangChia").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
        }
 
        function TongKLGangChiaCR(){
@@ -846,7 +852,9 @@
                    total += value;
                }
            });
-          $("#IDTongKLGangChiaCR").text(total.toFixed(2));
+            $("#IDTongKLGangChiaCR").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
        }
 
        function TongKLVaoLoThoi(){
@@ -857,7 +865,9 @@
                    total += value;
                }
            });
-          $("#IDTongKLVaoLoThoi").text(total.toFixed(2));
+             $("#IDTongKLVaoLoThoi").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
        }
 
        function TongKLPhe(){
@@ -868,7 +878,9 @@
                    total += value;
                }
            });
-          $("#IDTongKLPhe").text(total.toFixed(2));
+            $("#IDTongKLPhe").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
        }
 
        function TongKLGangNhan(){
@@ -879,7 +891,9 @@
                    total += value;
                }
            });
-          $("#IDTongKLGangNhan").text(total.toFixed(2));
+             $("#IDTongKLGangNhan").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
        }
 
         function renderTongKLChenhLech(idGang, idThep, idKQ){
@@ -1333,13 +1347,13 @@
                 renderTongPhanTramChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongPhanTramChenhLech');
                 applyColumnVisibility();
             });
-             $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toFixed(2) : $("#IDTongKLGangLong").text().trim());
-             $("#IDTongAllKLGangLongThep").text(res.sumKLGangLongThep !== 0 ? res.sumKLGangLongThep.toFixed(2) : $("#IDTongKLGangLongThep").text().trim());
-             $("#IDTongAllKLGangChia").text(res.sumKLGangChia !== 0 ? res.sumKLGangChia.toFixed(2) : $("#IDTongKLGangChia").text().trim());
-             $("#IDTongAllKLGangChiaCR").text(res.sumKLGangChiaCR !== 0 ? res.sumKLGangChiaCR.toFixed(2) : $("#IDTongKLGangChiaCR").text().trim());
-             $("#IDTongAllKLGangNhan").text(res.sumKLGangNhan !== 0 ? res.sumKLGangNhan.toFixed(2) : $("#IDTongKLGangNhan").text().trim());
-             $("#IDTongAllKLPhe").text(res.sumKLPhe !== 0 ? res.sumKLPhe.toFixed(2) : $("#IDTongKLPhe").text().trim());
-             $("#IDTongAllKLVaoLoThoi").text(res.sumKLVaoLoThoi !== 0 ? res.sumKLVaoLoThoi.toFixed(2) : $("#IDTongKLVaoLoThoi").text().trim());
+             $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangLong").text().trim());
+             $("#IDTongAllKLGangLongThep").text(res.sumKLGangLongThep !== 0 ? res.sumKLGangLongThep.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangLongThep").text().trim());
+             $("#IDTongAllKLGangChia").text(res.sumKLGangChia !== 0 ? res.sumKLGangChia.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangChia").text().trim());
+             $("#IDTongAllKLGangChiaCR").text(res.sumKLGangChiaCR !== 0 ? res.sumKLGangChiaCR.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangChiaCR").text().trim());
+             $("#IDTongAllKLGangNhan").text(res.sumKLGangNhan !== 0 ? res.sumKLGangNhan.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangNhan").text().trim());
+             $("#IDTongAllKLPhe").text(res.sumKLPhe !== 0 ? res.sumKLPhe.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLPhe").text().trim());
+             $("#IDTongAllKLVaoLoThoi").text(res.sumKLVaoLoThoi !== 0 ? res.sumKLVaoLoThoi.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLVaoLoThoi").text().trim());
              renderTongKLChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllKLChenhLech');
              renderTongPhanTramChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllPhanTramChenhLech');
         }
