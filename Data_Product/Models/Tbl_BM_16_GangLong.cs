@@ -191,5 +191,8 @@ namespace Data_Product.Models
         public decimal? KL_GangChiaCR { get; set; }
         [NotMapped]
         public bool? IsSaiChuyenDen { get; set; }   // NEW: cờ sai tuyến cho dòng này
+
+        [NotMapped]
+        public bool? IsChiaCR { get; set; } = false;
     }
 }

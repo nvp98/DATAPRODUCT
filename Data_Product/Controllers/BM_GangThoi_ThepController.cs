@@ -902,6 +902,7 @@ namespace Data_Product.Controllers
                             T_KLThungVaGang = x.T_KLThungVaGang,
                             G_ID_NguoiChuyen = x.G_ID_NguoiChuyen,
                             G_ID_NguoiLuu = x.G_ID_NguoiLuu,
+                            G_KLGangLong = x.G_KLGangLong,
                             ChuyenDen = x.ChuyenDen,
                             BKMIS_SoMe = x.BKMIS_SoMe,
                             BKMIS_Gio = x.BKMIS_Gio,
@@ -922,7 +923,38 @@ namespace Data_Product.Controllers
                     if (chiaGangDict.TryGetValue(g.Gang.ID, out var m)) g.Gang.MaChiaGang = m;
                     if (!g.Gang.T_ReceiveSeq.HasValue) g.Gang.T_ReceiveSeq = g.Gang.ID; // fallback ổn định
                 }
+                // ===== 4.b) ĐÁNH DẤU IsChiaCR CHO THÙNG GANG =====
+                var maThungGangSet = gangList
+                    .Where(x => !string.IsNullOrEmpty(x.Gang.MaThungGang))
+                    .Select(x => x.Gang.MaThungGang!)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
 
+                if (maThungGangSet.Count > 0)
+                {
+                    // Đếm số lần nhận theo MaThungGang
+                    var receiveCounts = await _context.Tbl_BM_16_TaiKhoan_Thung
+                        .Where(t => maThungGangSet.Contains(t.MaThungGang))
+                        .GroupBy(t => t.MaThungGang)
+                        .Select(g => new { MaThungGang = g.Key, Count = g.Count() })
+                        .ToListAsync();
+
+                    var receiveMap = receiveCounts.ToDictionary(x => x.MaThungGang, x => x.Count, StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var g in gangList)
+                    {
+                        if (!string.IsNullOrEmpty(g.Gang.MaThungGang) &&
+                            receiveMap.TryGetValue(g.Gang.MaThungGang!, out var cnt) &&
+                            cnt >= 2)
+                        {
+                            g.Gang.IsChiaCR = true; // đã nhận >= 2 lần
+                        }
+                        else
+                        {
+                            g.Gang.IsChiaCR = false;
+                        }
+                    }
+                }
                 // ===== 5) Group theo TTG và gán vào TTG gốc =====
                 var gangByTtg = gangList
                     .GroupBy(x => x.ID_TTG!.Value)
@@ -951,6 +983,7 @@ namespace Data_Product.Controllers
                                 T_KLThungVaGang = x.T_KLThungVaGang,
                                 G_ID_NguoiChuyen = x.G_ID_NguoiChuyen,
                                 G_ID_NguoiLuu = x.G_ID_NguoiLuu,
+                                G_KLGangLong = x.G_KLGangLong,
                                 ChuyenDen = x.ChuyenDen,
                                 BKMIS_SoMe = x.BKMIS_SoMe,
                                 BKMIS_Gio = x.BKMIS_Gio,
@@ -2266,6 +2299,21 @@ namespace Data_Product.Controllers
                                 cellChia.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                                 cellChia.Style.Font.Bold = true;
 
+                                var cellChiaCR = ws.Cell(row, c++);               // 10
+                                if (item.IsChiaCR == true)
+                                {
+                                    if (item.IsSaiChuyenDen == true)
+                                        cellChiaCR.Value = "Sai";
+                                    else
+                                        cellChiaCR.Value = item.KL_GangChiaCR;
+                                    cellChiaCR.Style.Font.FontColor = XLColor.Red;
+                                }
+                                else
+                                {
+                                    cellChiaCR.Value = item.G_KLGangLong.HasValue ? item.G_KLGangLong : "";
+                                }
+
+
                                 // Đánh dấu hàng non-copy đầu tiên trong cụm (HRC2)
                                 if (isHRC2 && !string.IsNullOrEmpty(prevKey) && firstValueRow < 0)
                                     firstValueRow = row;
@@ -2281,7 +2329,7 @@ namespace Data_Product.Controllers
 
                         // ===== Merge cột cấp TTG trong phạm vi TTG (cả HRC1/HRC2; với HRC1 1 hàng/TTG nên không ảnh hưởng) =====
                         int r1 = startRow_TTG, r2 = row - 1;
-                        int col = 10;
+                        int col = 11;
 
                         var cellTongKLGang = ws.Cell(r1, col);
                         cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
@@ -2374,35 +2422,43 @@ namespace Data_Product.Controllers
 
                     // Dòng tổng
                     int sumRow = row;
-                    var totalLabel = ws.Range($"A{sumRow}:I{sumRow}").Merge();
+                    var totalLabel = ws.Range($"A{sumRow}:H{sumRow}").Merge();
                     totalLabel.Value = "Tổng:";
                     totalLabel.Style.Font.SetBold();
                     totalLabel.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    ws.Cell(sumRow, 9).FormulaA1 = $"=SUM(I8:I{row - 1})";
+                    ws.Cell(sumRow, 9).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 9).Style.Font.SetBold();
+                    ws.Cell(sumRow, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    ws.Cell(sumRow, 10).FormulaA1 = $"=SUM(J8:J{row - 1})";
-                    ws.Cell(sumRow, 10).Style.NumberFormat.Format = "#,##0.00";
-                    ws.Cell(sumRow, 10).Style.Font.SetBold();
-                    ws.Cell(sumRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-                    var totalLabel2 = ws.Range($"K{sumRow}:N{sumRow}").Merge();
+                    var totalLabel2 = ws.Range($"J{sumRow}:J{sumRow}").Merge();
                     totalLabel2.Value = "";
                     totalLabel2.Style.Font.SetBold();
                     totalLabel2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                    ws.Cell(sumRow, 15).FormulaA1 = $"=SUM(O8:O{row - 1})";
-                    ws.Cell(sumRow, 15).Style.NumberFormat.Format = "#,##0.00";
-                    ws.Cell(sumRow, 15).Style.Font.SetBold();
-                    ws.Cell(sumRow, 15).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Cell(sumRow, 11).FormulaA1 = $"=SUM(K8:K{row - 1})";
+                    ws.Cell(sumRow, 11).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 11).Style.Font.SetBold();
+                    ws.Cell(sumRow, 11).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel3 = ws.Range($"P{sumRow}:R{sumRow}").Merge();
+                    var totalLabel3 = ws.Range($"L{sumRow}:O{sumRow}").Merge();
                     totalLabel3.Value = "";
-                    totalLabel3.Style.Font.SetBold();
                     totalLabel3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
+                    ws.Cell(sumRow, 16).FormulaA1 = $"=SUM(P8:P{row - 1})";
+                    ws.Cell(sumRow, 16).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 16).Style.Font.SetBold();
+                    ws.Cell(sumRow, 16).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                    var totalLabel4 = ws.Range($"Q{sumRow}:S{sumRow}").Merge();
+                    totalLabel4.Value = "";
+                    totalLabel4.Style.Font.SetBold();
+                    totalLabel4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+
                     // Format chung
-                    var usedRange = ws.Range($"A7:R{sumRow}");
+                    var usedRange = ws.Range($"A7:S{sumRow}");
                     usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
-                    usedRange.Style.Font.FontColor = XLColor.Black;
+                    //usedRange.Style.Font.FontColor = XLColor.Black;
                     usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                     usedRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                     usedRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
