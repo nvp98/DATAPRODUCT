@@ -11,6 +11,7 @@ namespace Data_Product.Models.ModelView
         public int? ID_LoCao { get; set; }
         public string? BKMIS_ThungSo { get; set; }
         public int? ID_TrangThai { get; set; }
+        public decimal? G_KLGangLong { get; set; }
         public decimal? T_KLGangLong { get; set; }
         public decimal? T_KLThungChua { get; set; }
         public decimal? T_KLThungVaGang { get; set; }
@@ -36,6 +37,7 @@ namespace Data_Product.Models.ModelView
 
         public decimal KL_GangChiaCR { get; set; }
         public bool? IsSaiChuyenDen  { get; set; }
+        public bool? IsChiaCR { get; set; }
 
     }
 

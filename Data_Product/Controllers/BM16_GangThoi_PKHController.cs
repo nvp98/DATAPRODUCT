@@ -1029,7 +1029,37 @@ namespace Data_Product.Controllers
                 }
             }
             // ============================================================================
+            // ======= ĐÁNH DẤU IsChiaCR (NotMapped) =======
+            var maThungGangSet = finalData
+                .Where(x => !string.IsNullOrEmpty(x.MaThungGang))
+                .Select(x => x.MaThungGang!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
+            if (maThungGangSet.Count > 0)
+            {
+                var receiveCounts = await _context.Tbl_BM_16_TaiKhoan_Thung
+                    .Where(t => maThungGangSet.Contains(t.MaThungGang))
+                    .GroupBy(t => t.MaThungGang)
+                    .Select(g => new { MaThungGang = g.Key, Count = g.Count() })
+                    .ToListAsync();
+
+                var receiveMap = receiveCounts.ToDictionary(x => x.MaThungGang, x => x.Count, StringComparer.OrdinalIgnoreCase);
+
+                foreach (var item in finalData)
+                {
+                    if (!string.IsNullOrEmpty(item.MaThungGang)
+                        && receiveMap.TryGetValue(item.MaThungGang!, out var cnt)
+                        && cnt >= 2)
+                    {
+                        item.IsChiaCR = true;
+                    }
+                    else
+                    {
+                        item.IsChiaCR = false;
+                    }
+                }
+            }
             // Group như cũ để hiển thị
             var groupedData = finalData
                 .GroupBy(x => x.ID_TTG.HasValue ? x.ID_TTG.Value.ToString() : $"null_{x.ID}")
@@ -1247,19 +1277,19 @@ namespace Data_Product.Controllers
                                 }
 
                                 var cellKLGangChiaCR = worksheet.Cell(row, colIndex++);
-                                if (item.IsSaiChuyenDen == true)
-                                    cellKLGangChiaCR.Value = "Sai";
+
+                                if (item.IsChiaCR == true)
+                                {
+                                    if (item.IsSaiChuyenDen == true)
+                                        cellKLGangChiaCR.Value = "Sai";
+                                    else
+                                        cellKLGangChiaCR.Value = item.KL_GangChiaCR;
+                                    cellKLGangChiaCR.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
+                                }
                                 else
                                 {
-                                    if (item.KL_GangChiaCR.HasValue && item.KL_GangChiaCR != 0)
-                                    {
-                                        cellKLGangChiaCR.Value = item.KL_GangChiaCR;
-                                        cellKLGangChiaCR.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
-                                    }
-                                    else
-                                        cellKLGangChiaCR.Value = item.G_KLGangLong.HasValue ? item.G_KLGangLong : "";
+                                    cellKLGangChiaCR.Value = item.G_KLGangLong.HasValue ? item.G_KLGangLong : "";
                                 }
-                                //cellKLGangChiaCR.Style.Font.FontColor = XLColor.FromHtml("#ef2337");
 
                                 if (isFirst)
                                 {

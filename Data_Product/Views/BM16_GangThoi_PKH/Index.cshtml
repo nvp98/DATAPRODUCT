@@ -1220,7 +1220,7 @@
                     const ptChenh = item.t_copy || isCopy ? null : PhanTramKLChenhLech(item.maThungGang);
 
                     const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
-                    const hasKlGangChiaCR = item.kL_GangChiaCR != null && item.kL_GangChiaCR !== '' && item.kL_GangChiaCR > 0;
+                    const hasKlGangChiaCR = item.isChiaCR;
                     const isSaiChuyenDen = item.isSaiChuyenDen;
 
                     const displayedValue = hasKlGangChia ? item.klGangChia : (item.t_KLGangLong ?? '');
@@ -1229,7 +1229,7 @@
                     const textColorCR = isSaiChuyenDen || hasKlGangChiaCR ? 'text-danger' : '';
 
                     const showButton = hasKlGangChia ? 'inline-block' : 'none';
-                    const showButtonCR = hasKlGangChiaCR ? 'inline-block' : 'none';
+                    const showButtonCR = hasKlGangChiaCR && !isSaiChuyenDen ? 'inline-block' : 'none';
 
                     const klDuc = (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') && item.t_copy === false ? KhoiLuongDuc(item.maThungGang) : null;
 

@@ -746,8 +746,8 @@
               row += `<td class="hide-col KLGangChia" style="color:${isCopyTTG ? '' : (thung.klGangChia !== null ? 'red' : 'black')}">
                         ${isCopyTTG ? '' : (thung.klGangChia !== null ? thung.klGangChia : (thung.t_KLGangLong ?? ''))}
                       </td>`;
-              row += `<td class="KLGangChiaCR" style="color:${(thung.kL_GangChiaCR !== null ? 'red' : 'black')}">
-                    ${isSaiChuyenDen ? 'sai' : thung.kL_GangChiaCR !== null ? thung.kL_GangChiaCR : (thung.t_KLGangLong ?? '')}
+              row += `<td class="KLGangChiaCR" style="color:${(thung.isChiaCR ? 'red' : 'black')}">
+                    ${isSaiChuyenDen ? 'sai' : thung.kL_GangChiaCR !== null ? thung.kL_GangChiaCR : (thung.g_KLGangLong ?? '')}
               </td>`;
 
               // CÁC CỘT CẤP TTG (render ở mọi hàng – lát nữa merge)
