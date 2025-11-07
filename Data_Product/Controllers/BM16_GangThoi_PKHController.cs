@@ -980,22 +980,88 @@ namespace Data_Product.Controllers
 
             if (gangIdsAll.Count > 0 && ttgIdsAll.Count > 0)
             {
-                var allocRows = await _context.Tbl_BM_16_PhanBoGangCR
-                    .Where(pb => gangIdsAll.Contains(pb.ID_GangLong) && ttgIdsAll.Contains(pb.ID_TTG_Target))
-                    .Select(pb => new { pb.ID_GangLong, pb.ID_TTG_Target, pb.KL_PhanBo_CR, pb.IsSaiChuyenDen })
+                //var allocRows = await _context.Tbl_BM_16_PhanBoGangCR
+                //    .Where(pb => gangIdsAll.Contains(pb.ID_GangLong) && ttgIdsAll.Contains(pb.ID_TTG_Target))
+                //    .GroupBy(pb => new { pb.ID_GangLong, pb.ID_TTG_Target })
+                //    .Select(g => g.OrderByDescending(x => x.ID).FirstOrDefault()) // <- ID lớn nhất
+                //    .Select(x => new
+                //    {
+                //        x.ID_GangLong,
+                //        x.ID_TTG_Target,
+                //        x.KL_PhanBo_CR,
+                //        x.IsSaiChuyenDen
+                //    })
+                //    .AsNoTracking()
+                //    .ToListAsync();
+
+                //var allocCrDict = allocRows.ToDictionary(
+                //    k => (k.ID_GangLong, k.ID_TTG_Target),
+                //    v => v.KL_PhanBo_CR
+                //);
+                //var allocErrDict = allocRows.ToDictionary(
+                //    k => (k.ID_GangLong, k.ID_TTG_Target),
+                //    v => v.IsSaiChuyenDen
+                //);
+                // Subquery: lấy Max(ID) cho mỗi cặp
+                var latestKeysQuery =
+                    from pb in _context.Tbl_BM_16_PhanBoGangCR
+                    where gangIdsAll.Contains(pb.ID_GangLong)
+                       && ttgIdsAll.Contains(pb.ID_TTG_Target)
+                    group pb by new { pb.ID_GangLong, pb.ID_TTG_Target } into g
+                    select new { g.Key.ID_GangLong, g.Key.ID_TTG_Target, MaxId = g.Max(x => x.ID) };
+
+                // Join để lấy đúng dòng có ID = MaxId
+                var allocRows = await (
+                    from pb in _context.Tbl_BM_16_PhanBoGangCR
+                    join k in latestKeysQuery
+                      on new { pb.ID_GangLong, pb.ID_TTG_Target, pb.ID }
+                      equals new { k.ID_GangLong, k.ID_TTG_Target, ID = k.MaxId }
+                    select new
+                    {
+                        pb.ID_GangLong,
+                        pb.ID_TTG_Target,
+                        pb.KL_PhanBo_CR,
+                        pb.IsSaiChuyenDen
+                    })
                     .AsNoTracking()
                     .ToListAsync();
 
-                // Tách 2 dict: KL và Cờ sai
+                // Build dict như cũ
                 var allocCrDict = allocRows.ToDictionary(
                     k => (k.ID_GangLong, k.ID_TTG_Target),
-                    v => v.KL_PhanBo_CR ?? 0m
+                    v => v.KL_PhanBo_CR
                 );
-
                 var allocErrDict = allocRows.ToDictionary(
                     k => (k.ID_GangLong, k.ID_TTG_Target),
-                    v => v.IsSaiChuyenDen // bool? giữ nguyên null/true/false theo DB
+                    v => v.IsSaiChuyenDen
                 );
+
+
+                //var allocAgg = await _context.Tbl_BM_16_PhanBoGangCR
+                //    .Where(pb => gangIdsAll.Contains(pb.ID_GangLong) && ttgIdsAll.Contains(pb.ID_TTG_Target))
+                //    .GroupBy(pb => new { pb.ID_GangLong, pb.ID_TTG_Target })
+                //    .Select(g => new
+                //    {
+                //        g.Key.ID_GangLong,
+                //        g.Key.ID_TTG_Target,
+                //        KL = g.Sum(x => (decimal?)(x.KL_PhanBo_CR ?? 0m)) ?? 0m,
+                //        // OR logic cho cờ sai:
+                //        IsSai = g.Any(x => x.IsSaiChuyenDen == true)
+                //               ? (bool?)true
+                //               : (g.All(x => x.IsSaiChuyenDen == false) ? (bool?)false : null)
+                //    })
+                //    .AsNoTracking()
+                //    .ToListAsync();
+
+                //var allocCrDict = allocAgg.ToDictionary(
+                //    k => (k.ID_GangLong, k.ID_TTG_Target),
+                //    v => v.KL
+                //);
+
+                //var allocErrDict = allocAgg.ToDictionary(
+                //    k => (k.ID_GangLong, k.ID_TTG_Target),
+                //    v => v.IsSai
+                //);
 
                 foreach (var item in finalData)
                 {
