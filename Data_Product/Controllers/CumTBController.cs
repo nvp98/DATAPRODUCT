@@ -81,8 +81,16 @@ namespace Data_Product.Controllers
             }
 
             // Danh sách xưởng chọn
-            var xuongs = await _context.Tbl_Xuong.ToListAsync();
-            ViewBag.XuongList = new MultiSelectList(xuongs, "ID_Xuong", "TenXuong", ViewBag.SelectedXuong);
+            List<Tbl_Xuong> xuong = await (from a in _context.Tbl_Xuong
+                                     join b in _context.Tbl_PhongBan on a.ID_PhongBan equals b.ID_PhongBan
+                                     select new Tbl_Xuong
+                                     {
+                                         ID_Xuong = a.ID_Xuong,
+                                         ID_PhongBan = b.ID_PhongBan,
+                                         TenXuong = b.TenPhongBan + "-" + a.TenXuong
+                                     }
+                                ).ToListAsync();
+            ViewBag.XuongList = new MultiSelectList(xuong, "ID_Xuong", "TenXuong", ViewBag.SelectedXuong);
 
             return PartialView("CumTBModal", model);
         }
