@@ -753,8 +753,13 @@ namespace Data_Product.Controllers
                     ID_Xuong = g.Key.ID_Xuong,
                     ID_CumTB = g.Key.ID_CumTB,
 
-                    // Tổng thời gian ca (giờ)
-                    TongThoiGian = tongThoiGianCa,
+                    // Tổng thời gian dừng
+                    TongThoiGianDung = g
+                        .Sum(x => (double?)(
+                            x.ThoiGianDung.HasValue
+                                ? x.ThoiGianDung.Value
+                                : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                        )) / 60.0 ?? 0,
 
                     // Tổng thời gian dừng dây chuyền (giờ)
                     TongTG_DungDayChuyen = g
@@ -765,10 +770,17 @@ namespace Data_Product.Controllers
                                 : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
                         )) / 60.0 ?? 0,
 
+                    TongTG_KhongDungDC = g
+                        .Where(x => x.DungDayChuyen == false)
+                        .Sum(x => (double?)(
+                            x.ThoiGianDung.HasValue
+                                ? x.ThoiGianDung.Value
+                                : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                        )) / 60.0 ?? 0,
+
                     // Tổng thời gian chạy máy (giờ)
                     TongTG_ChayMay = tongThoiGianCa -
-                        (g.Where(x => x.DungDayChuyen == true)
-                         .Sum(x => (double?)(
+                        (g.Sum(x => (double?)(
                              x.ThoiGianDung.HasValue
                                  ? x.ThoiGianDung.Value
                                  : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
@@ -792,12 +804,17 @@ namespace Data_Product.Controllers
             TimeSpan DungKhachQuan = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 4).Sum(x => x.ThoiGianDung) ?? 0);
             TimeSpan TongTgianDung = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Sum(x => x.ThoiGianDung) ?? 0);
 
+            TimeSpan TongTgianDungDC = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x=>x.DungDayChuyen == true).Sum(x => x.ThoiGianDung) ?? 0);
+
 
             ViewBag.DungThietBi = tgdungThietbi.TotalHours.ToString("F2");
             ViewBag.DungCongNghe = tgdungCongNge.TotalHours.ToString("F2");
             ViewBag.DungSuCoCN = DungSuCoCN.TotalHours.ToString("F2");
             ViewBag.DungKhachQuan = DungKhachQuan.TotalHours.ToString("F2");
+
             ViewBag.TongTgianDung = TongTgianDung.TotalHours.ToString("F2");
+            ViewBag.TongTgianDungDC = TongTgianDungDC.TotalHours.ToString("F2");
+            ViewBag.TGianKhongDungDC =(TongTgianDung - TongTgianDungDC).TotalHours.ToString("F2");
 
             return PartialView(res);
         }
@@ -862,8 +879,13 @@ namespace Data_Product.Controllers
                     ID_Xuong = g.Key.ID_Xuong,
                     ID_CumTB = g.Key.ID_CumTB,
 
-                    // Tổng thời gian ca (giờ)
-                    TongThoiGian = tongThoiGianCa,
+                    // Tổng thời gian dừng
+                    TongThoiGianDung = g
+                        .Sum(x => (double?)(
+                            x.ThoiGianDung.HasValue
+                                ? x.ThoiGianDung.Value
+                                : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                        )) / 60.0 ?? 0,
 
                     // Tổng thời gian dừng dây chuyền (giờ)
                     TongTG_DungDayChuyen = g
@@ -874,10 +896,17 @@ namespace Data_Product.Controllers
                                 : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
                         )) / 60.0 ?? 0,
 
+                    TongTG_KhongDungDC = g
+                        .Where(x => x.DungDayChuyen == false)
+                        .Sum(x => (double?)(
+                            x.ThoiGianDung.HasValue
+                                ? x.ThoiGianDung.Value
+                                : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                        )) / 60.0 ?? 0,
+
                     // Tổng thời gian chạy máy (giờ)
                     TongTG_ChayMay = tongThoiGianCa -
-                        (g.Where(x => x.DungDayChuyen == true)
-                         .Sum(x => (double?)(
+                        (g.Sum(x => (double?)(
                              x.ThoiGianDung.HasValue
                                  ? x.ThoiGianDung.Value
                                  : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
@@ -1137,6 +1166,12 @@ namespace Data_Product.Controllers
 
                         icol++;
                         Worksheet.Cell(row, icol).Value = item.TGian_KH_BTBD;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.DungDayChuyen == true?"Có":"Không";
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;

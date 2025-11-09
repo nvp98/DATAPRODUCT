@@ -43,8 +43,9 @@ namespace Data_Product.Models
         public string? TenXuong { get; set; }
         public int? ID_CumTB { get; set; }
         public string? TenCumTB { get; set; }
-        public double? TongThoiGian { get; set; }
         public double? TongTG_DungDayChuyen { get; set; }
+        public double? TongTG_KhongDungDC { get; set; }
+        public double? TongThoiGianDung { get; set; }
         public double? TongTG_ChayMay { get; set; }
         public string? GhiChu { get; set; }
     }

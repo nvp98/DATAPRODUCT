@@ -57,6 +57,64 @@
         }
 </style>
 
+<style>
+    /* Thu nhỏ tất cả ô nhập trong bảng */
+    #dataTable input.form-control,
+    #dataTable select.form-control {
+        height: 28px !important; /* giảm chiều cao */
+        padding: 2px 6px !important; /* thu nhỏ padding */
+        font-size: 13px !important; /* cỡ chữ nhỏ hơn */
+        line-height: 1.2;
+    }
+
+    /* Thu nhỏ radio vuông */
+    #dataTable .radio-square {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Căn giữa text trong các cột số */
+    #dataTable input[type="number"],
+    #dataTable input[type="time"],
+    #dataTable select {
+        text-align: center;
+    }
+
+    /* Giảm khoảng cách giữa các hàng */
+    #dataTable tr td {
+        padding: 3px 4px !important;
+    }
+
+    /* Giảm độ rộng mặc định của các cột nhỏ (thời gian, số phút, radio) */
+    #dataTable td input[type="time"],
+    #dataTable td input[type="number"] {
+        max-width: 90px !important;
+    }
+
+    /* Nếu có icon nút xóa nhỏ lại */
+    #dataTable .btn-danger {
+        padding: 2px 6px;
+        font-size: 12px;
+    }
+
+    /* Select2 nếu bạn dùng */
+    .select2-container .select2-selection--single {
+        height: 28px !important;
+        min-height: 28px !important;
+        padding: 2px 6px !important;
+        font-size: 13px !important;
+    }
+
+    .select2-selection__rendered {
+        line-height: 24px !important;
+    }
+
+    .select2-selection__arrow {
+        height: 26px !important;
+    }
+</style>
+
+
 @using (Html.BeginForm("Edit", "BM_NhatKy_SanXuat", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
 {
     @Html.HiddenFor(model => model.ID)
@@ -84,13 +142,13 @@
                                                         @Html.TextBox("ID_Day", null, new { @id = "ID_Day", @name = "ID_Day", @type = "date", @class = "form-control",@readonly = "readonly" })
                                                     </span>
                                                 </div>
-                                                <script type="text/javascript">
+                                             @*    <script type="text/javascript">
                                                     $("#ID_Day").change(function () {
                                                         $("#CaKip").empty();
                                                         //$("#IDCa").empty();
                                                         $('#IDCa').prop('selectedIndex', 0);
                                                     });
-                                                </script>
+                                                </script> *@
                                             </div>
                                             @Html.HiddenFor(x=>x.Ca, new {@id="IDCa"})
                                         </div>
@@ -230,13 +288,6 @@
                                                 //}); // Xóa required tránh lỗi khi submit
                                                 row.remove(); // Xóa hẳn dòng khỏi DOM
                                             });
-
-                                            const locao = [
-                                                { id: "1", text: "Lò cao 1" },
-                                                { id: "2", text: "Lò cao 2" },
-                                                { id: "3", text: "Lò cao 3" },
-                                                { id: "4", text: "Lò cao 4" }
-                                            ];
                                             const Xuong = @Html.Raw(Json.Serialize(ViewBag.IDXuong));
                                             const CumThietBi = @Html.Raw(Json.Serialize(ViewBag.CumThietBi))
                                             console.log(jsonData);
@@ -249,28 +300,28 @@
                                                 let timeValueChay = row[4];
                                                 let formattedTimeDung = excelTimeToHHMM(timeValueDung);
                                                 let formattedTimeChay = excelTimeToHHMM(timeValueChay);
-                                                let NoidungDung = row[5];
-                                                let soLanSC = row[6];
-                                                let TGianChoXL = row[7];
-                                                let TGianXL = row[8];
-                                                let TGianSC = row[9];
-                                                let SuCoCN = (row[10] || "").trim();
-                                                let ChoCN = (row[11] || "").trim();
-                                                let KhachQuan = (row[12] || "").trim();
-                                                let ChoKhac = (row[13] || "").trim();
-                                                let DungBTBD = (row[14] || "").trim();
-                                                let TGianKH_BTBD = row[15];
-                                                let DungDayChuyen = row[16];
-                                                let GhiChu = (row[17] || "").trim();
-
-                                                // Lọc dữ liệu từ file Excel cho SoThung để chỉ giữ số
-                                                let soThungValue = (row[3] || "").toString().replace(/[^0-9]/g, '');
+                                                let TGianDung = Math.round(Number(row[5] || 0));
+                                                let NoidungDung = row[6];
+                                                let soLanSC = row[7];
+                                                let TGianChoXL = row[8];
+                                                let TGianXL = row[9];
+                                                let TGianSC = row[10];
+                                                let SuCoCN = (row[11] || "").trim();
+                                                let ChoCN = (row[12] || "").trim();
+                                                let KhachQuan = (row[13] || "").trim();
+                                                let ChoKhac = (row[14] || "").trim();
+                                                let DungBTBD = (row[15] || "").trim();
+                                                let TGianKH_BTBD = row[16];
+                                                let DungDayChuyen = row[17];
+                                                let GhiChu = (row[18] || "").trim();
 
                                                 let cumObj = CumThietBi.find(x => x.text.trim() === TenCumTB);
                                                 let cumValue = cumObj ? cumObj.value : "";
 
                                                 //index 0->n
                                                 let index = indexx - 7;
+
+                                                console.log(TGianDung)
 
                                                 let newRow = `
                                                 <tr class="data-row">
@@ -291,10 +342,13 @@
                                                     </td>
 
                                                                                        <!-- Thời điểm dừng -->
-                                                    <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemDung" value="${formattedTimeDung}" class="form-control" required></td>
+                                                    <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemDung" value="${formattedTimeDung}" class="form-control ThoiDiemDung" required></td>
 
                                                     <!-- Thời điểm chạy lại -->
-                                                    <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemChay" value="${formattedTimeChay}" class="form-control" required></td>
+                                                    <td><input type="time" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiDiemChay" value="${formattedTimeChay}" class="form-control ThoiDiemChay" required></td>
+
+                                                       <!-- Thời gian dừng -->
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].ThoiGianDung" value="${TGianDung}" class="form-control ThoiGianDung" min="0" step="1" readonly></td>
 
                                                     <!-- Nội dung dừng máy -->
                                                     <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].NoiDungDung" value="${NoidungDung}" class="form-control" required></td>
@@ -349,15 +403,6 @@
 
                                         reader.readAsArrayBuffer(file);
                                     });
-                                    document.querySelectorAll('input[name="SoMeGang"]').forEach(function (input) {
-                                        input.addEventListener('input', function () {
-                                            const value = this.value;
-                                            if (!/^\d*$/.test(value)) {
-                                                alert('Chỉ được nhập số nguyên cho ô Số Mẻ Gang!');
-                                                this.value = value.replace(/\D/g, ''); // Xóa các ký tự không phải số
-                                            }
-                                        });
-                                    });
                                     // Chuyển đổi định dạng thời gian về HH:mm
                                     function excelTimeToHHMM(excelTime) {
                                         let totalMinutes = Math.round(excelTime * 24 * 60);
@@ -387,6 +432,7 @@
                                             <th rowspan="2" style="width:200px;">Cụm thiết bị</th>
                                             <th rowspan="2" style="width:100px;">Thời điểm dừng</th>
                                             <th rowspan="2" style="width:100px;">Thời điểm chạy lại</th>
+                                            <th rowspan="2" style="width:100px;">Thời gian dừng</th>
                                             <th rowspan="2" style="width:250px;">Nội dung dừng máy</th>
 
                                             <!-- Nhóm 1: Thiết bị Cơ điện -->
@@ -437,10 +483,10 @@
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_Xuong" style="width: 100%" required>
-                                                        @foreach (var it in ViewBag.IDXuong)
+                                                    <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_CumTB" style="width: 100%" required>
+                                                        @foreach (var it in ViewBag.CumThietBi)
                                                         {
-                                                            if (item.ID_Xuong.ToString() == @it.Value)
+                                                            if (item.ID_CumTB.ToString() == @it.Value)
                                                             {
                                                                 <option value='@it.Value' selected>@it.Text</option>
                                                             }
@@ -453,16 +499,18 @@
                                                 </td>
                                                 <td><input type="time" name="NhatKy_SanXuat_ChiTiet[@index].ThoiDiemDung" value="@item.ThoiDiemDung" class="form-control" required></td>
                                                 <td><input type="time" name="NhatKy_SanXuat_ChiTiet[@index].ThoiDiemChay" value="@item.ThoiDiemChay" class="form-control" required></td>
+                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].ThoiGianDung" value="@item.ThoiGianDung" class="form-control ThoiGianDung" readonly></td>
                                                 <td><input type="text" name="NhatKy_SanXuat_ChiTiet[@index].NoiDungDung" class="form-control" value="@item.NoiDungDung" required></td>
                                                 <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_SoLan" value="@item.CoDien_SoLan" class="form-control" ></td>
-                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_ChoXL" value="@item.CoDien_ChoXL" class="form-control"></td>
-                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_ChoXL" value="@item.CoDien_ChoXL" class="form-control"></td>
+                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_ChoXL" value="@item.CoDien_ChoXL" class="form-control CoDien_ChoXL"></td>
+                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_TGianXL" value="@item.CoDien_TGianXL" class="form-control CoDien_TGianXL"></td>
+                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_TGianSC" value="@item.CoDien_TGianSC" class="form-control CoDien_TGianSC" readonly></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="1" @(item.LyDo_DungThietBi == 1 ? "checked" : "") class="radio-square" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="2" @(item.LyDo_DungThietBi == 2 ? "checked" : "") class="radio-square" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="3" @(item.LyDo_DungThietBi == 3 ? "checked" : "") class="radio-square" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="4" @(item.LyDo_DungThietBi == 4 ? "checked" : "") class="radio-square" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="3" @(item.LyDo_DungThietBi == 5 ? "checked" : "") class="radio-square" required></td>
-                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="4" @(item.LyDo_DungThietBi == 6 ? "checked" : "") class="radio-square" required></td>
+                                                <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].TGian_KH_BTBD" value="@item.TGian_KH_BTBD" class="form-control" min="0" step="0.1"></td>
 
                                                 <td>
                                                     <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[@index].DungDayChuyen" style="width:100%;" required>
@@ -507,10 +555,13 @@
                                   </td>
 
                                   <!-- Thời điểm dừng -->
-                                  <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemDung" class="form-control" required></td>
+                                  <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemDung" class="form-control ThoiDiemDung" required></td>
 
                                   <!-- Thời điểm chạy lại -->
-                                  <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemChay" class="form-control" required></td>
+                                  <td><input type="time" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiDiemChay" class="form-control ThoiDiemChay" required></td>
+
+                                  <!-- Thời gian dừng -->
+                                  <td><input type="number" name="NhatKy_SanXuat_ChiTiet[{index}].ThoiGianDung" class="form-control ThoiGianDung" readonly></td>
 
                                 
                                   <!-- Nội dung dừng máy -->
@@ -618,12 +669,37 @@
 }
 
 <script>
-    $(document).on('input', '.CoDien_ChoXL, .CoDien_TGianXL', function () {
+    $(document).on('input change blur', '.CoDien_ChoXL, .CoDien_TGianXL', function () {
         const row = $(this).closest('tr'); // dòng hiện tại
         const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
         const tgXL  = parseFloat(row.find('.CoDien_TGianXL').val()) || 0;
+
         row.find('.CoDien_TGianSC').val(choXL + tgXL);
     });
+        $(document).on('input change blur', '.ThoiDiemChay, .ThoiDiemDung', function () {
+        const row = $(this).closest('tr'); // lấy dòng hiện tại
+
+        // ---- 1. Lấy giá trị thời điểm dừng và chạy ----
+        const timeDung = row.find('.ThoiDiemDung').val();
+        const timeChay = row.find('.ThoiDiemChay').val();
+
+        // ---- 2. Nếu cả 2 đều có giá trị, tính thời gian dừng (phút) ----
+        if (timeDung && timeChay) {
+            const [h1, m1] = timeDung.split(':').map(Number);
+            const [h2, m2] = timeChay.split(':').map(Number);
+            let total1 = h1 * 60 + m1;
+            let total2 = h2 * 60 + m2;
+
+            // Nếu chạy lại sau nửa đêm → cộng thêm 24h
+            if (total2 < total1) total2 += 24 * 60;
+
+            const diff = total2 - total1;
+            row.find('.ThoiGianDung').val(diff);
+        } else {
+            row.find('.ThoiGianDung').val('');
+        }
+    });
+
 </script>
 <script type="text/javascript">
     $(document).ready(function () {
@@ -641,6 +717,7 @@
 
             for (const input of inputs) {
                 const value = normalizeTime(input.value);
+                console.log(value)
                 if (selectedValueCa == "1" && value && (value < "08:00" || value > "20:00")) {
                     isValid = false;
                     alert('Vui lòng điền đúng khoảng thời gian ca Ngày từ 08:00 - 20:00!');
@@ -659,6 +736,32 @@
                 isValid = false;
                 alert("Không có dòng dữ liệu nào! Vui lòng thêm ít nhất 1 dòng trước khi lưu.");
             }
+
+            // Kiểm tra thời gian dừng và thời gian sự cố
+            // Lặp qua từng dòng trong bảng
+            $('#dataTable tbody tr').each(function (index, row) {
+                const thoiGianDung = parseFloat($(row).find('.ThoiGianDung').val()) || 0;
+                const thoiGianSC   = parseFloat($(row).find('.CoDien_TGianSC').val()) || 0;
+                console.log(row,thoiGianSC,"jjsjsjssjj")
+                if (thoiGianSC != thoiGianDung) {
+                    alert(`Dòng ${index + 1}: Thời gian sự cố (${thoiGianSC} phút) phải bằng Thời gian dừng (${thoiGianDung} phút)!`);
+                    isValid = false;
+
+                    // Đánh dấu dòng lỗi (đỏ viền)
+                    $(row).css('background-color', '#ffe6e6');
+                    $(row).find('.ThoiGianDung, .CoDien_TGianSC').css('border-color', 'red');
+
+                    // focus vào ô lỗi đầu tiên
+                    $(row).find('.CoDien_TGianSC').focus();
+                    return false; // break vòng each
+                } else {
+                    // reset style nếu hợp lệ
+                    $(row).css('background-color', '');
+                    $(row).find('.ThoiGianDung, .CoDien_TGianSC').css('border-color', '');
+                }
+            });
+
+
 
             if (!isValid) {
                 e.preventDefault(); // Chặn submit nếu có lỗi

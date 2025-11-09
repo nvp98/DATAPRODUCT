@@ -296,9 +296,10 @@
                                         <th class="text-center" width="60px" style="vertical-align:middle;background-color:#f9f9f9;">STT</th>
                                         <th class="text-center" width="200px" style="vertical-align:middle;background-color:#f9f9f9;">Xưởng</th>
                                         <th class="text-center" width="200px" style="vertical-align:middle;background-color:#f9f9f9;">Cụm thiết bị</th>
-                                        <th class="text-center" width="120px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian<br>(giờ)</th>
-                                        <th class="text-center" width="160px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian<br>dừng dây chuyền<br>(giờ:phút)</th>
-                                        <th class="text-center" width="160px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian<br>chạy máy<br>(giờ:phút)</th>
+                                        <th class="text-center" width="120px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian dừng dây chuyền<br>(giờ)</th>
+                                        <th class="text-center" width="120px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian không gây dừng dây chuyền<br>(giờ)</th>
+                                        <th class="text-center" width="160px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian<br>dừng <br>(giờ)</th>
+                                        <th class="text-center" width="160px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian<br>chạy máy<br>(giờ)</th>
                                         <th class="text-center" width="250px" style="vertical-align:middle;background-color:#f9f9f9;">Ghi chú</th>
                                     </tr>
                                 </thead>
@@ -314,8 +315,9 @@
                                             <td class="text-center">@indexSum</td>
                                             <td>@(xuong?.TenXuong ?? "")</td>
                                             <td>@(cumtb?.TenCumTB ?? "")</td>
-                                            <td>@(item.TongThoiGian?.ToString("0.##") ?? "0")</td>
                                             <td>@(item.TongTG_DungDayChuyen?.ToString("0.##") ?? "0")</td>
+                                            <td>@(item.TongTG_KhongDungDC?.ToString("0.##") ?? "0")</td>
+                                            <td>@(item.TongThoiGianDung?.ToString("0.##") ?? "0")</td>
                                             <td>@(item.TongTG_ChayMay?.ToString("0.##") ?? "0")</td>
                                             <td>@item.GhiChu</td>
                                         </tr>
