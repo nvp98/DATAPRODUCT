@@ -1,0 +1,308 @@
+﻿@model IEnumerable<Data_Product.Models.Tbl_NhatKy_CumTB>
+@using Data_Product.Repositorys;
+@inject Data_Product.Repositorys.DataContext _context
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<!-- DataTables -->
+<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+
+@{
+    ViewData["Title"] = "Danh sách Cụm Thiết Bị";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+
+                    <!-- Header -->
+                    <div class="row" style="height: 120px;">
+                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color:#F9F9F9;width:-webkit-fill-available;">
+                            <div class="col-6" style="text-align: left;padding: 2% 2% 2% 0%;">
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b;font-size: 15px;">
+                                        DANH SÁCH CỤM THIẾT BỊ
+                                    </b>
+                                </span>
+                            </div>
+
+                           
+
+
+                          
+
+
+                           @*  <div class="col-4" style="text-align: right;padding: 2% 2% 2% 0%;">
+                                <button id="btn-add" type="button" class="btn btn-primary">
+                                    <i class="bi bi-plus-lg"></i> Thêm mới
+                                </button>
+
+                                <button id="btn-Import" type="button" class="btn btn-primary">
+                                    <i class="bi bi-box-arrow-up"></i> Import Excel
+                                </button>
+                            </div>
+
+                            <div class="col-2" style="text-align: right;padding: 2% 2% 2% 0%;">
+                                <form method="get" asp-controller="CumTB" asp-action="ExportToExcel">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-download"></i> Download Excel
+                                    </button>
+                                </form>
+                            </div> *@
+                        </div>
+                    </div>
+
+                    <!-- Nút thêm -->
+                    <div class="row">
+                        <button id="btn-add" type="button" class="btn btn-primary w-auto float-right">
+                            <i class="bi bi-plus-lg"></i> Thêm mới
+                        </button>
+                       @*  <button id="btn-Import" type="button" class="btn btn-success btn-sm">
+                            <i class="bi bi-upload"></i> Import Excel
+                        </button> *@
+                    </div>
+                    <!-- Modal container -->
+                    <div id="CumTBModalContainer"></div>
+
+                    <script>
+                        // 🟢 Mở modal tạo mới
+                        $('#btn-add').click(function () {
+                            $.get('@Url.Action("CumTBModal", "CumTB")', function (data) {
+                                // 1️⃣ Đưa nội dung modal vào DOM
+                                $('#CumTBModalContainer').html(data);
+
+                                // 2️⃣ Gọi hiển thị modal sau khi HTML đã được render
+                                const modalElement = new bootstrap.Modal(document.getElementById('CumTBModal'));
+                                modalElement.show();
+                            });
+                        });
+
+                        // 🟠 Mở modal chỉnh sửa
+                        function editCumTB(id) {
+                            $.get('@Url.Action("CumTBModal", "CumTB")?id=' + id, function (data) {
+                                $('#CumTBModalContainer').html(data);
+                                const modalElement = new bootstrap.Modal(document.getElementById('CumTBModal'));
+                                modalElement.show();
+                            });
+                        }
+                    </script>
+
+                    <!-- Modal thêm mới -->
+                    @* <div class="modal" id="myModal" role="dialog" data-url='@Url.Action("Create", "CumTB")'></div>
+                    <script type="text/javascript">
+                        $('#btn-add').click(function () {
+                            var url = $('#myModal').data('url');
+                            $.get(url, function (data) {
+                                $("#myModal").html(data);
+                                $("#ModalTitle").html("THÊM MỚI CỤM THIẾT BỊ");
+                                $("#myModal").modal('show');
+                            });
+                        });
+                    </script> *@
+
+                    <!-- Modal Import -->
+                    @* <div class="modal fade" id="myModalImportExcel" role="dialog" data-url='@Url.Action("ImportExcel", "CumTB")'></div>
+                    <script type="text/javascript">
+                        $('#btn-Import').click(function () {
+                            var url = $('#myModalImportExcel').data('url');
+                            $.get(url, function (data) {
+                                $("#myModalImportExcel").html(data);
+                                $("#ModalTitle").html("IMPORT DANH SÁCH CỤM THIẾT BỊ");
+                                $("#myModalImportExcel").modal('show');
+                            });
+                        });
+                    </script> *@
+
+                    <!-- Bảng danh sách -->
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                <thead style="font-size: 14px;">
+                                    <tr>
+                                        <th class="text-center" width="30px" style="background-color:#f7f7f7;">STT</th>
+                                        <th class="text-center" width="200px" style="background-color:#f7f7f7;">Tên Cụm Thiết Bị</th>
+                                        <th class="text-center" width="200px" style="background-color:#f7f7f7;">Xưởng</th>
+                                        <th class="text-center" width="100px" style="background-color:#f7f7f7;">Trạng thái</th>
+                                        <th class="text-center" width="130px" style="background-color:#f7f7f7;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int rowNo = 1;
+                                    }
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td class="text-center">@rowNo</td>
+                                            <td style="font-size:14px;">@item.TenCumTB</td>
+                                            <td style="font-size:14px;">
+                                                @if (item.Xuong != null && item.Xuong.Any())
+                                                {
+                                                    @string.Join(", ", item.Xuong.Select(x => x.TenXuong))
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Chưa gán xưởng</span>
+                                                }
+                                            </td>
+
+                                            <td class="text-center" style="font-size:14px;">
+                                                @if (item.IsLock)
+                                                {
+                                                    <span style="color:red;">Đã khóa</span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color:green;">Hoạt động</span>
+                                                }
+                                            </td>
+
+                                            <td class="text-center">
+                                                @if (!item.IsLock)
+                                                {
+                                                    <a class="btn btn-primary btn-sm"
+                                                       title="Khóa"
+                                                       href="@Url.Action("ToggleLock", "CumTB", new { id = item.ID })"
+                                                       onclick="return confirm('Bạn muốn khóa cụm thiết bị: @item.TenCumTB?')">
+                                                        <i class="bi bi-lock-fill"></i>
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <a class="btn btn-danger btn-sm"
+                                                       title="Mở khóa"
+                                                       href="@Url.Action("ToggleLock", "CumTB", new { id = item.ID })"
+                                                       onclick="return confirm('Bạn muốn mở khóa cụm thiết bị: @item.TenCumTB?')">
+                                                        <i class="bi bi-unlock-fill"></i>
+                                                    </a>
+                                                }
+
+                                                <!-- Trong bảng: -->
+                                                <a class="btn btn-primary btn-sm" href="javascript:void(0);" onclick="editCumTB(@item.ID)">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <div class="modal" id="myModalEdit_@item.ID" role="dialog"
+                                                     data-url='@Url.Action("Edit", "CumTB", new { id = item.ID })'></div>
+                                                <script type="text/javascript">
+                                                    $("#btn-edit_@item.ID").click(function () {
+                                                        var url = $('#myModalEdit_@item.ID').data('url');
+                                                        $.get(url, function (data) {
+                                                            $("#myModalEdit_@item.ID").html(data);
+                                                            $("#ModalTitle").html("CHỈNH SỬA CỤM THIẾT BỊ");
+                                                            $("#myModalEdit_@item.ID").modal('show');
+                                                        });
+                                                    });
+                                                    $("#myModalEdit_@item.ID").on('hidden.bs.modal', function () {
+                                                        $(this).find('.modal-body').html('');
+                                                    });
+                                                </script>
+                                            </td>
+                                        </tr>
+                                        rowNo++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal chọn file -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <input type="file" id="excelFile" class="form-control" accept=".xlsx,.xls" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" id="btnSubmitImport" class="btn btn-primary btn-sm">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Khi click nút Import Excel → mở modal
+        $('#btn-Import').click(function () {
+            $('#importModal').modal('show');
+        });
+
+        // Khi bấm nút "Import" trong modal
+        $('#btnSubmitImport').click(function () {
+            var fileInput = $('#excelFile')[0];
+            if (fileInput.files.length === 0) {
+                alert("Vui lòng chọn file Excel!");
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            $.ajax({
+                url: '/YourControllerName/ImportExcel',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    alert(response.message || "Import thành công!");
+                    location.reload();
+                },
+                error: function (xhr) {
+                    alert(xhr.responseText || "Đã xảy ra lỗi khi import!");
+                }
+            });
+        });
+    </script>
+}
+
+
+
+
+
+
+<!-- Script tìm kiếm -->
+<script type="text/javascript">
+    $("#btn-search").on('click', function () {
+        var search = $('#txtsearch').val();
+        window.location.href = '@Url.Action("Index", "CumTB")?search=' + search;
+    });
+</script>
+
+<!-- DataTable -->
+<script>
+    $(document).ready(function () {
+        $('#table').DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            fixedHeader: true,
+            scrollY: '70vh',
+            scrollCollapse: true
+        });
+    });
+</script>

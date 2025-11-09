@@ -45,7 +45,15 @@
                                 LyDo_DungThietBi = a.LyDo_DungThietBi,
                                 NoiDungDung = a.NoiDungDung,
                                 GhiChu =a.GhiChu,
-                                ThoiGianDung = a.ThoiGianDung
+                                ThoiGianDung = a.ThoiGianDung,
+                                TenCumTB = _context.Tbl_NhatKy_CumTB.FirstOrDefault(x => x.ID == a.ID_CumTB).TenCumTB,
+                                CoDien_ChoXL = a.CoDien_ChoXL,
+                                CoDien_SoLan = a.CoDien_SoLan,
+                                CoDien_TGianSC = a.CoDien_TGianSC,
+                                CoDien_TGianXL = a.CoDien_TGianXL,
+                                TGian_KH_BTBD = a.TGian_KH_BTBD,
+                                DungDayChuyen = a.DungDayChuyen,
+                                ID_CumTB = a.ID_CumTB
                              }).ToListAsync();
     TimeSpan tgdungThietbi = TimeSpan.FromMinutes(ListChiTiet.Where(x => x.LyDo_DungThietBi == 1).Sum(x => x.ThoiGianDung) ?? 0);
     TimeSpan tgdungCongNge = TimeSpan.FromMinutes(ListChiTiet.Where(x => x.LyDo_DungThietBi == 2).Sum(x => x.ThoiGianDung) ?? 0);
@@ -77,8 +85,8 @@
            
             <div style="flex: 0 0 50%;width:20%; float:right;text-align:right; font-weight: bold;">
                 <span style="font-weight:bold">BM.12/QT.05</span>
-                <div style="margin-top:0"><span style="font-style:italic;">Ngày hiệu lực:</span> 10/07/2024</div>
-                <div style="margin-top:0"><span style="font-style:italic;">Lần sửa đổi:</span> 00</div>
+                <div style="margin-top:0"><span style="font-style:italic;">Ngày hiệu lực:</span> 01/11/2025</div>
+                <div style="margin-top:0"><span style="font-style:italic;">Lần sửa đổi:</span> 01</div>
             </div>
         </div><!-- End Recent Sales -->
         <div style="flex: 0 0 100%; width: 100%; margin-top:0">
@@ -110,26 +118,51 @@
     <div class="card-body" style="padding-top:1%;">
         <div class="table-responsive">
             <table  style="border-collapse: collapse; width: 100%; " cellpadding="0">
-                <thead> 
+                <thead>
                     <tr>
-                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 5%;">STT</th>
-                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 25%;">Xưởng</th>
-                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Thời điểm dừng</th>
-                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 8%;">Thời điểm chạy lại máy</th>
-                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Dừng máy do thiết bị</th>
-                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Dừng máy do sự cố Công nghệ</th>
-                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Dừng máy do Chờ công nghệ</th>
-                        <th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Dừng máy do khách quan</th>
-                        @*<th style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 25%;">Nội dung dừng máy</th>*@
-                        <th  style="border: 1px solid black; padding: 8px; text-align: center; vertical-align: middle; font-size: 14px; width: 10%;">Ghi chú</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle; width: 4%;">STT</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle; width: 12%;">Xưởng</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle; width: 10%;">Cụm thiết bị</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle; width: 8%;">Thời điểm dừng</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle; width: 8%;">Thời điểm chạy lại</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle; width: 6%;">Thời gian dừng (phút)</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle; width: 15%;">Nội dung dừng máy</th>
+
+                        <!-- Nhóm Thiết bị Cơ điện -->
+                        <th colspan="4" style="border: 1px solid black; text-align: center; vertical-align: middle;">Thiết bị Cơ điện</th>
+
+                        <!-- Nhóm Công nghệ -->
+                        <th colspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle;">Công nghệ</th>
+
+                        <!-- Các loại thời gian khác -->
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle;">TG dừng khách quan</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle;">TG chờ khác</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle;">TG dừng BTBD thực tế</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle;">TG dừng theo KH BTBD tháng (giờ)</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle;">Gây dừng dây chuyền sản xuất</th>
+                        <th rowspan="2" style="border: 1px solid black; text-align: center; vertical-align: middle;">Ghi chú</th>
+                    </tr>
+
+                    <tr>
+                        <!-- Cột con của Thiết bị Cơ điện -->
+                        <th style="border: 1px solid black; text-align: center; vertical-align: middle;">Số sự cố (lần)</th>
+                        <th style="border: 1px solid black; text-align: center; vertical-align: middle;">TG chờ xử lý sự cố (phút)</th>
+                        <th style="border: 1px solid black; text-align: center; vertical-align: middle;">TG xử lý SC (phút)</th>
+                        <th style="border: 1px solid black; text-align: center; vertical-align: middle;">TG sự cố (phút)</th>
+
+                        <!-- Cột con của Công nghệ -->
+                        <th style="border: 1px solid black; text-align: center; vertical-align: middle;">Dừng máy do Sự cố công nghệ</th>
+                        <th style="border: 1px solid black; text-align: center; vertical-align: middle;">Dừng máy do Chờ công nghệ</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @{
                         int RowNo = 1;
                     }
                     @foreach (var item in ListChiTiet)
                     {
+                        var cumtb = _context.Tbl_NhatKy_CumTB.FirstOrDefault(x => x.ID == item.ID_CumTB);
                         <tr>
                             <td class="text-center" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;">
                                 @RowNo@{
@@ -139,60 +172,88 @@
                             <td style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
                                 @item.TenXuong
                             </td>
-                            <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;text-align:center">
-                                @item.ThoiDiemDung.ToString(@"hh\:mm")
-                            </td>
-                            <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;text-align:center">
-                                @item.ThoiDiemChay.ToString(@"hh\:mm")
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
-                                @if (item.LyDo_DungThietBi == 1)
-                                {
-                                    <label>X</label>
-                                }
-                            </td>
-                             <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
-                                @if (item.LyDo_DungThietBi == 2)
-                                {
-                                    <label>X</label>
-                                }
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
-                                @if (item.LyDo_DungThietBi == 3)
-                                {
-                                    <label>X</label>
-                                }
-                            </td>
-                            <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">
-                                @if (item.LyDo_DungThietBi == 4)
-                                {
-                                    <label>X</label>
-                                }
-                            </td>
-                           @* <td style="font-size:14px;vertical-align:middle;text-align: right;padding-right:8px; border: 1px solid black;">
-                                @item.NoiDungDung
-                            </td>*@
-                            <td style="font-size:14px;vertical-align:middle;padding:8px;text-align: left;padding-right:8px; border: 1px solid black;">
-                                @item.GhiChu
-                            </td>
+                        <!-- Cụm thiết bị -->
+                        <td style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">@(cumtb?.TenCumTB ?? "-")</td>
+
+                        <!-- Thời điểm dừng -->
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @item.ThoiDiemDung.ToString(@"hh\:mm")
+                        </td>
+
+                        <!-- Thời điểm chạy lại -->
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @item.ThoiDiemChay.ToString(@"hh\:mm")
+                        </td>
+
+                        <!-- Thời gian dừng (phút → giờ) -->
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @(((item.ThoiGianDung ?? 0) / 60.0).ToString("0.##"))
+                        </td>
+
+                        <!-- Nội dung dừng máy -->
+                        <td style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">@item.NoiDungDung</td>
+
+                        <!-- Thiết bị Cơ điện -->
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">@item.CoDien_SoLan</td>
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">@item.CoDien_ChoXL</td>
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">@item.CoDien_TGianXL</td>
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">@item.CoDien_TGianSC</td>
+
+                        <!-- Công nghệ -->
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @if (item.LyDo_DungThietBi == 1)
+                            {
+                                <label>X</label>
+                            }
+                        </td>
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @if (item.LyDo_DungThietBi == 2)
+                            {
+                                <label>X</label>
+                            }
+                        </td>
+
+                        <!-- Các nguyên nhân khác -->
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @if (item.LyDo_DungThietBi == 3)
+                            {
+                                <label>X</label>
+                            }
+                        </td>
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @if (item.LyDo_DungThietBi == 4)
+                            {
+                                <label>X</label>
+                            }
+                        </td>
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @if (item.LyDo_DungThietBi == 5)
+                            {
+                                <label>X</label>
+                            }
+                        </td>
+
+                        <!-- TG dừng theo KH BTBD tháng (giờ) -->
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @item.TGian_KH_BTBD
+                        </td>
+
+                        <!-- TG dừng theo KH BTBD tháng (giờ) -->
+                        <td class="text-center" style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
+                            @(item.DungDayChuyen == true?"Có":"Không")
+                        </td>
+
+                        <!-- Ghi chú -->
+                        <td style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">@item.GhiChu</td>
                         </tr>
                         
                     }
+            
                     <tr>
-                        <td colspan="3" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Tổng từng loại</td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Giờ</td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">@DungTB </td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">@DungCN </td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">@DungSuCo</td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center">@DungKQuan </td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>
-                        @*<td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>*@
-                    </tr>
-                    <tr>
-                        <td colspan="3" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Tổng thời gian dừng</td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Giờ</td>
-                        <td colspan="4" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"> @TongTgian</td>
-                        <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>
+                        <td colspan="5" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Tổng thời gian</td>
+                        @* <td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center;font-weight:bold">Giờ</td> *@
+                        <td  style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"> @TongTgian</td>
+                        <td colspan="13" style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>
                         @*<td style="font-size:14px;vertical-align:middle; border: 1px solid black;text-align:center"></td>*@
                     </tr>
                 </tbody>
@@ -252,9 +313,33 @@
     </u>
     <div class="col-md-12 float-left">
         <span style="font-style:italic;">
-            - Dừng máy do khách quan bao gồm các yếu tố tự nhiên thiên tai, bão lũ, sét đánh đường dây truyền tải… <br />
-            - BM ghi chép sử dụng cho KTV/PT/Tổ trưởng VH và T/P kíp <br />
-            - Chỉ ghi chép ngày nào dừng máy, ngày không dừng không cần ghi.
+
+            BM ghi chép sử dụng cho KTV/PT/Tổ trưởng vận hành và Trưởng/Phó kíp. <br />
+
+            Chỉ ghi chép ngày có dừng máy, ngày không dừng máy thì không cần ghi. <br />
+
+            [01] Số lần sự cố thiết bị: số lần thiết bị dừng sản xuất trong khoảng thời gian theo dõi. <br />
+
+            [02] Thời gian chờ xử lý sự cố: tổng thời gian chờ từ lúc bắt đầu ngừng máy đến lúc bắt đầu sửa chữa thiết bị. <br />
+
+            [03] Thời gian xử lý sự cố thiết bị: thời gian từ khi bắt đầu khắc phục đến khi hoàn tất công việc sửa chữa. <br />
+
+            [04] Thời gian sự cố thiết bị: tổng thời gian từ khi bắt đầu sự cố đến khi xử lý xong. <br />
+
+            [05] Dừng máy do sự cố công nghệ: thời gian dừng sản xuất do nguyên nhân từ công nghệ gây ra. <br />
+
+            [06] Dừng máy do chờ công nghệ: thời gian thiết bị/máy phải dừng không do hỏng hóc, mà do chờ điều kiện công nghệ (VD: chờ nhiệt độ, nguyên liệu, xử lý trung gian). <br />
+
+            [07] Thời gian dừng khách quan: thời gian dừng sản xuất do nguyên nhân khách quan, như thiếu nguyên liệu, thiên tai, bão lũ, sét đánh đường truyền tải,… <br />
+
+            [08] Thời gian chờ khác: thời gian máy/dây chuyền dừng chờ không thuộc các nhóm nguyên nhân đã quy định trước. <br />
+
+            [09] Thời gian dừng BTBD thực tế: thời gian nhà máy/phân xưởng dừng thực tế để thực hiện công tác bảo trì, bảo dưỡng. <br />
+
+            [10] Thời gian dừng theo kế hoạch BTBD tháng: thời gian dừng theo kế hoạch đã được ký và ban hành hàng tháng. <br />
+
+            [11] Gây dừng dây chuyền sản xuất: lựa chọn “Có/Không” nếu cụm thiết bị có hoặc không gây dừng dây chuyền sản xuất. <br />
+
         </span>
 
     </div>

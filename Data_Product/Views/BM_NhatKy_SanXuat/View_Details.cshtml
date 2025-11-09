@@ -188,7 +188,7 @@
                         <div class="table-responsive pb-2" style="">
                             <table class="table table-bordered table-hover" id="dataTable" cellpadding="0">
                                 <div id="warning-message" style="display: none; color: white; background-color: red; padding: 10px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; border-radius: 5px;"></div>
-                                <thead>
+                                @* <thead>
                                     <tr style="font-size:14px;">
                                         <th class="text-center" width="70px" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
                                         <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Xưởng</th>
@@ -200,6 +200,41 @@
                                         <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do khách quan</th>
                                         <th width="300px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Nội dung dừng máy</th>
                                         <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                    </tr>
+                                </thead> *@
+                                <thead>
+                                    <tr>
+                                        <th rowspan="2" class="text-center" width="70px" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
+                                        <th rowspan="2" style="width:150px;vertical-align:middle;background-color: #f9f9f9">Xưởng</th>
+                                        <th rowspan="2" style="width:200px;vertical-align:middle;background-color: #f9f9f9">Cụm thiết bị</th>
+                                        <th rowspan="2" style="width:100px;vertical-align:middle;background-color: #f9f9f9">Thời điểm dừng</th>
+                                        <th rowspan="2" style="width:100px;vertical-align:middle;background-color: #f9f9f9">Thời điểm chạy lại</th>
+                                        <th rowspan="2" style="width:100px;vertical-align:middle;background-color: #f9f9f9">Thời gian dừng</th>
+                                        <th rowspan="2" style="width:250px;vertical-align:middle;background-color: #f9f9f9">Nội dung dừng máy</th>
+
+                                        <!-- Nhóm 1: Thiết bị Cơ điện -->
+                                        <th colspan="4" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Thiết bị Cơ điện</th>
+
+                                        <!-- Nhóm 2: Công nghệ -->
+                                        <th colspan="2" style="vertical-align:middle;background-color: #f9f9f9">Công nghệ</th>
+
+                                        <!-- Các cột thời gian khác -->
+                                        <th rowspan="2" style="width:100px;vertical-align:middle;background-color: #f9f9f9">TG dừng khách quan</th>
+                                        <th rowspan="2" style="width:100px;vertical-align:middle;background-color: #f9f9f9">TG chờ khác</th>
+                                        <th rowspan="2" style="width:100px;vertical-align:middle;background-color: #f9f9f9">TG dừng BTBD thực tế</th>
+                                        <th rowspan="2" style="width:120px;vertical-align:middle;background-color: #f9f9f9">TG dừng theo KH BTBD tháng (giờ)</th>
+                                        <th rowspan="2" style="width:100px;vertical-align:middle;background-color: #f9f9f9">Gây dừng dây chuyền</th>
+                                        <th rowspan="2" style="width:150px;vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                    </tr>
+
+                                    <tr>
+                                        <th style="width:100px;vertical-align:middle;background-color: #f9f9f9">Số sự cố<br>(lần)</th>
+                                        <th style="width:120px;vertical-align:middle;background-color: #f9f9f9">TG chờ xử lý SC<br>(phút)</th>
+                                        <th style="width:120px;vertical-align:middle;background-color: #f9f9f9">Thời gian xử lý SC<br>(phút)</th>
+                                        <th style="width:120px;vertical-align:middle;background-color: #f9f9f9">Thời gian sự cố<br>(phút)</th>
+
+                                        <th style="width:120px;vertical-align:middle;background-color: #f9f9f9">Dừng máy do Sự cố công nghệ</th>
+                                        <th style="width:120px;vertical-align:middle;background-color: #f9f9f9">Dừng máy do Chờ công nghệ</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -214,13 +249,23 @@
                                     @foreach (var item in Model.NhatKy_SanXuat_ChiTiet)
                                     {
                                         var xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == item.ID_Xuong);
+                                        var cumtb = _context.Tbl_NhatKy_CumTB.FirstOrDefault(x => x.ID == item.ID_CumTB);
                                         <tr class="data-row">
                                             <td class="text-center">@(index + 1)</td>
                                             <td>
                                                 @xuong?.TenXuong
                                             </td>
+                                            <td>
+                                                @cumtb?.TenCumTB
+                                            </td>
                                             <td class="text-center">@item.ThoiDiemDung.ToString(@"hh\:mm")</td>
                                             <td class="text-center">@item.ThoiDiemChay.ToString(@"hh\:mm")</td>
+                                            <td>@(((item.ThoiGianDung ?? 0) / 60.0).ToString("0.##"))</td>
+                                            <td>@item.NoiDungDung</td>
+                                            <td>@item.CoDien_SoLan</td>
+                                            <td>@item.CoDien_ChoXL</td>
+                                            <td>@item.CoDien_TGianXL</td>
+                                            <td>@item.CoDien_TGianSC</td>
                                             <td class="text-center">
                                                 @if (item.LyDo_DungThietBi == 1)
                                                 {
@@ -245,13 +290,24 @@
                                                     <label>X</label>
                                                 }
                                             </td>
-                                            <td>@item.NoiDungDung</td>
+                                            <td class="text-center">
+                                                @if (item.LyDo_DungThietBi == 5)
+                                                {
+                                                    <label>X</label>
+                                                }
+                                            </td>
+                                            <td>@item.TGian_KH_BTBD</td>
+
+                                            <td>
+                                             @(item.DungDayChuyen == true?"Có":"Không")
+                                            </td>
+                                           
                                             <td>@item.GhiChu</td>
 
                                         </tr>
                                         index++;
                                     }
-                                    <tr>
+                             @*        <tr>
                                         <td colspan="3" class="text-center">Tổng từng loại</td>
                                         <td class="text-center">Giờ</td>
                                         <td class="text-center">@ViewBag.DungThietBi </td>
@@ -260,14 +316,54 @@
                                         <td class="text-center">@ViewBag.DungKhachQuan </td>
                                         <td></td>
                                         <td></td>
-                                    </tr>
+                                    </tr> *@
                                     <tr>
-                                        <td colspan="3" class="text-center">Tổng thời gian dừng</td>
-                                        <td class="text-center">Giờ</td>
-                                        <td colspan="4" class="text-center"> @ViewBag.TongTgianDung</td>
-                                        <td></td>
-                                        <td></td>
+                                        <td colspan="5" class="text-center">Tổng thời gian </td>
+                                        @* <td class="text-center">Giờ</td> *@
+                                        <td class="text-center"> @ViewBag.TongTgianDung</td>
+                                        <td colspan="13"></td>
                                     </tr>
+                                </tbody>
+                            </table>
+                            <div>
+                                <b>
+                                    TỔNG THỜI GIAN CHẠY MÁY
+                                </b>
+                            </div>
+                            <table class="table table-bordered table-hover" id="dataTableTotal" cellpadding="0">
+                                <thead>
+                                    <tr style="font-size:14px;">
+                                        <th class="text-center" width="60px" style="vertical-align:middle;background-color:#f9f9f9;">STT</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color:#f9f9f9;">Xưởng</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color:#f9f9f9;">Cụm thiết bị</th>
+                                        <th class="text-center" width="120px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian dừng dây chuyền<br>(giờ)</th>
+                                        <th class="text-center" width="120px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian không gây dừng dây chuyền<br>(giờ)</th>
+                                        <th class="text-center" width="160px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian<br>dừng <br>(giờ)</th>
+                                        <th class="text-center" width="160px" style="vertical-align:middle;background-color:#f9f9f9;">Tổng thời gian<br>chạy máy<br>(giờ)</th>
+                                        <th class="text-center" width="250px" style="vertical-align:middle;background-color:#f9f9f9;">Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int indexSum = 1;
+                                    }
+                                    @foreach (var item in ViewBag.TongHop as List<Data_Product.Models.TongHopThoiGianModel>)
+                                    {
+                                        var xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == item.ID_Xuong);
+                                        var cumtb = _context.Tbl_NhatKy_CumTB.FirstOrDefault(x => x.ID == item.ID_CumTB);
+                                        <tr>
+                                            <td class="text-center">@indexSum</td>
+                                            <td>@(xuong?.TenXuong ?? "")</td>
+                                            <td>@(cumtb?.TenCumTB ?? "")</td>
+                                            <td>@(item.TongTG_DungDayChuyen?.ToString("0.##") ?? "0")</td>
+                                            <td>@(item.TongTG_KhongDungDC?.ToString("0.##") ?? "0")</td>
+                                            <td>@(item.TongThoiGianDung?.ToString("0.##") ?? "0")</td>
+                                            <td>@(item.TongTG_ChayMay?.ToString("0.##") ?? "0")</td>
+                                            <td>@item.GhiChu</td>
+                                        </tr>
+
+                                        indexSum++;
+                                    }
                                 </tbody>
                             </table>
                         </div>
