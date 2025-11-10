@@ -819,6 +819,68 @@ namespace Data_Product.Controllers
             return PartialView(res);
         }
 
+        public async Task<IActionResult> View_DetailsOld(int IDNKSX)
+        {
+
+            DateTime DayNow = DateTime.Now;
+            String Day = DayNow.ToString("dd/MM/yyyy");
+            DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+            var PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
+            string TenBP = PhongBan.TenNgan.ToString();
+            ViewBag.TenPhongBan = TenBP;
+
+            List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
+
+
+            var NhanVien = await (from a in _context.Tbl_TaiKhoan
+                                  select new Tbl_TaiKhoan
+                                  {
+                                      ID_TaiKhoan = a.ID_TaiKhoan,
+                                      HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                                  }).ToListAsync();
+            ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
+
+            //ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.Where(x => x.ID_PhongBan == PhongBan.ID_PhongBan), "ID_Xuong", "TenXuong");
+
+
+
+            var res = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == IDNKSX);
+            res.NhatKy_SanXuat_ChiTiet = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == IDNKSX).ToList();
+
+            var CaKip = await (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == NgayLamViec)
+                               select new Tbl_Kip
+                               {
+                                   ID_Kip = a.ID_Kip,
+                                   TenCa = a.TenCa
+                               }).ToListAsync();
+            ViewBag.TenKip = res.Kip;
+            ViewBag.ID_Day = res.NgayDungSX.ToString("yyyy-MM-dd");
+
+
+            // Người tạo và phòng ban ghi nhận
+            ViewBag.taikhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.ID_TaiKhoan == res.ID_NhanVien_SX);
+            ViewBag.taikhoanBTBD = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.ID_TaiKhoan == res.ID_NhanVien_BTBD);
+            ViewBag.ID_PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == res.ID_PhongBan_SX)?.TenPhongBan;
+
+            TimeSpan tgdungThietbi = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 1).Sum(x => x.ThoiGianDung) ?? 0);
+            TimeSpan tgdungCongNge = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 2).Sum(x => x.ThoiGianDung) ?? 0);
+            TimeSpan DungSuCoCN = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 3).Sum(x => x.ThoiGianDung) ?? 0);
+            TimeSpan DungKhachQuan = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 4).Sum(x => x.ThoiGianDung) ?? 0);
+            TimeSpan TongTgianDung = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Sum(x => x.ThoiGianDung) ?? 0);
+
+
+            ViewBag.DungThietBi = tgdungThietbi.TotalHours.ToString("F2");
+            ViewBag.DungCongNghe = tgdungCongNge.TotalHours.ToString("F2");
+            ViewBag.DungSuCoCN = DungSuCoCN.TotalHours.ToString("F2");
+            ViewBag.DungKhachQuan = DungKhachQuan.TotalHours.ToString("F2");
+            ViewBag.TongTgianDung = TongTgianDung.TotalHours.ToString("F2");
+
+            return PartialView(res);
+        }
+
         public async Task<IActionResult> View_BTBD(int IDNKSX)
         {
 

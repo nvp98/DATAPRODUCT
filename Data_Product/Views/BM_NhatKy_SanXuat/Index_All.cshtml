@@ -153,11 +153,20 @@
                                                     </td>
                                                 }
                                             }
-
-                                            @if (item.TinhTrang == 0)
+                                            @if (item.NgayDungSX < DateTime.Parse("2025-11-01"))
+                                            {
+                                            <td style="font-size:14px;color: #335FB3">
+                                                <a class="nav-link collapsed" href="@Url.Action("View_DetailsOld", "BM_NhatKy_SanXuat", new { IDNKSX = item.ID })">
+                                                    @item.SoPhieu
+                                                </a>
+                                            </td>
+                                            }
+                                            else
+                                            {
+                                            if (item.TinhTrang == 0)
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new { IDNKSX = item.ID })">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>
@@ -165,11 +174,13 @@
                                             else
                                             {
                                                 <td style="font-size:14px;color: #335FB3">
-                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new{IDNKSX = item.ID})">
+                                                    <a class="nav-link collapsed" href="@Url.Action("View_Details", "BM_NhatKy_SanXuat", new { IDNKSX = item.ID })">
                                                         @item.SoPhieu
                                                     </a>
                                                 </td>
                                             }
+                                            }
+                                            
                                             <td style="font-size:14px;" class="text-center">
                                                 @item.Ca@item.Kip
                                             </td>
