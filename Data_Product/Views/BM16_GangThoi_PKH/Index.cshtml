@@ -1238,7 +1238,7 @@
                     const isSaiChuyenDen = item.isSaiChuyenDen;
 
                     const displayedValue = hasKlGangChia ? item.klGangChia : (item.t_KLGangLong ?? '');
-                    const displayedValueCR = isSaiChuyenDen ? 'Sai' : hasKlGangChiaCR ? item.kL_GangChiaCR : (item.g_KLGangLong ?? '');
+                    const displayedValueCR = item.t_ID_TrangThai != 4 ? '' : isSaiChuyenDen ? 'Sai' : hasKlGangChiaCR ? item.kL_GangChiaCR : (item.g_KLGangLong ?? '');
                     const textColor = hasKlGangChia ? 'text-danger' : ''; // đỏ nếu có chia, đen nếu không
                     const textColorCR = isSaiChuyenDen || hasKlGangChiaCR ? 'text-danger' : '';
 

@@ -194,5 +194,8 @@ namespace Data_Product.Models
 
         [NotMapped]
         public bool? IsChiaCR { get; set; } = false;
+
+        [NotMapped]
+        public decimal? KL_GangChiaCR_Display { get; set; }
     }
 }

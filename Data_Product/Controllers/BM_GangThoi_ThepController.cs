@@ -1008,29 +1008,7 @@ namespace Data_Product.Controllers
 
                 if (ttgIdsAll.Count > 0 && gangIdsAll.Count > 0)
                 {
-                    //var allocRows = await _context.Tbl_BM_16_PhanBoGangCR
-                    //.Where(pb => gangIdsAll.Contains(pb.ID_GangLong) && ttgIdsAll.Contains(pb.ID_TTG_Target))
-                    //.GroupBy(pb => new { pb.ID_GangLong, pb.ID_TTG_Target })
-                    //.Select(g => g.OrderByDescending(x => x.ID).FirstOrDefault()) // <- ID lớn nhất
-                    //.Select(x => new
-                    //{
-                    //    x.ID_GangLong,
-                    //    x.ID_TTG_Target,
-                    //    x.KL_PhanBo_CR,
-                    //    x.IsSaiChuyenDen
-                    //})
-                    //.AsNoTracking()
-                    //.ToListAsync();
-
-                    //var allocCrDict = allocRows.ToDictionary(
-                    //    k => (k.ID_GangLong, k.ID_TTG_Target),
-                    //    v => v.KL_PhanBo_CR
-                    //);
-                    //var allocErrDict = allocRows.ToDictionary(
-                    //    k => (k.ID_GangLong, k.ID_TTG_Target),
-                    //    v => v.IsSaiChuyenDen
-                    //);
-
+                    
                     // Subquery: lấy Max(ID) cho mỗi cặp
                     var latestKeysQuery =
                         from pb in _context.Tbl_BM_16_PhanBoGangCR

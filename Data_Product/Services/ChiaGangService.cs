@@ -384,8 +384,10 @@ namespace Data_Product.Services
 
         public async Task<ChiaGangResultModel> GetDetailChiaGangAsync(string maThungThep)
         {
+            
+
             var chiaGang = await _context.Tbl_BM_16_ChiaGang
-                .Where(x => x.MaThungThep == maThungThep)
+                .Where(x => x.MaThungThep.Contains(maThungThep))
                 .FirstOrDefaultAsync();
 
 
@@ -877,7 +879,11 @@ namespace Data_Product.Services
                 var exAllocs = await _context.Tbl_BM_16_PhanBoGangCR
                     .Where(pb => rowIdsAll.Contains(pb.ID_GangLong))
                     .ToListAsync();
-                var exDict = exAllocs.ToDictionary(k => (k.ID_GangLong, k.ID_TTG_Target), v => v);
+                var latestExAllocs = exAllocs
+                        .GroupBy(pb => new { pb.ID_GangLong, pb.ID_TTG_Target })
+                        .Select(g => g.OrderByDescending(x => x.ID).First())
+                        .ToList();
+                var exDict = latestExAllocs.ToDictionary(k => (k.ID_GangLong, k.ID_TTG_Target), v => v);
                 var touched = new HashSet<(int, int)>();
 
                 void UpsertAlloc(Tbl_BM_16_GangLong g, int targetId, string maTtg, bool isCopy, decimal tyLe, decimal kl, bool isSai)
