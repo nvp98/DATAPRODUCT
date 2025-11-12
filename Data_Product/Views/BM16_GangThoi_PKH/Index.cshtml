@@ -897,20 +897,20 @@
        }
 
         function renderTongKLChenhLech(idGang, idThep, idKQ){
-            const g_KL = parseInt($(`#${idGang}`).text().trim());
-            const t_KL = parseInt($(`#${idThep}`).text().trim());
-
+            const g_KL = parseFloat($(`#${idGang}`).attr("data-value"));
+            const t_KL = parseFloat($(`#${idThep}`).attr("data-value"));
+            console.log(g_KL, t_KL)
             if (!isNaN(g_KL) && !isNaN(t_KL)) {
                 let total = KLChenhLech(g_KL, t_KL);
-                $(`#${idKQ}`).text(total !== null ? total : '');
+                $(`#${idKQ}`).text(total !== null ? total : '').toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             } else {
                 $(`#${idKQ}`).text('');
             }
         }
 
         function renderTongPhanTramChenhLech(idGang, idThep, idKQ){
-            const g_KL = parseInt($(`#${idGang}`).text().trim());
-            const t_KL = parseInt($(`#${idThep}`).text().trim());
+            const g_KL = parseFloat($(`#${idGang}`).attr("data-value"));
+            const t_KL = parseFloat($(`#${idThep}`).attr("data-value"));
 
             if (!isNaN(g_KL) && !isNaN(t_KL)) {
                 let total = PhanTramChenhLech(g_KL, t_KL);
@@ -1015,6 +1015,7 @@
 
 
         function KLChenhLech(g_KLGangLong, t_KLGangLong) {
+            
             if (g_KLGangLong !== null && t_KLGangLong !== null && !isNaN(g_KLGangLong) && !isNaN(t_KLGangLong) && t_KLGangLong !== 0) {
                 return parseFloat(t_KLGangLong - g_KLGangLong).toFixed(2);
             }
@@ -1030,7 +1031,7 @@
                     const result = (parseFloat(klChenh) / goc) * 100;
 
                     if (!isNaN(result)) {
-                        return result.toFixed(1); 
+                        return result.toFixed(2); 
                     }
                 }
             }
@@ -1347,8 +1348,8 @@
                 renderTongPhanTramChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongPhanTramChenhLech');
                 applyColumnVisibility();
             });
-             $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangLong").text().trim());
-             $("#IDTongAllKLGangLongThep").text(res.sumKLGangLongThep !== 0 ? res.sumKLGangLongThep.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangLongThep").text().trim());
+             $("#IDTongAllKLGangLong").text(res.sumKLGang !== 0 ? res.sumKLGang.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangLong").text().trim()).attr('data-value', res.sumKLGang);
+             $("#IDTongAllKLGangLongThep").text(res.sumKLGangLongThep !== 0 ? res.sumKLGangLongThep.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangLongThep").text().trim()).attr('data-value', res.sumKLGangLongThep);
              $("#IDTongAllKLGangChia").text(res.sumKLGangChia !== 0 ? res.sumKLGangChia.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangChia").text().trim());
              $("#IDTongAllKLGangChiaCR").text(res.sumKLGangChiaCR !== 0 ? res.sumKLGangChiaCR.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangChiaCR").text().trim());
              $("#IDTongAllKLGangNhan").text(res.sumKLGangNhan !== 0 ? res.sumKLGangNhan.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangNhan").text().trim());
