@@ -1955,112 +1955,6 @@ namespace Data_Product.Controllers
             }
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> TinhLaiChiaGang([FromBody] List<string> maThungThepCanTinhToan)
-        //{
-        //    try
-        //    {
-        //        foreach (var ma in maThungThepCanTinhToan)
-        //        {
-        //            try
-        //            {
-        //                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(ma);
-        //            }
-        //            catch
-        //            {
-        //            }
-        //        }
-        //        return Ok();
-        //    }catch(Exception ex)
-        //    {
-        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
-        //    }
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> DanhSachTheoMaThungGang([FromBody] List<string> selectedThungs)
-        //{
-        //    try
-        //    {
-        //        var result = await _chiaGangService.TinhToanChiaGangAsync(selectedThungs);
-        //        return Ok(result);
-        //    }
-        //    catch(Exception ex)
-        //    {
-        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
-        //    }
-        //}
-
-        
-
-        //[HttpPost]
-        //public async Task<IActionResult> DanhSachTheoMaThungGang([FromBody] List<int> IDs)
-        //{
-        //    try
-        //    {
-        //        var result = await _chiaGangService.TinhToanChiaGangAsync(IDs);
-        //        return Ok(result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
-        //    }
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> XacNhanChiaGang([FromBody] List<ChiaGangDto> payload)
-        //{
-        //    if (payload == null || payload.Count == 0)
-        //        return BadRequest("Dữ liệu đầu vào không hợp lệ.");
-            
-        //    try
-        //    {
-        //        var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-        //        var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-        //        string maChiaGang = "CG" + TaoMa.GenerateSafeCode(8);
-
-        //        // Lấy danh sách ID_Thung duy nhất để query gang gốc
-        //        var thungIds = payload.Select(p => p.ID).Distinct().ToList();
-
-        //        var gangLongList = await _context.Tbl_BM_16_GangLong
-        //            .Where(x => thungIds.Contains(x.ID))
-        //            .ToDictionaryAsync(x => x.ID);
-
-        //        var listChiaGang = new List<Tbl_BM_16_ChiaGang>();
-
-        //        foreach (var item in payload)
-        //        {
-        //            // Tạo bản ghi chia gangTF
-        //            listChiaGang.Add(new Tbl_BM_16_ChiaGang
-        //            {
-        //                ID_Thung = item.ID,
-        //                MaChiaGang = maChiaGang,
-        //                MaThungGang = item.MaThungGang,
-        //                MaThungThep = item.MaThungThep,
-        //                PhanTram = item.TyLeChia,
-        //                KLGangChia = item.KLChia,
-        //                ID_NguoiChia = TaiKhoan.ID_TaiKhoan
-        //            });
-
-        //            // Cập nhật gang gốc nếu tồn tại
-        //            if (gangLongList.TryGetValue(item.ID, out var gang))
-        //            {
-        //                gang.KLGangChia = item.KLChia;
-        //                //gang.T_KLGangLong = item.KLChia;
-        //            }
-        //        }
-
-        //        // Thêm tất cả bản ghi chia gang 1 lần
-        //        _context.Tbl_BM_16_ChiaGang.AddRange(listChiaGang);
-
-        //        await _context.SaveChangesAsync();
-        //        return Ok(new {success = true});
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
-        //    }
-        //}
 
         [HttpPost]
         public async Task<IActionResult> GopThungGang([FromBody] GopThungGang payload)
@@ -2140,7 +2034,7 @@ namespace Data_Product.Controllers
 
         private string GenerateMaThungThep(string maThungGang, DateTime ngayNhan, int loThoiId, int? caValue, int index)
         {
-            string ca = caValue == (int)CaLamViec.Ngay ? "N" : "Đ";
+            string ca = caValue == (int)CaLamViec.Ngay ? "N" : "D";
             string dayStr = ngayNhan.Day.ToString("00");
             string indexStr = index.ToString("D2"); // dạng 2 chữ số: 00, 01, 02, ...
             return $"{maThungGang}.{dayStr}{ca}T{loThoiId}.{indexStr}";
@@ -2148,6 +2042,37 @@ namespace Data_Product.Controllers
         private decimal? RoundDecimal(decimal? value)
         {
             return value.HasValue ? Math.Round(value.Value, 2) : (decimal?)null;
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> UpdateKLGangChia()
+        {
+            try
+            {
+                var gangLongList = await _context.Tbl_BM_16_ChiaGang
+                    .Where(x => x.PhanTram == null || x.KLGangChia == null)
+                    .Select(x => x.MaThungGang)
+                    .ToListAsync();
+                
+                foreach (var item in gangLongList)
+                {
+                    try
+                    {
+                        await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(item);
+
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                    return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+            }
         }
 
         [HttpPost]
