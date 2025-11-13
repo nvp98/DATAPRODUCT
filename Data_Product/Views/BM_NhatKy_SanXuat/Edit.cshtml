@@ -484,7 +484,7 @@
                                                 </td>
                                                 <td>
                                                     <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_CumTB" style="width: 100%" required>
-                                                        @if (ViewBag.CumThietBi != null)
+                                                        @if (ViewBag.CumThietBi != null && ((IEnumerable<SelectListItem>)ViewBag.CumThietBi).Any())
                                                         {
                                                             <option value='' selected>--Chọn Cụm TB--</option>
                                                         }
@@ -551,7 +551,7 @@
                                   <!-- Cụm thiết bị -->
                                   <td>
                                     <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].ID_CumTB" required>
-                                      @if (ViewBag.CumThietBi != null)
+                                      @if (ViewBag.CumThietBi != null && ((IEnumerable<SelectListItem>)ViewBag.CumThietBi).Any())
                                       {
                                             <option value='' selected>--Chọn Cụm TB--</option>
                                       }

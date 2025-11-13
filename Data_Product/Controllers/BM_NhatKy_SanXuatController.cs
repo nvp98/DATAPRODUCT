@@ -500,7 +500,7 @@ namespace Data_Product.Controllers
 
             ViewBag.CumThietBi = new SelectList(_context.Tbl_NhatKy_CumTB
                 .Where(cum => _context.Tbl_NhatKy_CumTB_Xuong
-                .Any(link => link.CumTB_ID == cum.ID && link.Xuong_ID == TaiKhoan.ID_PhanXuong))
+                .Any(link => link.CumTB_ID == cum.ID && link.Xuong_ID == TaiKhoan.ID_PhanXuong) && !cum.IsLock)
                 , "ID", "TenCumTB");
 
 
