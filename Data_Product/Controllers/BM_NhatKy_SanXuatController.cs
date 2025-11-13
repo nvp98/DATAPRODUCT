@@ -780,11 +780,12 @@ namespace Data_Product.Controllers
 
                     // Tổng thời gian chạy máy (giờ)
                     TongTG_ChayMay = tongThoiGianCa -
-                        (g.Sum(x => (double?)(
-                             x.ThoiGianDung.HasValue
-                                 ? x.ThoiGianDung.Value
-                                 : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
-                         )) / 60.0 ?? 0),
+                        ( g
+                        .Sum(x => (double?)(
+                            x.ThoiGianDung.HasValue
+                                ? x.ThoiGianDung.Value
+                                : EF.Functions.DateDiffMinute(x.ThoiDiemDung, x.ThoiDiemChay)
+                        )) / 60.0 ?? 0),
 
                     // Gộp ghi chú
                     GhiChu = string.Join("; ",
