@@ -295,7 +295,7 @@
                                         <div class="col-sm-7">
                                             <select class="form-select form-select-sm" id="IDLoCao" name="LoCao">
                                                 <option value="">-- Lò cao --</option>
-                                                @foreach (var locao in ViewBag.LoCaoList)
+                                                @foreach (var locao in (IEnumerable<Data_Product.Models.Tbl_LoCao>)ViewBag.LoCaoList)
                                                 {
                                                     <option value="@locao.ID">@locao.TenLoCao</option>
                                                 }
