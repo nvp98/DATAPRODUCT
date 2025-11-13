@@ -780,7 +780,8 @@ namespace Data_Product.Controllers
 
                     // Tổng thời gian chạy máy (giờ)
                     TongTG_ChayMay = tongThoiGianCa -
-                        ( g
+                        (g
+                        .Where(x => x.DungDayChuyen == true)
                         .Sum(x => (double?)(
                             x.ThoiGianDung.HasValue
                                 ? x.ThoiGianDung.Value
