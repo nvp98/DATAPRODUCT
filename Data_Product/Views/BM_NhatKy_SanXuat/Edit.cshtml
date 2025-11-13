@@ -483,23 +483,29 @@
                                                     </select>
                                                 </td>
                                                 <td>
-                                                    <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_CumTB" style="width: 100%" required>
-                                                        @if (ViewBag.CumThietBi != null && ((IEnumerable<SelectListItem>)ViewBag.CumThietBi).Any())
-                                                        {
+                                                    @if (ViewBag.CumThietBi != null && ((IEnumerable<SelectListItem>)ViewBag.CumThietBi).Any())
+                                                    {
+                                                        <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_CumTB" style="width: 100%" required>
                                                             <option value='' selected>--Chọn Cụm TB--</option>
-                                                        }
-                                                        @foreach (var it in ViewBag.CumThietBi)
-                                                        {
-                                                            if (item.ID_CumTB.ToString() == @it.Value)
+                                                            @foreach (var it in ViewBag.CumThietBi)
                                                             {
-                                                                <option value='@it.Value' selected>@it.Text</option>
+                                                                if (item.ID_CumTB.ToString() == @it.Value)
+                                                                {
+                                                                    <option value='@it.Value' selected>@it.Text</option>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <option value='@it.Value'>@it.Text</option>
+                                                                }
                                                             }
-                                                            else
-                                                            {
-                                                                <option value='@it.Value'>@it.Text</option>
-                                                            }
-                                                        }
-                                                    </select>
+                                                        </select>
+
+                                                    }
+                                                    else
+                                                    {
+                                                        <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_CumTB" style="width: 100%">
+                                                        </select>
+                                                    }
                                                 </td>
                                                 <td><input type="time" name="NhatKy_SanXuat_ChiTiet[@index].ThoiDiemDung" value="@item.ThoiDiemDung" class="form-control" required></td>
                                                 <td><input type="time" name="NhatKy_SanXuat_ChiTiet[@index].ThoiDiemChay" value="@item.ThoiDiemChay" class="form-control" required></td>
@@ -550,16 +556,23 @@
 
                                   <!-- Cụm thiết bị -->
                                   <td>
-                                    <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].ID_CumTB" required>
-                                      @if (ViewBag.CumThietBi != null && ((IEnumerable<SelectListItem>)ViewBag.CumThietBi).Any())
-                                      {
-                                            <option value='' selected>--Chọn Cụm TB--</option>
+                                    @if (ViewBag.CumThietBi != null && ((IEnumerable<SelectListItem>)ViewBag.CumThietBi).Any())
+                                     {
+                                        <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].ID_CumTB" required>
+                                             <option value='' selected>--Chọn Cụm TB--</option>
+                                          @foreach (var item in ViewBag.CumThietBi)
+                                          {
+                                                    <option value='@item.Value'>@item.Text</option>
+                                          }
+                                        </select>
+
                                       }
-                                      @foreach (var item in ViewBag.CumThietBi)
+                                     else
                                       {
-                                            <option value='@item.Value'>@item.Text</option>
-                                      }
-                                    </select>
+                                        <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].ID_CumTB">
+                                        </select>
+                                     }
+                                   
                                   </td>
 
                                   <!-- Thời điểm dừng -->
