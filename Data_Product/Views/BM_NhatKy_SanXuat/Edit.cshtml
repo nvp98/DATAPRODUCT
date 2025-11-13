@@ -484,7 +484,10 @@
                                                 </td>
                                                 <td>
                                                     <select class="form-control marginTB5 " name="NhatKy_SanXuat_ChiTiet[@index].ID_CumTB" style="width: 100%" required>
-                                                        <option value='' selected>--Chọn Cụm TB--</option>
+                                                        @if (ViewBag.CumThietBi != null)
+                                                        {
+                                                            <option value='' selected>--Chọn Cụm TB--</option>
+                                                        }
                                                         @foreach (var it in ViewBag.CumThietBi)
                                                         {
                                                             if (item.ID_CumTB.ToString() == @it.Value)
@@ -548,7 +551,10 @@
                                   <!-- Cụm thiết bị -->
                                   <td>
                                     <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].ID_CumTB" required>
-                                        <option value='' selected>--Chọn Cụm TB--</option>
+                                      @if (ViewBag.CumThietBi != null)
+                                      {
+                                            <option value='' selected>--Chọn Cụm TB--</option>
+                                      }
                                       @foreach (var item in ViewBag.CumThietBi)
                                       {
                                             <option value='@item.Value'>@item.Text</option>
