@@ -528,6 +528,7 @@
                         <th class="sticky-col-7" style="min-width: 69px;">Thùng số</th>
                         <th class="sticky-col-8" style="min-width: 53px;">Giờ</th>
                         <th class="hide-col" style="min-width: 70px;">Phân loại</th>
+                        <th>Sàn ra gang</th>
                         <th>KL xe goong</th>
                         <th>KL thùng và gang</th>
                         <th>KL thùng</th>
@@ -571,7 +572,7 @@
                 </tbody>
                 <tfoot>
                     <tr style="height: 50px;">
-                        <td colspan="10" class="total-space" style="font-weight: 600; text-align: start">Tổng</td>
+                        <td colspan="11" class="total-space" style="font-weight: 600; text-align: start">Tổng</td>
                         <td id="IDTongKLGangLong" style="font-weight: 600">
                             0.00
                         </td>
@@ -601,7 +602,7 @@
                     </tr>
 
                     <tr style="height: 50px;">
-                        <td colspan="10" class="total-space" style="font-weight: 600; text-align: start">Tổng Tất Cả</td>
+                        <td colspan="11" class="total-space" style="font-weight: 600; text-align: start">Tổng Tất Cả</td>
                         <td colspan="2" id="IDTongAllKLGangLong" style="font-weight: 600">
                             0.00
                         </td>
@@ -1262,8 +1263,10 @@
                         row.append(`<td></td>`);
                         row.append(`<td></td>`);
                         row.append(`<td></td>`);
+                        row.append(`<td></td>`);
                         row.append(`<td class="G_KL_GangLong"></td>`);
                     } else {
+                        row.append(`<td>${item.g_SanRaGang ?? ''}</td>`);
                         row.append(`<td>${item.kL_XeGoong ?? ''}</td>`);
                         row.append(`<td>${item.g_KLThungVaGang ?? ''}</td>`);
                         row.append(`<td>${item.g_KLThungChua ?? ''}</td>`);
@@ -1932,7 +1935,7 @@
             // Cột cần ẩn/hiện
             $('.hide-col').css('display', display);
 
-            $('.total-space').attr('colspan', isHidden ? 10 : 12);
+            $('.total-space').attr('colspan', isHidden ? 11 : 13);
             $('.space-2').attr('colspan', isHidden ? 5 : 10);
 
             $('.space-3').attr('colspan', isHidden ? 4 : 9);
