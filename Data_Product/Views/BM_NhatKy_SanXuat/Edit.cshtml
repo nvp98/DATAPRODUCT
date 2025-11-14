@@ -690,17 +690,38 @@
 }
 
 <script>
+           document.querySelectorAll('input[type="radio"]').forEach(radio => {
+              // thiết lập trạng thái ban đầu
+              radio.previousChecked = radio.checked;
+              radio.addEventListener('click', e => {
+                if (radio.previousChecked) {
+                  radio.checked = false;
+                }
+                document
+                  .querySelectorAll('input[name="' + radio.name + '"]')
+                  .forEach(r => (r.previousChecked = false));
+                radio.previousChecked = radio.checked;
+              });
+            });
         $(document).on('input change blur', '.CoDien_ChoXL, .CoDien_TGianXL', function () {
             const row = $(this).closest('tr'); // dòng hiện tại
             const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
             const tgXL  = parseFloat(row.find('.CoDien_TGianXL').val()) || 0;
-
+            // Nếu TGianXL <1 bắt buộc chọn LyDo
             row.find('.CoDien_TGianSC').val(choXL + tgXL);
-            if((choXL + tgXL) != 0){
-                 row.find('.LyDo_DungThietBi').removeAttr('required'); // xóa require
+            if((choXL + tgXL) < 1){
+                row.find('.LyDo_DungThietBi').attr('required', true);
             }
             else{
-                row.find('.LyDo_DungThietBi').attr('required', true);
+            row.find('.LyDo_DungThietBi').removeAttr('required'); // xóa require
+            }
+
+            // Add required nếu Chờ xử lý nhập -> xử lý phải nhập
+            if(choXL != 0){
+                row.find('.CoDien_TGianXL').attr('required', true);
+            }
+            else{
+                row.find('.CoDien_TGianXL').removeAttr('required');
             }
            
         });
@@ -798,6 +819,7 @@
                     $(row).find('.TGian_KH_BTBD').css('border-color', 'red');
                     return false; // break vòng each
                 }
+
 
             });
             if (!isValid) {
