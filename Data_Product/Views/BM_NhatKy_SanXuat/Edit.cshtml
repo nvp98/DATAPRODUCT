@@ -696,6 +696,13 @@
             const tgXL  = parseFloat(row.find('.CoDien_TGianXL').val()) || 0;
 
             row.find('.CoDien_TGianSC').val(choXL + tgXL);
+            if((choXL + tgXL) != 0){
+                 row.find('.LyDo_DungThietBi').removeAttr('required'); // xóa require
+            }
+            else{
+                row.find('.LyDo_DungThietBi').attr('required', true);
+            }
+           
         });
         $(document).on('input change blur', '.ThoiDiemChay, .ThoiDiemDung', function () {
             const row = $(this).closest('tr'); // lấy dòng hiện tại
@@ -791,6 +798,7 @@
                     $(row).find('.TGian_KH_BTBD').css('border-color', 'red');
                     return false; // break vòng each
                 }
+
             });
             if (!isValid) {
                 e.preventDefault(); // Chặn submit nếu có lỗi
