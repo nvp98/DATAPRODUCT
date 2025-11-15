@@ -690,6 +690,31 @@
 }
 
 <script>
+
+            // Hàm check dieu kien
+            function checkRequiredFields(row) {
+              row = $(row); // ✅ ép kiểu DOM → jQuery object
+              // Lấy giá trị số từ các input trong dòng
+              const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
+              const tgXL = parseFloat(row.find('.CoDien_TGianXL').val()) || 0;
+              const total = choXL + tgXL;
+              row.find('.CoDien_TGianSC').val(total);
+              // 🔹 Nếu tổng < 1 → bắt buộc nhập lý do
+              if (total < 1) {
+                row.find('.LyDo_DungThietBi').attr('required', true);
+              }
+              else {
+                row.find('.LyDo_DungThietBi').removeAttr('required');
+              }
+
+              // 🔹 Nếu có thời gian chờ xử lý → bắt buộc nhập thời gian xử lý
+              if (choXL !== 0 && tgXL ===0) {
+                row.find('.CoDien_TGianXL').attr('required', true);
+              } else {
+                row.find('.CoDien_TGianXL').removeAttr('required');
+              }
+            }
+
            document.querySelectorAll('input[type="radio"]').forEach(radio => {
               // thiết lập trạng thái ban đầu
               radio.previousChecked = radio.checked;
@@ -705,11 +730,14 @@
             });
         $(document).on('input change blur', '.CoDien_ChoXL, .CoDien_TGianXL', function () {
             const row = $(this).closest('tr'); // dòng hiện tại
-            const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
-            const tgXL  = parseFloat(row.find('.CoDien_TGianXL').val()) || 0;
+             @* checkRequiredFields(row); *@
+
+          @*   const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
+            const tgXL  = parseFloat(row.find('.CoDien_TGianXL').val()) || 0; *@
             // Nếu TGianXL <1 bắt buộc chọn LyDo
-            row.find('.CoDien_TGianSC').val(choXL + tgXL);
-            if((choXL + tgXL) < 1){
+            @* row.find('.CoDien_TGianSC').val(choXL + tgXL); *@
+            checkRequiredFields($(row));
+           @*  if((choXL + tgXL) < 1){
                 row.find('.LyDo_DungThietBi').attr('required', true);
             }
             else{
@@ -722,8 +750,14 @@
             }
             else{
                 row.find('.CoDien_TGianXL').removeAttr('required');
-            }
+            } *@
            
+        });
+        $(document).ready(function () {
+          // Duyệt qua tất cả các dòng có class hoặc tương tự
+          $('#dataTable tbody tr').each(function (index, row) {
+            checkRequiredFields($(row)); // Gọi hàm kiểm tra cho từng dòng
+          });
         });
         $(document).on('input change blur', '.ThoiDiemChay, .ThoiDiemDung', function () {
             const row = $(this).closest('tr'); // lấy dòng hiện tại
@@ -808,10 +842,22 @@
                     $(row).css('background-color', '');
                     $(row).find('.ThoiGianDung, .CoDien_TGianSC').css('border-color', '');
                 } *@
+                
+                const tgSCXL = parseFloat($(row).find('.CoDien_TGianSC').val()) || 0;
+
+                if(tgSCXL >1){
+                     alert(`Dòng ${index + 1}: Thời gian sự cố <= 1 phút!`);
+                    isValid = false;
+                     // Đánh dấu dòng lỗi (đỏ viền)
+                    $(row).css('background-color', '#ffe6e6');
+                    $(row).find('.CoDien_TGianSC').css('border-color', 'red');
+                    return false; // break vòng each
+                }
+
                 const lydo = parseFloat($(row).find('.LyDo_DungThietBi:checked').val()) || 0;
                 const TGian_KH_BTBD = parseFloat($(row).find('.TGian_KH_BTBD').val()) || 0;
                 if(lydo === 5 && TGian_KH_BTBD ===0 && $(row).find('.TGian_KH_BTBD').val() ===""){
-                    alert(`Dòng ${index + 1}: Vui lòng điền TG dừng theo kế hoạch)!`);
+                    alert(`Dòng ${index + 1}: Vui lòng điền TG dừng theo kế hoạch!`);
                     isValid = false;
 
                      // Đánh dấu dòng lỗi (đỏ viền)
