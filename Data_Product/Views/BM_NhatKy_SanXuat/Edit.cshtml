@@ -372,6 +372,7 @@
                                                     <!-- Gây dừng dây chuyền -->
                                                     <td>
                                                         <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[${index}].DungDayChuyen" required>
+                                                            <option value="" >--Chọn--</option>
                                                             <option value="true" ${DungDayChuyen.trim === "có" ? "selected" : ""}>Có</option>
                                                             <option value="false" ${DungDayChuyen.trim === "không" ? "selected" : ""}>Không</option>
                                                         </select>
@@ -524,6 +525,7 @@
 
                                                 <td>
                                                     <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[@index].DungDayChuyen" style="width:100%;" required>
+                                                        <option value="">--Chọn--</option>
                                                         <option value="true">Có</option>
                                                         <option value="false">Không</option>
                                                     </select>
@@ -618,6 +620,7 @@
                                   <!-- Gây dừng dây chuyền -->
                                   <td>
                                     <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].DungDayChuyen" required>
+                                      <option value="" >--Chọn--</option>
                                       <option value="true">Có</option>
                                       <option value="false">Không</option>
                                     </select>
@@ -843,6 +846,16 @@
                     $(row).css('background-color', '');
                     $(row).find('.ThoiGianDung, .CoDien_TGianSC').css('border-color', '');
                 } *@
+                const tgCDChoXL = parseFloat($(row).find('.CoDien_ChoXL').val()) || 0;
+                const tgXL = parseFloat($(row).find('.CoDien_TGianXL').val()) || 0;
+
+                if(tgCDChoXL != 0 && tgXL ===0 ){
+                    alert(`Dòng ${index + 1}: Vui lòng điền TG xử lý SC!`);
+                    isValid = false;
+                     // Đánh dấu dòng lỗi (đỏ viền)
+                    $(row).find('.CoDien_TGianXL').css('border-color', 'red');
+                    return false; // break vòng each
+                }
                 
                 const tgSCXL = parseFloat($(row).find('.CoDien_TGianSC').val()) || 0;
                 const tgDung = parseFloat($(row).find('.ThoiGianDung').val()) || 0;
