@@ -354,27 +354,31 @@
                                                     <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].NoiDungDung" value="${NoidungDung}" class="form-control" required></td>
 
                                                     <!-- Thiết bị Cơ điện -->
-                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_SoLan" value="${soLanSC}" class="form-control text-center" min="0" step="1"></td>
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_SoLan" value="${soLanSC}" class="form-control text-center CoDien_SoLan" min="0" step="1"></td>
                                                     <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_ChoXL" value="${TGianChoXL}" class="form-control text-center CoDien_ChoXL" min="0" step="0.1"></td>
                                                     <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_TGianXL" value="${TGianXL}" class="form-control text-center CoDien_TGianXL" min="0" step="0.1"></td>
                                                     <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_TGianSC" value="${TGianSC}" class="form-control text-center CoDien_TGianSC" min="0" step="0.1" readonly></td>
 
                                                     <!-- Công nghệ -->
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${SuCoCN != "" ? "checked" : ""} value="1" class="radio-square"></td>
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoCN != "" ? "checked" : ""} value="2" class="radio-square"></td>
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${KhachQuan != "" ? "checked" : ""} value="3" class="radio-square"></td>
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoKhac != "" ? "checked" : ""} value="4" class="radio-square"></td>
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${DungBTBD != "" ? "checked" : ""} value="5" class="radio-square"></td>
+                                                    <td class="text-center">
+                                                    <button type="button" class="btn btn-secondary btn-sm reset-radio" title="Xóa lựa chọn">
+                                                                                    <i class="bi bi-x-circle"></i>
+                                                                                </button>
+                                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${SuCoCN != "" ? "checked" : ""} value="1" class="radio-square LyDo_DungThietBi"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoCN != "" ? "checked" : ""} value="2" class="radio-square LyDo_DungThietBi"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${KhachQuan != "" ? "checked" : ""} value="3" class="radio-square LyDo_DungThietBi"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoKhac != "" ? "checked" : ""} value="4" class="radio-square LyDo_DungThietBi"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${DungBTBD != "" ? "checked" : ""} value="5" class="radio-square LyDo_DungThietBi"></td>
 
                                                     <!-- Thời gian kế hoạch BTBD -->
-                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].TGian_KH_BTBD" value="${TGianKH_BTBD}" class="form-control text-center" min="0" step="0.1"></td>
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].TGian_KH_BTBD" value="${TGianKH_BTBD}" class="form-control text-center TGian_KH_BTBD" min="0" step="0.1"></td>
 
                                                     <!-- Gây dừng dây chuyền -->
                                                     <td>
                                                         <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[${index}].DungDayChuyen" required>
                                                             <option value="" >--Chọn--</option>
-                                                            <option value="true" ${(DungDayChuyen ?? '').toString().trim() === "có" ? "selected" : ""}>Có</option>
-                                                            <option value="false" ${(DungDayChuyen ?? '').toString().trim() === "không" ? "selected" : ""}>Không</option>
+                                                            <option value="true" ${(`${DungDayChuyen ?? ''}`.trim().toLowerCase() === "có" ? "selected" : "")}>Có</option>
+                                                            <option value="false" ${(`${DungDayChuyen ?? ''}`.trim().toLowerCase() === "không" ? "selected" : "")}>Không</option>
                                                         </select>
                                                     </td>
 
@@ -382,7 +386,9 @@
                                                     <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].GhiChu" value="${GhiChu}" class="form-control"></td>
 
                                                     <!-- Nút xóa -->
-                                                    <td class="text-center"><button type="button" class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button></td>
+                                                    <td class="text-center"><button type="button" class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
+                                                                                    
+                                                    </td>
                                                 </tr>
                                                 `;
 
@@ -516,7 +522,11 @@
                                                 <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_ChoXL" value="@item.CoDien_ChoXL" class="form-control CoDien_ChoXL"></td>
                                                 <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_TGianXL" value="@item.CoDien_TGianXL" class="form-control CoDien_TGianXL"></td>
                                                 <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_TGianSC" value="@item.CoDien_TGianSC" class="form-control CoDien_TGianSC" readonly></td>
-                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="1" @(item.LyDo_DungThietBi == 1 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-secondary btn-sm reset-radio" title="Xóa lựa chọn">
+                                                        <i class="bi bi-x-circle"></i>
+                                                    </button>
+                                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="1" @(item.LyDo_DungThietBi == 1 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="2" @(item.LyDo_DungThietBi == 2 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="3" @(item.LyDo_DungThietBi == 3 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="4" @(item.LyDo_DungThietBi == 4 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
@@ -526,14 +536,29 @@
                                                 <td>
                                                     <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[@index].DungDayChuyen" style="width:100%;" required>
                                                         <option value="">--Chọn--</option>
-                                                        <option value="true">Có</option>
-                                                        <option value="false">Không</option>
+                                                        @if(item.DungDayChuyen == true)
+                                                        {
+                                                            <option value="true" selected>Có</option>
+                                                            <option value="false">Không</option>
+                                                        }
+                                                        else if (item.DungDayChuyen == false)
+                                                        {
+                                                            <option value="true">Có</option>
+                                                            <option value="false" selected>Không</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="true">Có</option>
+                                                            <option value="false">Không</option>
+                                                        }
+                                                        
                                                     </select>
                                                 </td>
 
                                                 <td><input type="text" name="NhatKy_SanXuat_ChiTiet[@index].GhiChu" value="@item.GhiChu" class="form-control" ></td>
                                                 <td>
                                                     <button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
+                                                    
                                                 </td>
                                             </tr>
                                             index++;
@@ -598,7 +623,10 @@
 
                                   <!-- Công nghệ -->
                                  <td class="text-center">
-                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="1" class="radio-square LyDo_DungThietBi" required>
+                                   <button type="button" class="btn btn-secondary btn-sm reset-radio" title="Xóa lựa chọn">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                                     <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="1" class="radio-square LyDo_DungThietBi" required>
                                 </td>
                                 <td class="text-center">
                                     <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="2" class="radio-square LyDo_DungThietBi" required>
@@ -632,6 +660,7 @@
                                   <!-- Nút xóa -->
                                   <td class="text-center">
                                     <button type="button" class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
+                                                                 
                                   </td>
 
                                 </tr>
@@ -719,19 +748,20 @@
               }
             }
 
-           document.querySelectorAll('input[type="radio"]').forEach(radio => {
-              // thiết lập trạng thái ban đầu
-              radio.previousChecked = radio.checked;
-              radio.addEventListener('click', e => {
-                if (radio.previousChecked) {
-                  radio.checked = false;
-                }
-                document
-                  .querySelectorAll('input[name="' + radio.name + '"]')
-                  .forEach(r => (r.previousChecked = false));
-                radio.previousChecked = radio.checked;
-              });
-            });
+                // Xóa toàn bộ radio trong dòng
+    $(document).on("click", ".reset-radio", function () {
+        const row = $(this).closest("tr");
+
+        // Bỏ chọn tất cả radio trong dòng
+        row.find('.LyDo_DungThietBi')
+            .prop("checked", false)
+            .data("waschecked", false);
+
+        // Xóa cả required (nếu đang bật)
+        row.find('.LyDo_DungThietBi').removeAttr("required");
+    });
+
+
         $(document).on('input change blur', '.CoDien_ChoXL, .CoDien_TGianXL', function () {
             const row = $(this).closest('tr'); // dòng hiện tại
              @* checkRequiredFields(row); *@
