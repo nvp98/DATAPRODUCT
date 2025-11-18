@@ -373,8 +373,8 @@
                                                     <td>
                                                         <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[${index}].DungDayChuyen" required>
                                                             <option value="" >--Chọn--</option>
-                                                            <option value="true" ${DungDayChuyen.trim === "có" ? "selected" : ""}>Có</option>
-                                                            <option value="false" ${DungDayChuyen.trim === "không" ? "selected" : ""}>Không</option>
+                                                            <option value="true" ${(DungDayChuyen ?? '').toString().trim() === "có" ? "selected" : ""}>Có</option>
+                                                            <option value="false" ${(DungDayChuyen ?? '').toString().trim() === "không" ? "selected" : ""}>Không</option>
                                                         </select>
                                                     </td>
 
