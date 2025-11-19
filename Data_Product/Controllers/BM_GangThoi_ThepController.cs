@@ -2242,8 +2242,8 @@ namespace Data_Product.Controllers
                 const int COL_KL_GANGLONG = 8;
                 const int COL_KLGANGCHIA = 9;   // Không merge
 
-                // Cột cấp TTG (10..18)
-                int[] TTG_COLS = { 10, 11, 12, 13, 14, 15, 16, 17, 18 };
+                // Cột cấp TTG (11..18)
+                int[] TTG_COLS = { 11, 12, 13, 14, 15, 16, 17, 18 };
 
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "QTGN_Gang_Long_Thep.xlsx");
                 using var ms = new MemoryStream();
@@ -2360,6 +2360,7 @@ namespace Data_Product.Controllers
                                 ws.Cell(row, c++).Value = ""; // 7
                                 ws.Cell(row, c++).Value = ""; // 8
                                 ws.Cell(row, c++).Value = ""; // 9 (KLGangChia - không merge)
+                                ws.Cell(row, c++).Value = ""; // 10 KL chia CR ( không merge)
                             }
                             else
                             {
