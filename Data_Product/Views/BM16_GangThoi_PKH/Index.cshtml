@@ -527,6 +527,7 @@
                         <th class="sticky-col-6" style="min-width: 116px;">Số mẻ</th>
                         <th class="sticky-col-7" style="min-width: 69px;">Thùng số</th>
                         <th class="sticky-col-8" style="min-width: 53px;">Giờ</th>
+                        <th class="hide-col">Tình trạng QLCL</th>
                         <th class="hide-col" style="min-width: 70px;">Phân loại</th>
                         <th>Sàn ra gang</th>
                         <th>KL xe goong</th>
@@ -944,6 +945,17 @@
             `;
         }
 
+        function renderStatusQLCL(isXacNhan){
+            if(isXacNhan) 
+                return  `
+                    <div class="status-card bg-da-nhan">
+                    <span class="status-text small pt-2 ps-1"">
+                            Đã xác nhận
+                        </span>
+                    </div>
+                `;
+             return renderStatusCard(1);
+        }
 
         function renderStatusPKH(item) {
             if (item.iD_TrangThai === 5) {
@@ -1228,6 +1240,7 @@
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
 
                     const tinhTrangHTML = renderStatusPKH(item);
+                    const tinhTrangQLCLHTML = renderStatusQLCL(item.xacNhan)
 
                     const ngayLG = getDayOnly(item.ngayTao);
                     const ngayLT = getDayOnly(item.ngayLuyenThep);
@@ -1257,6 +1270,7 @@
                     row.append(`<td class="sticky-col-6" ${item.t_copy || isCopy ? 'style="color: red;"' : ''}>${item.bkmiS_SoMe ?? ''}</td>`);
                     row.append(`<td class="sticky-col-7" style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
                     row.append(`<td class="sticky-col-8">${item.bkmiS_Gio ?? ''}</td>`);
+                    row.append(`<td class="hide-col">${tinhTrangQLCLHTML}</td>`);
                     row.append(`<td class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
 
                     if(item.t_copy == true || isCopy){
@@ -1935,7 +1949,7 @@
             // Cột cần ẩn/hiện
             $('.hide-col').css('display', display);
 
-            $('.total-space').attr('colspan', isHidden ? 11 : 13);
+            $('.total-space').attr('colspan', isHidden ? 11 : 14);
             $('.space-2').attr('colspan', isHidden ? 5 : 10);
 
             $('.space-3').attr('colspan', isHidden ? 4 : 9);
