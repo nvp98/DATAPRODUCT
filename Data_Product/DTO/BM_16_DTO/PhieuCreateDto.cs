@@ -48,18 +48,29 @@ namespace Data_Product.DTO.BM_16_DTO
         public string TenPhongBan { get; set; }
         public string ChuKy { get; set; }
     }
-    public class LogDataBfDto
+    public class MappingCanRayDto
     {
-        public int id { get; set; }
-        public string BF_no { get; set; }
-        public string Laddle_no { get; set; }
-        public string Shift { get; set; }
-        public DateTime BF_Timestap { get; set; }
-        public string Casthouse { get; set; }
-        public decimal? Weight_no { get; set; }
-        public decimal? Weight_TARE { get; set; }
-        public decimal? Weight_GROSS { get; set; }
-        public decimal? Weight_NET { get; set; }
+        public int RowId { get; set; }
+        public int ID_LoCao { get; set; }
+
+        // thời điểm chốt (server sẽ serialize DateTime? thành ISO string)
+        public DateTime? GioChotGang { get; set; }
+
+        // chuỗi hiển thị giờ (HH:mm)
+        public string GioStr { get; set; }
+
+        // số liệu khối lượng / TS1, TS4, TS5, TS6 — decimal? để giữ precision
+        public decimal? ThungSo { get; set; }   // TS1
+        public decimal? KL_Bi { get; set; }     // TS4
+        public decimal? KL_Tong { get; set; }   // TS5
+        public decimal? KL_Gang { get; set; }   // TS6
+        public int? SanRaGang { get; set; } 
+
+        // các trường gốc nếu cần (tùy chọn)
+        public int? BF_no { get; set; }
+        public int? Laddle_no { get; set; }
+        public int? Shift { get; set; }
+        public int? Casthouse { get; set; }
     }
 
 }
