@@ -433,6 +433,7 @@ namespace Data_Product.Controllers
                 worksheet.Cell(1, 5).Value = "Tên BP/NM";
                 worksheet.Cell(1, 6).Value = "Đơn vị tính";
                 worksheet.Cell(1, 7).Value = "Nhóm vật tư";
+                worksheet.Cell(1, 8).Value = "Tình trạng";
                 //value
                 int row = 2; int stt = 1;
                 foreach (var item in data)
@@ -444,6 +445,7 @@ namespace Data_Product.Controllers
                     worksheet.Cell(row, 5).Value = item.PhongBan;
                     worksheet.Cell(row, 6).Value = item.DonViTinh;
                     worksheet.Cell(row, 7).Value = item.TenNhomVatTu;
+                    worksheet.Cell(row, 8).Value = item.ID_TrangThai == 1 ? "Hoạt động" : "Đã khóa";
                     row++; stt++;
                 }
 
