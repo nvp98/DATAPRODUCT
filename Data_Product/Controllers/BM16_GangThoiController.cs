@@ -31,6 +31,8 @@ using System.Text.RegularExpressions;
 using MySqlConnector;
 using Data_Product.Services;
 using System;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
 
 namespace Data_Product.Controllers
@@ -1744,6 +1746,269 @@ namespace Data_Product.Controllers
             return $"{dd}{mm}{yy}L{loCao}{caChar}{sttFormatted}.00";
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAllSoMe(string maPhieu, string ngayStr, int idLoCao, int idCa, string term = null, int take = 200, bool select2 = true)
+        {
+            if (string.IsNullOrWhiteSpace(maPhieu) || !DateTime.TryParse(ngayStr, out var ngay))
+            {
+                return BadRequest("Thiếu hoặc sai dữ liệu (mã phiếu / ngày).");
+            }
+
+            // Base query: điều chỉnh tên cột cho đúng với schema thực tế nếu khác
+            var query = _context.Tbl_BM_16_GangLong
+                .AsNoTracking()
+                .Where(x => x.MaPhieu == maPhieu
+                            && x.NgayTao == ngay
+                            && x.ID_TrangThai == (int)TinhTrang.ChoXuLy
+                            && !string.IsNullOrEmpty(x.BKMIS_SoMe));
+
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                // Lọc “contains” khi người dùng gõ
+                query = query.Where(x => x.BKMIS_SoMe.Contains(term));
+            }
+
+            var list = await query
+                .Select(x => x.BKMIS_SoMe.Trim())
+                .Distinct()
+                .OrderBy(x => x)
+                .Take(take)
+                .ToListAsync();
+
+            if (select2)
+            {
+
+                var result = list.Select(v => new { id = v, text = v });
+                return Ok(result);
+            }
+
+            return Ok(list);
+        }
+
       
+        [HttpGet]
+        public async Task<IActionResult> GetAutoSourceData(string fromDateStr,   string toDateStr,     int idLoCao)
+        {
+            // 1. Validate input, parse datetime
+            if (!DateTime.TryParse(fromDateStr, out var fromTime))
+                return BadRequest("Từ ngày/giờ không hợp lệ.");
+
+            if (!DateTime.TryParse(toDateStr, out var toTime))
+                return BadRequest("Đến ngày/giờ không hợp lệ.");
+
+            if (idLoCao <= 0)
+                return BadRequest("ID lò cao không hợp lệ.");
+            string _railConnectionString = "Server=10.192.45.10 ;Database=LGANGDB15012022;User Id=sa;Password=Server1@hpdq;";
+            try
+            {
+                var result = new List<object>();
+
+                using (var conn = new SqlConnection(_railConnectionString))
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                SELECT
+                    x.ID_LoCao,
+                    x.[Time] AS GioChotGang,
+                    MAX(CASE WHEN x.TagName LIKE '%TS1' THEN x.ValueNum END) AS ThungSo,
+                    MAX(CASE WHEN x.TagName LIKE '%TS2' THEN x.ValueNum END) AS Rail,
+                    MAX(CASE WHEN x.TagName LIKE '%TS3' THEN x.ValueNum END) AS San,
+                    MAX(CASE WHEN x.TagName LIKE '%TS4' THEN x.ValueNum END) AS KL_Bi,
+                    MAX(CASE WHEN x.TagName LIKE '%TS5' THEN x.ValueNum END) AS KL_Tong,
+                    MAX(CASE WHEN x.TagName LIKE '%TS6' THEN x.ValueNum END) AS KL_Gang
+                FROM (
+                    SELECT
+                        ID,
+                        TagName,
+                        [Time],
+                        CAST(REPLACE(Value, ',', '.') AS decimal(18,5)) AS ValueNum,
+                        ID_LoCao
+                    FROM [LGANGDB15012022].[dbo].[RailScale]
+                    WHERE
+                        [Time] BETWEEN @FromTime AND @ToTime
+                        AND ID_LoCao = @LoCao
+                ) AS x
+                GROUP BY
+                    x.ID_LoCao,
+                    x.[Time]
+                ORDER BY
+                    x.[Time];
+            ";
+
+                    cmd.Parameters.Add(new SqlParameter("@FromTime", SqlDbType.DateTime) { Value = fromTime });
+                    cmd.Parameters.Add(new SqlParameter("@ToTime", SqlDbType.DateTime) { Value = toTime });
+                    cmd.Parameters.Add(new SqlParameter("@LoCao", SqlDbType.Int) { Value = idLoCao });
+
+                    await conn.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        int rowId = 0;
+                        while (await reader.ReadAsync())
+                        {
+                            rowId++;
+
+                            int idLoCaoVal = reader.GetInt32(reader.GetOrdinal("ID_LoCao"));
+                            DateTime gioChot = reader.GetDateTime(reader.GetOrdinal("GioChotGang"));
+
+                            decimal? thungSo = reader.IsDBNull(reader.GetOrdinal("ThungSo"))
+                                ? (decimal?)null
+                                : reader.GetDecimal(reader.GetOrdinal("ThungSo"));
+
+                            decimal? klBi = reader.IsDBNull(reader.GetOrdinal("KL_Bi"))
+                                ? (decimal?)null
+                                : reader.GetDecimal(reader.GetOrdinal("KL_Bi"));
+
+                            decimal? klTong = reader.IsDBNull(reader.GetOrdinal("KL_Tong"))
+                                ? (decimal?)null
+                                : reader.GetDecimal(reader.GetOrdinal("KL_Tong"));
+
+                            decimal? klGang = reader.IsDBNull(reader.GetOrdinal("KL_Gang"))
+                                ? (decimal?)null
+                                : reader.GetDecimal(reader.GetOrdinal("KL_Gang"));
+
+                            result.Add(new
+                            {
+                                RowId = rowId,
+                                ID_LoCao = idLoCaoVal,
+                                GioChotGang = gioChot,
+                                GioStr = gioChot.ToString("HH:mm"),
+                                ThungSo = thungSo,
+                                KL_Bi = klBi,
+                                KL_Tong = klTong,
+                                KL_Gang = klGang
+                            });
+                        }
+                    }
+                }
+
+                return Ok(result);
+            }
+            catch (SqlException)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Lỗi SQL khi lấy dữ liệu auto từ cân ray.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Lỗi không xác định khi lấy dữ liệu auto từ cân ray.");
+            }
+        }
+        private async Task<IActionResult> GetAutoSourceDataBF_Internal(DateTime fromTime, DateTime toTime, int idLoCao)
+        {
+            try
+            {
+                var result = new List<object>();
+                int rowId = 0;
+
+                // Giả sử bạn đã định nghĩa DbSet<LogDataBf> LogDataBf5 và LogDataBf6 trong DbContext.
+                IQueryable<LogDataBf> q;
+                if (idLoCao == 5)
+                    q = _context.LogDataBf5.AsNoTracking();
+                else
+                    q = _context.LogDataBf6.AsNoTracking();
+
+                var list = await q
+                    .Where(r => r.BF_Timestap >= fromTime && r.BF_Timestap <= toTime)
+                    .OrderBy(r => r.BF_Timestap)
+                    .ToListAsync();
+
+                foreach (var r in list)
+                {
+                    rowId++;
+                    result.Add(new
+                    {
+                        rowId = rowId,
+                        iD_LoCao = idLoCao,
+                        gioChotGang = r.BF_Timestap,
+                        gioStr = r.BF_Timestap.ToString("HH:mm"),
+                        thungSo = r.Weight_no,
+                        kL_Bi = r.Weight_TARE,
+                        kL_Tong = r.Weight_GROSS,
+                        kL_Gang = r.Weight_NET,
+                        bfId = r.ID,
+                        bfNo = r.BF_no,
+                        ladleNo = r.Laddle_no,
+                        casthouse = r.Casthouse,
+                        shift = r.Shift
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "BF unexpected error");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Lỗi khi lấy dữ liệu BF từ DbContext.");
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> SaveAutoMapping([FromBody] List<AutoMappingItemDto> items)
+        {
+            if (items == null || items.Count == 0)
+                return BadRequest("Không có dữ liệu để lưu.");
+
+            // Kiểm tra MaPhieu đồng nhất
+            var maPhieu = items.First().MaPhieu;
+            if (string.IsNullOrWhiteSpace(maPhieu))
+                return BadRequest("Thiếu mã phiếu.");
+
+            // Lấy danh sách Số mẻ liên quan
+            var soMes = items
+                .Where(x => !string.IsNullOrWhiteSpace(x.SoMe))
+                .Select(x => x.SoMe.Trim())
+                .Distinct()
+                .ToList();
+
+            if (!soMes.Any())
+                return BadRequest("Không có Số mẻ hợp lệ.");
+
+            // Lấy các dòng BM16 tương ứng MaPhieu + SoMe
+            var listThung = await _context.Tbl_BM_16_GangLong
+                .Where(x => x.MaPhieu == maPhieu
+                            && soMes.Contains(x.BKMIS_SoMe)
+                            && x.ID_TrangThai != 5)       
+                .ToListAsync();
+
+            if (!listThung.Any())
+                return NotFound("Không tìm thấy thùng nào trong BM16 khớp với các Số mẻ đã gửi.");
+
+            // Map theo Số mẻ
+            foreach (var mapItem in items)
+            {
+                if (string.IsNullOrWhiteSpace(mapItem.SoMe)) continue;
+
+                var soMe = mapItem.SoMe.Trim();
+
+                var thungsCungSoMe = listThung
+                    .Where(x => x.BKMIS_SoMe == soMe)
+                    .ToList();
+
+                if (!thungsCungSoMe.Any())
+                    continue;
+
+                foreach (var thung in thungsCungSoMe)
+                {
+                    // Cập nhật theo cân ray
+                    thung.G_KLXeVaThung = mapItem.G_KLXeVaThung;
+                    thung.G_KLXeThungVaGang = mapItem.G_KLXeThungVaGang;
+                    thung.G_KLGangLong = mapItem.G_KLGangLong;
+
+
+                    // Cập nhật trạng thái dữ liệu đủ
+                    bool duDuLieu =
+                        mapItem.G_KLXeVaThung.HasValue &&
+                        mapItem.G_KLXeThungVaGang.HasValue &&
+                        mapItem.G_KLGangLong.HasValue;
+
+                    thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Đã cập nhật khối lượng từ cân ray theo Số mẻ." });
+        }
     }
 }

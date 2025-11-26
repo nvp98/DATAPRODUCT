@@ -378,7 +378,465 @@
 		</div>
 	</div>
 }
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+<style>
+	.select2-container--default .select2-selection--single {
+		min-height: 30px;
+		padding-top: 2px;
+		font-size: 12px;
+		border-radius: 4px;
+	}
+
+		.select2-container--default .select2-results__option,
+		.select2-container--default .select2-search__field,
+		.select2-container--default .select2-selection--single .select2-selection__rendered {
+			font-size: 12px;
+			line-height: 26px;
+		}
+
+	.cell-changed {
+		outline: 2px solid #ffb84d !important;
+		background: #fff7e6 !important;
+	}
+
+	/* Cố định chiều rộng 1 chút cho cột số mẻ */
+	#tableLeft .ip-some,
+	#tableRight .ip-some {
+		min-width: 120px;
+	}
+</style>
+
+<div class="mt-4" id="double-auto-mapping">
+	<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+		<h6 class="mb-0">Mapping Số mẻ theo KL cân ray (2 bảng: trái không sửa, phải có thể sửa)</h6>
+	</div>
+
+	<!-- DÒNG FILTER: Lò cao + Từ giờ + Đến giờ -->
+	<div class="card mt-2">
+		<div class="card-body py-2 d-flex flex-wrap align-items-end gap-2">
+			@* <div>
+				<label class="form-label mb-1">Lò cao</label>
+				<select id="filterLoCao" class="form-select form-select-sm" style="min-width: 90px;">
+					<option value="1">Lò 1</option>
+					<option value="2">Lò 2</option>
+					<option value="3">Lò 3</option>
+					<option value="4">Lò 4</option>
+				</select>
+			</div> *@
+			<div>
+				<label class="form-label mb-1">Từ giờ</label>
+				<input type="datetime-local" id="filterFromTime" class="form-control form-control-sm" />
+			</div>
+			<div>
+				<label class="form-label mb-1">Đến giờ</label>
+				<input type="datetime-local" id="filterToTime" class="form-control form-control-sm" />
+			</div>
+			<button class="btn btn-outline-primary btn-sm" id="btnFetchAuto" type="button">
+				Lấy dữ liệu cân ray
+			</button>
+		</div>
+	</div>
+
+	<div class="collapse show mt-3" id="doubleAutoCollapse">
+		<div class="row g-3">
+			<!-- Bảng trái: KHÔNG chỉnh sửa -->
+			<div class="col-lg-6">
+				<div class="card h-100">
+					<div class="card-header py-2 d-flex justify-content-between align-items-center">
+						<span class="fw-bold">Auto (KHÔNG chỉnh sửa) – chỉ chọn/tìm Số mẻ</span>
+						<span class="badge bg-info" id="leftCount">0 dòng</span>
+					</div>
+					<div class="card-body p-2">
+						<div class="table-responsive" style="max-height:480px;overflow:auto;">
+							<table class="table table-sm table-bordered table-hover align-middle" id="tableLeft">
+								<thead class="table-light">
+									<tr>
+										<th>Thùng số (TS1)</th>
+										<th>Giờ chốt gang</th>
+										<th>KL bì (TS4 - xe+thùng)</th>
+										<th>KL tổng (TS5 - xe+thùng+gang)</th>
+										<th>KL gang (TS6)</th>
+										<th>Số mẻ</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr class="table-secondary text-center">
+										<td colspan="7" class="small">Chưa có dữ liệu.</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="d-flex justify-content-end mt-2">
+							<button class="btn btn-success btn-sm" id="btnApplyLeft" type="button">
+								Áp dụng & lưu (theo Số mẻ) - auto
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Bảng phải: CHO CHỈNH SỬA -->
+			<div class="col-lg-6">
+				<div class="card h-100">
+					<div class="card-header py-2 d-flex justify-content-between align-items-center">
+						<span class="fw-bold">Auto (CÓ thể chỉnh sửa) – chọn/tìm Số mẻ + sửa KL/giờ + Lý do</span>
+						<span class="badge bg-info" id="rightCount">0 dòng</span>
+					</div>
+					<div class="card-body p-2">
+						<div class="table-responsive" style="max-height:480px;overflow:auto;">
+							<table class="table table-sm table-bordered table-hover align-middle" id="tableRight">
+								<thead class="table-light">
+									<tr>
+										<th>Thùng số (TS1)</th>
+										<th>Giờ chốt gang</th>
+										<th>KL bì (TS4)</th>
+										<th>KL tổng (TS5)</th>
+										<th>KL gang (TS6)</th>
+										<th style="width: 50px">Số mẻ</th>
+										<th>Lý do*</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr class="table-secondary text-center">
+										<td colspan="8" class="small">Chưa có dữ liệu.</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="d-flex justify-content-end mt-2">
+							<button class="btn btn-primary btn-sm" id="btnApplyRight" type="button">
+								Lưu override + áp dụng theo Số mẻ
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	(function () {
+
+		function esc(s) { return $('<div/>').text(s || '').html(); }
+
+		// Select2 Số mẻ – lấy theo detail phiếu (GetAllSoMe)
+		function initSoMeSelectAjax($sel) {
+			if ($sel.data('init') === 'true') return;
+
+			$sel.select2({
+				width: '200px',
+				placeholder: 'Chọn Số mẻ',
+				allowClear: true,
+				tags: false,
+				dropdownParent: $('#doubleAutoCollapse'),
+				ajax: {
+					url: '/BM16_GangThoi/GetAllSoMe',
+					delay: 300,
+					data: function (params) {
+						return {
+							maPhieu: $('#PhieuID').val(),
+							ngayStr: $('#ID_Day').val(),
+							idLoCao: $('#IDLoCaoNum').val(),
+							idCa: $('#IDCaNum').val(),
+							term: params.term,
+							take: 100,
+							select2: true
+						};
+					},
+					processResults: function (data) {
+						return { results: data };
+					}
+				}
+			});
+
+			$sel.data('init', 'true');
+		}
+
+		function markRowChangeState($row) {
+			var oGio  = ($row.data('o-gio') || '').toString();
+			var oBi   = ($row.data('o-klbi') || '').toString();
+			var oTong = ($row.data('o-kltong') || '').toString();
+			var oGang = ($row.data('o-klgang') || '').toString();
+
+			var cGio  = $row.find('.ip-gio').val() || '';
+			var cBi   = $row.find('.ip-klbi').val() || '';
+			var cTong = $row.find('.ip-kltong').val() || '';
+			var cGang = $row.find('.ip-klgang').val() || '';
+
+			$row.find('.ip-gio').toggleClass('cell-changed',   cGio  !== oGio);
+			$row.find('.ip-klbi').toggleClass('cell-changed',  cBi   !== oBi);
+			$row.find('.ip-kltong').toggleClass('cell-changed',cTong !== oTong);
+			$row.find('.ip-klgang').toggleClass('cell-changed',cGang !== oGang);
+		}
+
+		// --------- Render bảng trái ----------
+		function renderLeft(list) {
+			var $tb = $("#tableLeft tbody");
+			$tb.empty();
+
+			if (!list || !list.length) {
+				$tb.append(
+					'<tr class="table-secondary text-center">' +
+					'<td colspan="6" class="small">Không có dữ liệu cân ray.</td>' +
+					'</tr>'
+				);
+				$("#leftCount").text("0 dòng");
+				return;
+			}
+
+			list.forEach(function (x) {
+				var gioIso  = x.gioChotGang;          // key theo JSON bạn đưa
+				var gioStr  = x.gioStr || '';
+				var thungSo = x.thungSo != null ? x.thungSo : '';
+				var idLo    = x.iD_LoCao;
+
+				var tr = '' +
+					'<tr data-row="left"' +
+					'    data-rowid="' + x.rowId + '"' +
+					'    data-idlocao="' + idLo + '"' +
+					'    data-gioiso="' + esc(gioIso) + '"' +
+					'    data-thungso="' + esc(thungSo) + '">' +
+					'  <td>' + esc(thungSo) + '</td>' +
+					'  <td>' + esc(gioStr) + '</td>' +
+					'  <td>' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
+					'  <td>' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
+					'  <td>' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
+					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
+					'</tr>';
+
+				$tb.append(tr);
+				var $sel = $tb.find('tr:last .ip-some');
+				initSoMeSelectAjax($sel);
+			});
+
+			$("#leftCount").text(list.length + " dòng");
+		}
+
+		// --------- Render bảng phải ----------
+		function renderRight(list) {
+			var $tb = $("#tableRight tbody");
+			$tb.empty();
+
+			if (!list || !list.length) {
+				$tb.append(
+					'<tr class="table-secondary text-center">' +
+					'<td colspan="7" class="small">Không có dữ liệu cân ray.</td>' +
+					'</tr>'
+				);
+				$("#rightCount").text("0 dòng");
+				return;
+			}
+
+			list.forEach(function (x) {
+				var gioIso  = x.gioChotGang;
+				var gioStr  = x.gioStr || '';
+				var thungSo = x.thungSo != null ? x.thungSo : '';
+				var idLo    = x.iD_LoCao;
+
+				var tr = '' +
+					'<tr data-row="right"' +
+					'    data-rowid="' + x.rowId + '"' +
+					'    data-idlocao="' + idLo + '"' +
+					'    data-gioiso="' + esc(gioIso) + '"' +
+					'    data-thungso="' + esc(thungSo) + '"' +
+					'    data-o-gio="' + esc(gioStr) + '"' +
+					'    data-o-klbi="' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '"' +
+					'    data-o-kltong="' + (x.kL_Tong != null ? x.kL_Tong : '') + '"' +
+					'    data-o-klgang="' + (x.kL_Gang != null ? x.kL_Gang : '') + '">' +
+					'  <td>' + esc(thungSo) + '</td>' +
+					'  <td><input type="time" class="form-control form-control-sm ip-gio" value="' + esc(gioStr) + '"></td>' +
+					'  <td><input type="number" step="0.01" class="form-control form-control-sm ip-klbi"   value="' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '"></td>' +
+					'  <td><input type="number" step="0.01" class="form-control form-control-sm ip-kltong" value="' + (x.kL_Tong != null ? x.kL_Tong : '') + '"></td>' +
+					'  <td><input type="number" step="0.01" class="form-control form-control-sm ip-klgang" value="' + (x.kL_Gang != null ? x.kL_Gang : '') + '"></td>' +
+					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
+					'  <td><input type="text" class="form-control form-control-sm ip-lydo" placeholder="* Lý do khi sửa khác"></td>' +
+					'</tr>';
+
+				$tb.append(tr);
+
+				var $row = $tb.find('tr:last');
+				var $sel = $row.find('.ip-some');
+				initSoMeSelectAjax($sel);
+
+				$row.find('input').on('input change', function () {
+					markRowChangeState($row);
+				});
+				markRowChangeState($row);
+			});
+
+			$("#rightCount").text(list.length + " dòng");
+		}
+
+		function renderBoth(list) {
+			renderLeft(list);
+			renderRight(list);
+		}
+
+		// ---------- fetchAuto: chỉ từ giờ – đến giờ – lò cao ----------
+		function fetchAuto() {
+			var fromDateStr = $('#filterFromTime').val();
+			var toDateStr   = $('#filterToTime').val();
+			var idLoCao     = parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val());
+
+			if (!fromDateStr || !toDateStr || !idLoCao) {
+				alert('Nhập đủ Từ giờ, Đến giờ và Lò cao.');
+				return;
+			}
+
+			$("#tableLeft tbody").html('<tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>');
+			$("#tableRight tbody").html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+
+			$.ajax({
+				url: '/BM16_GangThoi/GetAutoSourceData',
+				method: 'GET',
+				data: {
+					fromDateStr: fromDateStr,
+					toDateStr: toDateStr,
+					idLoCao: idLoCao
+				},
+				success: function (res) {
+					renderBoth(res || []);
+				},
+				error: function (xhr) {
+					alert('Lỗi tải dữ liệu auto: ' + (xhr.responseText || 'Không xác định'));
+				}
+			});
+		}
+
+		// ---------- Thu dữ liệu từ bảng trái để gửi lên SaveAutoMapping ----------
+		function collectFromLeft() {
+			var maPhieu = $('#PhieuID').val();
+			var items = [];
+
+			$("#tableLeft tbody tr[data-row='left']").each(function () {
+				var $r = $(this);
+				var soMe = $r.find('.ip-some').val();
+				if (!soMe) return; // bỏ dòng chưa chọn Số mẻ
+
+				var idLoCao = parseInt($r.data('idlocao'), 10);
+				var gioChot = $r.data('gioiso');      // ISO string
+				var thungSo = $r.data('thungso');
+
+				// 0: Thùng số, 1: Giờ, 2: KL_Bi, 3: KL_Tong, 4: KL_Gang, 5: Số mẻ
+				var klBi   = parseFloat($r.find('td:eq(2)').text()) || null;
+				var klTong = parseFloat($r.find('td:eq(3)').text()) || null;
+				var klGang = parseFloat($r.find('td:eq(4)').text()) || null;
+
+				items.push({
+					MaPhieu: maPhieu,
+					SoMe: soMe,
+					ID_LoCao: idLoCao,
+					GioChotGang: gioChot,
+					G_KLXeVaThung: klBi,
+					G_KLXeThungVaGang: klTong,
+					G_KLGangLong: klGang
+				});
+			});
+
+			return items;
+		}
+
+		function applyLeft() {
+			var items = collectFromLeft();
+			if (!items.length) {
+				alert('Bảng trái: chưa chọn Số mẻ cho dòng nào.');
+				return;
+			}
+
+			if (!confirm('Bạn có chắc muốn cập nhật khối lượng từ cân ray vào BM16 theo các Số mẻ đã chọn?'))
+				return;
+
+			$.ajax({
+				url: '/BM16_GangThoi/SaveAutoMapping',
+				method: 'POST',
+				contentType: 'application/json; charset=utf-8',
+				data: JSON.stringify(items),
+				success: function (res) {
+					alert(res && res.message ? res.message : 'Đã cập nhật khối lượng theo Số mẻ.');
+				},
+				error: function (xhr) {
+					var msg = xhr.responseText || 'Lỗi không xác định khi lưu mapping.';
+					alert('Lỗi lưu mapping auto: ' + msg);
+				}
+			});
+		}
+
+		// bảng phải: hiện tại chỉ thu thập + log, bạn có thể dùng chung SaveAutoMapping nếu muốn
+		function collectFromRight() {
+			var maPhieu = $('#PhieuID').val();
+			var items = [];
+			var invalidReason = false;
+
+			$("#tableRight tbody tr[data-row='right']").each(function () {
+				var $r = $(this);
+				var soMe = $r.find('.ip-some').val();
+				if (!soMe) return;
+
+				var oGio  = ($r.data('o-gio') || '').toString();
+				var oBi   = ($r.data('o-klbi') || '').toString();
+				var oTong = ($r.data('o-kltong') || '').toString();
+				var oGang = ($r.data('o-klgang') || '').toString();
+
+				var cGio  = $r.find('.ip-gio').val() || '';
+				var cBi   = $r.find('.ip-klbi').val() || '';
+				var cTong = $r.find('.ip-kltong').val() || '';
+				var cGang = $r.find('.ip-klgang').val() || '';
+
+				var changed = (cGio !== oGio) || (cBi !== oBi) || (cTong !== oTong) || (cGang !== oGang);
+				var lyDo = $r.find('.ip-lydo').val() || '';
+
+				if (changed && !lyDo) {
+					invalidReason = true;
+					$r.find('.ip-lydo').addClass('cell-changed');
+				} else {
+					$r.find('.ip-lydo').removeClass('cell-changed');
+				}
+
+				items.push({
+					MaPhieu: maPhieu,
+					SoMe: soMe,
+					ID_LoCao: parseInt($r.data('idlocao'), 10),
+					GioChotGang: $r.data('gioiso'),
+					ThungSo: $r.data('thungso'),
+					G_KLXeVaThung: cBi   ? parseFloat(cBi)   : (oBi   ? parseFloat(oBi)   : null),
+					G_KLXeThungVaGang: cTong ? parseFloat(cTong) : (oTong ? parseFloat(oTong) : null),
+					G_KLGangLong: cGang ? parseFloat(cGang) : (oGang ? parseFloat(oGang) : null),
+					LyDo: lyDo || null,
+					__changed: changed
+				});
+			});
+
+			return { items: items, invalidReason: invalidReason };
+		}
+
+		function applyRight() {
+			var ret = collectFromRight();
+			var items = ret.items;
+			var invalidReason = ret.invalidReason;
+
+			var usable = items.filter(function (x) { return !!x.SoMe; });
+			if (!usable.length) {
+				alert('Bảng phải: chưa chọn Số mẻ cho dòng nào.');
+				return;
+			}
+			if (invalidReason || usable.some(function (x) { return x.__changed && !x.LyDo; })) {
+				alert('Bảng phải: có dòng sửa khác auto nhưng thiếu Lý do.');
+				return;
+			}
+
+			console.log('RIGHT items:', usable);
+			alert('Đã thu thập dữ liệu override (phải). Bạn có thể POST thêm nếu muốn.');
+		}
+
+		$(document).on('click', '#btnFetchAuto', fetchAuto);
+		$(document).on('click', '#btnApplyLeft', applyLeft);
+		$(document).on('click', '#btnApplyRight', applyRight);
+
+	})();
+</script>
 <script>
 	var soLuongMe = @(ViewBag.SoLuongMe ?? 0);
 		$(document).ready(function()
