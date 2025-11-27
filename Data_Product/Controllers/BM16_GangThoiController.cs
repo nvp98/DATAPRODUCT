@@ -1897,30 +1897,31 @@ namespace Data_Product.Controllers
                 {
                     cmd.CommandText = @"
                 SELECT
-                    x.ID_LoCao,
-                    x.[Time] AS GioChotGang,
-                    MAX(CASE WHEN x.TagName LIKE '%TS1' THEN x.ValueNum END) AS ThungSo,
-                    MAX(CASE WHEN x.TagName LIKE '%TS3' THEN x.ValueNum END) AS San,
-                    MAX(CASE WHEN x.TagName LIKE '%TS4' THEN x.ValueNum END) AS KL_Bi,
-                    MAX(CASE WHEN x.TagName LIKE '%TS5' THEN x.ValueNum END) AS KL_Tong,
-                    MAX(CASE WHEN x.TagName LIKE '%TS6' THEN x.ValueNum END) AS KL_Gang
-                FROM (
-                    SELECT
-                        ID,
-                        TagName,
-                        [Time],
-                        CAST(REPLACE(Value, ',', '.') AS decimal(18,5)) AS ValueNum,
-                        ID_LoCao
-                    FROM [LGANGDB15012022].[dbo].[RailScale]
-                    WHERE
-                        [Time] BETWEEN @FromTime AND @ToTime
-                        AND ID_LoCao = @LoCao
-                ) AS x
-                GROUP BY
-                    x.ID_LoCao,
-                    x.[Time]
-                ORDER BY
-                    x.[Time];
+    x.ID_LoCao,
+    x.[Time] AS GioChotGang,
+    MAX(CASE WHEN x.TagName LIKE '%TS1' THEN x.Value END) AS ThungSo,
+    MAX(CASE WHEN x.TagName LIKE '%TS3' THEN x.Value END) AS San,
+    MAX(CASE WHEN x.TagName LIKE '%TS4' THEN x.Value END) AS KL_Bi,
+    MAX(CASE WHEN x.TagName LIKE '%TS5' THEN x.Value END) AS KL_Tong,
+    MAX(CASE WHEN x.TagName LIKE '%TS6' THEN x.Value END) AS KL_Gang
+FROM (
+    SELECT
+        ID,
+        TagName,
+        [Time],
+        Value,
+        ID_LoCao
+    FROM RailScale
+    WHERE
+        [Time] BETWEEN @FromTime AND @ToTime
+        AND ID_LoCao = @LoCao
+) AS x
+GROUP BY
+    x.ID_LoCao,
+    x.[Time]
+ORDER BY
+    x.[Time]
+
             ";
 
                     cmd.Parameters.Add(new SqlParameter("@FromTime", SqlDbType.DateTime) { Value = fromTime });
@@ -1946,19 +1947,35 @@ namespace Data_Product.Controllers
                             int ord;
 
                             ord = reader.GetOrdinal("ThungSo");
-                            if (!reader.IsDBNull(ord)) thungSo = reader.GetDecimal(ord);
+                            if (!reader.IsDBNull(ord))
+                            {
+                                thungSo = Convert.ToDecimal(reader.GetDouble(ord));
+                            }
 
                             ord = reader.GetOrdinal("KL_Bi");
-                            if (!reader.IsDBNull(ord)) klBi = reader.GetDecimal(ord);
+                            if (!reader.IsDBNull(ord))
+                            {
+                                klBi = Convert.ToDecimal(reader.GetDouble(ord));
+                            }
 
                             ord = reader.GetOrdinal("KL_Tong");
-                            if (!reader.IsDBNull(ord)) klTong = reader.GetDecimal(ord);
+                            if (!reader.IsDBNull(ord))
+                            {
+                                klTong = Convert.ToDecimal(reader.GetDouble(ord));
+                            }
 
                             ord = reader.GetOrdinal("KL_Gang");
-                            if (!reader.IsDBNull(ord)) klGang = reader.GetDecimal(ord);
+                            if (!reader.IsDBNull(ord))
+                            {
+                                klGang = Convert.ToDecimal(reader.GetDouble(ord));
+                            }
 
                             ord = reader.GetOrdinal("San");
-                            if (!reader.IsDBNull(ord)) san = reader.GetInt32(ord);
+                            if (!reader.IsDBNull(ord))
+                            {
+                                san = Convert.ToInt32(reader.GetDouble(ord));
+                            }
+
 
                             list.Add(new MappingCanRayDto
                             {

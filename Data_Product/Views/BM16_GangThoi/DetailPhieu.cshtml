@@ -453,7 +453,7 @@
 								<thead class="table-light">
 									<tr>
 										<th>Sàn ra gang</th>
-										<th>Thùng số</th>
+										<th>Ray</th>
 										<th>Giờ chốt gang</th>
 										<th>KL bì </th>
 										<th>KL tổng </th>
@@ -489,7 +489,7 @@
 								<thead class="table-light">
 									<tr>
 										<th>Sàn ra gang</th>
-										<th>Thùng số </th>
+										<th>Ray </th>
 										<th>Giờ chốt gang</th>
 										<th>KL bì </th>
 										<th>KL tổng </th>
@@ -571,105 +571,51 @@
 			$row.find('.ip-kltong').toggleClass('cell-changed',cTong !== oTong);
 			$row.find('.ip-klgang').toggleClass('cell-changed',cGang !== oGang);
 		}
+	// --------- Render bảng trái ----------
+	function renderLeft(list) {
+		var $tb = $("#tableLeft tbody");
+		$tb.empty();
 
-		// --------- Render bảng trái ----------
-		function renderLeft(list) {
-			var $tb = $("#tableLeft tbody");
-			$tb.empty();
-
-			if (!list || !list.length) {
-				$tb.append(
-					'<tr class="table-secondary text-center">' +
-					'<td colspan="6" class="small">Không có dữ liệu cân ray.</td>' +
-					'</tr>'
-				);
-				$("#leftCount").text("0 dòng");
-				return;
-			}
-
-			list.forEach(function (x) {
-				var gioIso  = x.gioChotGang;          // key theo JSON bạn đưa
-				var gioStr  = x.gioStr || '';
-				var thungSo = x.thungSo != null ? x.thungSo : '';
-				var idLo    = x.iD_LoCao;
-
-				var tr = '' +
-					'<tr data-row="left"' +
-					'    data-rowid="' + x.rowId + '"' +
-					'    data-idlocao="' + idLo + '"' +
-					'    data-gioiso="' + esc(gioIso) + '"' +
-					'    data-thungso="' + esc(thungSo) + '">' +
-					'  <td>' + esc(thungSo) + '</td>' +
-					'  <td>' + esc(gioStr) + '</td>' +
-					'  <td>' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
-					'  <td>' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
-					'  <td>' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
-					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
-					'</tr>';
-
-				$tb.append(tr);
-				var $sel = $tb.find('tr:last .ip-some');
-				initSoMeSelectAjax($sel);
-			});
-
-			$("#leftCount").text(list.length + " dòng");
+		if (!list || !list.length) {
+			$tb.append(
+				'<tr class="table-secondary text-center">' +
+				'<td colspan="7" class="small">Không có dữ liệu cân ray.</td>' +
+				'</tr>'
+			);
+			$("#leftCount").text("0 dòng");
+			return;
 		}
 
-		// --------- Render bảng phải ----------
-		function renderRight(list) {
-			var $tb = $("#tableRight tbody");
-			$tb.empty();
+		list.forEach(function (x) {
+			var san     = (x.sanRaGang != null) ? x.sanRaGang : (x.san != null ? x.san : '');
+			var gioIso  = x.gioChotGang;          // key theo JSON bạn đưa
+			var gioStr  = x.gioStr || '';
+			var thungSo = x.thungSo != null ? x.thungSo : '';
+			var idLo    = x.iD_LoCao;
 
-			if (!list || !list.length) {
-				$tb.append(
-					'<tr class="table-secondary text-center">' +
-					'<td colspan="7" class="small">Không có dữ liệu cân ray.</td>' +
-					'</tr>'
-				);
-				$("#rightCount").text("0 dòng");
-				return;
-			}
+			var tr = '' +
+				'<tr data-row="left"' +
+				'    data-rowid="' + x.rowId + '"' +
+				'    data-idlocao="' + idLo + '"' +
+				'    data-san="' + esc(san) + '"' +
+				'    data-gioiso="' + esc(gioIso) + '"' +
+				'    data-thungso="' + esc(thungSo) + '">' +
+				'  <td>' + esc(san) + '</td>' +                        // Sàn ra gang (mới)
+				'  <td>' + esc(thungSo) + '</td>' +
+				'  <td>' + esc(gioStr) + '</td>' +
+				'  <td>' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
+				'  <td>' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
+				'  <td>' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
+				'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
+				'</tr>';
 
-			list.forEach(function (x) {
-				var gioIso  = x.gioChotGang;
-				var gioStr  = x.gioStr || '';
-				var thungSo = x.thungSo != null ? x.thungSo : '';
-				var idLo    = x.iD_LoCao;
+			$tb.append(tr);
+			var $sel = $tb.find('tr:last .ip-some');
+			initSoMeSelectAjax($sel);
+		});
 
-				var tr = '' +
-					'<tr data-row="right"' +
-					'    data-rowid="' + x.rowId + '"' +
-					'    data-idlocao="' + idLo + '"' +
-					'    data-gioiso="' + esc(gioIso) + '"' +
-					'    data-thungso="' + esc(thungSo) + '"' +
-					'    data-o-gio="' + esc(gioStr) + '"' +
-					'    data-o-klbi="' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '"' +
-					'    data-o-kltong="' + (x.kL_Tong != null ? x.kL_Tong : '') + '"' +
-					'    data-o-klgang="' + (x.kL_Gang != null ? x.kL_Gang : '') + '">' +
-					'  <td>' + esc(thungSo) + '</td>' +
-					'  <td><input type="time" class="form-control form-control-sm ip-gio" value="' + esc(gioStr) + '"></td>' +
-					'  <td><input type="number" step="0.01" class="form-control form-control-sm ip-klbi"   value="' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '"></td>' +
-					'  <td><input type="number" step="0.01" class="form-control form-control-sm ip-kltong" value="' + (x.kL_Tong != null ? x.kL_Tong : '') + '"></td>' +
-					'  <td><input type="number" step="0.01" class="form-control form-control-sm ip-klgang" value="' + (x.kL_Gang != null ? x.kL_Gang : '') + '"></td>' +
-					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
-					'  <td><input type="text" class="form-control form-control-sm ip-lydo" placeholder="* Lý do khi sửa khác"></td>' +
-					'</tr>';
-
-				$tb.append(tr);
-
-				var $row = $tb.find('tr:last');
-				var $sel = $row.find('.ip-some');
-				initSoMeSelectAjax($sel);
-
-				$row.find('input').on('input change', function () {
-					markRowChangeState($row);
-				});
-				markRowChangeState($row);
-			});
-
-			$("#rightCount").text(list.length + " dòng");
-		}
-
+		$("#leftCount").text(list.length + " dòng");
+	}	
 		function renderBoth(list) {
 			renderLeft(list);
 			renderRight(list);
