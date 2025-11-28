@@ -410,21 +410,12 @@
 
 <div class="mt-4" id="double-auto-mapping">
 	<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-		<h6 class="mb-0">Mapping Số mẻ theo KL cân ray (2 bảng: trái không sửa, phải có thể sửa)</h6>
+		<h6 class="mb-0">Mapping Số mẻ theo KL cân ray</h6>
 	</div>
 
-	<!-- DÒNG FILTER: Lò cao + Từ giờ + Đến giờ -->
+	<!-- DÒNG FILTER: Từ giờ + Đến giờ -->
 	<div class="card mt-2">
 		<div class="card-body py-2 d-flex flex-wrap align-items-end gap-2">
-			@* <div>
-				<label class="form-label mb-1">Lò cao</label>
-				<select id="filterLoCao" class="form-select form-select-sm" style="min-width: 90px;">
-					<option value="1">Lò 1</option>
-					<option value="2">Lò 2</option>
-					<option value="3">Lò 3</option>
-					<option value="4">Lò 4</option>
-				</select>
-			</div> *@
 			<div>
 				<label class="form-label mb-1">Từ giờ</label>
 				<input type="datetime-local" id="filterFromTime" class="form-control form-control-sm" />
@@ -455,9 +446,9 @@
 										<th>Sàn ra gang</th>
 										<th>Ray</th>
 										<th>Giờ chốt gang</th>
-										<th>KL bì </th>
-										<th>KL tổng </th>
-										<th>KL gang </th>
+										<th>KL bì</th>
+										<th>KL tổng</th>
+										<th>KL gang</th>
 										<th>Số mẻ</th>
 									</tr>
 								</thead>
@@ -480,21 +471,30 @@
 			<!-- Bảng phải: CHO CHỈNH SỬA -->
 			<div class="col-lg-6">
 				<div class="card h-100">
+					<!-- Header với nút Thêm dòng -->
 					<div class="card-header py-2 d-flex justify-content-between align-items-center">
-						<span class="badge bg-info" id="rightCount">0 dòng</span>
+						<div>
+							<span class="badge bg-info" id="rightCount">0 dòng</span>
+						</div>
+						<div>
+							<button class="btn btn-sm btn-outline-success me-1" id="btnAddRight" type="button" title="Thêm dòng mới vào bảng phải">
+								<i class="bi bi-plus-lg"></i> Thêm dòng
+							</button>
+						</div>
 					</div>
+
 					<div class="card-body p-2">
 						<div class="table-responsive" style="max-height:480px;overflow:auto;">
 							<table class="table table-sm table-bordered table-hover align-middle" id="tableRight">
 								<thead class="table-light">
 									<tr>
 										<th>Sàn ra gang</th>
-										<th>Ray </th>
+										<th>Ray</th>
 										<th>Giờ chốt gang</th>
-										<th>KL bì </th>
-										<th>KL tổng </th>
-										<th>KL gang </th>
-										<th style="width: 50px">Số mẻ</th>
+										<th>KL bì</th>
+										<th>KL tổng</th>
+										<th>KL gang</th>
+										<th style="width: 130px">Số mẻ</th>
 										<th>Lý do*</th>
 									</tr>
 								</thead>
@@ -519,18 +519,17 @@
 
 <script>
 	(function () {
-
+		// util: escape HTML
 		function esc(s) { return $('<div/>').text(s || '').html(); }
 
-		// Select2 Số mẻ – lấy theo detail phiếu (GetAllSoMe)
+		// init select2 for Số mẻ (ajax)
 		function initSoMeSelectAjax($sel) {
 			if ($sel.data('init') === 'true') return;
 
 			$sel.select2({
-				width: '200px',
+				width: '100%',
 				placeholder: 'Chọn Số mẻ',
 				allowClear: true,
-				tags: false,
 				dropdownParent: $('#doubleAutoCollapse'),
 				ajax: {
 					url: '/BM16_GangThoi/GetAllSoMe',
@@ -555,6 +554,7 @@
 			$sel.data('init', 'true');
 		}
 
+		// highlight khi cell thay đổi
 		function markRowChangeState($row) {
 			var oGio  = ($row.data('o-gio') || '').toString();
 			var oBi   = ($row.data('o-klbi') || '').toString();
@@ -571,57 +571,79 @@
 			$row.find('.ip-kltong').toggleClass('cell-changed',cTong !== oTong);
 			$row.find('.ip-klgang').toggleClass('cell-changed',cGang !== oGang);
 		}
-	// --------- Render bảng trái ----------
-	function renderLeft(list) {
-		var $tb = $("#tableLeft tbody");
-		$tb.empty();
 
-		if (!list || !list.length) {
-			$tb.append(
-				'<tr class="table-secondary text-center">' +
-				'<td colspan="7" class="small">Không có dữ liệu cân ray.</td>' +
-				'</tr>'
-			);
-			$("#leftCount").text("0 dòng");
-			return;
+		// ===== Render bảng trái =====
+		function renderLeft(list) {
+			var $tb = $("#tableLeft tbody");
+			$tb.empty();
+
+			if (!list || !list.length) {
+				$tb.append(
+					'<tr class="table-secondary text-center">' +
+					'<td colspan="7" class="small">Không có dữ liệu cân ray.</td>' +
+					'</tr>'
+				);
+				$("#leftCount").text("0 dòng");
+				return;
+			}
+
+			list.forEach(function (x) {
+				var san     = (x.sanRaGang != null) ? x.sanRaGang : (x.san != null ? x.san : '');
+				var gioIso  = x.gioChotGang;
+				var gioStr  = x.gioStr || '';
+				var thungSo = x.thungSo != null ? x.thungSo : '';
+				var idLo    = x.iD_LoCao;
+
+				var tr = '' +
+					'<tr data-row="left"' +
+					'    data-rowid="' + esc(x.rowId) + '"' +
+					'    data-idlocao="' + esc(idLo) + '"' +
+					'    data-san="' + esc(san) + '"' +
+					'    data-gioiso="' + esc(gioIso) + '"' +
+					'    data-thungso="' + esc(thungSo) + '">' +
+					'  <td>' + esc(san) + '</td>' +
+					'  <td>' + esc(thungSo) + '</td>' +
+					'  <td>' + esc(gioStr) + '</td>' +
+					'  <td>' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
+					'  <td>' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
+					'  <td>' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
+					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
+					'</tr>';
+
+				$tb.append(tr);
+				var $sel = $tb.find('tr:last .ip-some');
+				initSoMeSelectAjax($sel);
+			});
+
+			$("#leftCount").text(list.length + " dòng");
 		}
 
-		list.forEach(function (x) {
-			var san     = (x.sanRaGang != null) ? x.sanRaGang : (x.san != null ? x.san : '');
-			var gioIso  = x.gioChotGang;          // key theo JSON bạn đưa
-			var gioStr  = x.gioStr || '';
-			var thungSo = x.thungSo != null ? x.thungSo : '';
-			var idLo    = x.iD_LoCao;
+		// ===== Render bảng phải (tương tự renderLeft nhưng có input) =====
+		function renderRight(list) {
+			var $tb = $("#tableRight tbody");
+			$tb.empty();
 
-			var tr = '' +
-				'<tr data-row="left"' +
-				'    data-rowid="' + x.rowId + '"' +
-				'    data-idlocao="' + idLo + '"' +
-				'    data-san="' + esc(san) + '"' +
-				'    data-gioiso="' + esc(gioIso) + '"' +
-				'    data-thungso="' + esc(thungSo) + '">' +
-				'  <td>' + esc(san) + '</td>' +                        // Sàn ra gang (mới)
-				'  <td>' + esc(thungSo) + '</td>' +
-				'  <td>' + esc(gioStr) + '</td>' +
-				'  <td>' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
-				'  <td>' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
-				'  <td>' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
-				'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
-				'</tr>';
+			if (!list || !list.length) {
+				$tb.append(
+					'<tr class="table-secondary text-center">' +
+					'<td colspan="8" class="small">Không có dữ liệu.</td>' +
+					'</tr>'
+				);
+				$("#rightCount").text("0 dòng");
+				return;
+			}
 
-			$tb.append(tr);
-			var $sel = $tb.find('tr:last .ip-some');
-			initSoMeSelectAjax($sel);
-		});
+			list.forEach(function (x) {
+				addRightRow(x);
+			});
+		}
 
-		$("#leftCount").text(list.length + " dòng");
-	}	
 		function renderBoth(list) {
 			renderLeft(list);
 			renderRight(list);
 		}
 
-		// ---------- fetchAuto: chỉ từ giờ – đến giờ – lò cao ----------
+		// ===== Fetch auto =====
 		function fetchAuto() {
 			var fromDateStr = $('#filterFromTime').val();
 			var toDateStr   = $('#filterToTime').val();
@@ -632,8 +654,8 @@
 				return;
 			}
 
-			$("#tableLeft tbody").html('<tr><td colspan="6" class="text-center text-muted">Đang tải...</td></tr>');
-			$("#tableRight tbody").html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+			$("#tableLeft tbody").html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+			$("#tableRight tbody").html('<tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>');
 
 			$.ajax({
 				url: '/BM16_GangThoi/GetAutoSourceData',
@@ -652,7 +674,7 @@
 			});
 		}
 
-		// ---------- Thu dữ liệu từ bảng trái để gửi lên SaveAutoMapping ----------
+		// ===== Collect from left =====
 		function collectFromLeft() {
 			var maPhieu = $('#PhieuID').val();
 			var items = [];
@@ -666,10 +688,10 @@
 				var gioChot = $r.data('gioiso');      // ISO string
 				var thungSo = $r.data('thungso');
 
-				// 0: Thùng số, 1: Giờ, 2: KL_Bi, 3: KL_Tong, 4: KL_Gang, 5: Số mẻ
-				var klBi   = parseFloat($r.find('td:eq(2)').text()) || null;
-				var klTong = parseFloat($r.find('td:eq(3)').text()) || null;
-				var klGang = parseFloat($r.find('td:eq(4)').text()) || null;
+				// các cột KL lấy theo index cột hiển thị
+				var klBi   = parseFloat($r.find('td:eq(3)').text()) || null;
+				var klTong = parseFloat($r.find('td:eq(4)').text()) || null;
+				var klGang = parseFloat($r.find('td:eq(5)').text()) || null;
 
 				items.push({
 					MaPhieu: maPhieu,
@@ -710,7 +732,7 @@
 			});
 		}
 
-		// bảng phải: hiện tại chỉ thu thập + log, bạn có thể dùng chung SaveAutoMapping nếu muốn
+		// ===== Collect from right =====
 		function collectFromRight() {
 			var maPhieu = $('#PhieuID').val();
 			var items = [];
@@ -773,14 +795,95 @@
 				return;
 			}
 
+			// Thực tế bạn sẽ POST usable tới server; hiện đang log + alert
 			console.log('RIGHT items:', usable);
 			alert('Đã thu thập dữ liệu override (phải). Bạn có thể POST thêm nếu muốn.');
 		}
 
-		$(document).on('click', '#btnFetchAuto', fetchAuto);
-		$(document).on('click', '#btnApplyLeft', applyLeft);
-		$(document).on('click', '#btnApplyRight', applyRight);
+		// ===== Add a new row to right table (with select2 initialized) =====
+		function addRightRow(item) {
+			var $tb = $("#tableRight tbody");
 
+			// remove placeholder row nếu còn
+			if ($tb.find('tr.table-secondary').length) $tb.empty();
+
+			item = item || {};
+			var rowId = 'r_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+
+			var san     = item.san || '';
+			var ray     = item.thungSo || '';
+			var gioIso  = item.gioIso || '';
+			var gioStr  = item.gioStr || '';
+			var klBi    = (item.kL_Bi != null) ? item.kL_Bi : '';
+			var klTong  = (item.kL_Tong != null) ? item.kL_Tong : '';
+			var klGang  = (item.kL_Gang != null) ? item.kL_Gang : '';
+			var idLo    = item.iD_LoCao || '';
+
+			var tr = '' +
+				'<tr data-row="right" data-rowid="' + esc(rowId) + '" data-idlocao="' + esc(idLo) + '"' +
+				'    data-san="' + esc(san) + '" data-gioiso="' + esc(gioIso) + '" data-thungso="' + esc(ray) + '"' +
+				'    data-o-gio="' + esc(gioStr) + '" data-o-klbi="' + esc(klBi) + '" data-o-kltong="' + esc(klTong) + '" data-o-klgang="' + esc(klGang) + '">' +
+				'  <td>' + esc(san) + '</td>' +
+				'  <td>' + esc(ray) + '</td>' +
+				'  <td><input class="form-control form-control-sm ip-gio" value="' + esc(gioStr) + '" /></td>' +
+				'  <td><input class="form-control form-control-sm ip-klbi text-end" value="' + esc(klBi) + '" /></td>' +
+				'  <td><input class="form-control form-control-sm ip-kltong text-end" value="' + esc(klTong) + '" /></td>' +
+				'  <td><input class="form-control form-control-sm ip-klgang text-end" value="' + esc(klGang) + '" /></td>' +
+				'  <td style="width:130px"><select class="form-select form-select-sm ip-some" style="min-width:120px"></select></td>' +
+				'  <td><input class="form-control form-control-sm ip-lydo" placeholder="Lý do (nếu sửa)"/></td>' +
+				'</tr>';
+
+			$tb.append(tr);
+			var $last = $tb.find('tr:last');
+
+			// init select2 cho select mới
+			var $sel = $last.find('.ip-some');
+			initSoMeSelectAjax($sel);
+
+			// nếu item có SoMe, set value (tạo option tạm nếu cần)
+			if (item.soMe) {
+				var val = item.soMe;
+				if ($sel.find('option[value="' + val + '"]').length === 0) {
+					$sel.append(new Option(val, val, true, true));
+				} else {
+					$sel.val(val).trigger('change');
+				}
+			}
+
+			// bind change để highlight
+			$last.find('.ip-gio, .ip-klbi, .ip-kltong, .ip-klgang, .ip-some').on('change keyup', function () {
+				markRowChangeState($last);
+				updateRightCount();
+			});
+
+			// select2 select event (nếu cần xử lý thêm)
+			$sel.on('select2:select', function (e) {
+				markRowChangeState($last);
+			});
+
+			updateRightCount();
+			return $last;
+		}
+
+		// update badge count
+		function updateRightCount() {
+			var cnt = $("#tableRight tbody tr[data-row='right']").length;
+			$("#rightCount").text(cnt + " dòng");
+		}
+
+		// bind events
+		$(document).on('click', '#btnFetchAuto', function (e) { e.preventDefault(); fetchAuto(); });
+		$(document).on('click', '#btnApplyLeft', function (e) { e.preventDefault(); applyLeft(); });
+		$(document).on('click', '#btnApplyRight', function (e) { e.preventDefault(); applyRight(); });
+		$(document).on('click', '#btnAddRight', function (e) { e.preventDefault(); addRightRow(); });
+
+		// double-click tbody to add quick row (optional)
+		$(document).on('dblclick', '#tableRight tbody', function () { addRightRow(); });
+
+		// on ready update counts
+		$(function () {
+			updateRightCount();
+		});
 	})();
 </script>
 <script>
