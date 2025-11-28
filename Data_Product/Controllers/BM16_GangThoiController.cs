@@ -641,7 +641,17 @@ namespace Data_Product.Controllers
                     return Math.Round(value, 2);
                 }
             );
-
+            // 5 lấy giờ nhận gang của luyện thép
+            var gioChonMeByMe = await _context.Tbl_BM_16_GangLong
+                 .Where(a => a.MaPhieu == id
+                          && a.T_copy == false
+                          && !string.IsNullOrEmpty(a.BKMIS_SoMe)
+                          && a.ID_TTG != null)
+                 .Join(_context.Tbl_BM_16_ThungTrungGian,
+                       a => a.ID_TTG,
+                       b => b.ID,
+                       (a, b) => new { a.BKMIS_SoMe, b.GioChonMe })
+                 .ToDictionaryAsync(x => x.BKMIS_SoMe, x => x.GioChonMe);
             // Chuyển sang view model nhẹ cho hiển thị
             var viewData = danhSachThung.Select(t => new
             {
@@ -679,7 +689,10 @@ namespace Data_Product.Controllers
                 // Dùng để sort:
                 //MaThungPrefix = t.MaThungGang.Split('.')[0],
                 //MaThungSuffix = int.Parse(t.MaThungGang.Split('.')[1])
-                GioSortKey = GetSortKeyFromTime(t.BKMIS_Gio)
+                GioSortKey = GetSortKeyFromTime(t.BKMIS_Gio),
+                GioChonMe = gioChonMeByMe.ContainsKey(t.BKMIS_SoMe)
+                ? gioChonMeByMe[t.BKMIS_SoMe]
+                : null
             })//.OrderBy(x => x.MaThungPrefix)
               //  .ThenBy(x => x.MaThungSuffix)
                  .OrderBy(x => x.GioSortKey)
@@ -709,7 +722,8 @@ namespace Data_Product.Controllers
                     x.XacNhan,
                     x.TongKL_TheoMe,
                     x.KLDuc,
-                    x.G_SanRaGang
+                    x.G_SanRaGang,
+                    x.GioChonMe
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
