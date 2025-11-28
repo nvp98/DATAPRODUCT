@@ -219,7 +219,8 @@
 										<th rowspan="2">KL thùng & gang lỏng</th>
 										<th rowspan="2">KL gang lỏng cân ray</th>
 										<th colspan="4">Vận chuyển đến</th>
-										<th rowspan="2">Giờ NM</th>
+										<th rowspan="2">Giờ đầy thùng</th>
+										<th rowspan="2">Thời gian rót</th>
 										<th rowspan="2">Ghi chú</th>
 										@if (PhongBan?.TenNgan == "P.QLCL")
 										{
@@ -309,6 +310,7 @@
 												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM" @disabledAttr></td>
+												<td> @item.GioChonMe</td>
 												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;" @disabledAttr>@item.GhiChu</textarea></td>
 												@if (PhongBan?.TenNgan == "P.QLCL")
 												{
