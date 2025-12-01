@@ -306,14 +306,14 @@
                                                 let TGianChoXL = row[8];
                                                 let TGianXL = row[9];
                                                 let TGianSC = row[10];
-                                                let SuCoCN = (row[11] || "").trim();
-                                                let ChoCN = (row[12] || "").trim();
-                                                let KhachQuan = (row[13] || "").trim();
-                                                let ChoKhac = (row[14] || "").trim();
-                                                let DungBTBD = (row[15] || "").trim();
+                                                let SuCoCN = (`${row[11] || ""}`).trim();
+                                                let ChoCN = (`${row[12] || ""}`).trim();
+                                                let KhachQuan = (`${row[13] || ""}`).trim();
+                                                let ChoKhac = (`${row[14] || ""}`).trim();
+                                                let DungBTBD = (`${row[15] || ""}`).trim();
                                                 let TGianKH_BTBD = row[16];
                                                 let DungDayChuyen = row[17];
-                                                let GhiChu = (row[18] || "").trim();
+                                                let GhiChu = (`${row[18] || ""}`).trim();
 
                                                 let cumObj = CumThietBi.find(x => x.text.trim() === TenCumTB);
                                                 let cumValue = cumObj ? cumObj.value : "";
