@@ -1,0 +1,227 @@
+﻿@using Data_Product.Models
+@using System.Security.Claims
+@using Data_Product.Repositorys
+@using Microsoft.EntityFrameworkCore
+@inject Data_Product.Repositorys.DataContext _context
+@model IEnumerable<Data_Product.Models.Tbl_BM_16_GangLong>
+
+@{
+    ViewData["Title"] = "Tạo Phiếu Giao Nhận Gang Lỏng - Gang Thỏi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+}
+
+<!-- CSS & Library -->
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+    table th {
+        text-align: center;
+    }
+
+    #dataTable input {
+        border-radius: 0 !important;
+    }
+
+    th.toggle-col, td.toggle-col {
+        display: none;
+    }
+
+    .is-invalid {
+        border: 1px solid red !important;
+        background-color: #ffe6e6 !important;
+    }
+</style>
+
+<!-- Hiển thị thông báo -->
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+
+@using (Html.BeginForm("TaoPhieu", "BM16_GangThoi", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
+{
+    <div class="app-main__outer">
+        <div class="app-main__inner" style="display:block;padding-bottom:0px;">
+            <div class="tab-content">
+
+                <!-- Header -->
+                <div class="card-header mb-4">
+                    <div class="d-flex justify-content-between align-items-center"
+                         style="border-bottom:0.8px solid #E8E8E8;background-color:#F9F9F9;height:80px;padding:0 15px;">
+                        <div>
+                            <span class="text-muted small">
+                                <b style="color:#06428b;font-size:15px;">TẠO PHIẾU GIAO NHẬN GANG LỎNG - GANG THỎI</b>
+                            </span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+                                <i class="bi bi-x-lg"></i> <span class="small text-white">Hủy bỏ</span>
+                            </button>
+                            <button type="button" class="btn btn-success" id="btnSave">
+                                <i class="bi bi-send"></i> <span class="small text-white">Lưu phiếu</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bộ lọc -->
+                <div class="row mb-4 g-3">
+
+                    <!-- Ngày -->
+                    <div class="col">
+                        <div class="d-flex align-items-center bg-light rounded shadow-sm px-3 py-2">
+                            <label for="ID_Day" class="form-label mb-0 text-dark me-2" style="min-width:90px;">Ngày:</label>
+                            <input type="date" id="ID_Day" name="ID_Day" class="form-control form-control-sm"
+                                   min="@ViewBag.MinDate" max="@ViewBag.MaxDate" value="@ViewBag.DefaultDate" onkeydown="return false;" />
+                        </div>
+                    </div>
+
+                    <!-- Lò cao -->
+                    <div class="col">
+                        <div class="d-flex align-items-center bg-light rounded shadow-sm px-3 py-2">
+                            <label for="IDLoCao" class="form-label mb-0 text-dark me-2" style="min-width:90px;">Lò cao:</label>
+                            <select class="form-select form-select-sm w-auto" name="LoCao" id="IDLoCao">
+                                <option value="">-- Lò cao --</option>
+                                @foreach (var locao in ViewBag.LoCaoList)
+                                {
+                                    <option value="@locao.Value">@locao.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Ca -->
+                    <div class="col">
+                        <div class="d-flex align-items-center bg-light rounded shadow-sm px-3 py-2">
+                            <label for="IDCa" class="form-label mb-0 text-dark me-2" style="min-width:90px;">Ca:</label>
+                            <select class="form-select form-select-sm w-auto SelectCA" name="IDCa" id="IDCa">
+                                <option value="null">-- Ca --</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Kíp -->
+                    <div class="col d-flex align-items-center">
+                        <label for="CaKip" class="col-form-label fw-semibold me-2 mb-0">Kíp:</label>
+                        <select id="CaKip" class="form-select form-select-sm" disabled>
+                            <option value="null" selected>-- Kíp làm việc --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table dữ liệu -->
+                <div class="table-responsive">
+                    @* Bảng dữ liệu nếu cần *@
+                </div>
+
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal hủy phiếu -->
+<div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmCancelModalLabel">Xác nhận hủy bỏ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn hủy bỏ thao tác và quay lại trang chính không?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Không</button>
+                <a href="@Url.Action("Index", "Menu")" class="btn btn-danger">Có, hủy bỏ</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // Chosen select
+            $("#IDTaiKhoan, #IDTaiKhoan_QLCL, #IDKip, #multiSelect").chosen({ width: "100%" });
+
+            // Load Kíp khi chọn Ca
+            $("#IDCa").change(function () {
+                let selectedCa = $(this).val();
+                let selectedDate = $("#ID_Day").val();
+                let kipDropdown = $("#CaKip");
+
+                kipDropdown.empty().append("<option value='null'>-- Kíp làm việc --</option>").prop("disabled", true);
+
+                if (!selectedCa || selectedCa === "null" || !selectedDate) return;
+
+                $.ajax({
+                    url: "/BM_18_XiHatLoCao/GetKipFromCa",
+                    type: "GET",
+                    data: { Ngay: selectedDate, Ca: selectedCa },
+                    success: function (res) {
+                        kipDropdown.empty().prop("disabled", false);
+                        if (res.length > 0) {
+                            $.each(res, function (index, item) {
+                                kipDropdown.append(`<option value="${item.iD_Kip}">${item.tenKip}</option>`);
+                            });
+                        } else {
+                            kipDropdown.append("<option value='null' disabled selected>-- Không có dữ liệu --</option>");
+                        }
+                    },
+                    error: function (err) {
+                        console.error(err);
+                        kipDropdown.empty().append("<option value='null' disabled selected>-- Lỗi tải dữ liệu --</option>").prop("disabled", true);
+                    }
+                });
+            });
+
+            // Lưu phiếu
+            $("#btnSave").on("click", function(e){
+                e.preventDefault();
+
+                let phieuData = {
+                    NgayPhieu: $("#ID_Day").val(),
+                    ID_Locao: parseInt($("#IDLoCao").val()),
+                    ID_Kip: parseInt($("#CaKip").val())
+                };
+
+                if (!phieuData.NgayPhieu || !phieuData.ID_Locao || !phieuData.ID_Kip) {
+                    alert("Vui lòng điền đầy đủ Ngày, Lò cao, Ca, Kíp!");
+                    return;
+                }
+
+                $.ajax({
+                    url: '/BM_18_XiHatLoCao/TaoPhieu',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    data: JSON.stringify(phieuData),
+                    success: function(response) {
+                        alert("Tạo phiếu thành công!");
+                        window.location.href = response.redirectUrl;
+                    },
+                    error: function(xhr) {
+                        const res = xhr.responseJSON;
+                        if(res?.message) alert(res.message);
+                        else alert("Có lỗi xảy ra khi lưu phiếu!");
+                    }
+                });
+            });
+
+        });
+    </script>
+}
