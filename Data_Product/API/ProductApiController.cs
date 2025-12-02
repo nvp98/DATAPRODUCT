@@ -166,6 +166,121 @@ namespace Data_Product.API
         }
 
 
+        [HttpGet("GetDuLieuThungGang")]
+        public async Task<IActionResult> GetDuLieuThungGang(DateTime? tuNgay, DateTime? denNgay, int? ca)
+        {
+            var result = new List<ThoiGianThungGang>();
+
+            try
+            {
+                using var conn = _context.Database.GetDbConnection();
+                await conn.OpenAsync();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "sp_GetGangLongTheoNgayCa";
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.Add(new SqlParameter("@TuNgay", tuNgay ?? (object)DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@DenNgay", denNgay ?? (object)DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@Ca", ca ?? (object)DBNull.Value));
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var dto = new ThoiGianThungGang
+                    {
+                        BKMIS_SoMe = reader["BKMIS_SoMe"]?.ToString(),
+                        BKMIS_ThungSo = reader["BKMIS_ThungSo"]?.ToString(),
+                        BKMIS_Gio = reader["BKMIS_Gio"]?.ToString(),
+                        G_Ca = reader.IsDBNull(reader.GetOrdinal("G_Ca")) ? 0 : reader.GetInt32(reader.GetOrdinal("G_Ca")),
+                        Gio_NM = reader["Gio_NM"]?.ToString(),
+                        NgayTao = reader.GetDateTime(reader.GetOrdinal("NgayTao")),
+                        ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_Locao")),
+                        ChuyenDen = reader["ChuyenDen"]?.ToString(),
+                        G_KLGangLong = reader.IsDBNull(reader.GetOrdinal("G_KLGangLong")) ? 0 : reader.GetDecimal(reader.GetOrdinal("G_KLGangLong")),
+                        GioChonMe = reader["GioChonMe"]?.ToString()
+                    };
+
+                    result.Add(dto);
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Total = result != null ? result.Count() : 0,
+                    Message = "Thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Đã xảy ra lỗi trong quá trình lấy dữ liệu.",
+                    error = ex.Message
+                });
+            }
+        }
+
+
+        [HttpGet("GetDuLieuThungGangThoiDiem")]
+        public async Task<IActionResult> GetDuLieuThungGangThoiDiem(DateTime? date)
+        {
+            var result = new List<ThoiGianThungGangThoiDiem>();
+
+            try
+            {
+                using var conn = _context.Database.GetDbConnection();
+                await conn.OpenAsync();
+
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "sp_GetGangLongTheoThoiDiem";
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                // Nếu muốn truyền ngày, bạn có thể thêm param
+                // cmd.Parameters.Add(new SqlParameter("@Ngay", date ?? (object)DBNull.Value));
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    var dto = new ThoiGianThungGangThoiDiem
+                    {
+                        BKMIS_SoMe = reader["BKMIS_SoMe"]?.ToString(),
+                        BKMIS_ThungSo = reader["BKMIS_ThungSo"]?.ToString(),
+                        BKMIS_Gio = reader["BKMIS_Gio"]?.ToString(),
+                        G_Ca = reader.GetInt32(reader.GetOrdinal("G_Ca")),
+                        Gio_NM = reader["Gio_NM"]?.ToString(),
+                        NgayTao = reader.GetDateTime(reader.GetOrdinal("NgayTao")),
+                        ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_LoCao")),
+                        ChuyenDen = reader["ChuyenDen"]?.ToString(),
+                        G_KLGangLong = reader.IsDBNull(reader.GetOrdinal("G_KLGangLong"))
+                                        ? 0
+                                        : reader.GetDecimal(reader.GetOrdinal("G_KLGangLong")),
+                        GioChonMe = reader["GioChonMe"]?.ToString(),
+                        G_ID_TrangThai = reader.GetInt32(reader.GetOrdinal("G_ID_TrangThai")),
+                        T_ID_TrangThai = reader.GetInt32(reader.GetOrdinal("T_ID_TrangThai"))
+                    };
+                    result.Add(dto);
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Total = result != null ? result.Count() : 0,
+                    Message = "Thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Đã xảy ra lỗi khi lấy dữ liệu.",
+                    error = ex.Message
+                });
+            }
+        }
+
 
         public string GetTinhTrangPhieu(string tinhtrang)
         {
