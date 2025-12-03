@@ -2,8 +2,10 @@
 {
     public class TaoPhieuDto
     {
-        public DateTime NgayPhieu { get; set; }
-        public int ID_LoCao { get; set; }
+        public DateTime NgaySanXuat { get; set; }
+        //public int ID_LoCao { get; set; }
         public int ID_Kip { get; set; }
+        public int Ca { get; set; }
+        public List<int> ID_LoCaos { get; set; } = new();
     }
 }

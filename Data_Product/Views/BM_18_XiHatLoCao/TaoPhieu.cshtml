@@ -6,134 +6,158 @@
 @model IEnumerable<Data_Product.Models.Tbl_BM_16_GangLong>
 
 @{
-    ViewData["Title"] = "Tạo Phiếu Giao Nhận Gang Lỏng - Gang Thỏi";
+    ViewData["Title"] = "Tạo Phiếu Giao Nhận Xi Hạt Lò Cao (BM18) - Nhiều lò";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-    var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+    var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+    var taiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == tenTaiKhoan);
+    var loCaoList = ViewBag.LoCaoList as SelectList;
 }
 
-<!-- CSS & Library -->
-<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <style>
-    table th {
-        text-align: center;
+    .card-header-bar {
+        height: 72px;
+        padding: 0 16px;
+        border-bottom: 1px solid #e9ecef;
+        background: #f8f9fa;
     }
 
-    #dataTable input {
-        border-radius: 0 !important;
+    .section-title {
+        font-weight: 600;
+        color: #06428b;
+        font-size: 15px;
     }
 
-    th.toggle-col, td.toggle-col {
+    .hint {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .counter-badge {
+        background: #eef4ff;
+        color: #0d6efd;
+        border: 1px solid #cfe2ff;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+    }
+
+    /* Đổi tên class lỗi để tránh xung đột với Bootstrap mặc định */
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    .invalid-hint {
+        color: #dc3545;
+        font-size: 12px;
         display: none;
     }
 
-    .is-invalid {
-        border: 1px solid red !important;
-        background-color: #ffe6e6 !important;
+    /* Style mới cho Container Lò Cao (thay thế cho Select2) */
+    #LoCaoContainer {
+        border-color: #ced4da;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        display: flex; /* Bật Flexbox để căn chỉnh các lò cao */
+        flex-wrap: wrap; /* Cho phép xuống dòng nếu số lượng lò cao nhiều */
+        gap: 10px; /* Khoảng cách giữa các lò cao */
     }
+
+        #LoCaoContainer.is-invalid {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+        }
 </style>
 
-<!-- Hiển thị thông báo -->
 @if (TempData["msgSuccess"] != null)
 {
-    @Html.Raw(TempData["msgSuccess"])
+    <div class="alert alert-success my-2">@Html.Raw(TempData["msgSuccess"])</div>
 }
 @if (TempData["msgError"] != null)
 {
-    @Html.Raw(TempData["msgError"])
+    <div class="alert alert-danger my-2">@Html.Raw(TempData["msgError"])</div>
 }
 
-@using (Html.BeginForm("TaoPhieu", "BM16_GangThoi", FormMethod.Post, new { enctype = "multipart/form-data", id = "TaoPhieu" }))
-{
-    <div class="app-main__outer">
-        <div class="app-main__inner" style="display:block;padding-bottom:0px;">
-            <div class="tab-content">
-
-                <!-- Header -->
-                <div class="card-header mb-4">
-                    <div class="d-flex justify-content-between align-items-center"
-                         style="border-bottom:0.8px solid #E8E8E8;background-color:#F9F9F9;height:80px;padding:0 15px;">
-                        <div>
-                            <span class="text-muted small">
-                                <b style="color:#06428b;font-size:15px;">TẠO PHIẾU GIAO NHẬN GANG LỎNG - GANG THỎI</b>
-                            </span>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
-                                <i class="bi bi-x-lg"></i> <span class="small text-white">Hủy bỏ</span>
-                            </button>
-                            <button type="button" class="btn btn-success" id="btnSave">
-                                <i class="bi bi-send"></i> <span class="small text-white">Lưu phiếu</span>
-                            </button>
-                        </div>
-                    </div>
+<div class="app-main__outer">
+    <div class="app-main__inner">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center card-header-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="section-title">TẠO PHIẾU GIAO NHẬN XI HẠT LÒ CAO (BM18)</span>
+                    <span class="hint d-none d-md-inline">Chọn Ngày, Ca, Kíp, và 1 hoặc nhiều Lò cao để tạo phiếu</span>
                 </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-danger" type="button" data-bs-toggle="modal" data-bs-target="#confirmCancelModal">
+                        <i class="bi bi-x-lg"></i> Hủy bỏ
+                    </button>
+                    <button class="btn btn-success" id="btnSave" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm me-2 d-none" id="btnSaveSpinner" role="status" aria-hidden="true"></span>
+                        <i class="bi bi-send"></i> Lưu phiếu
+                    </button>
+                </div>
+            </div>
 
-                <!-- Bộ lọc -->
-                <div class="row mb-4 g-3">
-
-                    <!-- Ngày -->
-                    <div class="col">
-                        <div class="d-flex align-items-center bg-light rounded shadow-sm px-3 py-2">
-                            <label for="ID_Day" class="form-label mb-0 text-dark me-2" style="min-width:90px;">Ngày:</label>
-                            <input type="date" id="ID_Day" name="ID_Day" class="form-control form-control-sm"
-                                   min="@ViewBag.MinDate" max="@ViewBag.MaxDate" value="@ViewBag.DefaultDate" onkeydown="return false;" />
-                        </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <label for="ID_Day" class="form-label">Ngày sản xuất</label>
+                        <input type="date" id="ID_Day" name="ID_Day" class="form-control form-control-sm" onkeydown="return false;" />
+                        <div class="invalid-hint" id="errDay">Vui lòng chọn Ngày.</div>
                     </div>
 
-                    <!-- Lò cao -->
-                    <div class="col">
-                        <div class="d-flex align-items-center bg-light rounded shadow-sm px-3 py-2">
-                            <label for="IDLoCao" class="form-label mb-0 text-dark me-2" style="min-width:90px;">Lò cao:</label>
-                            <select class="form-select form-select-sm w-auto" name="LoCao" id="IDLoCao">
-                                <option value="">-- Lò cao --</option>
-                                @foreach (var locao in ViewBag.LoCaoList)
-                                {
-                                    <option value="@locao.Value">@locao.Text</option>
-                                }
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Ca -->
-                    <div class="col">
-                        <div class="d-flex align-items-center bg-light rounded shadow-sm px-3 py-2">
-                            <label for="IDCa" class="form-label mb-0 text-dark me-2" style="min-width:90px;">Ca:</label>
-                            <select class="form-select form-select-sm w-auto SelectCA" name="IDCa" id="IDCa">
-                                <option value="null">-- Ca --</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Kíp -->
-                    <div class="col d-flex align-items-center">
-                        <label for="CaKip" class="col-form-label fw-semibold me-2 mb-0">Kíp:</label>
-                        <select id="CaKip" class="form-select form-select-sm" disabled>
-                            <option value="null" selected>-- Kíp làm việc --</option>
+                    <div class="col-12 col-md-3">
+                        <label for="IDCa" class="form-label">Ca</label>
+                        <select class="form-select form-select-sm" name="IDCa" id="IDCa">
+                            <option value="">-- Ca --</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
                         </select>
+                        <div class="invalid-hint" id="errCa">Vui lòng chọn Ca.</div>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label for="CaKip" class="form-label">Kíp</label>
+                        <select id="CaKip" class="form-select form-select-sm" disabled>
+                            <option value="" selected>-- Kíp làm việc --</option>
+                        </select>
+                        <div class="invalid-hint" id="errKip">Vui lòng chọn Kíp.</div>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="IDLoCao" class="form-label mb-0">Lò cao</label>
+                            <div class="form-check d-flex align-items-center gap-2">
+                                <input class="form-check-input" type="checkbox" id="chkAllLo">
+                                <label class="form-check-label hint" for="chkAllLo">Chọn tất cả (@(loCaoList?.Count() ?? 0))</label>
+                            </div>
+                        </div>
+
+                        <div id="LoCaoContainer" class="p-2 border rounded-3 bg-light" style="min-height: 38px;">
+                            @if (loCaoList != null)
+                            {
+                                foreach (var lc in loCaoList)
+                                {
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input lo-check" type="checkbox" id="Lo_@lc.Value" value="@lc.Value">
+                                        <label class="form-check-label hint" for="Lo_@lc.Value">@lc.Text</label>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <input type="hidden" id="IDLoCaoHidden" name="IDLoCaoHidden" />
+
+                        <div class="d-flex justify-content-between mt-1">
+                            <small class="hint">Chọn các lò cần tạo phiếu.</small>
+                            <span class="counter-badge" id="loSelectedCount">0 đã chọn</span>
+                        </div>
+                        <div class="invalid-hint" id="errLo">Vui lòng chọn ít nhất một Lò cao.</div>
                     </div>
                 </div>
-
-                <!-- Table dữ liệu -->
-                <div class="table-responsive">
-                    @* Bảng dữ liệu nếu cần *@
-                </div>
-
             </div>
         </div>
     </div>
-}
+</div>
 
-<!-- Modal hủy phiếu -->
 <div class="modal fade" id="confirmCancelModal" tabindex="-1" aria-labelledby="confirmCancelModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -141,9 +165,7 @@
                 <h5 class="modal-title" id="confirmCancelModalLabel">Xác nhận hủy bỏ</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                Bạn có chắc chắn muốn hủy bỏ thao tác và quay lại trang chính không?
-            </div>
+            <div class="modal-body">Bạn có chắc chắn muốn hủy bỏ thao tác và quay lại trang chính không?</div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Không</button>
                 <a href="@Url.Action("Index", "Menu")" class="btn btn-danger">Có, hủy bỏ</a>
@@ -152,76 +174,167 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        $(document).ready(function () {
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Khởi tạo mặc định Ngày = hôm nay
+    (function presetToday() {
+        const el = document.getElementById("ID_Day");
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        el.value = `${yyyy}-${mm}-${dd}`;
+    })();
 
-            // Chosen select
-            $("#IDTaiKhoan, #IDTaiKhoan_QLCL, #IDKip, #multiSelect").chosen({ width: "100%" });
+    // Cập nhật số lượng lò đã chọn và Hidden Input
+    function refreshSummary() {
+        const $checkedLo = $("#LoCaoContainer .lo-check:checked");
+        const count = $checkedLo.length;
+        $("#loSelectedCount").text(`${count} đã chọn`);
 
-            // Load Kíp khi chọn Ca
-            $("#IDCa").change(function () {
-                let selectedCa = $(this).val();
-                let selectedDate = $("#ID_Day").val();
-                let kipDropdown = $("#CaKip");
+        // Cập nhật giá trị cho Hidden Input để gửi lên server
+        const selectedLo = $checkedLo.map(function() {
+            return $(this).val();
+        }).get();
+        $("#IDLoCaoHidden").val(selectedLo.join(','));
 
-                kipDropdown.empty().append("<option value='null'>-- Kíp làm việc --</option>").prop("disabled", true);
+        validateForm();
+    }
 
-                if (!selectedCa || selectedCa === "null" || !selectedDate) return;
+    // Validate + enable/disable nút Lưu
+    function validateForm() {
+        let ok = true;
 
-                $.ajax({
-                    url: "/BM_18_XiHatLoCao/GetKipFromCa",
-                    type: "GET",
-                    data: { Ngay: selectedDate, Ca: selectedCa },
-                    success: function (res) {
-                        kipDropdown.empty().prop("disabled", false);
-                        if (res.length > 0) {
-                            $.each(res, function (index, item) {
-                                kipDropdown.append(`<option value="${item.iD_Kip}">${item.tenKip}</option>`);
-                            });
-                        } else {
-                            kipDropdown.append("<option value='null' disabled selected>-- Không có dữ liệu --</option>");
-                        }
-                    },
-                    error: function (err) {
-                        console.error(err);
-                        kipDropdown.empty().append("<option value='null' disabled selected>-- Lỗi tải dữ liệu --</option>").prop("disabled", true);
-                    }
-                });
-            });
+        const day = $("#ID_Day").val();
+        const ca = $("#IDCa").val();
+        const kip = $("#CaKip").val();
+        console.log(day)
+        // Lấy giá trị từ hidden input (đã được refreshSummary() cập nhật)
+        const loIds = $("#IDLoCaoHidden").val().split(',').filter(v => v);
 
-            // Lưu phiếu
-            $("#btnSave").on("click", function(e){
-                e.preventDefault();
+        // Reset
+        $("#ID_Day, #IDCa, #CaKip, #LoCaoContainer").removeClass("is-invalid");
+        $("#errDay, #errCa, #errKip, #errLo").hide();
 
-                let phieuData = {
-                    NgayPhieu: $("#ID_Day").val(),
-                    ID_Locao: parseInt($("#IDLoCao").val()),
-                    ID_Kip: parseInt($("#CaKip").val())
-                };
+        if (!day) { $("#ID_Day").addClass("is-invalid"); $("#errDay").show(); ok = false; }
+        if (!ca) { $("#IDCa").addClass("is-invalid"); $("#errCa").show(); ok = false; }
+        if (!kip) { $("#CaKip").addClass("is-invalid"); $("#errKip").show(); ok = false; }
+        if (loIds.length === 0) {
+            $("#LoCaoContainer").addClass("is-invalid");
+            $("#errLo").show();
+            ok = false;
+        }
 
-                if (!phieuData.NgayPhieu || !phieuData.ID_Locao || !phieuData.ID_Kip) {
-                    alert("Vui lòng điền đầy đủ Ngày, Lò cao, Ca, Kíp!");
-                    return;
+        $("#btnSave").prop("disabled", !ok);
+        return ok;
+    }
+
+    // Chọn tất cả/Bỏ chọn tất cả
+    $("#chkAllLo").on("change", function () {
+        const all = $(this).is(":checked");
+        $("#LoCaoContainer .lo-check").prop("checked", all);
+        refreshSummary();
+    });
+
+    // Lắng nghe sự kiện change trên từng checkbox Lò cao
+    $("#LoCaoContainer").on("change", ".lo-check", function() {
+        // Nếu bỏ chọn 1 lò, hủy chọn "Chọn tất cả"
+        if (!$(this).is(":checked")) {
+            $("#chkAllLo").prop("checked", false);
+        }
+        refreshSummary();
+    });
+
+    // Khi chọn Ca hoặc Ngày -> load Kíp
+    function loadKip() {
+        const ca = $("#IDCa").val();
+        const ngay = $("#ID_Day").val();
+        const $kip = $("#CaKip");
+
+        $kip.empty().append("<option value=''>-- Kíp làm việc --</option>").prop("disabled", true);
+        if (!ca || !ngay) { validateForm(); refreshSummary(); return; }
+
+        $.get("/BM_18_XiHatLoCao/GetKipFromCa", { Ngay: ngay, Ca: ca })
+            .done(function (res) {
+                $kip.empty();
+                if (res && res.length > 0) {
+                    res.forEach(item => $kip.append(`<option value="${item.iD_Kip}">${item.tenKip}</option>`));
+                    $kip.prop("disabled", false);
+                } else {
+                    $kip.append("<option value='' disabled selected>-- Không có dữ liệu --</option>").prop("disabled", true);
                 }
-
-                $.ajax({
-                    url: '/BM_18_XiHatLoCao/TaoPhieu',
-                    type: 'POST',
-                    contentType: 'application/json; charset=utf-8',
-                    data: JSON.stringify(phieuData),
-                    success: function(response) {
-                        alert("Tạo phiếu thành công!");
-                        window.location.href = response.redirectUrl;
-                    },
-                    error: function(xhr) {
-                        const res = xhr.responseJSON;
-                        if(res?.message) alert(res.message);
-                        else alert("Có lỗi xảy ra khi lưu phiếu!");
-                    }
-                });
+            })
+            .fail(function () {
+                $kip.empty().append("<option value='' disabled selected>-- Lỗi tải dữ liệu --</option>").prop("disabled", true);
+            })
+            .always(function () {
+                validateForm();
             });
+    }
 
+    $("#IDCa").on("change", loadKip);
+    $("#ID_Day").on("change", function(){
+        // Nếu đã chọn Ca, đổi ngày sẽ tải lại Kíp
+        if ($("#IDCa").val()) loadKip();
+        validateForm();
+    });
+
+    $("#CaKip").on("change", function(){ validateForm(); refreshSummary(); });
+    // Event cho Lò Cao đã được chuyển vào `#LoCaoContainer .lo-check`
+
+    // Lưu phiếu (bulk)
+    $("#btnSave").on("click", function (e) {
+        e.preventDefault();
+        if (!validateForm()) return;
+
+        const ngay = $("#ID_Day").val();
+        const idKip = parseInt($("#CaKip").val() || "0", 10);
+        // Lấy từ Hidden Input
+        const loIds = $("#IDLoCaoHidden").val().split(',').filter(v => v).map(v => parseInt(v, 10));
+
+        const payload = { NgaySanXuat: ngay, ID_Kip: idKip, ID_LoCaos: loIds, ca:ca };
+
+        $("#btnSave").prop("disabled", true);
+        $("#btnSaveSpinner").removeClass("d-none");
+
+        $.ajax({
+            url: "/BM_18_XiHatLoCao/TaoPhieu",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(payload),
+            success: function (res) {
+                // Kỳ vọng response theo cấu trúc: createdCount, duplicateCount, errorCount, results[]
+                if (!res) { alert("Không nhận được phản hồi từ máy chủ."); return; }
+
+                let msg = `Tạo thành công: ${res.createdCount ?? 0}, Trùng: ${res.duplicateCount ?? 0}, Lỗi: ${res.errorCount ?? 0}`;
+                if (res.results) {
+                    const dup = res.results.filter(r => r.status === "duplicate");
+                    const errs = res.results.filter(r => r.status === "error");
+                    if (dup.length) msg += `\n- Đã tồn tại: ${dup.map(d => d.ID_LoCao).join(", ")}`;
+                    if (errs.length) msg += `\n- Lỗi : ${errs.map(d => d.ID_LoCao).join(", ")}`;
+                }
+                alert(msg);
+
+                // Điều hướng sau khi tạo
+              if ((res.createdCount ?? 0) > 0) {
+                 // Sử dụng replace để ngăn người dùng quay lại trang form
+                 window.location.replace("/BM_18_XiHatLoCao/Danhsachphieu");
+                 return;
+             }
+            },
+            error: function (xhr) {
+                alert(xhr.responseJSON?.message ?? "Có lỗi xảy ra khi tạo phiếu.");
+            },
+            complete: function () {
+                $("#btnSaveSpinner").addClass("d-none");
+                validateForm(); // bật lại nút nếu hợp lệ
+            }
         });
-    </script>
-}
+    });
+
+    // Khởi động: render tóm tắt ban đầu + kiểm tra form
+    $(document).ready(function () {
+        refreshSummary();
+        validateForm();
+    });
+</script>
