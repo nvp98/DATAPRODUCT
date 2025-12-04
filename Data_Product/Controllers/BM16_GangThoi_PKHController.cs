@@ -422,7 +422,102 @@ namespace Data_Product.Controllers
 
             return total;
         }
+        private int CalculateTrangThai(Tbl_BM_16_GangLong item)
+        {
+            // DB status = 5 -> approve (giữ nguyên)
+            if (item.ID_TrangThai == 5) return 5;
 
+            bool ok(object v) =>
+                v != null && !(v is string s && string.IsNullOrWhiteSpace(s));
+
+            // Common fields (bắt buộc)
+            var common = new[]
+            {
+        item.T_ID_TrangThai == 4,
+        item.G_ID_TrangThai == 3,
+        ok(item.ID_TTG),
+        ok(item.SoThungTG),
+        ok(item.ID_MeThoi),
+        ok(item.GioChonMe)
+    };
+
+            // TH đặc biệt: DUC1 / DUC2
+            if (item.ChuyenDen == "DUC1" || item.ChuyenDen == "DUC2")
+            {
+                var duc = new[]
+                {
+            ok(item.KL_XeGoong),
+            ok(item.G_KLThungChua),
+            ok(item.G_KLThungVaGang),
+            ok(item.G_KLGangLong),
+            ok(item.Gio_NM)
+        };
+
+                return duc.All(x => x) ? 1 : 2;
+            }
+
+            bool hasKlChia = ok(item.KLGangChia);
+
+            // Trạng thái mặc định
+            bool valid;
+
+            // Nếu là bản copy: chỉ cần common fields
+            if (item.IsCopy == true)
+            {
+                valid = common.All(x => x);
+            }
+            else
+            {
+                // Bản gốc: cần thêm một số fields
+                var add = new List<bool>
+        {
+            ok(item.KL_XeGoong),
+            ok(item.G_KLThungChua),
+            ok(item.G_KLThungVaGang),
+            ok(item.G_KLGangLong),
+            ok(item.ChuyenDen),
+            ok(item.Gio_NM)
+        };
+
+                // Nếu không có KL chia → cần thêm 6 trường nữa
+                if (!hasKlChia)
+                {
+                    add.AddRange(new[]
+                    {
+                ok(item.T_KLThungVaGang),
+                ok(item.T_KLThungChua),
+                ok(item.T_KLGangLong),
+                ok(item.KLThungVaGang_Thoi),
+                ok(item.KLThung_Thoi),
+                ok(item.KLGang_Thoi),
+                ok(item.KL_phe)
+            });
+                }
+
+                valid = common.All(x => x) && add.All(x => x);
+            }
+
+            // Trả ra 1 (đủ) hoặc 2 (thiếu)
+            return valid ? 1 : 2;
+        }
+
+        List<Tbl_BM_16_GangLong> FilterByTinhTrang(List<Tbl_BM_16_GangLong> data, int? status)
+        {
+            if (!status.HasValue) return data;
+
+            if (status == 1 || status == 2)
+            {
+                // Tính trạng thái ảo
+                foreach (var x in data)
+                    x.ID_TrangThai = CalculateTrangThai(x);
+
+                return data.Where(x => x.ID_TrangThai == status).ToList();
+            }
+
+            if (status == 5)
+                return data.Where(x => x.ID_TrangThai == 5).ToList();
+            return data;
+        }
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
         {
             // 0) Base query (chỉ Where; chưa OrderBy, chưa Skip/Take)
@@ -461,7 +556,17 @@ namespace Data_Product.Controllers
                 baseQuery = baseQuery.Where(x => x.BKMIS_ThungSo.Contains(dto.ThungSo));
 
             if (dto.ID_TinhTrang.HasValue)
-                baseQuery = baseQuery.Where(x => x.ID_TrangThai == dto.ID_TinhTrang.Value);
+            {
+               
+                if(dto.ID_TinhTrang == 2 || dto.ID_TinhTrang == 1)
+                {
+                    baseQuery = baseQuery.Where(x => x.ID_TrangThai == 2);
+                }
+                else
+                {
+                    baseQuery = baseQuery.Where(x => x.ID_TrangThai == dto.ID_TinhTrang.Value);
+                }
+            }
             if (dto.ID_TinhTrang_LT.HasValue)
                 baseQuery = baseQuery.Where(x => x.T_ID_TrangThai == dto.ID_TinhTrang_LT.Value);
             if (dto.ID_TinhTrang_LG.HasValue)
@@ -668,6 +773,8 @@ namespace Data_Product.Controllers
                                      Tong_KLGangNhan = ttg != null ? ttg.Tong_KLGangNhan : null,
                                      GioChonMe = ttg != null ? ttg.GioChonMe : null
                                  }).ToListAsync();
+
+            gocData = FilterByTinhTrang(gocData, dto.ID_TinhTrang);
 
             // 5) Nhân bản TTG copy cho data hiển thị
             var maTTGs = gocData.Where(x => !string.IsNullOrEmpty(x.MaThungTG))
@@ -903,7 +1010,8 @@ namespace Data_Product.Controllers
                 KLGang_Thoi = null,
                 KL_phe = null,
                 Tong_KLGangNhan = null,
-                GioChonMe = null
+                GioChonMe = null,
+                TrangThaiTinh = original.TrangThaiTinh
             };
         }
         
