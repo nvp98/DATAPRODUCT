@@ -197,5 +197,8 @@ namespace Data_Product.Models
 
         [NotMapped]
         public decimal? KL_GangChiaCR_Display { get; set; }
+
+        [NotMapped]
+        public int? TrangThaiTinh{ get; set; }
     }
 }
