@@ -814,7 +814,7 @@ namespace Data_Product.Controllers
             ViewBag.DungSuCoCN = DungSuCoCN.TotalHours.ToString("F2");
             ViewBag.DungKhachQuan = DungKhachQuan.TotalHours.ToString("F2");
 
-            ViewBag.TongTgianDung = TongTgianDung.TotalHours.ToString("F2");
+            ViewBag.TongTgianDung = TongTgianDung.TotalMinutes.ToString("F0");
             ViewBag.TongTgianDungDC = TongTgianDungDC.TotalHours.ToString("F2");
             ViewBag.TGianKhongDungDC =(TongTgianDung - TongTgianDungDC).TotalHours.ToString("F2");
 
@@ -878,7 +878,7 @@ namespace Data_Product.Controllers
             ViewBag.DungCongNghe = tgdungCongNge.TotalHours.ToString("F2");
             ViewBag.DungSuCoCN = DungSuCoCN.TotalHours.ToString("F2");
             ViewBag.DungKhachQuan = DungKhachQuan.TotalHours.ToString("F2");
-            ViewBag.TongTgianDung = TongTgianDung.TotalHours.ToString("F2");
+            ViewBag.TongTgianDung = TongTgianDung.TotalMinutes.ToString("F0");
 
             return PartialView(res);
         }
@@ -995,7 +995,7 @@ namespace Data_Product.Controllers
             ViewBag.DungCongNghe = tgdungCongNge.TotalHours.ToString("F2");
             ViewBag.DungSuCoCN = DungSuCoCN.TotalHours.ToString("F2");
             ViewBag.DungKhachQuan = DungKhachQuan.TotalHours.ToString("F2");
-            ViewBag.TongTgianDung = TongTgianDung.TotalHours.ToString("F2");
+            ViewBag.TongTgianDung = TongTgianDung.TotalMinutes.ToString("F0");
 
             return PartialView(res);
         }
@@ -1078,7 +1078,7 @@ namespace Data_Product.Controllers
                 string DungCN = tgdungCongNge.TotalHours.ToString("F2");
                 string DungChoCN = DungSuCoCN.TotalHours.ToString("F2");
                 string DungKQuan = DungKhachQuan.TotalHours.ToString("F2");
-                string TongTgian = TongTgianDung.TotalHours.ToString("F2");
+                string TongTgian = TongTgianDung.TotalMinutes.ToString("F0");
 
                 int row = 8, stt = 0, icol = 1;
                 if (Data.Count > 0)
@@ -1371,7 +1371,7 @@ namespace Data_Product.Controllers
                 string DungCN = tgdungCongNge.TotalHours.ToString("F2");
                 string DungChoCN = DungSuCoCN.TotalHours.ToString("F2");
                 string DungKQuan = DungKhachQuan.TotalHours.ToString("F2");
-                string TongTgian = TongTgianDung.TotalHours.ToString("F2");
+                string TongTgian = TongTgianDung.TotalMinutes.ToString("F0");
 
 
                 int row = 8, stt = 0, icol = 1;
