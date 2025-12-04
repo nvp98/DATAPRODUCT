@@ -1,4 +1,4 @@
-﻿namespace Data_Product.Views.BM_18_XiHatLoCao
+﻿namespace Data_Product.DTO.BM_18_DTO
 {
     public class BM18ChiTietDto
     {

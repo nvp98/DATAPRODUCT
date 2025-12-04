@@ -3,7 +3,6 @@ using Data_Product.DTO.BM_18_DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using Data_Product.Services;
-using Data_Product.Views.BM_18_XiHatLoCao;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -541,6 +540,13 @@ namespace Data_Product.Controllers
                 tongKL_TheoMe = tongTheoMe,
                 klDuc_TheoMe = klDucTheoMe
             });
+        }
+
+        [HttpGet]
+
+        public async Task<IActionResult> ExportPDF()
+        {
+            return View();
         }
     }
 }

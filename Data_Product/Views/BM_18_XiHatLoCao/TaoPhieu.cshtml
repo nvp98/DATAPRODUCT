@@ -286,7 +286,7 @@
     $("#btnSave").on("click", function (e) {
         e.preventDefault();
         if (!validateForm()) return;
-
+        const ca = $("#IDCa").val();
         const ngay = $("#ID_Day").val();
         const idKip = parseInt($("#CaKip").val() || "0", 10);
         // Lấy từ Hidden Input
