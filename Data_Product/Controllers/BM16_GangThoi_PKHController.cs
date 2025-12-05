@@ -433,25 +433,25 @@ namespace Data_Product.Controllers
             // Common fields (bắt buộc)
             var common = new[]
             {
-        item.T_ID_TrangThai == 4,
-        item.G_ID_TrangThai == 3,
-        ok(item.ID_TTG),
-        ok(item.SoThungTG),
-        ok(item.ID_MeThoi),
-        ok(item.GioChonMe)
-    };
+                item.T_ID_TrangThai == 4,
+                item.G_ID_TrangThai == 3,
+                ok(item.ID_TTG),
+                ok(item.SoThungTG),
+                ok(item.ID_MeThoi),
+                ok(item.GioChonMe)
+            };
 
             // TH đặc biệt: DUC1 / DUC2
             if (item.ChuyenDen == "DUC1" || item.ChuyenDen == "DUC2")
             {
                 var duc = new[]
                 {
-            ok(item.KL_XeGoong),
-            ok(item.G_KLThungChua),
-            ok(item.G_KLThungVaGang),
-            ok(item.G_KLGangLong),
-            ok(item.Gio_NM)
-        };
+                    ok(item.KL_XeGoong),
+                    ok(item.G_KLThungChua),
+                    ok(item.G_KLThungVaGang),
+                    ok(item.G_KLGangLong),
+                    ok(item.Gio_NM)
+                };
 
                 return duc.All(x => x) ? 1 : 2;
             }
@@ -470,28 +470,28 @@ namespace Data_Product.Controllers
             {
                 // Bản gốc: cần thêm một số fields
                 var add = new List<bool>
-        {
-            ok(item.KL_XeGoong),
-            ok(item.G_KLThungChua),
-            ok(item.G_KLThungVaGang),
-            ok(item.G_KLGangLong),
-            ok(item.ChuyenDen),
-            ok(item.Gio_NM)
-        };
+                {
+                    ok(item.KL_XeGoong),
+                    ok(item.G_KLThungChua),
+                    ok(item.G_KLThungVaGang),
+                    ok(item.G_KLGangLong),
+                    ok(item.ChuyenDen),
+                    ok(item.Gio_NM)
+                };
 
                 // Nếu không có KL chia → cần thêm 6 trường nữa
                 if (!hasKlChia)
                 {
                     add.AddRange(new[]
                     {
-                ok(item.T_KLThungVaGang),
-                ok(item.T_KLThungChua),
-                ok(item.T_KLGangLong),
-                ok(item.KLThungVaGang_Thoi),
-                ok(item.KLThung_Thoi),
-                ok(item.KLGang_Thoi),
-                ok(item.KL_phe)
-            });
+                        ok(item.T_KLThungVaGang),
+                        ok(item.T_KLThungChua),
+                        ok(item.T_KLGangLong),
+                        ok(item.KLThungVaGang_Thoi),
+                        ok(item.KLThung_Thoi),
+                        ok(item.KLGang_Thoi),
+                        ok(item.KL_phe)
+                    });
                 }
 
                 valid = common.All(x => x) && add.All(x => x);
@@ -503,19 +503,18 @@ namespace Data_Product.Controllers
 
         List<Tbl_BM_16_GangLong> FilterByTinhTrang(List<Tbl_BM_16_GangLong> data, int? status)
         {
-            if (!status.HasValue) return data;
+            foreach (var x in data)
+                x.ID_TrangThai = CalculateTrangThai(x); 
+
+            if (!status.HasValue)
+                return data;
 
             if (status == 1 || status == 2)
-            {
-                // Tính trạng thái ảo
-                foreach (var x in data)
-                    x.ID_TrangThai = CalculateTrangThai(x);
-
                 return data.Where(x => x.ID_TrangThai == status).ToList();
-            }
 
             if (status == 5)
                 return data.Where(x => x.ID_TrangThai == 5).ToList();
+
             return data;
         }
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
