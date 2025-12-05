@@ -26,9 +26,9 @@ namespace Data_Product.Models
 
         // Trường Chuỗi (String) - Cột BKMIS_SoMe (nvarchar(20))
         // Kiểu string trong C# mặc định là nullable
-        public string BKMIS_SoMe { get; set; } // Mã số theo dõi BKMIS
+        public string? BKMIS_SoMe { get; set; } // Mã số theo dõi BKMIS
 
-        public string LyDo { get; set; }
+        public string? LyDo { get; set; }
 
         public bool Is_Nhap { get; set; }
     }

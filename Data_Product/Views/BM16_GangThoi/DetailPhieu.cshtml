@@ -218,7 +218,9 @@
 										<th rowspan="2">KL thùng</th>
 										<th rowspan="2">KL thùng & gang lỏng</th>
 										<th rowspan="2">KL gang lỏng cân ray</th>
+										<th rowspan="2">KL cân lần 2</th>
 										<th colspan="4">Vận chuyển đến</th>
+										<th rowspan="2">Vận chuyển nội bộ</th>
 										<th rowspan="2">Giờ NM</th>
 										<th rowspan="2">Ghi chú</th>
 										@if (PhongBan?.TenNgan == "P.QLCL")
@@ -304,10 +306,12 @@
 												<td>
 													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;" disabled>
 												</td>
+												<td></td>
 												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") @disabledAttr /></td>
+												<td></td>
 												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM" @disabledAttr></td>
 												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;" @disabledAttr>@item.GhiChu</textarea></td>
 												@if (PhongBan?.TenNgan == "P.QLCL")
@@ -402,8 +406,7 @@
 	}
 
 	/* Cố định chiều rộng 1 chút cho cột số mẻ */
-	#tableLeft .ip-some,
-	#tableRight .ip-some {
+	#tableLeft .ip-some {
 		min-width: 120px;
 	}
 </style>
@@ -433,7 +436,7 @@
 	<div class="collapse show mt-3" id="doubleAutoCollapse">
 		<div class="row g-3">
 			<!-- Bảng trái: KHÔNG chỉnh sửa -->
-			<div class="col-lg-6">
+			<div class="col-lg-12">
 				<div class="card h-100">
 					<div class="card-header py-2 d-flex justify-content-between align-items-center">
 						<span class="badge bg-info" id="leftCount">0 dòng</span>
@@ -444,7 +447,7 @@
 								<thead class="table-light">
 									<tr>
 										<th>Sàn ra gang</th>
-										<th>Ray</th>
+										<th>Số thùng</th>
 										<th>Giờ chốt gang</th>
 										<th>KL bì</th>
 										<th>KL tổng</th>
@@ -468,51 +471,7 @@
 				</div>
 			</div>
 
-			<!-- Bảng phải: CHO CHỈNH SỬA -->
-			<div class="col-lg-6">
-				<div class="card h-100">
-					<!-- Header với nút Thêm dòng -->
-					<div class="card-header py-2 d-flex justify-content-between align-items-center">
-						<div>
-							<span class="badge bg-info" id="rightCount">0 dòng</span>
-						</div>
-						<div>
-							<button class="btn btn-sm btn-outline-success me-1" id="btnAddRight" type="button" title="Thêm dòng mới vào bảng phải">
-								<i class="bi bi-plus-lg"></i> Thêm dòng
-							</button>
-						</div>
-					</div>
-
-					<div class="card-body p-2">
-						<div class="table-responsive" style="max-height:480px;overflow:auto;">
-							<table class="table table-sm table-bordered table-hover align-middle" id="tableRight">
-								<thead class="table-light">
-									<tr>
-										<th>Sàn ra gang</th>
-										<th>Ray</th>
-										<th>Giờ chốt gang</th>
-										<th>KL bì</th>
-										<th>KL tổng</th>
-										<th>KL gang</th>
-										<th style="width: 130px">Số mẻ</th>
-										<th>Lý do*</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr class="table-secondary text-center">
-										<td colspan="8" class="small">Chưa có dữ liệu.</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-						<div class="d-flex justify-content-end mt-2">
-							<button class="btn btn-primary btn-sm" id="btnApplyRight" type="button">
-								Lưu override + áp dụng theo Số mẻ
-							</button>
-						</div>
-					</div>
-				</div>
-			</div>
+			<!-- ĐÃ BỎ BẢNG PHẢI -->
 		</div>
 	</div>
 </div>
@@ -523,54 +482,44 @@
 		function esc(s) { return $('<div/>').text(s || '').html(); }
 
 		// init select2 for Số mẻ (ajax)
-		function initSoMeSelectAjax($sel) {
-			if ($sel.data('init') === 'true') return;
+			function initSoMeSelectAjax($sel) {
+		if ($sel.data('init') === 'true') return;
 
-			$sel.select2({
-				width: '100%',
-				placeholder: 'Chọn Số mẻ',
-				allowClear: true,
-				dropdownParent: $('#doubleAutoCollapse'),
-				ajax: {
-					url: '/BM16_GangThoi/GetAllSoMe',
-					delay: 300,
-					data: function (params) {
-						return {
-							maPhieu: $('#PhieuID').val(),
-							ngayStr: $('#ID_Day').val(),
-							idLoCao: $('#IDLoCaoNum').val(),
-							idCa: $('#IDCaNum').val(),
-							term: params.term,
-							take: 100,
-							select2: true
-						};
-					},
-					processResults: function (data) {
-						return { results: data };
-					}
+		$sel.select2({
+			width: '100%',
+			placeholder: 'Chọn Số mẻ',
+			allowClear: true,
+			dropdownParent: $('#doubleAutoCollapse'),
+			ajax: {
+				url: '/BM16_GangThoi/GetAllSoMe',
+				delay: 300,
+				data: function (params) {
+					return {
+						maPhieu: $('#PhieuID').val(),
+						ngayStr: $('#ID_Day').val(),
+						idLoCao: $('#IDLoCaoNum').val(),
+						idCa: $('#IDCaNum').val(),
+						term: params.term,
+						take: 100,
+						select2: true
+					};
+				},
+				processResults: function (data) {
+
+					// THÊM "Khác" vào cuối danh sách
+					data.push({
+						id: "__OTHER__",
+						text: "Khác"
+					});
+
+					return { results: data };
 				}
-			});
+			}
+		});
 
-			$sel.data('init', 'true');
-		}
+		$sel.data('init', 'true');
+	}
 
-		// highlight khi cell thay đổi
-		function markRowChangeState($row) {
-			var oGio  = ($row.data('o-gio') || '').toString();
-			var oBi   = ($row.data('o-klbi') || '').toString();
-			var oTong = ($row.data('o-kltong') || '').toString();
-			var oGang = ($row.data('o-klgang') || '').toString();
-
-			var cGio  = $row.find('.ip-gio').val() || '';
-			var cBi   = $row.find('.ip-klbi').val() || '';
-			var cTong = $row.find('.ip-kltong').val() || '';
-			var cGang = $row.find('.ip-klgang').val() || '';
-
-			$row.find('.ip-gio').toggleClass('cell-changed',   cGio  !== oGio);
-			$row.find('.ip-klbi').toggleClass('cell-changed',  cBi   !== oBi);
-			$row.find('.ip-kltong').toggleClass('cell-changed',cTong !== oTong);
-			$row.find('.ip-klgang').toggleClass('cell-changed',cGang !== oGang);
-		}
 
 		// ===== Render bảng trái =====
 		function renderLeft(list) {
@@ -618,26 +567,6 @@
 			$("#leftCount").text(list.length + " dòng");
 		}
 
-		// ===== Render bảng phải (tương tự renderLeft nhưng có input) =====
-		function renderRight(list) {
-			var $tb = $("#tableRight tbody");
-			$tb.empty();
-
-			if (!list || !list.length) {
-				$tb.append(
-					'<tr class="table-secondary text-center">' +
-					'<td colspan="8" class="small">Không có dữ liệu.</td>' +
-					'</tr>'
-				);
-				$("#rightCount").text("0 dòng");
-				return;
-			}
-
-			list.forEach(function (x) {
-				addRightRow(x);
-			});
-		}
-
 		function renderBoth(list) {
 			renderLeft(list);
 		}
@@ -654,7 +583,6 @@
 			}
 
 			$("#tableLeft tbody").html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
-			$("#tableRight tbody").html('<tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>');
 
 			$.ajax({
 				url: '/BM16_GangThoi/GetAutoSourceData',
@@ -731,157 +659,13 @@
 			});
 		}
 
-		// ===== Collect from right =====
-		function collectFromRight() {
-			var maPhieu = $('#PhieuID').val();
-			var items = [];
-			var invalidReason = false;
-
-			$("#tableRight tbody tr[data-row='right']").each(function () {
-				var $r = $(this);
-				var soMe = $r.find('.ip-some').val();
-				if (!soMe) return;
-
-				var oGio  = ($r.data('o-gio') || '').toString();
-				var oBi   = ($r.data('o-klbi') || '').toString();
-				var oTong = ($r.data('o-kltong') || '').toString();
-				var oGang = ($r.data('o-klgang') || '').toString();
-
-				var cGio  = $r.find('.ip-gio').val() || '';
-				var cBi   = $r.find('.ip-klbi').val() || '';
-				var cTong = $r.find('.ip-kltong').val() || '';
-				var cGang = $r.find('.ip-klgang').val() || '';
-
-				var changed = (cGio !== oGio) || (cBi !== oBi) || (cTong !== oTong) || (cGang !== oGang);
-				var lyDo = $r.find('.ip-lydo').val() || '';
-
-				if (changed && !lyDo) {
-					invalidReason = true;
-					$r.find('.ip-lydo').addClass('cell-changed');
-				} else {
-					$r.find('.ip-lydo').removeClass('cell-changed');
-				}
-
-				items.push({
-					MaPhieu: maPhieu,
-					SoMe: soMe,
-					ID_LoCao: parseInt($r.data('idlocao'), 10),
-					GioChotGang: $r.data('gioiso'),
-					ThungSo: $r.data('thungso'),
-					G_KLXeVaThung: cBi   ? parseFloat(cBi)   : (oBi   ? parseFloat(oBi)   : null),
-					G_KLXeThungVaGang: cTong ? parseFloat(cTong) : (oTong ? parseFloat(oTong) : null),
-					G_KLGangLong: cGang ? parseFloat(cGang) : (oGang ? parseFloat(oGang) : null),
-					LyDo: lyDo || null,
-					__changed: changed
-				});
-			});
-
-			return { items: items, invalidReason: invalidReason };
-		}
-
-		function applyRight() {
-			var ret = collectFromRight();
-			var items = ret.items;
-			var invalidReason = ret.invalidReason;
-
-			var usable = items.filter(function (x) { return !!x.SoMe; });
-			if (!usable.length) {
-				alert('Bảng phải: chưa chọn Số mẻ cho dòng nào.');
-				return;
-			}
-			if (invalidReason || usable.some(function (x) { return x.__changed && !x.LyDo; })) {
-				alert('Bảng phải: có dòng sửa khác auto nhưng thiếu Lý do.');
-				return;
-			}
-
-			// Thực tế bạn sẽ POST usable tới server; hiện đang log + alert
-			console.log('RIGHT items:', usable);
-			alert('Đã thu thập dữ liệu override (phải). Bạn có thể POST thêm nếu muốn.');
-		}
-
-		// ===== Add a new row to right table (with select2 initialized) =====
-		function addRightRow(item) {
-			var $tb = $("#tableRight tbody");
-
-			// remove placeholder row nếu còn
-			if ($tb.find('tr.table-secondary').length) $tb.empty();
-
-			item = item || {};
-			var rowId = 'r_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-
-			var san     = item.san || '';
-			var ray     = item.thungSo || '';
-			var gioIso  = item.gioIso || '';
-			var gioStr  = item.gioStr || '';
-			var klBi    = (item.kL_Bi != null) ? item.kL_Bi : '';
-			var klTong  = (item.kL_Tong != null) ? item.kL_Tong : '';
-			var klGang  = (item.kL_Gang != null) ? item.kL_Gang : '';
-			var idLo    = item.iD_LoCao || '';
-
-			var tr = '' +
-				'<tr data-row="right" data-rowid="' + esc(rowId) + '" data-idlocao="' + esc(idLo) + '"' +
-				'    data-san="' + esc(san) + '" data-gioiso="' + esc(gioIso) + '" data-thungso="' + esc(ray) + '"' +
-				'    data-o-gio="' + esc(gioStr) + '" data-o-klbi="' + esc(klBi) + '" data-o-kltong="' + esc(klTong) + '" data-o-klgang="' + esc(klGang) + '">' +
-				'  <td>' + esc(san) + '</td>' +
-				'  <td>' + esc(ray) + '</td>' +
-				'  <td><input class="form-control form-control-sm ip-gio" value="' + esc(gioStr) + '" /></td>' +
-				'  <td><input class="form-control form-control-sm ip-klbi text-end" value="' + esc(klBi) + '" /></td>' +
-				'  <td><input class="form-control form-control-sm ip-kltong text-end" value="' + esc(klTong) + '" /></td>' +
-				'  <td><input class="form-control form-control-sm ip-klgang text-end" value="' + esc(klGang) + '" /></td>' +
-				'  <td style="width:130px"><select class="form-select form-select-sm ip-some" style="min-width:120px"></select></td>' +
-				'  <td><input class="form-control form-control-sm ip-lydo" placeholder="Lý do (nếu sửa)"/></td>' +
-				'</tr>';
-
-			$tb.append(tr);
-			var $last = $tb.find('tr:last');
-
-			// init select2 cho select mới
-			var $sel = $last.find('.ip-some');
-			initSoMeSelectAjax($sel);
-
-			// nếu item có SoMe, set value (tạo option tạm nếu cần)
-			if (item.soMe) {
-				var val = item.soMe;
-				if ($sel.find('option[value="' + val + '"]').length === 0) {
-					$sel.append(new Option(val, val, true, true));
-				} else {
-					$sel.val(val).trigger('change');
-				}
-			}
-
-			// bind change để highlight
-			$last.find('.ip-gio, .ip-klbi, .ip-kltong, .ip-klgang, .ip-some').on('change keyup', function () {
-				markRowChangeState($last);
-				updateRightCount();
-			});
-
-			// select2 select event (nếu cần xử lý thêm)
-			$sel.on('select2:select', function (e) {
-				markRowChangeState($last);
-			});
-
-			updateRightCount();
-			return $last;
-		}
-
-		// update badge count
-		function updateRightCount() {
-			var cnt = $("#tableRight tbody tr[data-row='right']").length;
-			$("#rightCount").text(cnt + " dòng");
-		}
-
 		// bind events
 		$(document).on('click', '#btnFetchAuto', function (e) { e.preventDefault(); fetchAuto(); });
 		$(document).on('click', '#btnApplyLeft', function (e) { e.preventDefault(); applyLeft(); });
-		$(document).on('click', '#btnApplyRight', function (e) { e.preventDefault(); applyRight(); });
-		$(document).on('click', '#btnAddRight', function (e) { e.preventDefault(); addRightRow(); });
-
-		// double-click tbody to add quick row (optional)
-		$(document).on('dblclick', '#tableRight tbody', function () { addRightRow(); });
 
 		// on ready update counts
 		$(function () {
-			updateRightCount();
+			$("#leftCount").text($("#tableLeft tbody tr[data-row='left']").length + " dòng");
 		});
 	})();
 </script>
@@ -1241,43 +1025,77 @@
 			});
 		}
 
-		$(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
-				let row = $(this).closest("tr");
+		// $(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
+		// 		let row = $(this).closest("tr");
 
-				let $klThungXeInput = row.find("input[name='KLThungVaXe']");
-				let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
-				let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
+		// 		let $klThungXeInput = row.find("input[name='KLThungVaXe']");
+		// 		let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
+		// 		let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
 
-				let klThungXe = parseFloat($klThungXeInput.val()) || 0;
-				let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
-				let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
+		// 		let klThungXe = parseFloat($klThungXeInput.val()) || 0;
+		// 		let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
+		// 		let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
 
-				let klThung = klThungXe - klXeGoong;
-				row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
+		// 		let klThung = klThungXe - klXeGoong;
+		// 		row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
 
-				let klThungGang = klThungGangXe - klXeGoong;
-				row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
+		// 		let klThungGang = klThungGangXe - klXeGoong;
+		// 		row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
 
-				let klGangLong = klThungGang - klThung;
-				row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
+		// 		let klGangLong = klThungGang - klThung;
+		// 		row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
 
-				// Reset tooltip và màu
-				[$klThungXeInput, $klThungGangXeInput, $klXeGoongInput].forEach(function ($input) {
-					$input.removeAttr("title").removeClass("tooltip-error");
-				});
+		// 		// Reset tooltip và màu
+		// 		[$klThungXeInput, $klThungGangXeInput, $klXeGoongInput].forEach(function ($input) {
+		// 			$input.removeAttr("title").removeClass("tooltip-error");
+		// 		});
 
-				// Kiểm tra từng lỗi và gán tooltip cho từng ô
-				if (klThungXe < klXeGoong) {
-					$klThungXeInput
-						.attr("title", "KL Thùng + Xe < KL Xe Goòng")
-						.addClass("tooltip-error");
-				}
-				if (klThungGangXe < klXeGoong) {
-					$klThungGangXeInput
-						.attr("title", "KL Thùng & Gang + Xe < KL Xe Goòng")
-						.addClass("tooltip-error");
-				}
+		// 		// Kiểm tra từng lỗi và gán tooltip cho từng ô
+		// 		if (klThungXe < klXeGoong) {
+		// 			$klThungXeInput
+		// 				.attr("title", "KL Thùng + Xe < KL Xe Goòng")
+		// 				.addClass("tooltip-error");
+		// 		}
+		// 		if (klThungGangXe < klXeGoong) {
+		// 			$klThungGangXeInput
+		// 				.attr("title", "KL Thùng & Gang + Xe < KL Xe Goòng")
+		// 				.addClass("tooltip-error");
+		// 		}
+		// });
+		function tinhToanRow(row) {
+			let $klThungXeInput = row.find("input[name='KLThungVaXe']");
+			let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
+			let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
+
+			let klThungXe = parseFloat($klThungXeInput.val()) || 0;
+			let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
+			let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
+
+			let klThung = klThungXe - klXeGoong;
+			row.find("input[name='KhoiLuongThung']")
+				.val(klThung > 0 ? klThung.toFixed(2) : 0);
+
+			let klThungGang = klThungGangXe - klXeGoong;
+			row.find("input[name='KLThungGangLong']")
+				.val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
+
+			let klGangLong = klThungGang - klThung;
+			row.find("input[name='KLGangLong']")
+				.val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
+		}
+
+		$(document).ready(function () {
+			$("#dataTable tbody tr").each(function () {
+				tinhToanRow($(this));
 			});
+		});
+
+		$(document).on("input",
+			"input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']",
+			function () {
+				tinhToanRow($(this).closest("tr"));
+			}
+		);
 
 
 		$(document).ready(function() {
@@ -1319,42 +1137,42 @@
 				</tr>
 			`;
 
-		$('#dataTable tfoot').html(tongRow);
+			$('#dataTable tfoot').html(tongRow);
 			}
-			tinhTongKL();
-				});
+				tinhTongKL();
+		});
 
-	function exportExcel(maPhieu) {
-			if (!maPhieu) {
-				alert("Không có mã phiếu!");
-				return;
-			}
-
-			$.ajax({
-				url: '/BM16_GangThoi/ExportToExcel',
-				method: 'GET',
-				data: { MaPhieu: maPhieu },
-				xhrFields: {
-					responseType: 'blob'
-				},
-				success: function (data, status, xhr) {
-					var blob = new Blob([data], {
-						type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-					});
-
-					var fileName = `Phieu_${maPhieu}_${new Date().toISOString().slice(0,10)}.xlsx`;
-
-					var a = document.createElement('a');
-					a.href = window.URL.createObjectURL(blob);
-					a.download = fileName;
-					document.body.appendChild(a);
-					a.click();
-					document.body.removeChild(a);
-				},
-				error: function () {
-					alert("Lỗi khi xuất Excel!");
+		function exportExcel(maPhieu) {
+				if (!maPhieu) {
+					alert("Không có mã phiếu!");
+					return;
 				}
-			});
+
+				$.ajax({
+					url: '/BM16_GangThoi/ExportToExcel',
+					method: 'GET',
+					data: { MaPhieu: maPhieu },
+					xhrFields: {
+						responseType: 'blob'
+					},
+					success: function (data, status, xhr) {
+						var blob = new Blob([data], {
+							type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+						});
+
+						var fileName = `Phieu_${maPhieu}_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+						var a = document.createElement('a');
+						a.href = window.URL.createObjectURL(blob);
+						a.download = fileName;
+						document.body.appendChild(a);
+						a.click();
+						document.body.removeChild(a);
+					},
+					error: function () {
+						alert("Lỗi khi xuất Excel!");
+					}
+				});
 		}
 
 		$(document).on("click", ".copyItem", function () {
@@ -1428,48 +1246,48 @@
 			}
 			});
 
-	function ExportToPDF(){
-		// value cac field
-		const MaPhieu = $('#PhieuID').val() || null;
+		function ExportToPDF(){
+			// value cac field
+			const MaPhieu = $('#PhieuID').val() || null;
 
-		fetch('/BM16_GangThoi/ExportToPDF', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(MaPhieu)
-		})
-		.then(async res => {
-		if (!res.ok) {
-			// Lấy nội dung lỗi từ response
-			const errorText = await res.text();
-			alert("Xuất PDF thất bại: " + errorText);
-			throw new Error("Lỗi khi xuất PDF");
+			fetch('/BM16_GangThoi/ExportToPDF', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(MaPhieu)
+			})
+			.then(async res => {
+			if (!res.ok) {
+				// Lấy nội dung lỗi từ response
+				const errorText = await res.text();
+				alert("Xuất PDF thất bại: " + errorText);
+				throw new Error("Lỗi khi xuất PDF");
+			}
+			return res.blob();
+		 })
+			.then(blob => {
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = 'BBGN Gang long - Luyen Gang.pdf';
+				a.click();
+				window.URL.revokeObjectURL(url);
+			});
 		}
-		return res.blob();
-	 })
-		.then(blob => {
-			const url = window.URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = 'BBGN Gang long - Luyen Gang.pdf';
-			a.click();
-			window.URL.revokeObjectURL(url);
-		});
-	}
-	function XacNhanThung(data)
-		{
-		$.ajax({
-				url: '/BM16_GangThoi/XacNhanThung',
-				type: 'POST',
-				contentType: 'application/json',
-				data: JSON.stringify(data),
-				success: function (res) {
-					alert('Xác nhận thành công!');
-					location.reload();
-				},
-				error: function () {
-					alert('Lỗi khi xác nhận thùng');
-				}
-		});
+		function XacNhanThung(data)
+			{
+			$.ajax({
+					url: '/BM16_GangThoi/XacNhanThung',
+					type: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify(data),
+					success: function (res) {
+						alert('Xác nhận thành công!');
+						location.reload();
+					},
+					error: function () {
+						alert('Lỗi khi xác nhận thùng');
+					}
+			});
 		}
 		function HuyXacNhanThung(data)
 		{

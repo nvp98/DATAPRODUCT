@@ -1969,7 +1969,9 @@ namespace Data_Product.Controllers
                         Weight_no = d.Weight_no,
                         Weight_TARE = d.Weight_TARE,
                         Weight_GROSS = d.Weight_GROSS,
-                        Weight_NET = d.Weight_NET
+                        Weight_NET = d.Weight_NET,
+                        BKMIS_SoMe = d.BKMIS_SoMe
+
                     })
                     .ToListAsync(); // Thực thi truy vấn và tải dữ liệu
 
@@ -1997,7 +1999,8 @@ namespace Data_Product.Controllers
                         Laddle_no = d.Laddle_no,
                         Shift = d.Shift,
                         Casthouse = d.Casthouse,
-                        SanRaGang = d.Casthouse // Giả định SanRaGang dùng Casthouse
+                        SanRaGang = d.Casthouse, // Giả định SanRaGang dùng Casthouse
+                        BKMIS_SoMe = d.BKMIS_SoMe
                     };
                 }).ToList();
 
@@ -2048,19 +2051,23 @@ namespace Data_Product.Controllers
             if (!listThung.Any())
                 return NotFound("Không tìm thấy thùng nào trong BM16 khớp với các Số mẻ đã gửi.");
 
-            // Group incoming items theo SoMe (trim) và tính tổng KL gang cho mỗi SoMe
+            // Group items theo SoMe và tính KL gang lỏng = (Max KL_Tổng) - (Min KL_Bì)
             var groups = items
                 .Where(x => !string.IsNullOrWhiteSpace(x.SoMe))
                 .GroupBy(x => x.SoMe.Trim())
                 .Select(g => new
                 {
                     SoMe = g.Key,
-                    Sum_KLGangLong = g.Sum(i => i.G_KLGangLong ?? 0m),
-                    HasAny_KLGangLong = g.Any(i => i.G_KLGangLong.HasValue),
-
-                    // Lấy giá trị KL khác nếu có (chỉ lấy 1 giá trị không-null trong nhóm, để cập nhật nếu muốn)
-                    First_KLXeVaThung = g.Where(i => i.G_KLXeVaThung.HasValue).Select(i => i.G_KLXeVaThung).FirstOrDefault(),
-                    First_KLXeThungVaGang = g.Where(i => i.G_KLXeThungVaGang.HasValue).Select(i => i.G_KLXeThungVaGang).FirstOrDefault()
+                    HasBi = g.Any(i => i.G_KLXeVaThung.HasValue),
+                    HasTong = g.Any(i => i.G_KLXeThungVaGang.HasValue),
+                    Min_Bi = g.Where(i => i.G_KLXeVaThung.HasValue)
+                               .Select(i => i.G_KLXeVaThung!.Value)
+                               .DefaultIfEmpty()
+                               .Min(),
+                    Max_Tong = g.Where(i => i.G_KLXeThungVaGang.HasValue)
+                                 .Select(i => i.G_KLXeThungVaGang!.Value)
+                                 .DefaultIfEmpty()
+                                 .Max()
                 })
                 .ToList();
 
@@ -2078,165 +2085,87 @@ namespace Data_Product.Controllers
                         if (!thungsCungSoMe.Any())
                             continue;
 
-                        // Cập nhật từng bản ghi tìm được
-                        foreach (var thung in thungsCungSoMe)
+                        // Tính theo quy tắc: KL gang lỏng = Max(KL_Tổng) - Min(KL_Bì)
+                        if (grp.HasBi && grp.HasTong)
                         {
-                            // Thay thế G_KLGangLong bằng tổng tính được nếu nhóm có giá trị
-                            if (grp.HasAny_KLGangLong)
-                                thung.G_KLGangLong = grp.Sum_KLGangLong;
+                            var klTinh = grp.Max_Tong - grp.Min_Bi;
+                            if (klTinh < 0) klTinh = 0; // tránh âm nếu dữ liệu bất thường
 
-                            // Nếu client có gửi giá trị KL khác trong nhóm, cập nhật (ở đây lấy giá trị first non-null trong nhóm)
-                            if (grp.First_KLXeVaThung.HasValue)
-                                thung.G_KLXeVaThung = grp.First_KLXeVaThung;
+                            foreach (var thung in thungsCungSoMe)
+                            {
+                                // Cập nhật KL thùng & xe (KL bì nhỏ nhất)
+                                thung.G_KLXeVaThung = grp.Min_Bi;
+                                // Cập nhật KL thùng & gang & xe (KL tổng lớn nhất)
+                                thung.G_KLXeThungVaGang = grp.Max_Tong;
+                                // Cập nhật KL gang lỏng theo quy tắc
+                                thung.G_KLGangLong = klTinh;
+                            }
+                        }
 
-                            if (grp.First_KLXeThungVaGang.HasValue)
-                                thung.G_KLXeThungVaGang = grp.First_KLXeThungVaGang;
+                        // Sau khi cập nhật bảng chính, cập nhật "Số mẻ" vào bảng cân ray (Tbl_CanRayLG2)
+                        // Tìm các item thuộc cùng Số mẻ này và có thông tin thời gian/lò cao để ánh xạ
+                        var relatedItems = items
+                            .Where(i => !string.IsNullOrWhiteSpace(i.SoMe)
+                                        && i.SoMe.Trim() == grp.SoMe
+                                        && i.GioChotGang.HasValue)
+                            .Select(i => new
+                            {
+                                SoMe = i.SoMe.Trim(),
+                                Gio = i.GioChotGang!.Value,
+                                LoCao = i.ID_LoCao
+                            })
+                            .Distinct()
+                            .ToList();
 
-                            // Cập nhật trạng thái dữ liệu đủ dựa trên các trường hiện tại của thung (sau cập nhật)
-                            bool duDuLieu =
-                                thung.G_KLXeVaThung.HasValue &&
-                                thung.G_KLXeThungVaGang.HasValue &&
-                                thung.G_KLGangLong.HasValue;
+                        if (relatedItems.Any())
+                        {
+                            // Gom theo lò cao để truy vấn hiệu quả
+                            var byLoCao = relatedItems
+                                .GroupBy(x => x.LoCao)
+                                .Select(g => new
+                                {
+                                    LoCao = g.Key,
+                                    Times = g.Select(x => x.Gio).Distinct().ToList()
+                                })
+                                .ToList();
 
-
-                            // (Tuỳ chọn) Bạn có thể gán audit: thung.G_AggregatedAt = DateTime.UtcNow; thung.G_AggregatedBy = currentUser;
+                            foreach (var bucket in byLoCao)
+                            {
+                                // Cập nhật trực tiếp bằng SQL để tránh lỗi cạnh tranh lạc quan khi nhiều hàng khớp
+                                if (bucket.LoCao != 0)
+                                {
+                                    foreach (var t in bucket.Times)
+                                    {
+                                        // Update tất cả hàng theo BF_no + BF_Timestap = time
+                                        await _context.Database.ExecuteSqlRawAsync(
+                                            "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0} WHERE BF_no = {1} AND BF_Timestap = {2}",
+                                            grp.SoMe, bucket.LoCao, t);
+                                    }
+                                }
+                                else
+                                {
+                                    // Fallback theo thời điểm nếu không có lò cao
+                                    foreach (var t in bucket.Times)
+                                    {
+                                        await _context.Database.ExecuteSqlRawAsync(
+                                            "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0} WHERE BF_Timestap = {1}",
+                                            grp.SoMe, t);
+                                    }
+                                }
+                            }
                         }
                     }
 
                     await _context.SaveChangesAsync();
                     await txn.CommitAsync();
 
-                    return Ok(new { success = true, message = "Đã cập nhật (và tổng) KL gang theo Số mẻ." });
+                    return Ok(new { success = true, message = "Đã cập nhật KL gang lỏng = Max(KL tổng) - Min(KL bì) theo Số mẻ." });
                 }
                 catch (Exception ex)
                 {
                     await txn.RollbackAsync();
                     // log exception nếu cần
                     return StatusCode(500, "Lỗi khi lưu dữ liệu: " + ex.Message);
-                }
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> SaveOverrideMapping([FromBody] List<AutoMappingItemDto> items)
-        {
-            // 1. Kiểm tra đầu vào
-            if (items == null || items.Count == 0 || items.Any(x => string.IsNullOrWhiteSpace(x.SoMe)))
-                return BadRequest("Dữ liệu không hợp lệ hoặc thiếu Số mẻ.");
-
-            if (items.Any(x => string.IsNullOrWhiteSpace(x.LyDo)))
-                return BadRequest("Thiếu Lý do ghi đè (Override Reason) cho một số dòng.");
-
-            var soMes = items.Select(x => x.SoMe.Trim()).Distinct().ToList();
-            var maPhieu = items.First().MaPhieu.Trim();
-
-            // 2. Lấy dữ liệu BM16 cần cập nhật
-            var listThung = await _context.Tbl_BM_16_GangLong
-                .Where(x => x.MaPhieu == maPhieu
-                            && soMes.Contains(x.BKMIS_SoMe.Trim())
-                            && x.ID_TrangThai != 5)
-                .ToListAsync();
-
-            using (var txn = await _context.Database.BeginTransactionAsync())
-            {
-                try
-                {
-                    // ------------------------------------------------------------------
-                    // PHẦN 1: CHÈN TẤT CẢ DÒNG TỪ BẢNG PHẢI VÀO TBL_CANRAYLG2 (INSERT)
-                    // ------------------------------------------------------------------
-
-                    // Nếu item có CanRayID, cần lấy dữ liệu KL gốc để lưu kèm (cho mục đích tham chiếu)
-                    var originalWeights = await _context.Tbl_CanRayLG2
-                        .AsNoTracking()
-                        .Where(r => items.Select(i => i.CanRayID.GetValueOrDefault()).Contains(r.ID))
-                        .ToDictionaryAsync(r => r.ID, r => r);
-
-                    foreach (var item in items)
-                    {
-                        // Kiểm tra xem đây là dòng ghi đè hay nhập tay hoàn toàn
-                        bool isNewManualEntry = !item.CanRayID.HasValue;
-
-                        Tbl_CanRayLG2 originalRecord = null;
-                        if (!isNewManualEntry && originalWeights.ContainsKey(item.CanRayID.Value))
-                        {
-                            originalRecord = originalWeights[item.CanRayID.Value];
-                        }
-
-                        var newEntry = new Tbl_CanRayLG2
-                        {
-                            // Lấy các trường định danh từ DTO hoặc bản ghi gốc
-                            BF_no = item.ID_LoCao,
-                            Laddle_no = item.ThungSo,
-                            BF_Timestap = item.GioChotGang ?? DateTime.Now,
-
-                            // LƯU TRỮ KHỐI LƯỢNG GHI ĐÈ/NHẬP TAY
-                            KL_Bi_Manual = item.G_KLXeVaThung,
-                            KL_Tong_Manual = item.G_KLXeThungVaGang,
-                            KL_Gang_Manual = item.G_KLGangLong,
-
-                            // LƯU TRỮ KHỐI LƯỢNG GỐC (nếu có) để tham chiếu
-                            Weight_TARE = originalRecord?.Weight_TARE,
-                            Weight_GROSS = originalRecord?.Weight_GROSS,
-                            Weight_NET = originalRecord?.Weight_NET,
-
-                            // THÔNG TIN TRẠNG THÁI
-                            BKMIS_SoMe = item.SoMe.Trim(),
-                            BKMIS_SoMe_Manual = item.SoMe.Trim(),
-                            Override_Reason = item.LyDo,
-                            LyDo = item.LyDo,
-                            Is_Nhap = isNewManualEntry,   // TRUE nếu là dòng mới hoàn toàn (ko có CanRayID gốc)
-                            Mapping_Status = 3,           // 3 = Manual Override/Entry
-                            Last_Mapped_Time = DateTime.Now,
-
-                            // Sao chép các trường khác từ bản ghi gốc nếu có (Casthouse, Shift...)
-                            Casthouse = originalRecord?.Casthouse,
-                            Shift = originalRecord?.Shift,
-                            Weight_no = originalRecord?.Weight_no
-                        };
-
-                        _context.Tbl_CanRayLG2.Add(newEntry);
-                    }
-
-                    // Lưu thay đổi để các bản ghi mới có ID (nếu ID là IDENTITY)
-                    await _context.SaveChangesAsync();
-
-                    // ------------------------------------------------------------------
-                    // PHẦN 2: CẬP NHẬT TBL_BM_16_GANGLONG (Sử dụng Tổng từ items đã chèn)
-                    // ------------------------------------------------------------------
-
-                    foreach (var grpSoMe in items.GroupBy(x => x.SoMe.Trim()))
-                    {
-                        var soMe = grpSoMe.Key;
-
-                        // Tính tổng KL đã override/nhập tay
-                        var sumOverrideKLGangLong = grpSoMe.Sum(i => i.G_KLGangLong ?? 0m);
-
-                        var thungsCungSoMe = listThung
-                            .Where(t => t.BKMIS_SoMe.Trim() == soMe)
-                            .ToList();
-
-                        // Cập nhật BM16
-                        foreach (var thung in thungsCungSoMe)
-                        {
-                            thung.G_KLGangLong = sumOverrideKLGangLong;
-
-                            var firstOverride = grpSoMe.First();
-                            thung.G_KLXeVaThung = firstOverride.G_KLXeVaThung;
-                            thung.G_KLXeThungVaGang = firstOverride.G_KLXeThungVaGang;
-
-                            thung.ID_TrangThai = 6; // Ví dụ: Trạng thái 6 = Đã mapping thủ công/override
-                        }
-                    }
-
-                    await _context.SaveChangesAsync();
-                    await txn.CommitAsync();
-
-                    return Ok(new { success = true, message = "Đã chèn bản ghi thủ công và cập nhật Số mẻ thành công." });
-                }
-                catch (Exception ex)
-                {
-                    await txn.RollbackAsync();
-                    return StatusCode(500, "Lỗi khi lưu dữ liệu ghi đè: " + ex.Message);
                 }
             }
         }

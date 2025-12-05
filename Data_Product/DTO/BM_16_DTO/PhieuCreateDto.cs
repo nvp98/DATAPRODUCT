@@ -53,7 +53,6 @@ namespace Data_Product.DTO.BM_16_DTO
         public int RowId { get; set; }
         public int ID_LoCao { get; set; }
 
-        // thời điểm chốt (server sẽ serialize DateTime? thành ISO string)
         public DateTime? GioChotGang { get; set; }
 
         // chuỗi hiển thị giờ (HH:mm)
@@ -71,6 +70,7 @@ namespace Data_Product.DTO.BM_16_DTO
         public int? Laddle_no { get; set; }
         public int? Shift { get; set; }
         public int? Casthouse { get; set; }
+        public string BKMIS_SoMe { get; set; }
     }
 
 }
