@@ -1105,7 +1105,7 @@
 			});
 		}
 
-		$(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
+		@* $(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
 				let row = $(this).closest("tr");
 
 				let $klThungXeInput = row.find("input[name='KLThungVaXe']");
@@ -1141,9 +1141,44 @@
 						.attr("title", "KL Thùng & Gang + Xe < KL Xe Goòng")
 						.addClass("tooltip-error");
 				}
+		}); *@
+
+		// ⭐ Hàm tính toán cho 1 dòng
+		function tinhToanRow(row) {
+			let $klThungXeInput = row.find("input[name='KLThungVaXe']");
+			let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
+			let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
+
+			let klThungXe = parseFloat($klThungXeInput.val()) || 0;
+			let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
+			let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
+
+			let klThung = klThungXe - klXeGoong;
+			row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
+
+			let klThungGang = klThungGangXe - klXeGoong;
+			row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
+
+			let klGangLong = klThungGang - klThung;
+			row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
+		}
+
+		// ⭐ 1) Khi trang load → tự tính cho tất cả dòng
+		$(document).ready(function () {
+			$("#dataTable tbody tr").each(function () {
+				tinhToanRow($(this));
 			});
+		});
 
 
+		// ⭐ 2) Khi người dùng nhập → tính lại dòng đó
+		$(document).on("input",
+			"input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']",
+			function () {
+				let row = $(this).closest("tr");
+				tinhToanRow(row);
+			}
+		);
 		$(document).ready(function() {
 			function tinhTongKL() {
 				let tong = 0;

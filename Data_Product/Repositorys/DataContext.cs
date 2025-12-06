@@ -52,6 +52,6 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_BM_16_PhanBoGangCR> Tbl_BM_16_PhanBoGangCR { get; set; }
         public DbSet<Tbl_CanRayLG2> Tbl_CanRayLG2 { get; set; }
 
-        
+        public DbSet<Tbl_CanRayLG1> Tbl_CanRayLG1 { get; set; }
     }
 }

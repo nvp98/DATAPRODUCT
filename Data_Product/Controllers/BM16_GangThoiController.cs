@@ -1832,115 +1832,49 @@ namespace Data_Product.Controllers
         {
             try
             {
-                var list = new List<MappingCanRayDto>();
-                int rowId = 0;
-                string _railConnectionString = "Server=10.192.45.10 ;Database=LGANGDB15012022;User Id=sa;Password=Server1@hpdq;";
-                using (var conn = new SqlConnection(_railConnectionString))
-                using (var cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = @"
-                        SELECT
-                        x.ID_LoCao,
-                        x.[Time] AS GioChotGang,
-                        MAX(CASE WHEN x.TagName LIKE '%TS1' THEN x.Value END) AS ThungSo,
-                        MAX(CASE WHEN x.TagName LIKE '%TS3' THEN x.Value END) AS San,
-                        MAX(CASE WHEN x.TagName LIKE '%TS4' THEN x.Value END) AS KL_Bi,
-                        MAX(CASE WHEN x.TagName LIKE '%TS5' THEN x.Value END) AS KL_Tong,
-                        MAX(CASE WHEN x.TagName LIKE '%TS6' THEN x.Value END) AS KL_Gang
-                    FROM (
-                        SELECT
-                            ID,
-                            TagName,
-                            [Time],
-                            Value,
-                            ID_LoCao
-                        FROM RailScale
-                        WHERE
-                            [Time] BETWEEN @FromTime AND @ToTime
-                            AND ID_LoCao = @LoCao
-                    ) AS x
-                    GROUP BY
-                        x.ID_LoCao,
-                        x.[Time]
-                    ORDER BY
-                        x.[Time]
+                // SELECT bằng DbContext từ bảng Tbl_CanRayLG1 (lò 1..4)
+                var query = _context.Tbl_CanRayLG1.AsQueryable();
+                query = query.Where(d => d.ID_LoCao == idLoCao && d.Gio >= fromTime && d.Gio <= toTime);
 
-                                ";
-
-                    cmd.Parameters.Add(new SqlParameter("@FromTime", SqlDbType.DateTime) { Value = fromTime });
-                    cmd.Parameters.Add(new SqlParameter("@ToTime", SqlDbType.DateTime) { Value = toTime });
-                    cmd.Parameters.Add(new SqlParameter("@LoCao", SqlDbType.Int) { Value = idLoCao });
-
-                    await conn.OpenAsync();
-
-                    using (var reader = await cmd.ExecuteReaderAsync())
+                var rawData = await query
+                    .OrderBy(d => d.Gio)
+                    .Take(1000)
+                    .Select(d => new
                     {
-                        while (await reader.ReadAsync())
-                        {
-                            rowId++;
+                        ID = d.ID,
+                        ID_LoCao = d.ID_LoCao,
+                        Gio = d.Gio,
+                        ThungSo = d.ThungSo,
+                        Ray = d.Ray,
+                        SanRaGang = d.SanRaGang,
+                        KL_Bi = d.KL_Bi,
+                        KL_Tong = d.KL_Tong,
+                        KL_Gang = d.KL_Gang,
+                        BKMIS_SoMe = d.BKMIS_SoMe
+                    })
+                    .ToListAsync();
 
-                            int idLoCaoVal = reader.GetInt32(reader.GetOrdinal("ID_LoCao"));
-
-                            DateTime? gioChot = reader.IsDBNull(reader.GetOrdinal("GioChotGang"))
-                                ? (DateTime?)null
-                                : reader.GetDateTime(reader.GetOrdinal("GioChotGang"));
-
-                            decimal? thungSo = null, klBi = null, klTong = null, klGang = null;
-                            int? san = null;
-                            int ord;
-
-                            ord = reader.GetOrdinal("ThungSo");
-                            if (!reader.IsDBNull(ord))
-                            {
-                                thungSo = Convert.ToDecimal(reader.GetDouble(ord));
-                            }
-
-                            ord = reader.GetOrdinal("KL_Bi");
-                            if (!reader.IsDBNull(ord))
-                            {
-                                klBi = Convert.ToDecimal(reader.GetDouble(ord));
-                            }
-
-                            ord = reader.GetOrdinal("KL_Tong");
-                            if (!reader.IsDBNull(ord))
-                            {
-                                klTong = Convert.ToDecimal(reader.GetDouble(ord));
-                            }
-
-                            ord = reader.GetOrdinal("KL_Gang");
-                            if (!reader.IsDBNull(ord))
-                            {
-                                klGang = Convert.ToDecimal(reader.GetDouble(ord));
-                            }
-
-                            ord = reader.GetOrdinal("San");
-                            if (!reader.IsDBNull(ord))
-                            {
-                                san = Convert.ToInt32(reader.GetDouble(ord));
-                            }
-
-
-                            list.Add(new MappingCanRayDto
-                            {
-                                RowId = rowId,
-                                ID_LoCao = idLoCaoVal,
-                                GioChotGang = gioChot,
-                                GioStr = gioChot.HasValue ? gioChot.Value.ToString("HH:mm") : string.Empty,
-                                ThungSo = thungSo,
-                                KL_Bi = klBi,
-                                KL_Tong = klTong,
-                                KL_Gang = klGang,
-                                SanRaGang = san
-                            });
-                        }
-                    }
-                }
+                int rowId = 0;
+                var list = rawData.Select(d =>
+                {
+                    rowId++;
+                    return new MappingCanRayDto
+                    {
+                        RowId = rowId,
+                        ID_LoCao = d.ID_LoCao ?? idLoCao,
+                        CanRayId = d.ID,
+                        GioChotGang = d.Gio,
+                        GioStr = d.Gio.HasValue ? d.Gio.Value.ToString("HH:mm") : string.Empty,
+                        ThungSo = d.ThungSo.HasValue ? (decimal?)d.ThungSo.Value : null,
+                        KL_Bi = d.KL_Bi,
+                        KL_Tong = d.KL_Tong,
+                        KL_Gang = d.KL_Gang,
+                        SanRaGang = d.SanRaGang,
+                        BKMIS_SoMe = d.BKMIS_SoMe
+                    };
+                }).ToList();
 
                 return Ok(list);
-            }
-            catch (SqlException)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Lỗi SQL khi lấy dữ liệu RailScale.");
             }
             catch (Exception)
             {
@@ -2127,9 +2061,18 @@ namespace Data_Product.Controllers
 
                         foreach (var it in relatedById)
                         {
-                            await _context.Database.ExecuteSqlRawAsync(
-                                "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0} WHERE ID = {1} AND BF_no = {2}",
-                                grp.SoMe, it.Id, it.BfNo);
+                            if (it.BfNo >= 1 && it.BfNo <= 4)
+                            {
+                                await _context.Database.ExecuteSqlRawAsync(
+                                    "UPDATE Tbl_CanRayLG1 SET BKMIS_SoMe = {0} WHERE ID = {1} AND ID_LoCao = {2}",
+                                    grp.SoMe, it.Id, it.BfNo);
+                            }
+                            else
+                            {
+                                await _context.Database.ExecuteSqlRawAsync(
+                                    "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0} WHERE ID = {1} AND BF_no = {2}",
+                                    grp.SoMe, it.Id, it.BfNo);
+                            }
                         }
                     }
 
