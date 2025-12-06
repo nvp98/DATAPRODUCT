@@ -381,6 +381,374 @@
 	</div>
 }
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+	.select2-container--default .select2-selection--single {
+		min-height: 30px;
+		padding-top: 2px;
+		font-size: 12px;
+		border-radius: 4px;
+	}
+
+		.select2-container--default .select2-results__option,
+		.select2-container--default .select2-search__field,
+		.select2-container--default .select2-selection--single .select2-selection__rendered {
+			font-size: 12px;
+			line-height: 26px;
+		}
+
+	.cell-changed {
+		outline: 2px solid #ffb84d !important;
+		background: #fff7e6 !important;
+	}
+
+	/* Cố định chiều rộng 1 chút cho cột số mẻ */
+	#tableLeft .ip-some {
+		min-width: 120px;
+	}
+</style>
+
+<div class="mt-4" id="double-auto-mapping">
+	<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+		<h6 class="mb-0">Mapping Số mẻ theo KL cân ray</h6>
+	</div>
+
+	<!-- DÒNG FILTER: Từ giờ + Đến giờ -->
+	<div class="card mt-2">
+		<div class="card-body py-2 d-flex flex-wrap align-items-end gap-2">
+			<div>
+				<label class="form-label mb-1">Từ giờ</label>
+				<input type="datetime-local" id="filterFromTime" class="form-control form-control-sm" />
+			</div>
+			<div>
+				<label class="form-label mb-1">Đến giờ</label>
+				<input type="datetime-local" id="filterToTime" class="form-control form-control-sm" />
+			</div>
+			<button class="btn btn-outline-primary btn-sm" id="btnFetchAuto" type="button">
+				Lấy dữ liệu cân ray
+			</button>
+		</div>
+	</div>
+
+	<div class="collapse show mt-3" id="doubleAutoCollapse">
+		<div class="row g-3">
+			<!-- Bảng trái: KHÔNG chỉnh sửa -->
+			<div class="col-lg-12">
+				<div class="card h-100">
+					<div class="card-header py-2 d-flex justify-content-between align-items-center">
+						<span class="badge bg-info" id="leftCount">0 dòng</span>
+					</div>
+					<div class="card-body p-2">
+						<div class="table-responsive" style="max-height:480px;overflow:auto;">
+							<table class="table table-sm table-bordered table-hover align-middle" id="tableLeft">
+								<thead class="table-light">
+									<tr>
+										<th>Sàn ra gang</th>
+										<th>Số thùng</th>
+										<th>Giờ chốt gang</th>
+										<th>KL bì</th>
+										<th>KL tổng</th>
+										<th>KL gang</th>
+										<th>Số mẻ</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr class="table-secondary text-center">
+										<td colspan="7" class="small">Chưa có dữ liệu.</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+						<div class="d-flex justify-content-end mt-2">
+							<button class="btn btn-success btn-sm" id="btnApplyLeft" type="button">
+								Áp dụng & lưu (theo Số mẻ) - auto
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- ĐÃ BỎ BẢNG PHẢI -->
+		</div>
+	</div>
+</div>
+
+<script>
+	(function () {
+		// util: escape HTML
+		function esc(s) { return $('<div/>').text(s || '').html(); }
+
+		// Cache danh sách Số mẻ BM16 để dùng khi render
+		var bm16SoMeSet = null; // Set các id mẻ
+		function fetchBm16SoMeList(done) {
+			var params = {
+				maPhieu: $('#PhieuID').val(),
+				ngayStr: $('#ID_Day').val(),
+				idLoCao: $('#IDLoCaoNum').val(),
+				idCa: $('#IDCaNum').val(),
+				term: '',
+				take: 500,
+				select2: true
+			};
+			$.get('/BM16_GangThoi/GetAllSoMe', params)
+				.done(function (data) {
+					if (Array.isArray(data)) {
+						bm16SoMeSet = new Set(data.map(function (d) { return d.id; }));
+						// Log danh sách BM16 để kiểm tra
+						console.log('[BM16 GetAllSoMe] count=', data.length, 'sample=', data.slice(0, 5));
+					}
+					if (typeof done === 'function') done();
+				})
+				.fail(function () { bm16SoMeSet = null; if (typeof done === 'function') done(); });
+		}
+
+		// Kiểm tra và chỉ prefill nếu tồn tại trong danh sách BM16
+		function checkAndPrefillSoMe($sel, someVal) {
+			if (!someVal) return;
+			var params = {
+				maPhieu: $('#PhieuID').val(),
+				ngayStr: $('#ID_Day').val(),
+				idLoCao: $('#IDLoCaoNum').val(),
+				idCa: $('#IDCaNum').val(),
+				term: '', // lấy đầy đủ để kiểm tra bằng nhau tuyệt đối
+				take: 500,
+				select2: true
+			};
+			$.ajax({
+				url: '/BM16_GangThoi/GetAllSoMe',
+				method: 'GET',
+				data: params,
+				success: function (data) {
+					// data: array of { id, text }
+					if (!Array.isArray(data)) return;
+					var found = data.find(function (d) { return (d.id || '') === someVal; });
+					if (found) {
+						// đảm bảo option tồn tại trước khi set
+						var hasOpt = $sel.find('option').filter(function(){ return $(this).val() === found.id; }).length > 0;
+						if (!hasOpt) {
+							var opt = new Option(found.text || found.id, found.id, true, true);
+							$sel.append(opt);
+						}
+						$sel.val(found.id).trigger('change');
+					}
+				}
+			});
+		}
+
+		// init select2 for Số mẻ (ajax)
+			function initSoMeSelectAjax($sel) {
+		if ($sel.data('init') === 'true') return;
+
+		$sel.select2({
+			width: '100%',
+			placeholder: 'Chọn Số mẻ',
+			allowClear: true,
+			dropdownParent: $('#doubleAutoCollapse'),
+			ajax: {
+				url: '/BM16_GangThoi/GetAllSoMe',
+				delay: 300,
+				data: function (params) {
+					return {
+						maPhieu: $('#PhieuID').val(),
+						ngayStr: $('#ID_Day').val(),
+						idLoCao: $('#IDLoCaoNum').val(),
+						idCa: $('#IDCaNum').val(),
+						term: params.term,
+						take: 100,
+						select2: true
+					};
+				},
+				processResults: function (data) {
+
+					// THÊM "Khác" vào cuối danh sách
+					data.push({
+						id: "__OTHER__",
+						text: "Khác"
+					});
+
+					return { results: data };
+				}
+			}
+		});
+
+		$sel.data('init', 'true');
+	}
+
+
+		// ===== Render bảng trái =====
+		function renderLeft(list) {
+			var $tb = $("#tableLeft tbody");
+			$tb.empty();
+
+			if (!list || !list.length) {
+				$tb.append(
+					'<tr class="table-secondary text-center">' +
+					'<td colspan="7" class="small">Không có dữ liệu cân ray.</td>' +
+					'</tr>'
+				);
+				$("#leftCount").text("0 dòng");
+				return;
+			}
+
+			list.forEach(function (x) {
+				var san     = (x.sanRaGang != null) ? x.sanRaGang : (x.san != null ? x.san : '');
+				var gioIso  = x.gioChotGang;
+				var gioStr  = x.gioStr || '';
+				var thungSo = x.thungSo != null ? x.thungSo : '';
+				var idLo    = x.iD_LoCao;
+				var canRayId = x.canRayId || null;
+				var bfNo   = x.bF_no || idLo || null;
+				// Chuẩn hoá lấy Số mẻ từ đối tượng trả về (khác biệt kiểu đặt tên)
+				var someVal = (x.bkmis_SoMe || x.bkmiS_SoMe || x.soMe || x.SoMe || '').toString();
+
+				var tr = '' +
+					'<tr data-row="left"' +
+					'    data-rowid="' + esc(x.rowId) + '"' +
+					'    data-idlocao="' + esc(idLo) + '"' +
+					'    data-crid="' + esc(canRayId) + '"' +
+					'    data-bfno="' + esc(bfNo) + '"' +
+					'    data-san="' + esc(san) + '"' +
+					'    data-gioiso="' + esc(gioIso) + '"' +
+					'    data-thungso="' + esc(thungSo) + '">' +
+					'  <td>' + esc(san) + '</td>' +
+					'  <td>' + esc(thungSo) + '</td>' +
+					'  <td>' + esc(gioStr) + '</td>' +
+					'  <td class="kl-bi">' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
+					'  <td class="kl-tong">' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
+					'  <td class="kl-gang">' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
+					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
+					'</tr>';
+
+				$tb.append(tr);
+				var $sel = $tb.find('tr:last .ip-some');
+				// Nếu đã có cache BM16, prefill ngay trước khi init select2
+				if (bm16SoMeSet && someVal && bm16SoMeSet.has(someVal)) {
+					var opt = new Option(someVal, someVal, true, true);
+					$sel.append(opt);
+					$sel.val(someVal);
+				}
+				// Sau đó khởi tạo select2 (để người dùng có thể thay đổi)
+				initSoMeSelectAjax($sel);
+				// Nếu chưa có cache, fallback gọi kiểm tra qua API
+				if (!bm16SoMeSet) {
+					checkAndPrefillSoMe($sel, someVal);
+				}
+			});
+
+			$("#leftCount").text(list.length + " dòng");
+		}
+
+		function renderBoth(list) {
+			renderLeft(list);
+		}
+
+		// ===== Fetch auto =====
+		function fetchAuto() {
+			var fromDateStr = $('#filterFromTime').val();
+			var toDateStr   = $('#filterToTime').val();
+			var idLoCao     = parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val());
+
+			if (!fromDateStr || !toDateStr || !idLoCao) {
+				alert('Nhập đủ Từ giờ, Đến giờ và Lò cao.');
+				return;
+			}
+
+			$("#tableLeft tbody").html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+
+			$.ajax({
+				url: '/BM16_GangThoi/GetAutoSourceData',
+				method: 'GET',
+				data: {
+					fromDateStr: fromDateStr,
+					toDateStr: toDateStr,
+					idLoCao: idLoCao
+				},
+				success: function (res) {
+					// Log dữ liệu cân ray để kiểm tra
+					console.log('[AutoSourceData] rows=', Array.isArray(res) ? res.length : 0, 'sample=', Array.isArray(res) ? res.slice(0, 5) : res);
+					// Trước khi render, lấy danh sách BM16 một lần để prefill ngay
+					fetchBm16SoMeList(function(){
+						renderBoth(res || []);
+					});
+				},
+				error: function (xhr) {
+					alert('Lỗi tải dữ liệu auto: ' + (xhr.responseText || 'Không xác định'));
+				}
+			});
+		}
+
+		// ===== Collect from left =====
+		function collectFromLeft() {
+			var maPhieu = $('#PhieuID').val();
+			var items = [];
+
+			$("#tableLeft tbody tr[data-row='left']").each(function () {
+				var $r = $(this);
+				var soMe = $r.find('.ip-some').val();
+				if (!soMe) return; // bỏ dòng chưa chọn Số mẻ
+
+				var idLoCao = parseInt($r.data('idlocao'), 10);
+				var canRayId = parseInt($r.data('crid'), 10) || null;
+				var gioChot = $r.data('gioiso');      // ISO string
+				var thungSo = $r.data('thungso');
+
+				// lấy theo class để ổn định, tránh phụ thuộc vị trí cột
+				var klBi   = parseFloat($r.find('td.kl-bi').text()) || null;
+				var klTong = parseFloat($r.find('td.kl-tong').text()) || null;
+				var klGang = parseFloat($r.find('td.kl-gang').text()) || null;
+
+				items.push({
+					MaPhieu: maPhieu,
+					SoMe: soMe,
+					ID_LoCao: idLoCao,
+					CanRayId: canRayId,
+					GioChotGang: gioChot,
+					G_KLXeVaThung: klBi,
+					G_KLXeThungVaGang: klTong,
+					G_KLGangLong: klGang
+				});
+			});
+
+			return items;
+		}
+
+		function applyLeft() {
+			var items = collectFromLeft();
+			if (!items.length) {
+				alert('Bảng trái: chưa chọn Số mẻ cho dòng nào.');
+				return;
+			}
+
+			if (!confirm('Bạn có chắc muốn cập nhật khối lượng từ cân ray vào BM16 theo các Số mẻ đã chọn?'))
+				return;
+
+			$.ajax({
+				url: '/BM16_GangThoi/SaveAutoMapping',
+				method: 'POST',
+				contentType: 'application/json; charset=utf-8',
+				data: JSON.stringify(items),
+				success: function (res) {
+					alert(res && res.message ? res.message : 'Đã cập nhật khối lượng theo Số mẻ.');
+				},
+				error: function (xhr) {
+					var msg = xhr.responseText || 'Lỗi không xác định khi lưu mapping.';
+					alert('Lỗi lưu mapping auto: ' + msg);
+				}
+			});
+		}
+
+		// bind events
+		$(document).on('click', '#btnFetchAuto', function (e) { e.preventDefault(); fetchAuto(); });
+		$(document).on('click', '#btnApplyLeft', function (e) { e.preventDefault(); applyLeft(); });
+
+		// on ready update counts
+		$(function () {
+			$("#leftCount").text($("#tableLeft tbody tr[data-row='left']").length + " dòng");
+		});
+	})();
+</script>
 <script>
 	var soLuongMe = @(ViewBag.SoLuongMe ?? 0);
 		$(document).ready(function()
