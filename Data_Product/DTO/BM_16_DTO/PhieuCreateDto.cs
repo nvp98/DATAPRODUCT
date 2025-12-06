@@ -30,20 +30,7 @@ namespace Data_Product.DTO.BM_16_DTO
         public List<NguoiInfo> NguoiNhan { get; set; }
         public List<NguoiInfo> NguoiXacNhan { get; set; }
     }
-    public class AutoMappingItemDto
-    {
-        public string MaPhieu { get; set; }       // mã phiếu hiện tại
-        public string SoMe { get; set; }          // BKMIS_SoMe
-        public int ID_LoCao { get; set; }         // Lò cao
-        public DateTime? GioChotGang { get; set; }// từ cân ray (có thể dùng làm Gio_NM)
 
-        // ID hàng cân ray (Tbl_CanRayLG2.ID) để cập nhật theo ID + BF_no
-        public int? CanRayId { get; set; }
-
-        public decimal? G_KLXeVaThung { get; set; }      // map từ KL_Bi (TS4)
-        public decimal? G_KLXeThungVaGang { get; set; }  // map từ KL_Tong (TS5)
-        public decimal? G_KLGangLong { get; set; }       // map từ KL_Gang (TS6)
-    }
     public class NguoiInfo
     {
         public string HoVaTen { get; set; }
@@ -51,32 +38,6 @@ namespace Data_Product.DTO.BM_16_DTO
         public string TenPhongBan { get; set; }
         public string ChuKy { get; set; }
     }
-    public class MappingCanRayDto
-    {
-        public int RowId { get; set; }
-        public int ID_LoCao { get; set; }
 
-        public DateTime? GioChotGang { get; set; }
-
-        // chuỗi hiển thị giờ (HH:mm)
-        public string GioStr { get; set; }
-
-        // số liệu khối lượng / TS1, TS4, TS5, TS6 — decimal? để giữ precision
-        public decimal? ThungSo { get; set; }   // TS1
-        public decimal? KL_Bi { get; set; }     // TS4
-        public decimal? KL_Tong { get; set; }   // TS5
-        public decimal? KL_Gang { get; set; }   // TS6
-        public int? SanRaGang { get; set; } 
-
-        // các trường gốc nếu cần (tùy chọn)
-        public int? BF_no { get; set; }
-        public int? Laddle_no { get; set; }
-        public int? Shift { get; set; }
-        public int? Casthouse { get; set; }
-        public string BKMIS_SoMe { get; set; }
-
-        // Khoá chính của Tbl_CanRayLG2 để gửi ngược về khi lưu
-        public int? CanRayId { get; set; }
-    }
 
 }
