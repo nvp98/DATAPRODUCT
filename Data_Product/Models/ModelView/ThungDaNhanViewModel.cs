@@ -39,6 +39,8 @@ namespace Data_Product.Models.ModelView
         public bool? IsSaiChuyenDen  { get; set; }
         public bool? IsChiaCR { get; set; }
 
+        public decimal? NhietDo { get; set; }
+
     }
 
     public class ThungTrungGianGroupViewModel
