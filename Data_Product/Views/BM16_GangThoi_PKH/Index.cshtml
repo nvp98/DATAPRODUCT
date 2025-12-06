@@ -341,8 +341,8 @@
                                     <label class="form-label">Tình trạng LG:</label>
                                     <select class="form-select form-select-sm" id="TinhTrangLG" name="TinhTrangLG">
                                         <option value="">-- Tình trạng --</option>
-                                        <option value="1">Chưa chuyển</option>
-                                        <option value="3">Đã chuyển</option>
+                                        <option value="1">Chưa xử lý</option>
+                                        <option value="3">Đã xử lý</option>
                                     </select>
                                 </div>
                                 <!-- Chuyển đến -->
@@ -377,6 +377,7 @@
                                     <label class="form-label">Tình trạng chốt:</label>
                                     <select class="form-select form-select-sm" id="TinhTrangChot" name="TinhTrangChot">
                                         <option value="">-- Tình trạng --</option>
+                                        <option value="1">Chưa xử lý</option>
                                         <option value="2">Chờ xử lý</option>
                                         <option value="5">Đã chốt</option>
                                     </select>
@@ -527,6 +528,7 @@
                         <th class="sticky-col-6" style="min-width: 116px;">Số mẻ</th>
                         <th class="sticky-col-7" style="min-width: 69px;">Thùng số</th>
                         <th class="sticky-col-8" style="min-width: 53px;">Giờ</th>
+                        <th class="hide-col">Tình trạng QLCL</th>
                         <th class="hide-col" style="min-width: 70px;">Phân loại</th>
                         <th>Sàn ra gang</th>
                         <th>KL xe goong</th>
@@ -541,6 +543,7 @@
                         <th>Ca LT</th>
                         <th>Kíp LT</th>
                         <th class="hide-col">Mã thùng thép</th>
+                        <th class="hide-col">Nhiệt độ trước khi rót (ºC)</th>
                         <th class="hide-col">KL thùng & gang lỏng (T)</th>
                         <th class="hide-col">KL thùng (T)</th>
                         <th class="hide-col">KL gang lỏng (T)</th>
@@ -944,75 +947,79 @@
             `;
         }
 
-
-        function renderStatusPKH(item) {
-            if (item.iD_TrangThai === 5) {
-                // Nếu đã duyệt thì giữ nguyên
-                return renderStatusCard(item.iD_TrangThai);
-            }
-
-            const isValidValue = val => val !== null && val !== undefined;
-
-            const commonFields = [
-                item.t_ID_TrangThai === 4,
-                item.g_ID_TrangThai === 3,
-                isValidValue(item.iD_TTG),
-                isValidValue(item.soThungTG),
-                isValidValue(item.iD_MeThoi),
-                isValidValue(item.gioChonMe)
-            ];
-
-            // Trường hợp DUC1 / DUC2
-            if (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') {
-                const ducFields = [
-                    isValidValue(item.kL_XeGoong),
-                    isValidValue(item.g_KLThungChua),
-                    isValidValue(item.g_KLThungVaGang),
-                    isValidValue(item.g_KLGangLong),
-                    isValidValue(item.gio_NM)
-                ];
-                const allValid = ducFields.every(Boolean);
-                // Nếu đủ dữ liệu thì “chưa xử lý” (1), thiếu thì “chờ xử lý” (0)
-                return renderStatusCard(allValid ? 1 : 2);
-            }
-
-            const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
-
-            let isValid = false;
-
-            if (item.isCopy) {
-                // Nếu là bản copy → chỉ cần commonFields
-                isValid = commonFields.every(Boolean);
-            } else {
-                // Nếu là bản gốc → cần thêm các field khác
-                const additionalFields = [
-                    isValidValue(item.kL_XeGoong),
-                    isValidValue(item.g_KLThungChua),
-                    isValidValue(item.g_KLThungVaGang),
-                    isValidValue(item.g_KLGangLong),
-                    isValidValue(item.chuyenDen),
-                    isValidValue(item.gio_NM)
-                ];
-
-                // Nếu không có klGangChia → kiểm tra thêm 3 field nữa
-                if (!hasKlGangChia) {
-                    additionalFields.push(
-                        isValidValue(item.t_KLThungVaGang),
-                        isValidValue(item.t_KLThungChua),
-                        isValidValue(item.t_KLGangLong),
-                        isValidValue(item.klThungVaGang_Thoi),
-                        isValidValue(item.klThung_Thoi),
-                        isValidValue(item.klGang_Thoi),
-                        isValidValue(item.kL_phe),
-                    );
-                }
-
-                isValid = [...commonFields, ...additionalFields].every(Boolean);
-            }
-
-            // Cập nhật trạng thái nếu đủ điều kiện
-            return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+        function renderStatusQLCL(isXacNhan){
+            if(isXacNhan) 
+                return  `
+                    <div class="status-card bg-da-nhan">
+                    <span class="status-text small pt-2 ps-1"">
+                            Đã xác nhận
+                        </span>
+                    </div>
+                `;
+             return renderStatusCard(1);
         }
+
+        // function renderStatusPKH(item) {
+        //     if (item.iD_TrangThai === 5) {
+        //         return renderStatusCard(item.iD_TrangThai);
+        //     }
+
+        //     const isValidValue = val => val !== null && val !== undefined;
+
+        //     const commonFields = [
+        //         item.t_ID_TrangThai === 4,
+        //         item.g_ID_TrangThai === 3,
+        //         isValidValue(item.iD_TTG),
+        //         isValidValue(item.soThungTG),
+        //         isValidValue(item.iD_MeThoi),
+        //         isValidValue(item.gioChonMe)
+        //     ];
+
+        //     if (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') {
+        //         const ducFields = [
+        //             isValidValue(item.kL_XeGoong),
+        //             isValidValue(item.g_KLThungChua),
+        //             isValidValue(item.g_KLThungVaGang),
+        //             isValidValue(item.g_KLGangLong),
+        //             isValidValue(item.gio_NM)
+        //         ];
+        //         const allValid = ducFields.every(Boolean);
+        //         return renderStatusCard(allValid ? 1 : 2);
+        //     }
+
+        //     const hasKlGangChia = item.klGangChia != null && item.klGangChia !== '';
+
+        //     let isValid = false;
+
+        //     if (item.isCopy) {
+        //         isValid = commonFields.every(Boolean);
+        //     } else {
+        //         const additionalFields = [
+        //             isValidValue(item.kL_XeGoong),
+        //             isValidValue(item.g_KLThungChua),
+        //             isValidValue(item.g_KLThungVaGang),
+        //             isValidValue(item.g_KLGangLong),
+        //             isValidValue(item.chuyenDen),
+        //             isValidValue(item.gio_NM)
+        //         ];
+
+        //         if (!hasKlGangChia) {
+        //             additionalFields.push(
+        //                 isValidValue(item.t_KLThungVaGang),
+        //                 isValidValue(item.t_KLThungChua),
+        //                 isValidValue(item.t_KLGangLong),
+        //                 isValidValue(item.klThungVaGang_Thoi),
+        //                 isValidValue(item.klThung_Thoi),
+        //                 isValidValue(item.klGang_Thoi),
+        //                 isValidValue(item.kL_phe),
+        //             );
+        //         }
+
+        //         isValid = [...commonFields, ...additionalFields].every(Boolean);
+        //     }
+
+        //     return renderStatusCard(isValid ? 1 : item.iD_TrangThai);
+        // }
 
 
         function KLChenhLech(g_KLGangLong, t_KLGangLong) {
@@ -1227,7 +1234,9 @@
                     const tinhTrangLGHTML = renderStatusCard(item.g_ID_TrangThai);
                     const tinhTrangLTHTML = renderStatusCard(item.t_ID_TrangThai);
 
-                    const tinhTrangHTML = renderStatusPKH(item);
+                    // const tinhTrangHTML = renderStatusPKH(item);
+                    const tinhTrangHTML = renderStatusCard(item.iD_TrangThai);
+                    const tinhTrangQLCLHTML = renderStatusQLCL(item.xacNhan)
 
                     const ngayLG = getDayOnly(item.ngayTao);
                     const ngayLT = getDayOnly(item.ngayLuyenThep);
@@ -1257,6 +1266,7 @@
                     row.append(`<td class="sticky-col-6" ${item.t_copy || isCopy ? 'style="color: red;"' : ''}>${item.bkmiS_SoMe ?? ''}</td>`);
                     row.append(`<td class="sticky-col-7" style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
                     row.append(`<td class="sticky-col-8">${item.bkmiS_Gio ?? ''}</td>`);
+                    row.append(`<td class="hide-col">${tinhTrangQLCLHTML}</td>`);
                     row.append(`<td class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
 
                     if(item.t_copy == true || isCopy){
@@ -1285,6 +1295,7 @@
                     row.append(`<td>${item.t_Ca == null ? '' : (item.t_Ca === 1 ? 'N' : 'Đ')}</td>`);
                     row.append(`<td>${item.t_TenKip ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.maThungThep ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.nhietDo ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungVaGang ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungChua ?? ''}</td>`);
                     row.append(`<td  class="hide-col T_KLGangLong">${item.t_KLGangLong ?? ''}</td>`);
@@ -1935,10 +1946,10 @@
             // Cột cần ẩn/hiện
             $('.hide-col').css('display', display);
 
-            $('.total-space').attr('colspan', isHidden ? 11 : 13);
-            $('.space-2').attr('colspan', isHidden ? 5 : 10);
+            $('.total-space').attr('colspan', isHidden ? 11 : 14);
+            $('.space-2').attr('colspan', isHidden ? 5 : 11);
 
-            $('.space-3').attr('colspan', isHidden ? 4 : 9);
+            $('.space-3').attr('colspan', isHidden ? 4 : 10);
             $('.space-4').attr('colspan', isHidden ? 9 : 9);
 
             if(!isHidden){

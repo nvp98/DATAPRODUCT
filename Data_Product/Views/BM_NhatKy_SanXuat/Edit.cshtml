@@ -306,14 +306,14 @@
                                                 let TGianChoXL = row[8];
                                                 let TGianXL = row[9];
                                                 let TGianSC = row[10];
-                                                let SuCoCN = (row[11] || "").trim();
-                                                let ChoCN = (row[12] || "").trim();
-                                                let KhachQuan = (row[13] || "").trim();
-                                                let ChoKhac = (row[14] || "").trim();
-                                                let DungBTBD = (row[15] || "").trim();
+                                                let SuCoCN = (`${row[11] || ""}`).trim();
+                                                let ChoCN = (`${row[12] || ""}`).trim();
+                                                let KhachQuan = (`${row[13] || ""}`).trim();
+                                                let ChoKhac = (`${row[14] || ""}`).trim();
+                                                let DungBTBD = (`${row[15] || ""}`).trim();
                                                 let TGianKH_BTBD = row[16];
                                                 let DungDayChuyen = row[17];
-                                                let GhiChu = (row[18] || "").trim();
+                                                let GhiChu = (`${row[18] || ""}`).trim();
 
                                                 let cumObj = CumThietBi.find(x => x.text.trim() === TenCumTB);
                                                 let cumValue = cumObj ? cumObj.value : "";
@@ -354,26 +354,31 @@
                                                     <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].NoiDungDung" value="${NoidungDung}" class="form-control" required></td>
 
                                                     <!-- Thiết bị Cơ điện -->
-                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_SoLan" value="${soLanSC}" class="form-control text-center" min="0" step="1"></td>
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_SoLan" value="${soLanSC}" class="form-control text-center CoDien_SoLan" min="0" step="1"></td>
                                                     <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_ChoXL" value="${TGianChoXL}" class="form-control text-center CoDien_ChoXL" min="0" step="0.1"></td>
                                                     <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_TGianXL" value="${TGianXL}" class="form-control text-center CoDien_TGianXL" min="0" step="0.1"></td>
                                                     <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].CoDien_TGianSC" value="${TGianSC}" class="form-control text-center CoDien_TGianSC" min="0" step="0.1" readonly></td>
 
                                                     <!-- Công nghệ -->
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${SuCoCN != "" ? "checked" : ""} value="1" class="radio-square"></td>
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoCN != "" ? "checked" : ""} value="2" class="radio-square"></td>
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${KhachQuan != "" ? "checked" : ""} value="3" class="radio-square"></td>
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoKhac != "" ? "checked" : ""} value="4" class="radio-square"></td>
-                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${DungBTBD != "" ? "checked" : ""} value="5" class="radio-square"></td>
+                                                    <td class="text-center">
+                                                    <button type="button" class="btn btn-secondary btn-sm reset-radio" title="Xóa lựa chọn">
+                                                                                    <i class="bi bi-x-circle"></i>
+                                                                                </button>
+                                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${SuCoCN != "" ? "checked" : ""} value="1" class="radio-square LyDo_DungThietBi"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoCN != "" ? "checked" : ""} value="2" class="radio-square LyDo_DungThietBi"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${KhachQuan != "" ? "checked" : ""} value="3" class="radio-square LyDo_DungThietBi"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${ChoKhac != "" ? "checked" : ""} value="4" class="radio-square LyDo_DungThietBi"></td>
+                                                    <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[${index}].LyDo_DungThietBi" ${DungBTBD != "" ? "checked" : ""} value="5" class="radio-square LyDo_DungThietBi"></td>
 
                                                     <!-- Thời gian kế hoạch BTBD -->
-                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].TGian_KH_BTBD" value="${TGianKH_BTBD}" class="form-control text-center" min="0" step="0.1"></td>
+                                                    <td><input type="number" name="NhatKy_SanXuat_ChiTiet[${index}].TGian_KH_BTBD" value="${TGianKH_BTBD}" class="form-control text-center TGian_KH_BTBD" min="0" step="0.1"></td>
 
                                                     <!-- Gây dừng dây chuyền -->
                                                     <td>
                                                         <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[${index}].DungDayChuyen" required>
-                                                            <option value="true" ${DungDayChuyen.trim === "có" ? "selected" : ""}>Có</option>
-                                                            <option value="false" ${DungDayChuyen.trim === "không" ? "selected" : ""}>Không</option>
+                                                            <option value="" >--Chọn--</option>
+                                                            <option value="true" ${(`${DungDayChuyen ?? ''}`.trim().toLowerCase() === "có" ? "selected" : "")}>Có</option>
+                                                            <option value="false" ${(`${DungDayChuyen ?? ''}`.trim().toLowerCase() === "không" ? "selected" : "")}>Không</option>
                                                         </select>
                                                     </td>
 
@@ -381,7 +386,9 @@
                                                     <td><input type="text" name="NhatKy_SanXuat_ChiTiet[${index}].GhiChu" value="${GhiChu}" class="form-control"></td>
 
                                                     <!-- Nút xóa -->
-                                                    <td class="text-center"><button type="button" class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button></td>
+                                                    <td class="text-center"><button type="button" class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
+                                                                                    
+                                                    </td>
                                                 </tr>
                                                 `;
 
@@ -515,7 +522,11 @@
                                                 <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_ChoXL" value="@item.CoDien_ChoXL" class="form-control CoDien_ChoXL"></td>
                                                 <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_TGianXL" value="@item.CoDien_TGianXL" class="form-control CoDien_TGianXL"></td>
                                                 <td><input type="number" name="NhatKy_SanXuat_ChiTiet[@index].CoDien_TGianSC" value="@item.CoDien_TGianSC" class="form-control CoDien_TGianSC" readonly></td>
-                                                <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="1" @(item.LyDo_DungThietBi == 1 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-secondary btn-sm reset-radio" title="Xóa lựa chọn">
+                                                        <i class="bi bi-x-circle"></i>
+                                                    </button>
+                                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="1" @(item.LyDo_DungThietBi == 1 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="2" @(item.LyDo_DungThietBi == 2 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="3" @(item.LyDo_DungThietBi == 3 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
                                                 <td class="text-center"><input type="radio" name="NhatKy_SanXuat_ChiTiet[@index].LyDo_DungThietBi" value="4" @(item.LyDo_DungThietBi == 4 ? "checked" : "") class="radio-square LyDo_DungThietBi" required></td>
@@ -524,14 +535,30 @@
 
                                                 <td>
                                                     <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[@index].DungDayChuyen" style="width:100%;" required>
-                                                        <option value="true">Có</option>
-                                                        <option value="false">Không</option>
+                                                        <option value="">--Chọn--</option>
+                                                        @if(item.DungDayChuyen == true)
+                                                        {
+                                                            <option value="true" selected>Có</option>
+                                                            <option value="false">Không</option>
+                                                        }
+                                                        else if (item.DungDayChuyen == false)
+                                                        {
+                                                            <option value="true">Có</option>
+                                                            <option value="false" selected>Không</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="true">Có</option>
+                                                            <option value="false">Không</option>
+                                                        }
+                                                        
                                                     </select>
                                                 </td>
 
                                                 <td><input type="text" name="NhatKy_SanXuat_ChiTiet[@index].GhiChu" value="@item.GhiChu" class="form-control" ></td>
                                                 <td>
                                                     <button class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
+                                                    
                                                 </td>
                                             </tr>
                                             index++;
@@ -596,7 +623,10 @@
 
                                   <!-- Công nghệ -->
                                  <td class="text-center">
-                                    <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="1" class="radio-square LyDo_DungThietBi" required>
+                                   <button type="button" class="btn btn-secondary btn-sm reset-radio" title="Xóa lựa chọn">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                                     <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="1" class="radio-square LyDo_DungThietBi" required>
                                 </td>
                                 <td class="text-center">
                                     <input type="radio" name="NhatKy_SanXuat_ChiTiet[{index}].LyDo_DungThietBi" value="2" class="radio-square LyDo_DungThietBi" required>
@@ -618,6 +648,7 @@
                                   <!-- Gây dừng dây chuyền -->
                                   <td>
                                     <select class="form-control marginTB5" name="NhatKy_SanXuat_ChiTiet[{index}].DungDayChuyen" required>
+                                      <option value="" >--Chọn--</option>
                                       <option value="true">Có</option>
                                       <option value="false">Không</option>
                                     </select>
@@ -629,6 +660,7 @@
                                   <!-- Nút xóa -->
                                   <td class="text-center">
                                     <button type="button" class="btn btn-danger removeRow"><i class="bi bi-x-lg"></i></button>
+                                                                 
                                   </td>
 
                                 </tr>
@@ -690,12 +722,76 @@
 }
 
 <script>
+
+            // Hàm check dieu kien
+            function checkRequiredFields(row) {
+              row = $(row); // ✅ ép kiểu DOM → jQuery object
+              // Lấy giá trị số từ các input trong dòng
+              const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
+              const tgXL = parseFloat(row.find('.CoDien_TGianXL').val()) || 0;
+              const tgDung = parseFloat(row.find('.ThoiGianDung').val()) || 0;
+              const total = choXL + tgXL;
+              row.find('.CoDien_TGianSC').val(total);
+              // 🔹 Nếu tổng < 1 → bắt buộc nhập lý do
+              if (total < tgDung) {
+                row.find('.LyDo_DungThietBi').attr('required', true);
+              }
+              else {
+                row.find('.LyDo_DungThietBi').removeAttr('required');
+              }
+
+              // 🔹 Nếu có thời gian chờ xử lý → bắt buộc nhập thời gian xử lý
+              if (choXL !== 0 && tgXL ===0) {
+                row.find('.CoDien_TGianXL').attr('required', true);
+              } else {
+                row.find('.CoDien_TGianXL').removeAttr('required');
+              }
+            }
+
+                // Xóa toàn bộ radio trong dòng
+    $(document).on("click", ".reset-radio", function () {
+        const row = $(this).closest("tr");
+
+        // Bỏ chọn tất cả radio trong dòng
+        row.find('.LyDo_DungThietBi')
+            .prop("checked", false)
+            .data("waschecked", false);
+
+        // Xóa cả required (nếu đang bật)
+        row.find('.LyDo_DungThietBi').removeAttr("required");
+    });
+
+
         $(document).on('input change blur', '.CoDien_ChoXL, .CoDien_TGianXL', function () {
             const row = $(this).closest('tr'); // dòng hiện tại
-            const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
-            const tgXL  = parseFloat(row.find('.CoDien_TGianXL').val()) || 0;
+             @* checkRequiredFields(row); *@
 
-            row.find('.CoDien_TGianSC').val(choXL + tgXL);
+          @*   const choXL = parseFloat(row.find('.CoDien_ChoXL').val()) || 0;
+            const tgXL  = parseFloat(row.find('.CoDien_TGianXL').val()) || 0; *@
+            // Nếu TGianXL <1 bắt buộc chọn LyDo
+            @* row.find('.CoDien_TGianSC').val(choXL + tgXL); *@
+            checkRequiredFields($(row));
+           @*  if((choXL + tgXL) < 1){
+                row.find('.LyDo_DungThietBi').attr('required', true);
+            }
+            else{
+            row.find('.LyDo_DungThietBi').removeAttr('required'); // xóa require
+            }
+
+            // Add required nếu Chờ xử lý nhập -> xử lý phải nhập
+            if(choXL != 0){
+                row.find('.CoDien_TGianXL').attr('required', true);
+            }
+            else{
+                row.find('.CoDien_TGianXL').removeAttr('required');
+            } *@
+           
+        });
+        $(document).ready(function () {
+          // Duyệt qua tất cả các dòng có class hoặc tương tự
+          $('#dataTable tbody tr').each(function (index, row) {
+            checkRequiredFields($(row)); // Gọi hàm kiểm tra cho từng dòng
+          });
         });
         $(document).on('input change blur', '.ThoiDiemChay, .ThoiDiemDung', function () {
             const row = $(this).closest('tr'); // lấy dòng hiện tại
@@ -780,10 +876,32 @@
                     $(row).css('background-color', '');
                     $(row).find('.ThoiGianDung, .CoDien_TGianSC').css('border-color', '');
                 } *@
+                const tgCDChoXL = parseFloat($(row).find('.CoDien_ChoXL').val()) || 0;
+                const tgXL = parseFloat($(row).find('.CoDien_TGianXL').val()) || 0;
+
+                if(tgCDChoXL != 0 && tgXL ===0 ){
+                    alert(`Dòng ${index + 1}: Vui lòng điền TG xử lý SC!`);
+                    isValid = false;
+                     // Đánh dấu dòng lỗi (đỏ viền)
+                    $(row).find('.CoDien_TGianXL').css('border-color', 'red');
+                    return false; // break vòng each
+                }
+                
+                const tgSCXL = parseFloat($(row).find('.CoDien_TGianSC').val()) || 0;
+                const tgDung = parseFloat($(row).find('.ThoiGianDung').val()) || 0;
+                if(tgSCXL >tgDung){
+                     alert(`Dòng ${index + 1}: Thời gian sự cố phải <= Thời gian dừng!`);
+                    isValid = false;
+                     // Đánh dấu dòng lỗi (đỏ viền)
+                    $(row).css('background-color', '#ffe6e6');
+                    $(row).find('.CoDien_TGianSC').css('border-color', 'red');
+                    return false; // break vòng each
+                }
+
                 const lydo = parseFloat($(row).find('.LyDo_DungThietBi:checked').val()) || 0;
                 const TGian_KH_BTBD = parseFloat($(row).find('.TGian_KH_BTBD').val()) || 0;
                 if(lydo === 5 && TGian_KH_BTBD ===0 && $(row).find('.TGian_KH_BTBD').val() ===""){
-                    alert(`Dòng ${index + 1}: Vui lòng điền TG dừng theo kế hoạch)!`);
+                    alert(`Dòng ${index + 1}: Vui lòng điền TG dừng theo kế hoạch!`);
                     isValid = false;
 
                      // Đánh dấu dòng lỗi (đỏ viền)
@@ -791,6 +909,8 @@
                     $(row).find('.TGian_KH_BTBD').css('border-color', 'red');
                     return false; // break vòng each
                 }
+
+
             });
             if (!isValid) {
                 e.preventDefault(); // Chặn submit nếu có lỗi

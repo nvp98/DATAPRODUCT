@@ -577,17 +577,22 @@ namespace Data_Product.Services
                     var steelsInAnyGang = steels.Where(s => rowsBySteel.ContainsKey(s)).ToList();
                     if (steelsInAnyGang.Count == 0) { foreach (var s in steels) handledSteels.Add(s); continue; }
 
-                    var destSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                    bool anyDuc = false;
+                    bool allDuc = true;
+                    bool allNonDuc = true;
+
+                    
                     foreach (var s in steels)
                     {
                         var d = CanonDestForSteel(s);
-                        if (!string.IsNullOrWhiteSpace(d)) destSet.Add(d!);
-                        if (IsDuc(d)) anyDuc = true;
+                        var isD = IsDuc(d);
+
+                        if (!isD) allDuc = false;
+                        if (isD) allNonDuc = false;
                     }
-                    bool sameDest = destSet.Count <= 1;
-                    bool sameDestIsDuc = sameDest && anyDuc;
-                    bool sameDestIsNonDuc = sameDest && !anyDuc;
+
+                    // Now classification
+                    bool sameDestIsDuc = allDuc;         // tất cả đều ĐÚC (DUC1/DUC2)
+                    bool sameDestIsNonDuc = allNonDuc;
 
                     if (sameDestIsDuc)
                     {

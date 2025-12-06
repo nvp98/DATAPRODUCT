@@ -220,8 +220,8 @@
 										<th rowspan="2">KL gang lỏng cân ray</th>
 										<th rowspan="2">KL cân lần 2</th>
 										<th colspan="4">Vận chuyển đến</th>
-										<th rowspan="2">Vận chuyển nội bộ</th>
-										<th rowspan="2">Giờ NM</th>
+										<th rowspan="2">Giờ đầy thùng</th>
+										<th rowspan="2">Thời điểm bắt đầu rót</th>
 										<th rowspan="2">Ghi chú</th>
 										@if (PhongBan?.TenNgan == "P.QLCL")
 										{
@@ -313,6 +313,7 @@
 												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") @disabledAttr /></td>
 												<td></td>
 												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM" @disabledAttr></td>
+												<td> @item.GioChonMe</td>
 												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;" @disabledAttr>@item.GhiChu</textarea></td>
 												@if (PhongBan?.TenNgan == "P.QLCL")
 												{
@@ -1211,7 +1212,7 @@
 					<td>${soLuongMe}</td>
 					<td colspan="9"></td>
 					<td>${tong.toFixed(2)}</td>
-					<td colspan="8"></td>
+					<td colspan="9"></td>
 					<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
 					<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
 					<td colspan="3"></td>

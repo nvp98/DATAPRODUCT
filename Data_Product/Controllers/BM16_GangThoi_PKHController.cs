@@ -422,7 +422,101 @@ namespace Data_Product.Controllers
 
             return total;
         }
+        private int CalculateTrangThai(Tbl_BM_16_GangLong item)
+        {
+            // DB status = 5 -> approve (giữ nguyên)
+            if (item.ID_TrangThai == 5) return 5;
 
+            bool ok(object v) =>
+                v != null && !(v is string s && string.IsNullOrWhiteSpace(s));
+
+            // Common fields (bắt buộc)
+            var common = new[]
+            {
+                item.T_ID_TrangThai == 4,
+                item.G_ID_TrangThai == 3,
+                ok(item.ID_TTG),
+                ok(item.SoThungTG),
+                ok(item.ID_MeThoi),
+                ok(item.GioChonMe)
+            };
+
+            // TH đặc biệt: DUC1 / DUC2
+            if (item.ChuyenDen == "DUC1" || item.ChuyenDen == "DUC2")
+            {
+                var duc = new[]
+                {
+                    ok(item.KL_XeGoong),
+                    ok(item.G_KLThungChua),
+                    ok(item.G_KLThungVaGang),
+                    ok(item.G_KLGangLong),
+                    ok(item.Gio_NM)
+                };
+
+                return duc.All(x => x) ? 1 : 2;
+            }
+
+            bool hasKlChia = ok(item.KLGangChia);
+
+            // Trạng thái mặc định
+            bool valid;
+
+            // Nếu là bản copy: chỉ cần common fields
+            if (item.IsCopy == true)
+            {
+                valid = common.All(x => x);
+            }
+            else
+            {
+                // Bản gốc: cần thêm một số fields
+                var add = new List<bool>
+                {
+                    ok(item.KL_XeGoong),
+                    ok(item.G_KLThungChua),
+                    ok(item.G_KLThungVaGang),
+                    ok(item.G_KLGangLong),
+                    ok(item.ChuyenDen),
+                    ok(item.Gio_NM)
+                };
+
+                // Nếu không có KL chia → cần thêm 6 trường nữa
+                if (!hasKlChia)
+                {
+                    add.AddRange(new[]
+                    {
+                        ok(item.T_KLThungVaGang),
+                        ok(item.T_KLThungChua),
+                        ok(item.T_KLGangLong),
+                        ok(item.KLThungVaGang_Thoi),
+                        ok(item.KLThung_Thoi),
+                        ok(item.KLGang_Thoi),
+                        ok(item.KL_phe)
+                    });
+                }
+
+                valid = common.All(x => x) && add.All(x => x);
+            }
+
+            // Trả ra 1 (đủ) hoặc 2 (thiếu)
+            return valid ? 1 : 2;
+        }
+
+        List<Tbl_BM_16_GangLong> FilterByTinhTrang(List<Tbl_BM_16_GangLong> data, int? status)
+        {
+            foreach (var x in data)
+                x.ID_TrangThai = CalculateTrangThai(x); 
+
+            if (!status.HasValue)
+                return data;
+
+            if (status == 1 || status == 2)
+                return data.Where(x => x.ID_TrangThai == status).ToList();
+
+            if (status == 5)
+                return data.Where(x => x.ID_TrangThai == 5).ToList();
+
+            return data;
+        }
         private async Task<PageResultViewModel<List<Tbl_BM_16_GangLong>>> SearchByPayload(SearchDto dto)
         {
             // 0) Base query (chỉ Where; chưa OrderBy, chưa Skip/Take)
@@ -461,7 +555,17 @@ namespace Data_Product.Controllers
                 baseQuery = baseQuery.Where(x => x.BKMIS_ThungSo.Contains(dto.ThungSo));
 
             if (dto.ID_TinhTrang.HasValue)
-                baseQuery = baseQuery.Where(x => x.ID_TrangThai == dto.ID_TinhTrang.Value);
+            {
+               
+                if(dto.ID_TinhTrang == 2 || dto.ID_TinhTrang == 1)
+                {
+                    baseQuery = baseQuery.Where(x => x.ID_TrangThai == 2);
+                }
+                else
+                {
+                    baseQuery = baseQuery.Where(x => x.ID_TrangThai == dto.ID_TinhTrang.Value);
+                }
+            }
             if (dto.ID_TinhTrang_LT.HasValue)
                 baseQuery = baseQuery.Where(x => x.T_ID_TrangThai == dto.ID_TinhTrang_LT.Value);
             if (dto.ID_TinhTrang_LG.HasValue)
@@ -649,6 +753,8 @@ namespace Data_Product.Controllers
                                      ID_NguoiChot = a.ID_NguoiChot,
                                      HoTenNguoiChot = pkh_user.HoVaTen,
                                      G_SanRaGang = a.G_SanRaGang,
+                                     XacNhan = a.XacNhan,
+                                     NhietDo = a.NhietDo,
 
                                      HoVaTen = user.HoVaTen,
                                      TenPhongBan = phongban.TenNgan,
@@ -667,6 +773,8 @@ namespace Data_Product.Controllers
                                      Tong_KLGangNhan = ttg != null ? ttg.Tong_KLGangNhan : null,
                                      GioChonMe = ttg != null ? ttg.GioChonMe : null
                                  }).ToListAsync();
+
+            gocData = FilterByTinhTrang(gocData, dto.ID_TinhTrang);
 
             // 5) Nhân bản TTG copy cho data hiển thị
             var maTTGs = gocData.Where(x => !string.IsNullOrEmpty(x.MaThungTG))
@@ -902,7 +1010,9 @@ namespace Data_Product.Controllers
                 KLGang_Thoi = null,
                 KL_phe = null,
                 Tong_KLGangNhan = null,
-                GioChonMe = null
+                GioChonMe = null,
+                TrangThaiTinh = original.TrangThaiTinh,
+                NhietDo = original.NhietDo
             };
         }
         
@@ -973,6 +1083,16 @@ namespace Data_Product.Controllers
                                 cellThungSo.Value = item.BKMIS_ThungSo;
 
                                 worksheet.Cell(row, colIndex++).Value = item.BKMIS_Gio;
+
+                                var tinhTrangQLCL_cell = worksheet.Cell(row, colIndex++);
+                                if(item.XacNhan == true)
+                                {
+                                    RenderTrangThaiCell(tinhTrangQLCL_cell, "Đã xác nhận",4);
+                                } else
+                                {
+                                    RenderTrangThaiCell(tinhTrangQLCL_cell, "Chưa xử lý", 1);
+                                }
+
                                 worksheet.Cell(row, colIndex++).Value = item.BKMIS_PhanLoai;
                                 worksheet.Cell(row, colIndex++).Value = item.KR == true ? "X" : "";
                                 if (item.T_copy == true || item.IsCopy == true)
@@ -1018,7 +1138,7 @@ namespace Data_Product.Controllers
                                 worksheet.Cell(row, colIndex++).Value = item.T_Ca == 1 ? "N" : item.T_Ca == 2 ? "Đ" : "";
                                 worksheet.Cell(row, colIndex++).Value = item.T_TenKip;
                                 worksheet.Cell(row, colIndex++).Value = item.MaThungThep;
-
+                                worksheet.Cell(row, colIndex++).Value = item.NhietDo;
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLThungVaGang;
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLThungChua;
                                 worksheet.Cell(row, colIndex++).Value = item.T_KLGangLong;
@@ -1138,60 +1258,60 @@ namespace Data_Product.Controllers
 
                         // --- Dòng tổng ---
                         int sumRow = row;
-                        var totalLabel = worksheet.Range($"A{sumRow}:O{sumRow}");
+                        var totalLabel = worksheet.Range($"A{sumRow}:P{sumRow}");
                         totalLabel.Merge();
                         totalLabel.Value = "Tổng:";
                         totalLabel.Style.Font.SetBold();
                         totalLabel.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                        // Tổng cột P (16)
-                        worksheet.Cell(sumRow, 16).FormulaA1 = $"=SUM(P8:P{row - 1})";
-                        worksheet.Cell(sumRow, 16).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 16).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 16).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột Q (17)
+                        worksheet.Cell(sumRow, 17).FormulaA1 = $"=SUM(Q8:Q{row - 1})";
+                        worksheet.Cell(sumRow, 17).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 17).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 17).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Merge Q -> AB (16 -> 26)
-                        worksheet.Range(sumRow, 17, sumRow, 28).Merge().Value = "";
-                        worksheet.Range(sumRow, 17, sumRow, 28).Style.Fill.BackgroundColor = XLColor.White;
+                        // Merge R -> AD (18 -> 30)
+                        worksheet.Range(sumRow, 18, sumRow, 30).Merge().Value = "";
+                        worksheet.Range(sumRow, 18, sumRow, 30).Style.Fill.BackgroundColor = XLColor.White;
 
-                        // Tổng cột AC (29)
-                        worksheet.Cell(sumRow, 29).FormulaA1 = $"=SUM(AC8:AC{row - 1})";
-                        worksheet.Cell(sumRow, 29).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 29).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 29).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột AE (31)
+                        worksheet.Cell(sumRow, 31).FormulaA1 = $"=SUM(AE8:AE{row - 1})";
+                        worksheet.Cell(sumRow, 31).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 31).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 31).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Merge AD -> AH (30 -> 34)
-                        worksheet.Range(sumRow, 30, sumRow, 34).Merge().Value = "";
-                        worksheet.Range(sumRow, 30, sumRow, 34).Style.Fill.BackgroundColor = XLColor.White;
+                        // Merge AF -> AJ (32 -> 36)
+                        worksheet.Range(sumRow, 32, sumRow, 36).Merge().Value = "";
+                        worksheet.Range(sumRow, 32, sumRow, 36).Style.Fill.BackgroundColor = XLColor.White;
 
-                        // Tổng cột AI (35)
-                        worksheet.Cell(sumRow, 35).FormulaA1 = $"=SUM(AI8:AI{row - 1})";
-                        worksheet.Cell(sumRow, 35).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 35).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 35).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột AK (37)
+                        worksheet.Cell(sumRow, 37).FormulaA1 = $"=SUM(AK8:AK{row - 1})";
+                        worksheet.Cell(sumRow, 37).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 37).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 37).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        // Merge AH -> AM (34 -> 39)
-                        worksheet.Range(sumRow, 36, sumRow, 41).Merge().Value = "";
-                        worksheet.Range(sumRow, 36, sumRow, 41).Style.Fill.BackgroundColor = XLColor.White;
+                        // Merge AL -> AQ (38 -> 43)
+                        worksheet.Range(sumRow, 38, sumRow, 43).Merge().Value = "";
+                        worksheet.Range(sumRow, 38, sumRow, 43).Style.Fill.BackgroundColor = XLColor.White;
 
                         // --- Dòng tổng all ---
                         int sumAllRow = row + 1;
-                        var totalAllLabel = worksheet.Range($"A{sumAllRow}:O{sumAllRow}");
+                        var totalAllLabel = worksheet.Range($"A{sumAllRow}:P{sumAllRow}");
                         totalAllLabel.Merge();
                         totalAllLabel.Value = "Tổng Tất Cả:";
                         totalAllLabel.Style.Font.SetBold();
                         totalAllLabel.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                        worksheet.Cell(sumAllRow, 16).Value = sumKLGang;
-                        worksheet.Cell(sumAllRow, 16).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumAllRow, 16).Style.Font.SetBold();
-                        worksheet.Cell(sumAllRow, 16).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        worksheet.Cell(sumAllRow, 17).Value = sumKLGang;
+                        worksheet.Cell(sumAllRow, 17).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumAllRow, 17).Style.Font.SetBold();
+                        worksheet.Cell(sumAllRow, 17).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        worksheet.Range(sumAllRow, 17, sumAllRow, 41).Merge().Value = "";
-                        worksheet.Range(sumAllRow, 17, sumAllRow, 41).Style.Fill.BackgroundColor = XLColor.White;
+                        worksheet.Range(sumAllRow, 18, sumAllRow, 43).Merge().Value = "";
+                        worksheet.Range(sumAllRow, 18, sumAllRow, 43).Style.Fill.BackgroundColor = XLColor.White;
 
                         // Format toàn bảng
-                        var usedRange = worksheet.Range($"A7:AO{sumAllRow}");
+                        var usedRange = worksheet.Range($"A7:AQ{sumAllRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.NumberFormat.SetFormat("General");
                         //usedRange.Style.Font.FontColor = XLColor.Black;

@@ -48,20 +48,22 @@
         width: 22px;
         height: 22px;
         border: 2px solid #555;
-        border-radius: 4px; /* 0 cho hình vuông hoàn toàn */
+        border-radius: 4px;
+        /* 0 cho hình vuông hoàn toàn */
         position: relative;
         cursor: pointer;
     }
 
-        .radio-square:checked::before {
-            content: "";
-            position: absolute;
-            top: 4px;
-            left: 4px;
-            width: 12px;
-            height: 12px;
-            background-color: #0d6efd; /* màu xanh Bootstrap */
-        }
+    .radio-square:checked::before {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 12px;
+        height: 12px;
+        background-color: #0d6efd;
+        /* màu xanh Bootstrap */
+    }
 </style>
 
 @Html.HiddenFor(model => model.ID)
@@ -73,25 +75,27 @@
                     <div class="row">
                         <!-- Button gửi yêu cầu xóa phiếu -->
                         <div class="d-flex gap-2">
-                            @if (Model.TinhTrang == 1 && Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock == false && Model.IsDelete == false))
+                            @if (Model.TinhTrang == 1 && Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock
+                                                        == false && Model.IsDelete == false))
                             {
-                                <button class="btn btn-danger"
-                                        onclick="requestDelete(@Model.ID)">
+                                <button class="btn btn-danger" onclick="requestDelete(@Model.ID)">
                                     Yêu cầu xóa phiếu
                                 </button>
                             }
 
-                            @if (Model.TinhTrang == 1 && Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock == false && Model.IsDelete == false))
+                            @if (Model.TinhTrang == 1 && Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock
+                                                        == false && Model.IsDelete == false))
                             {
-                                <button class="btn btn-success"
-                                        onclick="requestHieuChinh(@Model.ID)">
+                                <button class="btn btn-success" onclick="requestHieuChinh(@Model.ID)">
                                     Đề nghị hiệu chỉnh
                                 </button>
                             }
-                            @if ((Model.TinhTrang == ConstantsDungSX.DaGui || Model.TinhTrang == ConstantsDungSX.KhongDinhTre || Model.TinhTrang == ConstantsDungSX.KhongXacNhan) && Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock == false && Model.IsDelete == false))
+                            @if ((Model.TinhTrang == ConstantsDungSX.DaGui || Model.TinhTrang ==
+                                                        ConstantsDungSX.KhongDinhTre || Model.TinhTrang == ConstantsDungSX.KhongXacNhan) &&
+                                                        Model.ID_NhanVien_SX == userName.ID_TaiKhoan && (Model.IsLock == false && Model.IsDelete ==
+                                                        false))
                             {
-                                <button class="btn btn-danger"
-                                        onclick="requestThuHoi(@Model.ID)">
+                                <button class="btn btn-danger" onclick="requestThuHoi(@Model.ID)">
                                     Thu hồi
                                 </button>
                                 <button type="button" class="btn btn-warning" id="btnReset" data-id="@Model.ID">
@@ -103,10 +107,11 @@
                             }
                             @if (Model.TinhTrang == 1)
                             {
-                                <a class="btn btn-success" href="@Url.Action("ExportToExcelPhieu", "BM_NhatKy_SanXuat", new { IDNKSX = Model.ID })">
+                                <a class="btn btn-success"
+                                    href="@Url.Action("ExportToExcelPhieu", "BM_NhatKy_SanXuat", new { IDNKSX = Model.ID })">
                                     <i class="fas fa-file-excel"></i> Xuất Excel
                                 </a>
-                                @if(Model.FileBB != null)
+                                @if (Model.FileBB != null)
                                 {
                                     <button class="btn btn-warning">
                                         <a href="@Model.FileBB" target="_blank">
@@ -127,7 +132,7 @@
                                 </button>
                             }
                         </div>
-                       
+
                     </div>
 
                     <div class="row">
@@ -157,7 +162,7 @@
                         <div class="col-xxl-12 col-md-12" style="text-align:center;">
                             <h4>
                                 <b>
-                                    NHẬT KÝ DỪNG SẢN XUẤT
+                                    BẢNG THEO DÕI CHỈ SỐ ĐÌNH TRỆ
                                 </b>
                             </h4>
                         </div>
@@ -165,14 +170,19 @@
                             @if (Model.Ca == "1")
                             {
                                 <small>
-                                    Kíp:@Model.Ca@Model.Kip Từ 08h00 ngày @Model.NgayDungSX.ToString("dd") tháng @Model.NgayDungSX.ToString("MM") đến 20h00 ngày @Model.NgayDungSX.ToString("dd") tháng @Model.NgayDungSX.ToString("MM") năm @Model.NgayDungSX.ToString("yyyy")
+                                    Kíp:@Model.Ca@Model.Kip Từ 08h00 ngày @Model.NgayDungSX.ToString("dd") tháng
+                                    @Model.NgayDungSX.ToString("MM") đến 20h00 ngày @Model.NgayDungSX.ToString("dd") tháng
+                                    @Model.NgayDungSX.ToString("MM") năm @Model.NgayDungSX.ToString("yyyy")
                                 </small>
 
                             }
                             else
                             {
                                 <small>
-                                    Kíp:@Model.Ca@Model.Kip Từ 20h00 ngày @Model.NgayDungSX.ToString("dd") tháng @Model.NgayDungSX.ToString("MM") đến 08h00 ngày @Model.NgayDungSX.AddDays(1).ToString("dd") tháng @Model.NgayDungSX.AddDays(1).ToString("MM") năm @Model.NgayDungSX.ToString("yyyy")
+                                    Kíp:@Model.Ca@Model.Kip Từ 20h00 ngày @Model.NgayDungSX.ToString("dd") tháng
+                                    @Model.NgayDungSX.ToString("MM") đến 08h00 ngày
+                                    @Model.NgayDungSX.AddDays(1).ToString("dd") tháng
+                                    @Model.NgayDungSX.AddDays(1).ToString("MM") năm @Model.NgayDungSX.ToString("yyyy")
                                 </small>
                             }
 
@@ -187,19 +197,37 @@
 
                         <div class="table-responsive pb-2" style="">
                             <table class="table table-bordered table-hover" id="dataTable" cellpadding="0">
-                                <div id="warning-message" style="display: none; color: white; background-color: red; padding: 10px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; border-radius: 5px;"></div>
+                                <div id="warning-message"
+                                    style="display: none; color: white; background-color: red; padding: 10px; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; border-radius: 5px;">
+                                </div>
                                 <thead>
                                     <tr style="font-size:14px;">
-                                        <th class="text-center" width="70px" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
-                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Xưởng</th>
-                                        <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Thời điểm dừng</th>
-                                        <th class="text-center" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Thời điểm chạy lại máy</th>
-                                        <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do thiết bị</th>
-                                        <th class="text-center" width="100px" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do sự cố Công nghệ</th>
-                                        <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do Chờ công nghệ</th>
-                                        <th width="100px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do khách quan</th>
-                                        <th width="300px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Nội dung dừng máy</th>
-                                        <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                        <th class="text-center" width="70px"
+                                            style="vertical-align:middle;background-color: #f9f9f9">STT</th>
+                                        <th class="text-center" width="200px"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Xưởng</th>
+                                        <th class="text-center" width="150px"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Thời điểm dừng</th>
+                                        <th class="text-center" width="150px"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Thời điểm chạy lại
+                                            máy</th>
+                                        <th class="text-center" width="100px"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do thiết bị
+                                        </th>
+                                        <th class="text-center" width="100px"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do sự cố
+                                            Công nghệ</th>
+                                        <th width="100px" class="text-center"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do Chờ công
+                                            nghệ</th>
+                                        <th width="100px" class="text-center"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Dừng máy do khách
+                                            quan</th>
+                                        <th width="300px" class="text-center"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Nội dung dừng máy
+                                        </th>
+                                        <th width="150px" class="text-center"
+                                            style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -279,7 +307,7 @@
                                         ĐƠN VỊ BTBD
                                     </b>
                                 </div>
-                              
+
                                 @if (taiKhoanBTBD != null && Model.TinhTrang == 1)
                                 {
                                     <div style="text-align: center; font-size: 14px; padding:2%;">
@@ -330,7 +358,7 @@
                                         NM.SX
                                     </b>
                                 </div>
-                               
+
                                 @if (taiKhoan != null)
                                 {
                                     <div style="text-align: center; font-size: 14px; padding:2%;">
@@ -384,10 +412,10 @@
         }
     }
 
-     function requestThuHoi(phieuId) {
+    function requestThuHoi(phieuId) {
 
         if (confirm("Bạn có chắc chắn muốn thu hồi phiếu này không?")) {
-                $.ajax({
+            $.ajax({
                 url: '/BM_NhatKy_SanXuat/ThuHoiPhieu',
                 type: 'POST',
                 // contentType: 'application/json',
@@ -403,7 +431,7 @@
             // window.location.href = '@Url.Action("Edit", "BM_NhatKy_SanXuat")' + '?IDNKSX=' + phieuId + '&isHieuChinh=1';
         }
     }
-     // Reset Phiếu
+    // Reset Phiếu
     $("#btnReset").click(function () {
         var selected = $(this).data("id");
 
@@ -411,7 +439,7 @@
             alert("Vui lòng chọn ít nhất 1 phiếu!");
             return;
         }
-         // Thêm confirm
+        // Thêm confirm
         if (!confirm("Bạn có chắc muốn reset phiếu này?")) {
             return; // nếu bấm Cancel thì thoát luôn
         }

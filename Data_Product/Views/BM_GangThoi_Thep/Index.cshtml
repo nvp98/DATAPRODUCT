@@ -491,6 +491,7 @@
                                     <th>Lò cao</th>
                                     <th>Thùng số</th>
                                     <th>Trạng thái</th>
+                                    <th>Nhiệt độ trước khi rót (ºC)</th>
                                     <th>KL thùng & gang lỏng (T)</th>
                                     <th>KL thùng (T)</th>
                                     <th>KL gang lỏng (T)</th>
@@ -509,7 +510,7 @@
                                         </th>
                                     <th>KL vào lò thổi </th>
                                     <th>Mẻ thổi</th>
-                                    <th>Giờ bắt đầu thổi</th>
+                                    <th>Thời điểm bắt đầu rót</th>
                                     <th style="min-width: 150px;">Ghi chú</th>
                                 </tr>
                             </thead>
@@ -517,10 +518,10 @@
                             </tbody>
                             <tfoot>
                                 <tr style="height: 50px;">
-                                    <td class="total-space" colspan="6" style="font-weight: 600; text-align: start">Tổng</td>
+                                    <td class="total-space" colspan="7" style="font-weight: 600; text-align: start">Tổng</td>
                                     <td id="IDTongKLGangLong" style="font-weight: 600">0.00</td>
                                     <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
-                                    <td style="@(PhongBan != "HRC2" ? "display:none;" : "")"></td>
+                                    @* <td style="@(PhongBan != "HRC2" ? "display:none;" : "")"></td> *@
                                     <td class="total-space-tmp"></td>
                                     <td id="IDTongKLGangNhan" style="font-weight: 600">
                                         0.00
@@ -724,12 +725,17 @@
               // 3 cột gộp theo maChia
               if (isCopyTTG) {
                 row += `
+                  <td class="col-nhietDo"><span></span></td>
                   <td class="col-vagang"><span></span></td>
                   <td class="col-thung"><span></span></td>
                   <td class="col-ganglong KLGangLong"><span></span></td>
                 `;
               } else {
                 row += `
+                  <td class="col-nhietDo">
+                    <input class="table_tbx nhietDo" type="number" min="0"
+                           name="nhietDo" ${disabled} value="${thung.nhietDo ?? ''}"/>
+                  </td>
                   <td class="col-vagang">
                     <input class="table_tbx KhoiLuongThungVaGangLong" type="number" min="0"
                            name="t_KLThungVaGang" ${disabled} value="${thung.t_KLThungVaGang ?? ''}"/>
@@ -798,7 +804,7 @@
         const TTG_COLS = ['td.hrc2','td.col-gangnhan','td.col-sothungtg','td.col-thungvagangthoi','td.col-thungthoi',
           'td.col-phe','td.col-gangthoi','td.col-methoi','td.col-giochonme','td.col-ghichu'
         ];
-        const MACHIA_COLS = ['td.col-vagang','td.col-thung','td.col-ganglong'];
+        const MACHIA_COLS = ['td.col-nhietDo','td.col-vagang','td.col-thung','td.col-ganglong'];
 
         // Thu thập ranges theo attr
         const $rows = $tbody.find('tr');
@@ -1685,10 +1691,11 @@
 
             if( phongBan == "HRC2"){
                 $('.hrc2').css('display', display);
-                $('.total-space').attr('colspan', isHidden ? 6 : 8);
+                $('.total-space').attr('colspan', isHidden ? 7 : 9);
+                $('.total-space-tmp').attr('colspan', isHidden ? 1: 2)
             } else {
                 // Nếu bạn có cột tổng cuối bảng cần cập nhật colspan
-                $('.total-space').attr('colspan', isHidden ? 6 : 8);
+                $('.total-space').attr('colspan', isHidden ? 7 : 9);
             }
 
         }
@@ -2104,6 +2111,7 @@
                         const thungGang = {
                             MaThungThep: $row.find('td.maThungThep').text().trim(),
                             MaThungGang: $row.find('td.maThungThep').attr('data-mathungganggoc'),
+                            NhietDo: parseFloat($row.find('input[name="nhietDo"]').val()) || null,
                             T_KLThungVaGang: parseFloat($row.find('input[name="t_KLThungVaGang"]').val()) || null,
                             T_KLThungChua: parseFloat($row.find('input[name="t_KLThungChua"]').val()) || null,
                             T_KLGangLong: parseFloat($row.find('.KLGangLong').text()) || 0

@@ -176,6 +176,8 @@ namespace Data_Product.Models
 
         public bool? XacNhan { get; set; } = false;
 
+        public decimal? NhietDo { get; set; }
+
         public int? ID_NguoiXacNhan { get; set; }
         [NotMapped]
         public bool? IsCopy { get; set; }
@@ -197,5 +199,8 @@ namespace Data_Product.Models
 
         [NotMapped]
         public decimal? KL_GangChiaCR_Display { get; set; }
+
+        [NotMapped]
+        public int? TrangThaiTinh{ get; set; }
     }
 }

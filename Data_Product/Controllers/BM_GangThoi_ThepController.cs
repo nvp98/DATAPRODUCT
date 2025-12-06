@@ -656,7 +656,8 @@ namespace Data_Product.Controllers
                             T_ReceiveSeq = x.T_ReceiveSeq, // có thể null
                             MaChiaGang = null,              // sẽ gán sau
                             KL_GangChiaCR = 0m,             // sẽ gán sau
-                            IsSaiChuyenDen = null
+                            IsSaiChuyenDen = null,
+                            NhietDo = x.NhietDo
                         }
                     })
                     .AsNoTracking()
@@ -708,7 +709,6 @@ namespace Data_Product.Controllers
                 foreach (var ttg in thungList)
                     if (!ttg.IsCopy && gangByTtg.TryGetValue(ttg.ID_TTG, out var list))
                         ttg.DanhSachThungGang = list;
-
                 // ===== 7) TTG copy: clone hiển thị từ gốc (shallow copy) =====
                 foreach (var ttg in thungList.Where(x => x.IsCopy))
                 {
@@ -739,7 +739,8 @@ namespace Data_Product.Controllers
                                 MaChiaGang = x.MaChiaGang,
                                 KL_GangChiaCR = 0m,
                                 IsSaiChuyenDen = null,
-                                IsChiaCR = x.IsChiaCR
+                                IsChiaCR = x.IsChiaCR,
+                                NhietDo = x.NhietDo
                             }).ToList();
                 }
 
@@ -749,7 +750,6 @@ namespace Data_Product.Controllers
                     .Select(x => x.ID)
                     .Distinct()
                     .ToList();
-
                 if (ttgIds.Count > 0 && gangIdsAll.Count > 0)
                 {
                     var keyMaxIds = await _context.Tbl_BM_16_PhanBoGangCR
@@ -797,38 +797,67 @@ namespace Data_Product.Controllers
                         ttg.SumKL_GangChiaCR = sumCR;
                     }
                 }
-
                 // ===== 9) Sắp trong phạm vi mỗi TTG (anchor-first theo MaChiaGang) =====
                 static string? Norm(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim().ToUpperInvariant();
 
+                //static List<GangLongItemViewModel> OrderInsideTtgAnchorFirst(IEnumerable<GangLongItemViewModel> items)
+                //{
+                //    var list = items?.ToList() ?? new();
+                //    if (list.Count <= 1) return list;
+
+                //    list = list.OrderBy(x => x.T_ReceiveSeq ?? int.MaxValue)
+                //               .ThenBy(x => x.ID)
+                //               .ToList();
+
+                //    var group = list.Where(x => !string.IsNullOrWhiteSpace(x.MaChiaGang))
+                //                    .GroupBy(x => Norm(x.MaChiaGang))
+                //                    .ToDictionary(g => g.Key!, g => g.OrderBy(y => y.T_ReceiveSeq ?? int.MaxValue).ThenBy(y => y.ID).ToList());
+
+                //    var used = new HashSet<int>();
+                //    var seenKey = new HashSet<string>(StringComparer.Ordinal);
+                //    var result = new List<GangLongItemViewModel>(list.Count);
+
+                //    foreach (var row in list)
+                //    {
+                //        if (!used.Add(row.ID)) continue;
+                //        var k = Norm(row.MaChiaGang);
+                //        if (k == null || !group.TryGetValue(k, out var block) || !seenKey.Add(k))
+                //        {
+                //            result.Add(row);
+                //        }
+                //        else
+                //        {
+                //            foreach (var m in block)
+                //                if (used.Add(m.ID)) result.Add(m);
+                //        }
+                //    }
+                //    var test25 = result;
+                //    return result;
+                //}
                 static List<GangLongItemViewModel> OrderInsideTtgAnchorFirst(IEnumerable<GangLongItemViewModel> items)
                 {
-                    var list = items?.ToList() ?? new();
-                    if (list.Count <= 1) return list;
-
-                    list = list.OrderBy(x => x.T_ReceiveSeq ?? int.MaxValue)
-                               .ThenBy(x => x.ID)
-                               .ToList();
+                    var list = items.OrderBy(x => x.T_ReceiveSeq ?? int.MaxValue).ThenBy(x => x.ID).ToList();
 
                     var group = list.Where(x => !string.IsNullOrWhiteSpace(x.MaChiaGang))
                                     .GroupBy(x => Norm(x.MaChiaGang))
-                                    .ToDictionary(g => g.Key!, g => g.OrderBy(y => y.T_ReceiveSeq ?? int.MaxValue).ThenBy(y => y.ID).ToList());
+                                    .ToDictionary(g => g.Key, g => g.OrderBy(y => y.T_ReceiveSeq).ThenBy(y => y.ID).ToList());
 
                     var used = new HashSet<int>();
-                    var seenKey = new HashSet<string>(StringComparer.Ordinal);
+                    var seenKey = new HashSet<string>();
                     var result = new List<GangLongItemViewModel>(list.Count);
 
                     foreach (var row in list)
                     {
-                        if (!used.Add(row.ID)) continue;
+                        if (used.Contains(row.ID)) continue;
                         var k = Norm(row.MaChiaGang);
-                        if (k == null || !group.TryGetValue(k, out var block) || !seenKey.Add(k))
+                        if (k == null || !group.ContainsKey(k) || seenKey.Contains(k))
                         {
-                            result.Add(row);
+                            result.Add(row); used.Add(row.ID);
                         }
                         else
                         {
-                            foreach (var m in block)
+                            seenKey.Add(k);
+                            foreach (var m in group[k])
                                 if (used.Add(m.ID)) result.Add(m);
                         }
                     }
@@ -840,7 +869,6 @@ namespace Data_Product.Controllers
                         ttg.DanhSachThungGang = OrderInsideTtgAnchorFirst(ttg.DanhSachThungGang);
 
                 // ===== 10) Sắp family TTG (copy kề gốc) =====
-
                 var families = thungList
                     .GroupBy(ttg => ttg.MaThungTG ?? string.Empty, StringComparer.OrdinalIgnoreCase)
                     .Select(g =>
@@ -894,7 +922,6 @@ namespace Data_Product.Controllers
                     })
                     .ToList();
 
-
                 var famBase = families
                     .OrderBy(f => f.HasMe)
                     .ThenBy(f => f.MaMeThoi)
@@ -937,7 +964,6 @@ namespace Data_Product.Controllers
                 }
                 for (int i = 0; i < famBase.Count; i++)
                     if (emittedFamily.Add(i)) finalFamiliesIdx.Add(i);
-
                 var finalBlocks = new List<ThungTrungGianGroupViewModel>(thungList.Count);
                 foreach (var fi in finalFamiliesIdx) finalBlocks.AddRange(famBase[fi].Items);
 
@@ -954,376 +980,376 @@ namespace Data_Product.Controllers
         }
 
 
-        //public async Task<List<ThungTrungGianGroupViewModel>> GetDanhSachThungTrungGianDaNhan(SearchThungDaNhanDto payload)
-        //{
-        //    try
-        //    {
-        //        // ===== 1) Filter TTG =====
-        //        var ttgQuery = _context.Tbl_BM_16_ThungTrungGian.AsQueryable();
-        //        if (payload.NgayLamViec.HasValue)
-        //        {
-        //            var ngay = payload.NgayLamViec.Value.Date;
-        //            ttgQuery = ttgQuery.Where(x => x.NgayNhan >= ngay && x.NgayNhan < ngay.AddDays(1));
-        //        }
-        //        if (payload.T_Ca.HasValue) ttgQuery = ttgQuery.Where(x => x.CaNhan == payload.T_Ca);
-        //        if (payload.ID_LoThoi.HasValue) ttgQuery = ttgQuery.Where(x => x.ID_LoThoi == payload.ID_LoThoi);
+        public async Task<List<ThungTrungGianGroupViewModel>> GetDanhSachThungTrungGianDaNhan1(SearchThungDaNhanDto payload)
+        {
+            try
+            {
+                // ===== 1) Filter TTG =====
+                var ttgQuery = _context.Tbl_BM_16_ThungTrungGian.AsQueryable();
+                if (payload.NgayLamViec.HasValue)
+                {
+                    var ngay = payload.NgayLamViec.Value.Date;
+                    ttgQuery = ttgQuery.Where(x => x.NgayNhan >= ngay && x.NgayNhan < ngay.AddDays(1));
+                }
+                if (payload.T_Ca.HasValue) ttgQuery = ttgQuery.Where(x => x.CaNhan == payload.T_Ca);
+                if (payload.ID_LoThoi.HasValue) ttgQuery = ttgQuery.Where(x => x.ID_LoThoi == payload.ID_LoThoi);
 
-        //        // ===== 2) TTG + Mẻ thổi =====
-        //        var thungList = await (
-        //            from ttg in ttgQuery
-        //            join meThoi in _context.Tbl_MeThoi on ttg.ID_MeThoi equals meThoi.ID into meThoiJoin
-        //            from meThoi in meThoiJoin.DefaultIfEmpty()
-        //            select new ThungTrungGianGroupViewModel
-        //            {
-        //                ID_TTG = ttg.ID,
-        //                MaThungTG = ttg.MaThungTG,
-        //                MaThungTG_Copy = ttg.MaThungTG_Copy,
-        //                SoThungTG = ttg.SoThungTG,
-        //                GhiChu = ttg.GhiChu,
-        //                IsCopy = ttg.IsCopy,
-        //                KLThung_Thoi = ttg.KLThung_Thoi,
-        //                KLThungVaGang_Thoi = ttg.KLThungVaGang_Thoi,
-        //                KL_phe = ttg.KL_phe,
-        //                KLGang_Thoi = ttg.KLGang_Thoi,
-        //                Tong_KLGangNhan = ttg.Tong_KLGangNhan,
-        //                ID_MeThoi = ttg.ID_MeThoi,
-        //                MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
-        //                NgayTaoTTG = ttg.NgayTaoTTG,
-        //                GioChonMe = ttg.GioChonMe,
-        //                // NEW: tổng CR theo TTG (sẽ gán sau)
-        //                SumKL_GangChiaCR = 0m
-        //            }
-        //        ).AsNoTracking().ToListAsync();
+                // ===== 2) TTG + Mẻ thổi =====
+                var thungList = await (
+                    from ttg in ttgQuery
+                    join meThoi in _context.Tbl_MeThoi on ttg.ID_MeThoi equals meThoi.ID into meThoiJoin
+                    from meThoi in meThoiJoin.DefaultIfEmpty()
+                    select new ThungTrungGianGroupViewModel
+                    {
+                        ID_TTG = ttg.ID,
+                        MaThungTG = ttg.MaThungTG,
+                        MaThungTG_Copy = ttg.MaThungTG_Copy,
+                        SoThungTG = ttg.SoThungTG,
+                        GhiChu = ttg.GhiChu,
+                        IsCopy = ttg.IsCopy,
+                        KLThung_Thoi = ttg.KLThung_Thoi,
+                        KLThungVaGang_Thoi = ttg.KLThungVaGang_Thoi,
+                        KL_phe = ttg.KL_phe,
+                        KLGang_Thoi = ttg.KLGang_Thoi,
+                        Tong_KLGangNhan = ttg.Tong_KLGangNhan,
+                        ID_MeThoi = ttg.ID_MeThoi,
+                        MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
+                        NgayTaoTTG = ttg.NgayTaoTTG,
+                        GioChonMe = ttg.GioChonMe,
+                        // NEW: tổng CR theo TTG (sẽ gán sau)
+                        SumKL_GangChiaCR = 0m
+                    }
+                ).AsNoTracking().ToListAsync();
 
-        //        if (thungList.Count == 0) return thungList;
+                if (thungList.Count == 0) return thungList;
 
-        //        // ===== 3) MaChiaGang mới nhất của từng thùng =====
-        //        var lastChiaGangPerThung = await _context.Tbl_BM_16_ChiaGang
-        //            .GroupBy(c => c.ID_Thung)
-        //            .Select(g => new { ID_Thung = g.Key, MaChiaGang = g.OrderByDescending(x => x.ID).Select(x => x.MaChiaGang).FirstOrDefault() })
-        //            .ToListAsync();
-        //        var chiaGangDict = lastChiaGangPerThung.ToDictionary(x => x.ID_Thung, x => x.MaChiaGang);
+                // ===== 3) MaChiaGang mới nhất của từng thùng =====
+                var lastChiaGangPerThung = await _context.Tbl_BM_16_ChiaGang
+                    .GroupBy(c => c.ID_Thung)
+                    .Select(g => new { ID_Thung = g.Key, MaChiaGang = g.OrderByDescending(x => x.ID).Select(x => x.MaChiaGang).FirstOrDefault() })
+                    .ToListAsync();
+                var chiaGangDict = lastChiaGangPerThung.ToDictionary(x => x.ID_Thung, x => x.MaChiaGang);
 
-        //        // ===== 4) Load thùng gang (kèm T_ReceiveSeq) =====
-        //        var gangList = await _context.Tbl_BM_16_GangLong
-        //            .Where(x => x.ID_TTG.HasValue)
-        //            .Select(x => new
-        //            {
-        //                x.ID_TTG,
-        //                Gang = new GangLongItemViewModel
-        //                {
-        //                    ID = x.ID,
-        //                    MaThungGang = x.MaThungGang,
-        //                    MaThungThep = x.MaThungThep,
-        //                    BKMIS_ThungSo = x.BKMIS_ThungSo,
-        //                    ID_LoCao = x.ID_Locao,
-        //                    ID_TrangThai = x.ID_TrangThai,
-        //                    T_KLGangLong = x.T_KLGangLong,
-        //                    T_KLThungChua = x.T_KLThungChua,
-        //                    T_KLThungVaGang = x.T_KLThungVaGang,
-        //                    G_ID_NguoiChuyen = x.G_ID_NguoiChuyen,
-        //                    G_ID_NguoiLuu = x.G_ID_NguoiLuu,
-        //                    G_KLGangLong = x.G_KLGangLong,
-        //                    ChuyenDen = x.ChuyenDen,
-        //                    BKMIS_SoMe = x.BKMIS_SoMe,
-        //                    BKMIS_Gio = x.BKMIS_Gio,
-        //                    NgayTaoG = x.NgayTao,
-        //                    KLGangChia = x.KLGangChia,
-        //                    T_ID_NguoiNhan = x.T_ID_NguoiNhan,
-        //                    T_ReceiveSeq = x.T_ReceiveSeq, // có thể null
-        //                    MaChiaGang = null,
-        //                    // NEW: sẽ gán sau
-        //                    KL_GangChiaCR = 0m
-        //                }
-        //            })
-        //            .AsNoTracking()
-        //            .ToListAsync();
+                // ===== 4) Load thùng gang (kèm T_ReceiveSeq) =====
+                var gangList = await _context.Tbl_BM_16_GangLong
+                    .Where(x => x.ID_TTG.HasValue)
+                    .Select(x => new
+                    {
+                        x.ID_TTG,
+                        Gang = new GangLongItemViewModel
+                        {
+                            ID = x.ID,
+                            MaThungGang = x.MaThungGang,
+                            MaThungThep = x.MaThungThep,
+                            BKMIS_ThungSo = x.BKMIS_ThungSo,
+                            ID_LoCao = x.ID_Locao,
+                            ID_TrangThai = x.ID_TrangThai,
+                            T_KLGangLong = x.T_KLGangLong,
+                            T_KLThungChua = x.T_KLThungChua,
+                            T_KLThungVaGang = x.T_KLThungVaGang,
+                            G_ID_NguoiChuyen = x.G_ID_NguoiChuyen,
+                            G_ID_NguoiLuu = x.G_ID_NguoiLuu,
+                            G_KLGangLong = x.G_KLGangLong,
+                            ChuyenDen = x.ChuyenDen,
+                            BKMIS_SoMe = x.BKMIS_SoMe,
+                            BKMIS_Gio = x.BKMIS_Gio,
+                            NgayTaoG = x.NgayTao,
+                            KLGangChia = x.KLGangChia,
+                            T_ID_NguoiNhan = x.T_ID_NguoiNhan,
+                            T_ReceiveSeq = x.T_ReceiveSeq, // có thể null
+                            MaChiaGang = null,
+                            // NEW: sẽ gán sau
+                            KL_GangChiaCR = 0m
+                        }
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
 
-        //        foreach (var g in gangList)
-        //        {
-        //            if (chiaGangDict.TryGetValue(g.Gang.ID, out var m)) g.Gang.MaChiaGang = m;
-        //            if (!g.Gang.T_ReceiveSeq.HasValue) g.Gang.T_ReceiveSeq = g.Gang.ID; // fallback ổn định
-        //        }
-        //        // ===== 4.b) ĐÁNH DẤU IsChiaCR CHO THÙNG GANG =====
-        //        var maThungGangSet = gangList
-        //            .Where(x => !string.IsNullOrEmpty(x.Gang.MaThungGang))
-        //            .Select(x => x.Gang.MaThungGang!)
-        //            .Distinct(StringComparer.OrdinalIgnoreCase)
-        //            .ToList();
+                foreach (var g in gangList)
+                {
+                    if (chiaGangDict.TryGetValue(g.Gang.ID, out var m)) g.Gang.MaChiaGang = m;
+                    if (!g.Gang.T_ReceiveSeq.HasValue) g.Gang.T_ReceiveSeq = g.Gang.ID; // fallback ổn định
+                }
+                // ===== 4.b) ĐÁNH DẤU IsChiaCR CHO THÙNG GANG =====
+                var maThungGangSet = gangList
+                    .Where(x => !string.IsNullOrEmpty(x.Gang.MaThungGang))
+                    .Select(x => x.Gang.MaThungGang!)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
 
-        //        if (maThungGangSet.Count > 0)
-        //        {
-        //            // Đếm số lần nhận theo MaThungGang
-        //            var receiveCounts = await _context.Tbl_BM_16_TaiKhoan_Thung
-        //                .Where(t => maThungGangSet.Contains(t.MaThungGang))
-        //                .GroupBy(t => t.MaThungGang)
-        //                .Select(g => new { MaThungGang = g.Key, Count = g.Count() })
-        //                .ToListAsync();
+                if (maThungGangSet.Count > 0)
+                {
+                    // Đếm số lần nhận theo MaThungGang
+                    var receiveCounts = await _context.Tbl_BM_16_TaiKhoan_Thung
+                        .Where(t => maThungGangSet.Contains(t.MaThungGang))
+                        .GroupBy(t => t.MaThungGang)
+                        .Select(g => new { MaThungGang = g.Key, Count = g.Count() })
+                        .ToListAsync();
 
-        //            var receiveMap = receiveCounts.ToDictionary(x => x.MaThungGang, x => x.Count, StringComparer.OrdinalIgnoreCase);
+                    var receiveMap = receiveCounts.ToDictionary(x => x.MaThungGang, x => x.Count, StringComparer.OrdinalIgnoreCase);
 
-        //            foreach (var g in gangList)
-        //            {
-        //                if (!string.IsNullOrEmpty(g.Gang.MaThungGang) &&
-        //                    receiveMap.TryGetValue(g.Gang.MaThungGang!, out var cnt) &&
-        //                    cnt >= 2)
-        //                {
-        //                    g.Gang.IsChiaCR = true; // đã nhận >= 2 lần
-        //                }
-        //                else
-        //                {
-        //                    g.Gang.IsChiaCR = false;
-        //                }
-        //            }
-        //        }
-        //        // ===== 5) Group theo TTG và gán vào TTG gốc =====
-        //        var gangByTtg = gangList
-        //            .GroupBy(x => x.ID_TTG!.Value)
-        //            .ToDictionary(g => g.Key, g => g.Select(x => x.Gang).ToList());
+                    foreach (var g in gangList)
+                    {
+                        if (!string.IsNullOrEmpty(g.Gang.MaThungGang) &&
+                            receiveMap.TryGetValue(g.Gang.MaThungGang!, out var cnt) &&
+                            cnt >= 2)
+                        {
+                            g.Gang.IsChiaCR = true; // đã nhận >= 2 lần
+                        }
+                        else
+                        {
+                            g.Gang.IsChiaCR = false;
+                        }
+                    }
+                }
+                // ===== 5) Group theo TTG và gán vào TTG gốc =====
+                var gangByTtg = gangList
+                    .GroupBy(x => x.ID_TTG!.Value)
+                    .ToDictionary(g => g.Key, g => g.Select(x => x.Gang).ToList());
 
-        //        foreach (var ttg in thungList)
-        //            if (!ttg.IsCopy && gangByTtg.TryGetValue(ttg.ID_TTG, out var list))
-        //                ttg.DanhSachThungGang = list;
+                foreach (var ttg in thungList)
+                    if (!ttg.IsCopy && gangByTtg.TryGetValue(ttg.ID_TTG, out var list))
+                        ttg.DanhSachThungGang = list;
 
-        //        // ===== 5.b) TTG copy: clone hiển thị từ gốc =====
-        //        foreach (var ttg in thungList.Where(x => x.IsCopy))
-        //        {
-        //            var goc = thungList.FirstOrDefault(x => !x.IsCopy && x.MaThungTG == ttg.MaThungTG);
-        //            if (goc?.DanhSachThungGang != null)
-        //                ttg.DanhSachThungGang = goc.DanhSachThungGang
-        //                    .Select(x => new GangLongItemViewModel
-        //                    {
-        //                        ID = x.ID,
-        //                        MaThungGang = x.MaThungGang,
-        //                        MaThungThep = x.MaThungThep,
-        //                        BKMIS_ThungSo = x.BKMIS_ThungSo,
-        //                        ID_LoCao = x.ID_LoCao,
-        //                        ID_TrangThai = x.ID_TrangThai,
-        //                        T_KLGangLong = x.T_KLGangLong,
-        //                        T_KLThungChua = x.T_KLThungChua,
-        //                        T_KLThungVaGang = x.T_KLThungVaGang,
-        //                        G_ID_NguoiChuyen = x.G_ID_NguoiChuyen,
-        //                        G_ID_NguoiLuu = x.G_ID_NguoiLuu,
-        //                        G_KLGangLong = x.G_KLGangLong,
-        //                        ChuyenDen = x.ChuyenDen,
-        //                        BKMIS_SoMe = x.BKMIS_SoMe,
-        //                        BKMIS_Gio = x.BKMIS_Gio,
-        //                        NgayTaoG = x.NgayTaoG,
-        //                        KLGangChia = x.KLGangChia,
-        //                        T_ID_NguoiNhan = x.T_ID_NguoiNhan,
-        //                        T_ReceiveSeq = x.T_ReceiveSeq,
-        //                        MaChiaGang = x.MaChiaGang,
-        //                        KL_GangChiaCR = 0m, // sẽ gán ngay sau
-        //                        IsSaiChuyenDen = null
-        //                    }).ToList();
-        //        }
+                // ===== 5.b) TTG copy: clone hiển thị từ gốc =====
+                foreach (var ttg in thungList.Where(x => x.IsCopy))
+                {
+                    var goc = thungList.FirstOrDefault(x => !x.IsCopy && x.MaThungTG == ttg.MaThungTG);
+                    if (goc?.DanhSachThungGang != null)
+                        ttg.DanhSachThungGang = goc.DanhSachThungGang
+                            .Select(x => new GangLongItemViewModel
+                            {
+                                ID = x.ID,
+                                MaThungGang = x.MaThungGang,
+                                MaThungThep = x.MaThungThep,
+                                BKMIS_ThungSo = x.BKMIS_ThungSo,
+                                ID_LoCao = x.ID_LoCao,
+                                ID_TrangThai = x.ID_TrangThai,
+                                T_KLGangLong = x.T_KLGangLong,
+                                T_KLThungChua = x.T_KLThungChua,
+                                T_KLThungVaGang = x.T_KLThungVaGang,
+                                G_ID_NguoiChuyen = x.G_ID_NguoiChuyen,
+                                G_ID_NguoiLuu = x.G_ID_NguoiLuu,
+                                G_KLGangLong = x.G_KLGangLong,
+                                ChuyenDen = x.ChuyenDen,
+                                BKMIS_SoMe = x.BKMIS_SoMe,
+                                BKMIS_Gio = x.BKMIS_Gio,
+                                NgayTaoG = x.NgayTaoG,
+                                KLGangChia = x.KLGangChia,
+                                T_ID_NguoiNhan = x.T_ID_NguoiNhan,
+                                T_ReceiveSeq = x.T_ReceiveSeq,
+                                MaChiaGang = x.MaChiaGang,
+                                KL_GangChiaCR = 0m, // sẽ gán ngay sau
+                                IsSaiChuyenDen = null
+                            }).ToList();
+                }
 
-        //        // ===== 5.x) NẠP PHÂN BỔ KL_GangChiaCR THEO CẶP (GangID, TTG_ID) =====
-        //        var ttgIdsAll = thungList.Select(x => x.ID_TTG).Distinct().ToList();
-        //        // Lưu ý: DanhSachThungGang đã được clone cho TTG copy, nên lấy GangID từ cả 2 loại
-        //        var gangIdsAll = thungList
-        //            .SelectMany(x => x.DanhSachThungGang ?? Enumerable.Empty<GangLongItemViewModel>())
-        //            .Select(x => x.ID)
-        //            .Distinct()
-        //            .ToList();
+                // ===== 5.x) NẠP PHÂN BỔ KL_GangChiaCR THEO CẶP (GangID, TTG_ID) =====
+                var ttgIdsAll = thungList.Select(x => x.ID_TTG).Distinct().ToList();
+                // Lưu ý: DanhSachThungGang đã được clone cho TTG copy, nên lấy GangID từ cả 2 loại
+                var gangIdsAll = thungList
+                    .SelectMany(x => x.DanhSachThungGang ?? Enumerable.Empty<GangLongItemViewModel>())
+                    .Select(x => x.ID)
+                    .Distinct()
+                    .ToList();
 
-        //        if (ttgIdsAll.Count > 0 && gangIdsAll.Count > 0)
-        //        {
+                if (ttgIdsAll.Count > 0 && gangIdsAll.Count > 0)
+                {
 
-        //            // Subquery: lấy Max(ID) cho mỗi cặp
-        //            var latestKeysQuery =
-        //                from pb in _context.Tbl_BM_16_PhanBoGangCR
-        //                where gangIdsAll.Contains(pb.ID_GangLong)
-        //                   && ttgIdsAll.Contains(pb.ID_TTG_Target)
-        //                group pb by new { pb.ID_GangLong, pb.ID_TTG_Target } into g
-        //                select new { g.Key.ID_GangLong, g.Key.ID_TTG_Target, MaxId = g.Max(x => x.ID) };
+                    // Subquery: lấy Max(ID) cho mỗi cặp
+                    var latestKeysQuery =
+                        from pb in _context.Tbl_BM_16_PhanBoGangCR
+                        where gangIdsAll.Contains(pb.ID_GangLong)
+                           && ttgIdsAll.Contains(pb.ID_TTG_Target)
+                        group pb by new { pb.ID_GangLong, pb.ID_TTG_Target } into g
+                        select new { g.Key.ID_GangLong, g.Key.ID_TTG_Target, MaxId = g.Max(x => x.ID) };
 
-        //            // Join để lấy đúng dòng có ID = MaxId
-        //            var allocRows = await (
-        //                from pb in _context.Tbl_BM_16_PhanBoGangCR
-        //                join k in latestKeysQuery
-        //                  on new { pb.ID_GangLong, pb.ID_TTG_Target, pb.ID }
-        //                  equals new { k.ID_GangLong, k.ID_TTG_Target, ID = k.MaxId }
-        //                select new
-        //                {
-        //                    pb.ID_GangLong,
-        //                    pb.ID_TTG_Target,
-        //                    pb.KL_PhanBo_CR,
-        //                    pb.IsSaiChuyenDen
-        //                })
-        //                .AsNoTracking()
-        //                .ToListAsync();
+                    // Join để lấy đúng dòng có ID = MaxId
+                    var allocRows = await (
+                        from pb in _context.Tbl_BM_16_PhanBoGangCR
+                        join k in latestKeysQuery
+                          on new { pb.ID_GangLong, pb.ID_TTG_Target, pb.ID }
+                          equals new { k.ID_GangLong, k.ID_TTG_Target, ID = k.MaxId }
+                        select new
+                        {
+                            pb.ID_GangLong,
+                            pb.ID_TTG_Target,
+                            pb.KL_PhanBo_CR,
+                            pb.IsSaiChuyenDen
+                        })
+                        .AsNoTracking()
+                        .ToListAsync();
 
-        //            // Build dict như cũ
-        //            var allocCrDict = allocRows.ToDictionary(
-        //                k => (k.ID_GangLong, k.ID_TTG_Target),
-        //                v => v.KL_PhanBo_CR
-        //            );
-        //            var allocErrDict = allocRows.ToDictionary(
-        //                k => (k.ID_GangLong, k.ID_TTG_Target),
-        //                v => v.IsSaiChuyenDen
-        //            );
-        //            // ===== 5.y) GÁN KL_GangChiaCR VÀ TÍNH TỔNG THEO TTG =====
-        //            foreach (var ttg in thungList)
-        //            {
-        //                decimal sumCR = 0m;
-        //                if (ttg.DanhSachThungGang != null && ttg.DanhSachThungGang.Count > 0)
-        //                {
-        //                    foreach (var g in ttg.DanhSachThungGang)
-        //                    {
-        //                        var key = (g.ID, ttg.ID_TTG);
-        //                        // KL phân bổ CR
-        //                        if (allocCrDict.TryGetValue(key, out var kl))
-        //                        {
-        //                            var val = kl ?? 0m;
-        //                            g.KL_GangChiaCR = val;
-        //                            sumCR += val;
-        //                        }
-        //                        else
-        //                        {
-        //                            g.KL_GangChiaCR = 0m;
-        //                        }
+                    // Build dict như cũ
+                    var allocCrDict = allocRows.ToDictionary(
+                        k => (k.ID_GangLong, k.ID_TTG_Target),
+                        v => v.KL_PhanBo_CR
+                    );
+                    var allocErrDict = allocRows.ToDictionary(
+                        k => (k.ID_GangLong, k.ID_TTG_Target),
+                        v => v.IsSaiChuyenDen
+                    );
+                    // ===== 5.y) GÁN KL_GangChiaCR VÀ TÍNH TỔNG THEO TTG =====
+                    foreach (var ttg in thungList)
+                    {
+                        decimal sumCR = 0m;
+                        if (ttg.DanhSachThungGang != null && ttg.DanhSachThungGang.Count > 0)
+                        {
+                            foreach (var g in ttg.DanhSachThungGang)
+                            {
+                                var key = (g.ID, ttg.ID_TTG);
+                                // KL phân bổ CR
+                                if (allocCrDict.TryGetValue(key, out var kl))
+                                {
+                                    var val = kl ?? 0m;
+                                    g.KL_GangChiaCR = val;
+                                    sumCR += val;
+                                }
+                                else
+                                {
+                                    g.KL_GangChiaCR = 0m;
+                                }
 
-        //                        // Cờ sai chuyển đến
-        //                        if (allocErrDict.TryGetValue(key, out var errFlag))
-        //                            g.IsSaiChuyenDen = errFlag;    // bool?
-        //                        else
-        //                            g.IsSaiChuyenDen = false;
-        //                    }
-        //                }
-        //                ttg.SumKL_GangChiaCR = sumCR;
-        //            }
-        //        }
+                                // Cờ sai chuyển đến
+                                if (allocErrDict.TryGetValue(key, out var errFlag))
+                                    g.IsSaiChuyenDen = errFlag;    // bool?
+                                else
+                                    g.IsSaiChuyenDen = false;
+                            }
+                        }
+                        ttg.SumKL_GangChiaCR = sumCR;
+                    }
+                }
 
-        //        // ===== Helpers (local) =====
-        //        static string Norm(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim().ToUpperInvariant();
+                // ===== Helpers (local) =====
+                static string Norm(string s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim().ToUpperInvariant();
 
-        //        static List<GangLongItemViewModel> OrderInsideTtgAnchorFirst(IEnumerable<GangLongItemViewModel> items)
-        //        {
-        //            var list = items.OrderBy(x => x.T_ReceiveSeq ?? int.MaxValue).ThenBy(x => x.ID).ToList();
+                static List<GangLongItemViewModel> OrderInsideTtgAnchorFirst(IEnumerable<GangLongItemViewModel> items)
+                {
+                    var list = items.OrderBy(x => x.T_ReceiveSeq ?? int.MaxValue).ThenBy(x => x.ID).ToList();
 
-        //            var group = list.Where(x => !string.IsNullOrWhiteSpace(x.MaChiaGang))
-        //                            .GroupBy(x => Norm(x.MaChiaGang))
-        //                            .ToDictionary(g => g.Key, g => g.OrderBy(y => y.T_ReceiveSeq).ThenBy(y => y.ID).ToList());
+                    var group = list.Where(x => !string.IsNullOrWhiteSpace(x.MaChiaGang))
+                                    .GroupBy(x => Norm(x.MaChiaGang))
+                                    .ToDictionary(g => g.Key, g => g.OrderBy(y => y.T_ReceiveSeq).ThenBy(y => y.ID).ToList());
 
-        //            var used = new HashSet<int>();
-        //            var seenKey = new HashSet<string>();
-        //            var result = new List<GangLongItemViewModel>(list.Count);
+                    var used = new HashSet<int>();
+                    var seenKey = new HashSet<string>();
+                    var result = new List<GangLongItemViewModel>(list.Count);
 
-        //            foreach (var row in list)
-        //            {
-        //                if (used.Contains(row.ID)) continue;
-        //                var k = Norm(row.MaChiaGang);
-        //                if (k == null || !group.ContainsKey(k) || seenKey.Contains(k))
-        //                {
-        //                    result.Add(row); used.Add(row.ID);
-        //                }
-        //                else
-        //                {
-        //                    seenKey.Add(k);
-        //                    foreach (var m in group[k])
-        //                        if (used.Add(m.ID)) result.Add(m);
-        //                }
-        //            }
-        //            return result;
-        //        }
+                    foreach (var row in list)
+                    {
+                        if (used.Contains(row.ID)) continue;
+                        var k = Norm(row.MaChiaGang);
+                        if (k == null || !group.ContainsKey(k) || seenKey.Contains(k))
+                        {
+                            result.Add(row); used.Add(row.ID);
+                        }
+                        else
+                        {
+                            seenKey.Add(k);
+                            foreach (var m in group[k])
+                                if (used.Add(m.ID)) result.Add(m);
+                        }
+                    }
+                    return result;
+                }
 
-        //        // ===== 6) Sắp trong phạm vi mỗi TTG (anchor-first) =====
-        //        foreach (var ttg in thungList)
-        //            if (ttg.DanhSachThungGang?.Count > 1)
-        //                ttg.DanhSachThungGang = OrderInsideTtgAnchorFirst(ttg.DanhSachThungGang);
+                // ===== 6) Sắp trong phạm vi mỗi TTG (anchor-first) =====
+                foreach (var ttg in thungList)
+                    if (ttg.DanhSachThungGang?.Count > 1)
+                        ttg.DanhSachThungGang = OrderInsideTtgAnchorFirst(ttg.DanhSachThungGang);
 
-        //        // ===== 7–9) Sắp family TTG (copy kề gốc) — giữ nguyên như bạn đã viết =====
-        //        var families = thungList
-        //            .GroupBy(ttg => ttg.MaThungTG ?? string.Empty, StringComparer.OrdinalIgnoreCase)
-        //            .Select(g =>
-        //            {
-        //                var origin = g.FirstOrDefault(x => !x.IsCopy) ?? g.First();
-        //                var minSeq = origin.DanhSachThungGang?.Min(x => x.T_ReceiveSeq ?? int.MaxValue) ?? int.MaxValue;
+                // ===== 7–9) Sắp family TTG (copy kề gốc) — giữ nguyên như bạn đã viết =====
+                var families = thungList
+                    .GroupBy(ttg => ttg.MaThungTG ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                    .Select(g =>
+                    {
+                        var origin = g.FirstOrDefault(x => !x.IsCopy) ?? g.First();
+                        var minSeq = origin.DanhSachThungGang?.Min(x => x.T_ReceiveSeq ?? int.MaxValue) ?? int.MaxValue;
 
-        //                var allBlockKeys = g
-        //                    .SelectMany(x => x.DanhSachThungGang ?? Enumerable.Empty<GangLongItemViewModel>())
-        //                    .Select(x => Norm(x.MaChiaGang))
-        //                    .Where(k => k != null)
-        //                    .Distinct()
-        //                    .ToList();
+                        var allBlockKeys = g
+                            .SelectMany(x => x.DanhSachThungGang ?? Enumerable.Empty<GangLongItemViewModel>())
+                            .Select(x => Norm(x.MaChiaGang))
+                            .Where(k => k != null)
+                            .Distinct()
+                            .ToList();
 
-        //                var items = g.OrderBy(x => x.IsCopy ? 1 : 0)
-        //                             .ThenBy(x => x.NgayTaoTTG)
-        //                             .ThenBy(x => x.ID_TTG)
-        //                             .ToList();
+                        var items = g.OrderBy(x => x.IsCopy ? 1 : 0)
+                                     .ThenBy(x => x.NgayTaoTTG)
+                                     .ThenBy(x => x.ID_TTG)
+                                     .ToList();
 
-        //                return new
-        //                {
-        //                    Key = g.Key,
-        //                    Origin = origin,
-        //                    Items = items,
-        //                    HasMe = string.IsNullOrEmpty(origin.MaMeThoi) ? 1 : 0,
-        //                    origin.MaMeThoi,
-        //                    MinSeq = minSeq,
-        //                    Ngay = origin.NgayTaoTTG,
-        //                    BlockKeys = allBlockKeys
-        //                };
-        //            })
-        //            .ToList();
+                        return new
+                        {
+                            Key = g.Key,
+                            Origin = origin,
+                            Items = items,
+                            HasMe = string.IsNullOrEmpty(origin.MaMeThoi) ? 1 : 0,
+                            origin.MaMeThoi,
+                            MinSeq = minSeq,
+                            Ngay = origin.NgayTaoTTG,
+                            BlockKeys = allBlockKeys
+                        };
+                    })
+                    .ToList();
 
-        //        var famBase = families
-        //            .OrderBy(f => f.HasMe)
-        //            .ThenBy(f => f.MaMeThoi)
-        //            .ThenBy(f => f.MinSeq)
-        //            .ThenBy(f => f.Ngay)
-        //            .ToList();
+                var famBase = families
+                    .OrderBy(f => f.HasMe)
+                    .ThenBy(f => f.MaMeThoi)
+                    .ThenBy(f => f.MinSeq)
+                    .ThenBy(f => f.Ngay)
+                    .ToList();
 
-        //        var keyToFamilies = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
-        //        for (int idx = 0; idx < famBase.Count; idx++)
-        //        {
-        //            var f = famBase[idx];
-        //            foreach (var k in f.BlockKeys)
-        //            {
-        //                if (!keyToFamilies.TryGetValue(k, out var list)) keyToFamilies[k] = list = new List<int>();
-        //                if (list.Count == 0 || list[^1] != idx) list.Add(idx);
-        //            }
-        //        }
-        //        var dupKeys = new HashSet<string>(keyToFamilies.Where(p => p.Value.Count > 1).Select(p => p.Key), StringComparer.OrdinalIgnoreCase);
+                var keyToFamilies = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+                for (int idx = 0; idx < famBase.Count; idx++)
+                {
+                    var f = famBase[idx];
+                    foreach (var k in f.BlockKeys)
+                    {
+                        if (!keyToFamilies.TryGetValue(k, out var list)) keyToFamilies[k] = list = new List<int>();
+                        if (list.Count == 0 || list[^1] != idx) list.Add(idx);
+                    }
+                }
+                var dupKeys = new HashSet<string>(keyToFamilies.Where(p => p.Value.Count > 1).Select(p => p.Key), StringComparer.OrdinalIgnoreCase);
 
-        //        var emittedFamily = new HashSet<int>();
-        //        var emittedKey = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        //        var finalFamiliesIdx = new List<int>(famBase.Count);
+                var emittedFamily = new HashSet<int>();
+                var emittedKey = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var finalFamiliesIdx = new List<int>(famBase.Count);
 
-        //        for (int i = 0; i < famBase.Count; i++)
-        //        {
-        //            if (emittedFamily.Contains(i)) continue;
-        //            var f = famBase[i];
+                for (int i = 0; i < famBase.Count; i++)
+                {
+                    if (emittedFamily.Contains(i)) continue;
+                    var f = famBase[i];
 
-        //            string pivot = f.BlockKeys.FirstOrDefault(k => dupKeys.Contains(k) && !emittedKey.Contains(k));
+                    string pivot = f.BlockKeys.FirstOrDefault(k => dupKeys.Contains(k) && !emittedKey.Contains(k));
 
-        //            if (pivot != null)
-        //            {
-        //                foreach (var fi in keyToFamilies[pivot])
-        //                    if (emittedFamily.Add(fi)) finalFamiliesIdx.Add(fi);
-        //                emittedKey.Add(pivot);
-        //            }
-        //            else
-        //            {
-        //                if (emittedFamily.Add(i)) finalFamiliesIdx.Add(i);
-        //            }
-        //        }
-        //        for (int i = 0; i < famBase.Count; i++)
-        //            if (emittedFamily.Add(i)) finalFamiliesIdx.Add(i);
+                    if (pivot != null)
+                    {
+                        foreach (var fi in keyToFamilies[pivot])
+                            if (emittedFamily.Add(fi)) finalFamiliesIdx.Add(fi);
+                        emittedKey.Add(pivot);
+                    }
+                    else
+                    {
+                        if (emittedFamily.Add(i)) finalFamiliesIdx.Add(i);
+                    }
+                }
+                for (int i = 0; i < famBase.Count; i++)
+                    if (emittedFamily.Add(i)) finalFamiliesIdx.Add(i);
 
-        //        var finalBlocks = new List<ThungTrungGianGroupViewModel>(thungList.Count);
-        //        foreach (var fi in finalFamiliesIdx)
-        //            finalBlocks.AddRange(famBase[fi].Items);
+                var finalBlocks = new List<ThungTrungGianGroupViewModel>(thungList.Count);
+                foreach (var fi in finalFamiliesIdx)
+                    finalBlocks.AddRange(famBase[fi].Items);
 
-        //        return finalBlocks;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // tuỳ dự án: log lại
-        //        Console.WriteLine($"[ERROR] GetDanhSachThungTrungGianDaNhan: {ex}");
-        //        return new List<ThungTrungGianGroupViewModel>();
-        //    }
-        //}
+                return finalBlocks;
+            }
+            catch (Exception ex)
+            {
+                // tuỳ dự án: log lại
+                Console.WriteLine($"[ERROR] GetDanhSachThungTrungGianDaNhan: {ex}");
+                return new List<ThungTrungGianGroupViewModel>();
+            }
+        }
 
 
         private async Task<int> TaoThungTrungGian(DateTime ngayNhan, int idCa, int idLoThoi, string SoThungTG, int ID_NguoiNhan)
@@ -2030,6 +2056,61 @@ namespace Data_Product.Controllers
                         var gangList = await _context.Tbl_BM_16_GangLong
                             .Where(x => maThungList.Contains(x.MaThungThep) && x.ID_TrangThai != (int)TinhTrang.DaChot)
                             .ToListAsync();
+                        var maChiaGangList = await _context.Tbl_BM_16_ChiaGang
+                            .Where(x => maThungList.Contains(x.MaThungThep))
+                            .Select(x => x.MaChiaGang)
+                            .Distinct()
+                            .ToListAsync();
+
+                        // 2. Lấy tất cả thùng thuộc các MaChiaGang đó (bao gồm thùng KHÔNG nằm trong tgDto)
+                        var allThungCungNhom = await _context.Tbl_BM_16_ChiaGang
+                            .Where(x => maChiaGangList.Contains(x.MaChiaGang))
+                            .Select(x => new { x.MaChiaGang, x.MaThungThep })
+                            .ToListAsync();
+
+
+                        // 3. Group theo MaChiaGang
+                        var groupData = allThungCungNhom
+                            .GroupBy(x => x.MaChiaGang)
+                            .ToList();
+
+                        foreach (var group in groupData)
+                        {
+                            // Các thùng trong DB thuộc nhóm này
+                            var thungTrongDB = group.Select(x => x.MaThungThep).ToList();
+
+                            // Các thùng trong DTO thuộc nhóm này
+                            var thungTrongDTO = tgDto.DanhSachThungGang
+                                .Where(x => thungTrongDB.Contains(x.MaThungThep))
+                                .ToList();
+
+                            // 4. Lấy nhiệt độ chung từ DTO
+                            var nhietDoChung = thungTrongDTO
+                                .Where(x => x.NhietDo.HasValue)
+                                .Select(x => x.NhietDo.Value)
+                                .FirstOrDefault();
+
+                            if (nhietDoChung > 0)
+                            {
+                                // 5. Cập nhật NHIỆT ĐỘ vào DTO
+                                foreach (var t in thungTrongDTO)
+                                {
+                                    t.NhietDo = nhietDoChung;
+                                }
+
+                                // 6. Cập nhật NHIỆT ĐỘ vào DB đối với thùng không có trong DTO
+                                var thungNgoaiDTO = await _context.Tbl_BM_16_GangLong
+                                    .Where(x => thungTrongDB.Contains(x.MaThungThep))
+                                    .ToListAsync();
+
+                                foreach (var t in thungNgoaiDTO)
+                                {
+                                    t.NhietDo = nhietDoChung;
+                                }
+
+                            }
+                        }
+
 
                         foreach (var thungGang in tgDto.DanhSachThungGang)
                         {
@@ -2048,6 +2129,11 @@ namespace Data_Product.Controllers
 
                                 entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
                                 entity.T_KLThungChua = thungGang.T_KLThungChua;
+                                //entity.NhietDo = thungGang.NhietDo;
+                                if (thungGang.NhietDo.HasValue)
+                                {
+                                    entity.NhietDo = thungGang.NhietDo.Value;
+                                }
                                 maThungThepCanTinhToan.Add(thungGang.MaThungGang);
                             }
                         }
@@ -2213,13 +2299,14 @@ namespace Data_Product.Controllers
                 bool isHRC2 = string.Equals(PhongBan, "HRC2", StringComparison.OrdinalIgnoreCase);
 
                 // Cột dữ liệu
-                const int COL_KL_VA_GANG = 6;
-                const int COL_KL_THUNG = 7;
-                const int COL_KL_GANGLONG = 8;
-                const int COL_KLGANGCHIA = 9;   // Không merge
+                const int COL_NHIET_DO = 6;
+                const int COL_KL_VA_GANG = 7;
+                const int COL_KL_THUNG = 8;
+                const int COL_KL_GANGLONG = 9;
+                const int COL_KLGANGCHIA = 10;   // Không merge
 
-                // Cột cấp TTG (10..18)
-                int[] TTG_COLS = { 10, 11, 12, 13, 14, 15, 16, 17, 18 };
+                // Cột cấp TTG (12..20)
+                int[] TTG_COLS = { 12, 13, 14, 15, 16, 17, 18 , 19, 20};
 
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "QTGN_Gang_Long_Thep.xlsx");
                 using var ms = new MemoryStream();
@@ -2265,6 +2352,7 @@ namespace Data_Product.Controllers
                         // Nếu cụm mở đầu bằng dòng copy (ô 6-7-8 rỗng), đưa giá trị từ dòng non-copy đầu tiên lên top
                         if (firstValueRow > 0 && firstValueRow != start)
                         {
+                            ws.Cell(start, COL_NHIET_DO).Value = ws.Cell(firstValueRow, COL_NHIET_DO).Value;
                             ws.Cell(start, COL_KL_VA_GANG).Value = ws.Cell(firstValueRow, COL_KL_VA_GANG).Value;
                             ws.Cell(start, COL_KL_THUNG).Value = ws.Cell(firstValueRow, COL_KL_THUNG).Value;
                             ws.Cell(start, COL_KL_GANGLONG).Value = ws.Cell(firstValueRow, COL_KL_GANGLONG).Value;
@@ -2277,6 +2365,7 @@ namespace Data_Product.Controllers
                         topGangLong.Style.Font.Bold = true;
 
                         // Merge 6–8
+                        ws.Range(start, COL_NHIET_DO, end, COL_NHIET_DO).Merge();
                         ws.Range(start, COL_KL_VA_GANG, end, COL_KL_VA_GANG).Merge();
                         ws.Range(start, COL_KL_THUNG, end, COL_KL_THUNG).Merge();
                         ws.Range(start, COL_KL_GANGLONG, end, COL_KL_GANGLONG).Merge();
@@ -2335,14 +2424,17 @@ namespace Data_Product.Controllers
                                 ws.Cell(row, c++).Value = ""; // 6
                                 ws.Cell(row, c++).Value = ""; // 7
                                 ws.Cell(row, c++).Value = ""; // 8
-                                ws.Cell(row, c++).Value = ""; // 9 (KLGangChia - không merge)
+                                ws.Cell(row, c++).Value = ""; // 9
+                                ws.Cell(row, c++).Value = ""; // 10 (KLGangChia - không merge)
+                                ws.Cell(row, c++).Value = ""; // 11 KL chia CR ( không merge)
                             }
                             else
                             {
-                                ws.Cell(row, c++).Value = item.T_KLThungVaGang; // 6
-                                ws.Cell(row, c++).Value = item.T_KLThungChua;   // 7
+                                ws.Cell(row, c++).Value = item.NhietDo;
+                                ws.Cell(row, c++).Value = item.T_KLThungVaGang; // 7
+                                ws.Cell(row, c++).Value = item.T_KLThungChua;   // 8
 
-                                var cellGangLong = ws.Cell(row, c++);           // 8
+                                var cellGangLong = ws.Cell(row, c++);           // 9
                                 if (item.T_KLGangLong.HasValue)
                                 {
                                     cellGangLong.Value = item.T_KLGangLong.Value;
@@ -2395,7 +2487,7 @@ namespace Data_Product.Controllers
 
                         // ===== Merge cột cấp TTG trong phạm vi TTG (cả HRC1/HRC2; với HRC1 1 hàng/TTG nên không ảnh hưởng) =====
                         int r1 = startRow_TTG, r2 = row - 1;
-                        int col = 11;
+                        int col = 12;
 
                         var cellTongKLGang = ws.Cell(r1, col);
                         cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
@@ -2438,7 +2530,7 @@ namespace Data_Product.Controllers
                         if (isHRC2) FinalizeLocalGroup_HRC2();
                     }
 
-                    // HRC1: merge theo MaChiaGang trên TOÀN BẢNG (6–8 và 10–18)
+                    // HRC1: merge theo MaChiaGang trên TOÀN BẢNG (6–9 và 12–18)
                     if (isHRC1)
                     {
                         // Quét theo thứ tự dòng đã ghi để tạo dải liên tiếp cùng key
@@ -2462,6 +2554,7 @@ namespace Data_Product.Controllers
 
                                 if (firstNonCopyRow > 0 && firstNonCopyRow != r1)
                                 {
+                                    ws.Cell(r1, COL_NHIET_DO).Value = ws.Cell(firstNonCopyRow, COL_NHIET_DO).Value;
                                     ws.Cell(r1, COL_KL_VA_GANG).Value = ws.Cell(firstNonCopyRow, COL_KL_VA_GANG).Value;
                                     ws.Cell(r1, COL_KL_THUNG).Value = ws.Cell(firstNonCopyRow, COL_KL_THUNG).Value;
                                     ws.Cell(r1, COL_KL_GANGLONG).Value = ws.Cell(firstNonCopyRow, COL_KL_GANGLONG).Value;
@@ -2474,6 +2567,7 @@ namespace Data_Product.Controllers
                                 topGangLong.Style.Font.Bold = true;
 
                                 // Merge 6–8
+                                ws.Range(r1, COL_NHIET_DO, r2, COL_NHIET_DO).Merge();
                                 ws.Range(r1, COL_KL_VA_GANG, r2, COL_KL_VA_GANG).Merge();
                                 ws.Range(r1, COL_KL_THUNG, r2, COL_KL_THUNG).Merge();
                                 ws.Range(r1, COL_KL_GANGLONG, r2, COL_KL_GANGLONG).Merge();
@@ -2497,32 +2591,37 @@ namespace Data_Product.Controllers
                     ws.Cell(sumRow, 9).Style.Font.SetBold();
                     ws.Cell(sumRow, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel2 = ws.Range($"J{sumRow}:J{sumRow}").Merge();
+                    ws.Cell(sumRow, 10).FormulaA1 = $"=SUM(I8:I{row - 1})";
+                    ws.Cell(sumRow, 10).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 10).Style.Font.SetBold();
+                    ws.Cell(sumRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                    var totalLabel2 = ws.Range($"K{sumRow}:K{sumRow}").Merge();
                     totalLabel2.Value = "";
                     totalLabel2.Style.Font.SetBold();
                     totalLabel2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                    ws.Cell(sumRow, 11).FormulaA1 = $"=SUM(K8:K{row - 1})";
-                    ws.Cell(sumRow, 11).Style.NumberFormat.Format = "#,##0.00";
-                    ws.Cell(sumRow, 11).Style.Font.SetBold();
-                    ws.Cell(sumRow, 11).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Cell(sumRow, 12).FormulaA1 = $"=SUM(L8:L{row - 1})";
+                    ws.Cell(sumRow, 12).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 12).Style.Font.SetBold();
+                    ws.Cell(sumRow, 12).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel3 = ws.Range($"L{sumRow}:O{sumRow}").Merge();
+                    var totalLabel3 = ws.Range($"M{sumRow}:P{sumRow}").Merge();
                     totalLabel3.Value = "";
                     totalLabel3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                    ws.Cell(sumRow, 16).FormulaA1 = $"=SUM(P8:P{row - 1})";
-                    ws.Cell(sumRow, 16).Style.NumberFormat.Format = "#,##0.00";
-                    ws.Cell(sumRow, 16).Style.Font.SetBold();
-                    ws.Cell(sumRow, 16).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Cell(sumRow, 17).FormulaA1 = $"=SUM(Q8:Q{row - 1})";
+                    ws.Cell(sumRow, 17).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 17).Style.Font.SetBold();
+                    ws.Cell(sumRow, 17).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel4 = ws.Range($"Q{sumRow}:S{sumRow}").Merge();
+                    var totalLabel4 = ws.Range($"R{sumRow}:T{sumRow}").Merge();
                     totalLabel4.Value = "";
                     totalLabel4.Style.Font.SetBold();
                     totalLabel4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
                     // Format chung
-                    var usedRange = ws.Range($"A7:S{sumRow}");
+                    var usedRange = ws.Range($"A7:T{sumRow}");
                     usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                     //usedRange.Style.Font.FontColor = XLColor.Black;
                     usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
