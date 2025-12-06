@@ -2130,6 +2130,10 @@ namespace Data_Product.Controllers
                                 entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
                                 entity.T_KLThungChua = thungGang.T_KLThungChua;
                                 //entity.NhietDo = thungGang.NhietDo;
+                                if (thungGang.NhietDo.HasValue)
+                                {
+                                    entity.NhietDo = thungGang.NhietDo.Value;
+                                }
                                 maThungThepCanTinhToan.Add(thungGang.MaThungGang);
                             }
                         }
