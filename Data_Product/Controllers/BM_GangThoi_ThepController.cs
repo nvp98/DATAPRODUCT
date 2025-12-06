@@ -656,7 +656,8 @@ namespace Data_Product.Controllers
                             T_ReceiveSeq = x.T_ReceiveSeq, // có thể null
                             MaChiaGang = null,              // sẽ gán sau
                             KL_GangChiaCR = 0m,             // sẽ gán sau
-                            IsSaiChuyenDen = null
+                            IsSaiChuyenDen = null,
+                            NhietDo = x.NhietDo
                         }
                     })
                     .AsNoTracking()
@@ -738,7 +739,8 @@ namespace Data_Product.Controllers
                                 MaChiaGang = x.MaChiaGang,
                                 KL_GangChiaCR = 0m,
                                 IsSaiChuyenDen = null,
-                                IsChiaCR = x.IsChiaCR
+                                IsChiaCR = x.IsChiaCR,
+                                NhietDo = x.NhietDo
                             }).ToList();
                 }
 
@@ -2055,6 +2057,35 @@ namespace Data_Product.Controllers
                             .Where(x => maThungList.Contains(x.MaThungThep) && x.ID_TrangThai != (int)TinhTrang.DaChot)
                             .ToListAsync();
 
+                        var chiaGangGroups = await _context.Tbl_BM_16_ChiaGang
+                            .Where(x => maThungList.Contains(x.MaThungThep))
+                            .GroupBy(x => x.MaChiaGang)
+                            .Select(g => new {
+                                MaChiaGang = g.Key,
+                                DanhSachThung = g.Select(x => x.MaThungThep).ToList()
+                            })
+                            .ToListAsync();
+
+                        foreach (var group in chiaGangGroups)
+                        {
+                            var thungTrongNhom = tgDto.DanhSachThungGang
+                                .Where(x => group.DanhSachThung.Contains(x.MaThungThep))
+                                .ToList();
+
+                            var nhietDoChung = thungTrongNhom
+                                .Where(x => x.NhietDo.HasValue)
+                                .Select(x => x.NhietDo.Value)
+                                .FirstOrDefault();
+
+                            if (nhietDoChung > 0)
+                            {
+                                foreach (var t in thungTrongNhom)
+                                {
+                                    t.NhietDo = nhietDoChung; 
+                                }
+                            }
+                        }
+
                         foreach (var thungGang in tgDto.DanhSachThungGang)
                         {
                             var entity = gangList.FirstOrDefault(x => x.MaThungThep == thungGang.MaThungThep);
@@ -2072,6 +2103,7 @@ namespace Data_Product.Controllers
 
                                 entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
                                 entity.T_KLThungChua = thungGang.T_KLThungChua;
+                                entity.NhietDo = thungGang.NhietDo;
                                 maThungThepCanTinhToan.Add(thungGang.MaThungGang);
                             }
                         }
@@ -2237,13 +2269,14 @@ namespace Data_Product.Controllers
                 bool isHRC2 = string.Equals(PhongBan, "HRC2", StringComparison.OrdinalIgnoreCase);
 
                 // Cột dữ liệu
-                const int COL_KL_VA_GANG = 6;
-                const int COL_KL_THUNG = 7;
-                const int COL_KL_GANGLONG = 8;
-                const int COL_KLGANGCHIA = 9;   // Không merge
+                const int COL_NHIET_DO = 6;
+                const int COL_KL_VA_GANG = 7;
+                const int COL_KL_THUNG = 8;
+                const int COL_KL_GANGLONG = 9;
+                const int COL_KLGANGCHIA = 10;   // Không merge
 
-                // Cột cấp TTG (11..18)
-                int[] TTG_COLS = { 11, 12, 13, 14, 15, 16, 17, 18 };
+                // Cột cấp TTG (12..20)
+                int[] TTG_COLS = { 12, 13, 14, 15, 16, 17, 18 , 19, 20};
 
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "QTGN_Gang_Long_Thep.xlsx");
                 using var ms = new MemoryStream();
@@ -2289,6 +2322,7 @@ namespace Data_Product.Controllers
                         // Nếu cụm mở đầu bằng dòng copy (ô 6-7-8 rỗng), đưa giá trị từ dòng non-copy đầu tiên lên top
                         if (firstValueRow > 0 && firstValueRow != start)
                         {
+                            ws.Cell(start, COL_NHIET_DO).Value = ws.Cell(firstValueRow, COL_NHIET_DO).Value;
                             ws.Cell(start, COL_KL_VA_GANG).Value = ws.Cell(firstValueRow, COL_KL_VA_GANG).Value;
                             ws.Cell(start, COL_KL_THUNG).Value = ws.Cell(firstValueRow, COL_KL_THUNG).Value;
                             ws.Cell(start, COL_KL_GANGLONG).Value = ws.Cell(firstValueRow, COL_KL_GANGLONG).Value;
@@ -2301,6 +2335,7 @@ namespace Data_Product.Controllers
                         topGangLong.Style.Font.Bold = true;
 
                         // Merge 6–8
+                        ws.Range(start, COL_NHIET_DO, end, COL_NHIET_DO).Merge();
                         ws.Range(start, COL_KL_VA_GANG, end, COL_KL_VA_GANG).Merge();
                         ws.Range(start, COL_KL_THUNG, end, COL_KL_THUNG).Merge();
                         ws.Range(start, COL_KL_GANGLONG, end, COL_KL_GANGLONG).Merge();
@@ -2359,15 +2394,17 @@ namespace Data_Product.Controllers
                                 ws.Cell(row, c++).Value = ""; // 6
                                 ws.Cell(row, c++).Value = ""; // 7
                                 ws.Cell(row, c++).Value = ""; // 8
-                                ws.Cell(row, c++).Value = ""; // 9 (KLGangChia - không merge)
-                                ws.Cell(row, c++).Value = ""; // 10 KL chia CR ( không merge)
+                                ws.Cell(row, c++).Value = ""; // 9
+                                ws.Cell(row, c++).Value = ""; // 10 (KLGangChia - không merge)
+                                ws.Cell(row, c++).Value = ""; // 11 KL chia CR ( không merge)
                             }
                             else
                             {
-                                ws.Cell(row, c++).Value = item.T_KLThungVaGang; // 6
-                                ws.Cell(row, c++).Value = item.T_KLThungChua;   // 7
+                                ws.Cell(row, c++).Value = item.NhietDo;
+                                ws.Cell(row, c++).Value = item.T_KLThungVaGang; // 7
+                                ws.Cell(row, c++).Value = item.T_KLThungChua;   // 8
 
-                                var cellGangLong = ws.Cell(row, c++);           // 8
+                                var cellGangLong = ws.Cell(row, c++);           // 9
                                 if (item.T_KLGangLong.HasValue)
                                 {
                                     cellGangLong.Value = item.T_KLGangLong.Value;
@@ -2420,7 +2457,7 @@ namespace Data_Product.Controllers
 
                         // ===== Merge cột cấp TTG trong phạm vi TTG (cả HRC1/HRC2; với HRC1 1 hàng/TTG nên không ảnh hưởng) =====
                         int r1 = startRow_TTG, r2 = row - 1;
-                        int col = 11;
+                        int col = 12;
 
                         var cellTongKLGang = ws.Cell(r1, col);
                         cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
@@ -2463,7 +2500,7 @@ namespace Data_Product.Controllers
                         if (isHRC2) FinalizeLocalGroup_HRC2();
                     }
 
-                    // HRC1: merge theo MaChiaGang trên TOÀN BẢNG (6–8 và 10–18)
+                    // HRC1: merge theo MaChiaGang trên TOÀN BẢNG (6–9 và 12–18)
                     if (isHRC1)
                     {
                         // Quét theo thứ tự dòng đã ghi để tạo dải liên tiếp cùng key
@@ -2487,6 +2524,7 @@ namespace Data_Product.Controllers
 
                                 if (firstNonCopyRow > 0 && firstNonCopyRow != r1)
                                 {
+                                    ws.Cell(r1, COL_NHIET_DO).Value = ws.Cell(firstNonCopyRow, COL_NHIET_DO).Value;
                                     ws.Cell(r1, COL_KL_VA_GANG).Value = ws.Cell(firstNonCopyRow, COL_KL_VA_GANG).Value;
                                     ws.Cell(r1, COL_KL_THUNG).Value = ws.Cell(firstNonCopyRow, COL_KL_THUNG).Value;
                                     ws.Cell(r1, COL_KL_GANGLONG).Value = ws.Cell(firstNonCopyRow, COL_KL_GANGLONG).Value;
@@ -2499,6 +2537,7 @@ namespace Data_Product.Controllers
                                 topGangLong.Style.Font.Bold = true;
 
                                 // Merge 6–8
+                                ws.Range(r1, COL_NHIET_DO, r2, COL_NHIET_DO).Merge();
                                 ws.Range(r1, COL_KL_VA_GANG, r2, COL_KL_VA_GANG).Merge();
                                 ws.Range(r1, COL_KL_THUNG, r2, COL_KL_THUNG).Merge();
                                 ws.Range(r1, COL_KL_GANGLONG, r2, COL_KL_GANGLONG).Merge();
@@ -2522,32 +2561,37 @@ namespace Data_Product.Controllers
                     ws.Cell(sumRow, 9).Style.Font.SetBold();
                     ws.Cell(sumRow, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel2 = ws.Range($"J{sumRow}:J{sumRow}").Merge();
+                    ws.Cell(sumRow, 10).FormulaA1 = $"=SUM(I8:I{row - 1})";
+                    ws.Cell(sumRow, 10).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 10).Style.Font.SetBold();
+                    ws.Cell(sumRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
+                    var totalLabel2 = ws.Range($"K{sumRow}:K{sumRow}").Merge();
                     totalLabel2.Value = "";
                     totalLabel2.Style.Font.SetBold();
                     totalLabel2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                    ws.Cell(sumRow, 11).FormulaA1 = $"=SUM(K8:K{row - 1})";
-                    ws.Cell(sumRow, 11).Style.NumberFormat.Format = "#,##0.00";
-                    ws.Cell(sumRow, 11).Style.Font.SetBold();
-                    ws.Cell(sumRow, 11).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Cell(sumRow, 12).FormulaA1 = $"=SUM(L8:L{row - 1})";
+                    ws.Cell(sumRow, 12).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 12).Style.Font.SetBold();
+                    ws.Cell(sumRow, 12).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel3 = ws.Range($"L{sumRow}:O{sumRow}").Merge();
+                    var totalLabel3 = ws.Range($"M{sumRow}:P{sumRow}").Merge();
                     totalLabel3.Value = "";
                     totalLabel3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                    ws.Cell(sumRow, 16).FormulaA1 = $"=SUM(P8:P{row - 1})";
-                    ws.Cell(sumRow, 16).Style.NumberFormat.Format = "#,##0.00";
-                    ws.Cell(sumRow, 16).Style.Font.SetBold();
-                    ws.Cell(sumRow, 16).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Cell(sumRow, 17).FormulaA1 = $"=SUM(Q8:Q{row - 1})";
+                    ws.Cell(sumRow, 17).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 17).Style.Font.SetBold();
+                    ws.Cell(sumRow, 17).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel4 = ws.Range($"Q{sumRow}:S{sumRow}").Merge();
+                    var totalLabel4 = ws.Range($"R{sumRow}:T{sumRow}").Merge();
                     totalLabel4.Value = "";
                     totalLabel4.Style.Font.SetBold();
                     totalLabel4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
                     // Format chung
-                    var usedRange = ws.Range($"A7:S{sumRow}");
+                    var usedRange = ws.Range($"A7:T{sumRow}");
                     usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                     //usedRange.Style.Font.FontColor = XLColor.Black;
                     usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;

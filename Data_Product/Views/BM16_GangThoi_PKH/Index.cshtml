@@ -543,6 +543,7 @@
                         <th>Ca LT</th>
                         <th>Kíp LT</th>
                         <th class="hide-col">Mã thùng thép</th>
+                        <th class="hide-col">Nhiệt độ (ºC)</th>
                         <th class="hide-col">KL thùng & gang lỏng (T)</th>
                         <th class="hide-col">KL thùng (T)</th>
                         <th class="hide-col">KL gang lỏng (T)</th>
@@ -1294,6 +1295,7 @@
                     row.append(`<td>${item.t_Ca == null ? '' : (item.t_Ca === 1 ? 'N' : 'Đ')}</td>`);
                     row.append(`<td>${item.t_TenKip ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.maThungThep ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.nhietDo ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungVaGang ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungChua ?? ''}</td>`);
                     row.append(`<td  class="hide-col T_KLGangLong">${item.t_KLGangLong ?? ''}</td>`);
@@ -1945,9 +1947,9 @@
             $('.hide-col').css('display', display);
 
             $('.total-space').attr('colspan', isHidden ? 11 : 14);
-            $('.space-2').attr('colspan', isHidden ? 5 : 10);
+            $('.space-2').attr('colspan', isHidden ? 5 : 11);
 
-            $('.space-3').attr('colspan', isHidden ? 4 : 9);
+            $('.space-3').attr('colspan', isHidden ? 4 : 10);
             $('.space-4').attr('colspan', isHidden ? 9 : 9);
 
             if(!isHidden){
