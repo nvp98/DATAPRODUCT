@@ -481,6 +481,63 @@
 		// util: escape HTML
 		function esc(s) { return $('<div/>').text(s || '').html(); }
 
+		// Cache danh sách Số mẻ BM16 để dùng khi render
+		var bm16SoMeSet = null; // Set các id mẻ
+		function fetchBm16SoMeList(done) {
+			var params = {
+				maPhieu: $('#PhieuID').val(),
+				ngayStr: $('#ID_Day').val(),
+				idLoCao: $('#IDLoCaoNum').val(),
+				idCa: $('#IDCaNum').val(),
+				term: '',
+				take: 500,
+				select2: true
+			};
+			$.get('/BM16_GangThoi/GetAllSoMe', params)
+				.done(function (data) {
+					if (Array.isArray(data)) {
+						bm16SoMeSet = new Set(data.map(function (d) { return d.id; }));
+						// Log danh sách BM16 để kiểm tra
+						console.log('[BM16 GetAllSoMe] count=', data.length, 'sample=', data.slice(0, 5));
+					}
+					if (typeof done === 'function') done();
+				})
+				.fail(function () { bm16SoMeSet = null; if (typeof done === 'function') done(); });
+		}
+
+		// Kiểm tra và chỉ prefill nếu tồn tại trong danh sách BM16
+		function checkAndPrefillSoMe($sel, someVal) {
+			if (!someVal) return;
+			var params = {
+				maPhieu: $('#PhieuID').val(),
+				ngayStr: $('#ID_Day').val(),
+				idLoCao: $('#IDLoCaoNum').val(),
+				idCa: $('#IDCaNum').val(),
+				term: '', // lấy đầy đủ để kiểm tra bằng nhau tuyệt đối
+				take: 500,
+				select2: true
+			};
+			$.ajax({
+				url: '/BM16_GangThoi/GetAllSoMe',
+				method: 'GET',
+				data: params,
+				success: function (data) {
+					// data: array of { id, text }
+					if (!Array.isArray(data)) return;
+					var found = data.find(function (d) { return (d.id || '') === someVal; });
+					if (found) {
+						// đảm bảo option tồn tại trước khi set
+						var hasOpt = $sel.find('option').filter(function(){ return $(this).val() === found.id; }).length > 0;
+						if (!hasOpt) {
+							var opt = new Option(found.text || found.id, found.id, true, true);
+							$sel.append(opt);
+						}
+						$sel.val(found.id).trigger('change');
+					}
+				}
+			});
+		}
+
 		// init select2 for Số mẻ (ajax)
 			function initSoMeSelectAjax($sel) {
 		if ($sel.data('init') === 'true') return;
@@ -542,26 +599,43 @@
 				var gioStr  = x.gioStr || '';
 				var thungSo = x.thungSo != null ? x.thungSo : '';
 				var idLo    = x.iD_LoCao;
+				var canRayId = x.canRayId || null;
+				var bfNo   = x.bF_no || idLo || null;
+				// Chuẩn hoá lấy Số mẻ từ đối tượng trả về (khác biệt kiểu đặt tên)
+				var someVal = (x.bkmis_SoMe || x.bkmiS_SoMe || x.soMe || x.SoMe || '').toString();
 
 				var tr = '' +
 					'<tr data-row="left"' +
 					'    data-rowid="' + esc(x.rowId) + '"' +
 					'    data-idlocao="' + esc(idLo) + '"' +
+					'    data-crid="' + esc(canRayId) + '"' +
+					'    data-bfno="' + esc(bfNo) + '"' +
 					'    data-san="' + esc(san) + '"' +
 					'    data-gioiso="' + esc(gioIso) + '"' +
 					'    data-thungso="' + esc(thungSo) + '">' +
 					'  <td>' + esc(san) + '</td>' +
 					'  <td>' + esc(thungSo) + '</td>' +
 					'  <td>' + esc(gioStr) + '</td>' +
-					'  <td>' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
-					'  <td>' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
-					'  <td>' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
+					'  <td class="kl-bi">' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
+					'  <td class="kl-tong">' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
+					'  <td class="kl-gang">' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
 					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
 					'</tr>';
 
 				$tb.append(tr);
 				var $sel = $tb.find('tr:last .ip-some');
+				// Nếu đã có cache BM16, prefill ngay trước khi init select2
+				if (bm16SoMeSet && someVal && bm16SoMeSet.has(someVal)) {
+					var opt = new Option(someVal, someVal, true, true);
+					$sel.append(opt);
+					$sel.val(someVal);
+				}
+				// Sau đó khởi tạo select2 (để người dùng có thể thay đổi)
 				initSoMeSelectAjax($sel);
+				// Nếu chưa có cache, fallback gọi kiểm tra qua API
+				if (!bm16SoMeSet) {
+					checkAndPrefillSoMe($sel, someVal);
+				}
 			});
 
 			$("#leftCount").text(list.length + " dòng");
@@ -593,7 +667,12 @@
 					idLoCao: idLoCao
 				},
 				success: function (res) {
-					renderBoth(res || []);
+					// Log dữ liệu cân ray để kiểm tra
+					console.log('[AutoSourceData] rows=', Array.isArray(res) ? res.length : 0, 'sample=', Array.isArray(res) ? res.slice(0, 5) : res);
+					// Trước khi render, lấy danh sách BM16 một lần để prefill ngay
+					fetchBm16SoMeList(function(){
+						renderBoth(res || []);
+					});
 				},
 				error: function (xhr) {
 					alert('Lỗi tải dữ liệu auto: ' + (xhr.responseText || 'Không xác định'));
@@ -612,18 +691,20 @@
 				if (!soMe) return; // bỏ dòng chưa chọn Số mẻ
 
 				var idLoCao = parseInt($r.data('idlocao'), 10);
+				var canRayId = parseInt($r.data('crid'), 10) || null;
 				var gioChot = $r.data('gioiso');      // ISO string
 				var thungSo = $r.data('thungso');
 
-				// các cột KL lấy theo index cột hiển thị
-				var klBi   = parseFloat($r.find('td:eq(3)').text()) || null;
-				var klTong = parseFloat($r.find('td:eq(4)').text()) || null;
-				var klGang = parseFloat($r.find('td:eq(5)').text()) || null;
+				// lấy theo class để ổn định, tránh phụ thuộc vị trí cột
+				var klBi   = parseFloat($r.find('td.kl-bi').text()) || null;
+				var klTong = parseFloat($r.find('td.kl-tong').text()) || null;
+				var klGang = parseFloat($r.find('td.kl-gang').text()) || null;
 
 				items.push({
 					MaPhieu: maPhieu,
 					SoMe: soMe,
 					ID_LoCao: idLoCao,
+					CanRayId: canRayId,
 					GioChotGang: gioChot,
 					G_KLXeVaThung: klBi,
 					G_KLXeThungVaGang: klTong,

@@ -1986,6 +1986,7 @@ namespace Data_Product.Controllers
                         // Ánh xạ các giá trị đã lấy được
                         RowId = rowId,
                         ID_LoCao = idLoCao,
+                        CanRayId = d.ID,
                         GioChotGang = d.BF_Timestap,
                         GioStr = d.BF_Timestap.HasValue ? d.BF_Timestap.Value.ToString("HH:mm") : string.Empty,
                         ThungSo = d.Laddle_no,
@@ -2103,56 +2104,21 @@ namespace Data_Product.Controllers
                         }
 
                         // Sau khi cập nhật bảng chính, cập nhật "Số mẻ" vào bảng cân ray (Tbl_CanRayLG2)
-                        // Tìm các item thuộc cùng Số mẻ này và có thông tin thời gian/lò cao để ánh xạ
-                        var relatedItems = items
+                        // YÊU CẦU: cập nhật THEO ID + BF_no, không dùng thời gian
+                        var relatedById = items
                             .Where(i => !string.IsNullOrWhiteSpace(i.SoMe)
                                         && i.SoMe.Trim() == grp.SoMe
-                                        && i.GioChotGang.HasValue)
-                            .Select(i => new
-                            {
-                                SoMe = i.SoMe.Trim(),
-                                Gio = i.GioChotGang!.Value,
-                                LoCao = i.ID_LoCao
-                            })
+                                        && i.CanRayId.HasValue
+                                        && i.ID_LoCao > 0)
+                            .Select(i => new { Id = i.CanRayId!.Value, BfNo = i.ID_LoCao })
                             .Distinct()
                             .ToList();
 
-                        if (relatedItems.Any())
+                        foreach (var it in relatedById)
                         {
-                            // Gom theo lò cao để truy vấn hiệu quả
-                            var byLoCao = relatedItems
-                                .GroupBy(x => x.LoCao)
-                                .Select(g => new
-                                {
-                                    LoCao = g.Key,
-                                    Times = g.Select(x => x.Gio).Distinct().ToList()
-                                })
-                                .ToList();
-
-                            foreach (var bucket in byLoCao)
-                            {
-                                // Cập nhật trực tiếp bằng SQL để tránh lỗi cạnh tranh lạc quan khi nhiều hàng khớp
-                                if (bucket.LoCao != 0)
-                                {
-                                    foreach (var t in bucket.Times)
-                                    {
-                                        // Update tất cả hàng theo BF_no + BF_Timestap = time
-                                        await _context.Database.ExecuteSqlRawAsync(
-                                            "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0} WHERE BF_no = {1} AND BF_Timestap = {2}",
-                                            grp.SoMe, bucket.LoCao, t);
-                                    }
-                                }
-                                else
-                                {
-                                    // Fallback theo thời điểm nếu không có lò cao
-                                    foreach (var t in bucket.Times)
-                                    {
-                                        await _context.Database.ExecuteSqlRawAsync(
-                                            "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0} WHERE BF_Timestap = {1}",
-                                            grp.SoMe, t);
-                                    }
-                                }
-                            }
+                            await _context.Database.ExecuteSqlRawAsync(
+                                "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0} WHERE ID = {1} AND BF_no = {2}",
+                                grp.SoMe, it.Id, it.BfNo);
                         }
                     }
 

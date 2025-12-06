@@ -37,6 +37,9 @@ namespace Data_Product.DTO.BM_16_DTO
         public int ID_LoCao { get; set; }         // Lò cao
         public DateTime? GioChotGang { get; set; }// từ cân ray (có thể dùng làm Gio_NM)
 
+        // ID hàng cân ray (Tbl_CanRayLG2.ID) để cập nhật theo ID + BF_no
+        public int? CanRayId { get; set; }
+
         public decimal? G_KLXeVaThung { get; set; }      // map từ KL_Bi (TS4)
         public decimal? G_KLXeThungVaGang { get; set; }  // map từ KL_Tong (TS5)
         public decimal? G_KLGangLong { get; set; }       // map từ KL_Gang (TS6)
@@ -71,6 +74,9 @@ namespace Data_Product.DTO.BM_16_DTO
         public int? Shift { get; set; }
         public int? Casthouse { get; set; }
         public string BKMIS_SoMe { get; set; }
+
+        // Khoá chính của Tbl_CanRayLG2 để gửi ngược về khi lưu
+        public int? CanRayId { get; set; }
     }
 
 }
