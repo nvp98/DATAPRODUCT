@@ -50,5 +50,8 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_NhatKy_CumTB> Tbl_NhatKy_CumTB { get; set; }
         public DbSet<Tbl_NhatKy_CumTB_Xuong> Tbl_NhatKy_CumTB_Xuong { get; set; }
         public DbSet<Tbl_BM_16_PhanBoGangCR> Tbl_BM_16_PhanBoGangCR { get; set; }
+        public DbSet<Tbl_CanRayLG2> Tbl_CanRayLG2 { get; set; }
+
     }
 }
+
