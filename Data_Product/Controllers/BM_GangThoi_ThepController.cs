@@ -2056,35 +2056,61 @@ namespace Data_Product.Controllers
                         var gangList = await _context.Tbl_BM_16_GangLong
                             .Where(x => maThungList.Contains(x.MaThungThep) && x.ID_TrangThai != (int)TinhTrang.DaChot)
                             .ToListAsync();
-
-                        var chiaGangGroups = await _context.Tbl_BM_16_ChiaGang
+                        var maChiaGangList = await _context.Tbl_BM_16_ChiaGang
                             .Where(x => maThungList.Contains(x.MaThungThep))
-                            .GroupBy(x => x.MaChiaGang)
-                            .Select(g => new {
-                                MaChiaGang = g.Key,
-                                DanhSachThung = g.Select(x => x.MaThungThep).ToList()
-                            })
+                            .Select(x => x.MaChiaGang)
+                            .Distinct()
                             .ToListAsync();
 
-                        foreach (var group in chiaGangGroups)
+                        // 2. Lấy tất cả thùng thuộc các MaChiaGang đó (bao gồm thùng KHÔNG nằm trong tgDto)
+                        var allThungCungNhom = await _context.Tbl_BM_16_ChiaGang
+                            .Where(x => maChiaGangList.Contains(x.MaChiaGang))
+                            .Select(x => new { x.MaChiaGang, x.MaThungThep })
+                            .ToListAsync();
+
+
+                        // 3. Group theo MaChiaGang
+                        var groupData = allThungCungNhom
+                            .GroupBy(x => x.MaChiaGang)
+                            .ToList();
+
+                        foreach (var group in groupData)
                         {
-                            var thungTrongNhom = tgDto.DanhSachThungGang
-                                .Where(x => group.DanhSachThung.Contains(x.MaThungThep))
+                            // Các thùng trong DB thuộc nhóm này
+                            var thungTrongDB = group.Select(x => x.MaThungThep).ToList();
+
+                            // Các thùng trong DTO thuộc nhóm này
+                            var thungTrongDTO = tgDto.DanhSachThungGang
+                                .Where(x => thungTrongDB.Contains(x.MaThungThep))
                                 .ToList();
 
-                            var nhietDoChung = thungTrongNhom
+                            // 4. Lấy nhiệt độ chung từ DTO
+                            var nhietDoChung = thungTrongDTO
                                 .Where(x => x.NhietDo.HasValue)
                                 .Select(x => x.NhietDo.Value)
                                 .FirstOrDefault();
 
                             if (nhietDoChung > 0)
                             {
-                                foreach (var t in thungTrongNhom)
+                                // 5. Cập nhật NHIỆT ĐỘ vào DTO
+                                foreach (var t in thungTrongDTO)
                                 {
-                                    t.NhietDo = nhietDoChung; 
+                                    t.NhietDo = nhietDoChung;
                                 }
+
+                                // 6. Cập nhật NHIỆT ĐỘ vào DB đối với thùng không có trong DTO
+                                var thungNgoaiDTO = await _context.Tbl_BM_16_GangLong
+                                    .Where(x => thungTrongDB.Contains(x.MaThungThep))
+                                    .ToListAsync();
+
+                                foreach (var t in thungNgoaiDTO)
+                                {
+                                    t.NhietDo = nhietDoChung;
+                                }
+
                             }
                         }
+
 
                         foreach (var thungGang in tgDto.DanhSachThungGang)
                         {
@@ -2103,7 +2129,7 @@ namespace Data_Product.Controllers
 
                                 entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
                                 entity.T_KLThungChua = thungGang.T_KLThungChua;
-                                entity.NhietDo = thungGang.NhietDo;
+                                //entity.NhietDo = thungGang.NhietDo;
                                 maThungThepCanTinhToan.Add(thungGang.MaThungGang);
                             }
                         }
