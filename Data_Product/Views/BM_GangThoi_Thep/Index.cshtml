@@ -2057,6 +2057,8 @@
                 groups[groupKey].push($row);
             });
 
+           
+
             let isValidLuu = true;
             for (const key in groups) {
                 const groupRows = groups[key];
@@ -2065,8 +2067,7 @@
                 const maThungTG = $firstRow.attr('data-mathungtg') || null;
                 const maThungTG_Copy = $firstRow.attr('data-mathungcopy') || null;
                 const isCopy = String($firstRow.attr('data-copy')).toLowerCase() === 'true';
-
-                
+                const phongBan = $('#IDPhongBan').val();
 
                 const parent = {
                     MaThungTG: maThungTG,
@@ -2085,7 +2086,8 @@
                     ID_MeThoi: null,
                     GioChonMe: null,
                     DanhSachThungGang: [],
-                    MaChia: $firstRow.attr('data-machia') || null
+                    MaChia: $firstRow.attr('data-machia') || null,
+                    PhongBan: phongBan
                 };
 
                 // Lấy dữ liệu từ dòng đầu tiên
@@ -2108,10 +2110,12 @@
                 // Nếu không phải copy, duyệt từng dòng trong group để lấy danh sách thùng gang
                 if (!isCopy) {
                     groupRows.forEach(($row) => {
+                        const rawNhietDo = $row.find('input[name="nhietDo"]').val();
+                        const NhietDo = rawNhietDo === "" ? null : parseFloat(rawNhietDo);
                         const thungGang = {
                             MaThungThep: $row.find('td.maThungThep').text().trim(),
                             MaThungGang: $row.find('td.maThungThep').attr('data-mathungganggoc'),
-                            NhietDo: parseFloat($row.find('input[name="nhietDo"]').val()) || null,
+                            NhietDo: NhietDo,
                             T_KLThungVaGang: parseFloat($row.find('input[name="t_KLThungVaGang"]').val()) || null,
                             T_KLThungChua: parseFloat($row.find('input[name="t_KLThungChua"]').val()) || null,
                             T_KLGangLong: parseFloat($row.find('.KLGangLong').text()) || 0
@@ -2121,7 +2125,7 @@
                 }
 
                 // Gán đặc biệt cho HRC1
-                const phongBan = $('#IDPhongBan').val();
+                // const phongBan = $('#IDPhongBan').val();
                 if (phongBan === 'HRC1' && parent.DanhSachThungGang.length > 0) {
                     const firstItem = parent.DanhSachThungGang[0];
                     parent.KLThungVaGang_Thoi = parent.KLThungVaGang_Thoi ?? firstItem.T_KLThungVaGang;
