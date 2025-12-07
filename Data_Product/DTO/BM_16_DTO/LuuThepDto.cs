@@ -43,7 +43,8 @@
         public int? ID_MeThoi { get; set; }
         public string? GioChonMe { get; set; }
         public string? MaThungTG_Copy { get; set; }
-
+        public string? MaChia { get; set; }
+        public string? PhongBan { get; set; }
         public List<ThungGangConDto> DanhSachThungGang { get; set; }
     }
 }
