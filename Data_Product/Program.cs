@@ -16,6 +16,15 @@ var cultureInfo = new CultureInfo("en-GB"); // dd/MM/yyyy
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder => builder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 // Add services to the container.
@@ -74,6 +83,8 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = new[] { cultureInfo }
 });
 
+
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -86,6 +97,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseSession();
 app.UseRouting();
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
