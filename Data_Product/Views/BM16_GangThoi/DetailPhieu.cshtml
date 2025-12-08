@@ -218,6 +218,9 @@
 										<th rowspan="2">KL thùng</th>
 										<th rowspan="2">KL thùng & gang lỏng</th>
 										<th rowspan="2">KL gang lỏng cân ray</th>
+										<th rowspan="2" style="min-width: 150px; width: 150px;">Loại thùng</th>
+										<th rowspan="2">KL thùng cân lại</th>
+										<th rowspan="2">KL gang lỏng tính lại</th>
 										<th colspan="4">Vận chuyển đến</th>
 										<th rowspan="2">Giờ đầy thùng</th>
 										<th rowspan="2">Thời điểm bắt đầu rót</th>
@@ -287,14 +290,14 @@
 												</td>
 												<td>
 													<input type="number" name="KLThungVaXe" step="0.01" class="form-control" value="@item.KL_XeVaThung"
-														   style="width: 100px; padding: 4px;" @disabledAttr />
+														   style="width: 100px; padding: 4px;" disabled />
 												</td>
 												<td>
 													<input type="number" name="KLThungGangXe" step="0.01" class="form-control" value="@item.KL_XeThungVaGang"
-														   style="width: 100px; padding: 4px;" @disabledAttr />
+														   style="width: 100px; padding: 4px;" disabled />
 												</td>
 												<td>
-													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;" @disabledAttr />
+													<input type="number" name="KhoiLuongXeGoong" class="form-control" value="@item.KL_XeGoong" style="width: 70px; padding: 1px;" disabled />
 												</td>
 												<td>
 													<input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung" style="width: 100px; padding: 4px;" disabled>
@@ -305,6 +308,31 @@
 												<td>
 													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;" disabled>
 												</td>
+												<td style="min-width: 150px; width: 150px;">
+													<select name="LoaiThung" class="form-select form-select-sm" style="width: 100%;">
+														@{
+															var loaiThung = item.Loai_Thung ?? 0;
+														}
+														@if (loaiThung == 1)
+														{
+															<option value="1" selected>Thùng nhỏ</option>
+															<option value="2">Thùng lớn</option>
+														}
+														else if (loaiThung == 2)
+														{
+															<option value="1">Thùng nhỏ</option>
+															<option value="2" selected>Thùng lớn</option>
+														}
+														else
+														{
+															<option value="">-- Chọn loại thùng --</option>
+															<option value="1">Thùng nhỏ</option>
+															<option value="2">Thùng lớn</option>
+														}
+													</select>
+												</td>
+												<td></td>
+												<td></td>
 												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") @disabledAttr /></td>
@@ -412,7 +440,6 @@
 
 <div class="mt-4" id="double-auto-mapping">
 	<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-		<h6 class="mb-0">Mapping Số mẻ theo KL cân ray</h6>
 	</div>
 
 	<!-- DÒNG FILTER: Từ giờ + Đến giờ -->
@@ -452,25 +479,24 @@
 										<th>KL tổng</th>
 										<th>KL gang</th>
 										<th>Số mẻ</th>
+										<th>Ghi chú</th>
 									</tr>
 								</thead>
 								<tbody>
 									<tr class="table-secondary text-center">
-										<td colspan="7" class="small">Chưa có dữ liệu.</td>
+										<td colspan="8" class="small">Chưa có dữ liệu.</td>
 									</tr>
 								</tbody>
 							</table>
 						</div>
 						<div class="d-flex justify-content-end mt-2">
 							<button class="btn btn-success btn-sm" id="btnApplyLeft" type="button">
-								Áp dụng & lưu (theo Số mẻ) - auto
+								Cập nhật 
 							</button>
 						</div>
 					</div>
 				</div>
 			</div>
-
-			<!-- ĐÃ BỎ BẢNG PHẢI -->
 		</div>
 	</div>
 </div>
@@ -564,7 +590,7 @@
 
 					// THÊM "Khác" vào cuối danh sách
 					data.push({
-						id: "__OTHER__",
+						id: "0",
 						text: "Khác"
 					});
 
@@ -582,12 +608,12 @@
 			var $tb = $("#tableLeft tbody");
 			$tb.empty();
 
-			if (!list || !list.length) {
-				$tb.append(
-					'<tr class="table-secondary text-center">' +
-					'<td colspan="7" class="small">Không có dữ liệu cân ray.</td>' +
-					'</tr>'
-				);
+					if (!list || !list.length) {
+						$tb.append(
+							'<tr class="table-secondary text-center">' +
+							'<td colspan="8" class="small">Không có dữ liệu cân ray.</td>' +
+							'</tr>'
+						);
 				$("#leftCount").text("0 dòng");
 				return;
 			}
@@ -619,6 +645,7 @@
 					'  <td class="kl-tong">' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
 					'  <td class="kl-gang">' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
 					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
+					'  <td><input name="GhiChu" class="form-control form-control-sm" value="' + esc(x.Ghi_Chu || x.GhiChu || x.ghiChu || '') + '" /></td>' +
 					'</tr>';
 
 				$tb.append(tr);
@@ -655,7 +682,7 @@
 				return;
 			}
 
-			$("#tableLeft tbody").html('<tr><td colspan="7" class="text-center text-muted">Đang tải...</td></tr>');
+			$("#tableLeft tbody").html('<tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>');
 
 			$.ajax({
 				url: '/BM16_GangThoi/GetAutoSourceData',
@@ -699,6 +726,8 @@
 				var klTong = parseFloat($r.find('td.kl-tong').text()) || null;
 				var klGang = parseFloat($r.find('td.kl-gang').text()) || null;
 
+				var ghiChu = $r.find('input[name="GhiChu"]').val() || null;
+
 				items.push({
 					MaPhieu: maPhieu,
 					SoMe: soMe,
@@ -707,7 +736,8 @@
 					GioChotGang: gioChot,
 					G_KLXeVaThung: klBi,
 					G_KLXeThungVaGang: klTong,
-					G_KLGangLong: klGang
+					G_KLGangLong: klGang,
+					G_GhiChu: ghiChu
 				});
 			});
 
@@ -1143,42 +1173,104 @@
 				}
 		}); *@
 
-		// ⭐ Hàm tính toán cho 1 dòng
-		function tinhToanRow(row) {
-			let $klThungXeInput = row.find("input[name='KLThungVaXe']");
-			let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
-			let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
+		// // ⭐ Hàm tính toán cho 1 dòng
+		// function tinhToanRow(row) {
+		// 	let $klThungXeInput = row.find("input[name='KLThungVaXe']");
+		// 	let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
+		// 	let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
 
-			let klThungXe = parseFloat($klThungXeInput.val()) || 0;
-			let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
-			let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
+		// 	let klThungXe = parseFloat($klThungXeInput.val()) || 0;
+		// 	let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
+		// 	let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
 
-			let klThung = klThungXe - klXeGoong;
-			row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
+		// 	let klThung = klThungXe - klXeGoong;
+		// 	row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
 
-			let klThungGang = klThungGangXe - klXeGoong;
-			row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
+		// 	let klThungGang = klThungGangXe - klXeGoong;
+		// 	row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
 
-			let klGangLong = klThungGang - klThung;
-			row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
-		}
+		// 	let klGangLong = klThungGang - klThung;
+		// 	row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
+		// }
 
-		// ⭐ 1) Khi trang load → tự tính cho tất cả dòng
-		$(document).ready(function () {
-			$("#dataTable tbody tr").each(function () {
-				tinhToanRow($(this));
-			});
+		// // ⭐ 1) Khi trang load → tự tính cho tất cả dòng
+		// $(document).ready(function () {
+		// 	$("#dataTable tbody tr").each(function () {
+		// 		tinhToanRow($(this));
+		// 	});
+		// });
+
+
+		// // ⭐ 2) Khi người dùng nhập → tính lại dòng đó
+		// $(document).on("input",
+		// 	"input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']",
+		// 	function () {
+		// 		let row = $(this).closest("tr");
+		// 		tinhToanRow(row);
+		// 	}
+		// );
+		function recalcRow(row) {
+		let $klThungXeInput = row.find("input[name='KLThungVaXe']");
+		let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
+		let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
+
+		let klThungXe = parseFloat($klThungXeInput.val()) || 0;
+		let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
+		let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
+
+		let klThung = klThungXe - klXeGoong;
+		row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
+
+		let klThungGang = klThungGangXe - klXeGoong;
+		row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
+
+		let klGangLong = klThungGang - klThung;
+		row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
+
+		// Loại thùng: lớn/nhỏ
+		@* let $loaiThung = row.find("span.loai-thung");
+		if ($loaiThung.length) {
+			let val = parseFloat(row.find("input[name='KLGangLong']").val()) || 0;
+			if (val > 0) {
+				$loaiThung.text(val >= 150 ? "Thùng lớn" : "Thùng nhỏ");
+			} else {
+				$loaiThung.text("");
+			}
+		} *@
+
+		// Reset tooltip và màu
+		[$klThungXeInput, $klThungGangXeInput, $klXeGoongInput].forEach(function ($input) {
+			$input.removeAttr("title").removeClass("tooltip-error");
 		});
 
+		// Kiểm tra từng lỗi và gán tooltip cho từng ô
+		if (klThungXe < klXeGoong) {
+			$klThungXeInput
+				.attr("title", "KL Thùng + Xe < KL Xe Goòng")
+				.addClass("tooltip-error");
+		}
+		if (klThungGangXe < klXeGoong) {
+			$klThungGangXeInput
+				.attr("title", "KL Thùng & Gang + Xe < KL Xe Goòng")
+				.addClass("tooltip-error");
+		}
+	}
 
-		// ⭐ 2) Khi người dùng nhập → tính lại dòng đó
-		$(document).on("input",
-			"input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']",
-			function () {
-				let row = $(this).closest("tr");
-				tinhToanRow(row);
-			}
-		);
+	// Khi trang load, tính toàn bộ
+	$(document).ready(function () {
+		$("#dataTable tbody tr").each(function () {
+			recalcRow($(this));
+		});
+	});
+
+	// Khi người dùng nhập, tính lại dòng đó
+	$(document).on("input",
+		"input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']",
+		function () {
+			let row = $(this).closest("tr");
+			recalcRow(row);
+		}
+	);
 		$(document).ready(function() {
 			function tinhTongKL() {
 				let tong = 0;
@@ -1211,7 +1303,7 @@
 					<td>${soLuongMe}</td>
 					<td colspan="9"></td>
 					<td>${tong.toFixed(2)}</td>
-					<td colspan="9"></td>
+					<td colspan="12"></td>
 					<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
 					<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
 					<td colspan="3"></td>
@@ -1411,6 +1503,7 @@
 				G_KLThungChua: parseFloat(row.find('input[name="KhoiLuongThung"]').val()) || null,
 				G_KLThungVaGang: parseFloat(row.find('input[name="KLThungGangLong"]').val()) || null,
 				G_KLGangLong: parseFloat(row.find('input[name="KLGangLong"]').val()) || null,
+				Loai_Thung: (function(){ var v = row.find('select[name="LoaiThung"]').val(); return v ? parseInt(v) : null; })(),
 				Gio_NM: row.find('input[name="GioNM"]').val() || null,
 				G_GhiChu: row.find('textarea[name="GhiChu"]').val() || null,
 				ChuyenDen: chuyenDen,
@@ -1442,12 +1535,21 @@
 			});
 		}
 			// Chỉ cho chọn 1 checkbox vận chuyển trong mỗi dòng
-	$("#dataTable").on("change", "input[name^='VanChuyen']", function () {
-		const $row = $(this).closest("tr");
-		if ($(this).is(":checked")) {
-			$row.find("input[name^='VanChuyen']").not(this).prop("checked", false);
-		}
-	});
+		$("#dataTable").on("change", "input[name^='VanChuyen']", function () {
+			const $row = $(this).closest("tr");
+			if ($(this).is(":checked")) {
+				$row.find("input[name^='VanChuyen']").not(this).prop("checked", false);
+			}
+		});
+
+		// Khi người dùng thay đổi LoaiThung, gắn flag data-changed để đưa vào payload khi lưu
+		$("#dataTable").on("change", "select[name='LoaiThung']", function () {
+			const $row = $(this).closest("tr");
+			// Đánh dấu dòng đã thay đổi
+			$row.attr('data-changed', 'true');
+			// Optionally add a visual hint
+			$row.addClass('table-warning');
+		});
 
 
 </script>

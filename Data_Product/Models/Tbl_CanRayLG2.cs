@@ -31,6 +31,8 @@ namespace Data_Product.Models
             public string? LyDo { get; set; }
 
             public bool Is_Nhap { get; set; }
+
+            public string? Ghi_Chu { get; set; }
         }
 
    

@@ -79,6 +79,7 @@ namespace Data_Product.DTO.BM_16_DTO
         public decimal? G_KLXeVaThung { get; set; }      // map từ KL_Bi (TS4)
         public decimal? G_KLXeThungVaGang { get; set; }  // map từ KL_Tong (TS5)
         public decimal? G_KLGangLong { get; set; }       // map từ KL_Gang (TS6)
+        public string? G_GhiChu { get; set; }
     }
 
 }

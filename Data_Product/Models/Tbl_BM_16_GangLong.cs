@@ -177,6 +177,7 @@ namespace Data_Product.Models
         public bool? XacNhan { get; set; } = false;
 
         public decimal? NhietDo { get; set; }
+        public int? Loai_Thung { get; set; }
 
         public int? ID_NguoiXacNhan { get; set; }
         [NotMapped]

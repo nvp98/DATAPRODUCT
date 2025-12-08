@@ -22,5 +22,6 @@ namespace Data_Product.Models
         public decimal? KL_Gang { get; set; }      
 
         public string? BKMIS_SoMe { get; set; }
+        public string? Ghi_Chu { get; set; }
     }
 }

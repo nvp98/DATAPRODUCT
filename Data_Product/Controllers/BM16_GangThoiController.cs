@@ -676,6 +676,7 @@ namespace Data_Product.Controllers
                 GhiChu = t.G_GhiChu,
                 TrangThaiGang = t.G_ID_TrangThai == 1, 
                 TrangThai = t.ID_TrangThai,
+                Loai_Thung =t.Loai_Thung,
                 NguoiLuu = t.G_ID_NguoiLuu.HasValue && nguoiLuuDict.ContainsKey(t.G_ID_NguoiLuu.Value)
                 ? nguoiLuuDict[t.G_ID_NguoiLuu.Value]
                 : null,
@@ -725,7 +726,8 @@ namespace Data_Product.Controllers
                     x.TongKL_TheoMe,
                     x.KLDuc,
                     x.G_SanRaGang,
-                    x.GioChonMe
+                    x.GioChonMe,
+                    x.Loai_Thung
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
@@ -878,6 +880,7 @@ namespace Data_Product.Controllers
                 thung.ChuyenDen = item.ChuyenDen;
                 thung.G_ID_NguoiLuu = idNhanVienLuu;
                 thung.G_SanRaGang = item.G_SanRaGang;
+                thung.Loai_Thung = item.Loai_Thung;
 
 
                 bool daNhan = await _context.Tbl_BM_16_TaiKhoan_Thung.AnyAsync(x => x.MaThungGang == thung.MaThungGang);
@@ -913,6 +916,7 @@ namespace Data_Product.Controllers
                     copy.ChuyenDen = item.ChuyenDen;
                     copy.G_ID_NguoiLuu = idNhanVienLuu;
                     copy.G_SanRaGang = item.G_SanRaGang;
+                    copy.Loai_Thung = item.Loai_Thung;
 
                     copy.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : copy.T_ID_TrangThai;
                     copy.G_ID_TrangThai = duDuLieu ? 3 : 1;
@@ -2043,8 +2047,31 @@ namespace Data_Product.Controllers
                                 thung.G_KLXeVaThung = grp.Min_Bi;
                                 // Cập nhật KL thùng & gang & xe (KL tổng lớn nhất)
                                 thung.G_KLXeThungVaGang = grp.Max_Tong;
-                                // Cập nhật KL gang lỏng theo quy tắc
-                                thung.G_KLGangLong = klTinh;
+
+                                // Lấy KL xe gòn (nếu có) từ bản ghi BM16 để tính theo công thức gốc
+                                var klXeGoong = thung.KL_XeGoong ?? 0m;
+
+                                // Tính theo công thức client-side:
+                                // klThung = KLThungVaXe - KL_XeGoong
+                                // klThungGang = KLThungGangXe - KL_XeGoong
+                                var klThung = grp.Min_Bi - klXeGoong;
+                                if (klThung < 0) klThung = 0;
+                                thung.G_KLThungChua = klThung;
+
+                                var klThungGang = grp.Max_Tong - klXeGoong;
+                                if (klThungGang < 0) klThungGang = 0;
+                                thung.G_KLThungVaGang = klThungGang;
+
+                                // KL gang lỏng = klThungGang - klThung (phải khớp với klTinh)
+                                var klGangLongCalc = klThungGang - klThung;
+                                if (klGangLongCalc < 0) klGangLongCalc = 0;
+                                thung.G_KLGangLong = klGangLongCalc;
+
+                                // Gán loại thùng theo KL tinh (vẫn dùng klTinh = Max_Tong - Min_Bi)
+                                if (klTinh < 150)
+                                    thung.Loai_Thung = 1;      // Thùng nhỏ
+                                else
+                                    thung.Loai_Thung = 2;      // Thùng lớn
                             }
                         }
 
@@ -2059,19 +2086,22 @@ namespace Data_Product.Controllers
                             .Distinct()
                             .ToList();
 
+                        // Nếu client gửi ghi chú cho Số mẻ này, lấy ra (ghiChu có thể là null)
+                        var ghiChu = items.FirstOrDefault(i => i.SoMe != null && i.SoMe.Trim() == grp.SoMe)?.G_GhiChu;
+
                         foreach (var it in relatedById)
                         {
                             if (it.BfNo >= 1 && it.BfNo <= 4)
                             {
                                 await _context.Database.ExecuteSqlRawAsync(
-                                    "UPDATE Tbl_CanRayLG1 SET BKMIS_SoMe = {0} WHERE ID = {1} AND ID_LoCao = {2}",
-                                    grp.SoMe, it.Id, it.BfNo);
+                                    "UPDATE Tbl_CanRayLG1 SET BKMIS_SoMe = {0}, Ghi_Chu = {1} WHERE ID = {2} AND ID_LoCao = {3}",
+                                    grp.SoMe, ghiChu, it.Id, it.BfNo);
                             }
                             else
                             {
                                 await _context.Database.ExecuteSqlRawAsync(
-                                    "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0} WHERE ID = {1} AND BF_no = {2}",
-                                    grp.SoMe, it.Id, it.BfNo);
+                                    "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0}, Ghi_Chu = {1} WHERE ID = {2} AND BF_no = {3}",
+                                    grp.SoMe, ghiChu, it.Id, it.BfNo);
                             }
                         }
                     }
