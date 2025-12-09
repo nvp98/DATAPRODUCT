@@ -33,6 +33,8 @@ namespace Data_Product.Models
             public bool Is_Nhap { get; set; }
 
             public string? Ghi_Chu { get; set; }
+            // Flag để đánh dấu Số mẻ đã bị xóa/clear bởi UI/backend
+            public bool? SoMe_Cleared { get; set; }
         }
 
    

@@ -387,8 +387,7 @@ namespace Data_Product.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
-        }
-
+        } 
         [HttpGet]
         public async Task< IActionResult> TaoPhieu()
         {
@@ -1854,7 +1853,9 @@ namespace Data_Product.Controllers
                         KL_Bi = d.KL_Bi,
                         KL_Tong = d.KL_Tong,
                         KL_Gang = d.KL_Gang,
-                        BKMIS_SoMe = d.BKMIS_SoMe
+                        BKMIS_SoMe = d.BKMIS_SoMe,
+                        GhiChu = d.Ghi_Chu,
+                        SoMe_Cleared = d.SoMe_Cleared
                     })
                     .ToListAsync();
 
@@ -1862,7 +1863,7 @@ namespace Data_Product.Controllers
                 var list = rawData.Select(d =>
                 {
                     rowId++;
-                    return new MappingCanRayDto
+                        return new MappingCanRayDto
                     {
                         RowId = rowId,
                         ID_LoCao = d.ID_LoCao ?? idLoCao,
@@ -1874,7 +1875,9 @@ namespace Data_Product.Controllers
                         KL_Tong = d.KL_Tong,
                         KL_Gang = d.KL_Gang,
                         SanRaGang = d.SanRaGang,
-                        BKMIS_SoMe = d.BKMIS_SoMe
+                        BKMIS_SoMe = d.BKMIS_SoMe,
+                        GhiChu = d.GhiChu,
+                        SoMe_Cleared = d.SoMe_Cleared
                     };
                 }).ToList();
 
@@ -1919,7 +1922,9 @@ namespace Data_Product.Controllers
                         Weight_TARE = d.Weight_TARE,
                         Weight_GROSS = d.Weight_GROSS,
                         Weight_NET = d.Weight_NET,
-                        BKMIS_SoMe = d.BKMIS_SoMe
+                        BKMIS_SoMe = d.BKMIS_SoMe,
+                        GhiChu = d.Ghi_Chu,
+                        SoMe_Cleared = d.SoMe_Cleared
 
                     })
                     .ToListAsync(); // Thực thi truy vấn và tải dữ liệu
@@ -1950,7 +1955,10 @@ namespace Data_Product.Controllers
                         Shift = d.Shift,
                         Casthouse = d.Casthouse,
                         SanRaGang = d.Casthouse, // Giả định SanRaGang dùng Casthouse
-                        BKMIS_SoMe = d.BKMIS_SoMe
+                        BKMIS_SoMe = d.BKMIS_SoMe,
+                        GhiChu = d.GhiChu
+                        ,
+                        SoMe_Cleared = d.SoMe_Cleared
                     };
                 }).ToList();
 
@@ -2094,13 +2102,13 @@ namespace Data_Product.Controllers
                             if (it.BfNo >= 1 && it.BfNo <= 4)
                             {
                                 await _context.Database.ExecuteSqlRawAsync(
-                                    "UPDATE Tbl_CanRayLG1 SET BKMIS_SoMe = {0}, Ghi_Chu = {1} WHERE ID = {2} AND ID_LoCao = {3}",
+                                    "UPDATE Tbl_CanRayLG1 SET BKMIS_SoMe = {0}, Ghi_Chu = {1}, SoMe_Cleared = 0, OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe) WHERE ID = {2} AND ID_LoCao = {3}",
                                     grp.SoMe, ghiChu, it.Id, it.BfNo);
                             }
                             else
                             {
                                 await _context.Database.ExecuteSqlRawAsync(
-                                    "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0}, Ghi_Chu = {1} WHERE ID = {2} AND BF_no = {3}",
+                                    "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0}, Ghi_Chu = {1}, SoMe_Cleared = 0, OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe) WHERE ID = {2} AND BF_no = {3}",
                                     grp.SoMe, ghiChu, it.Id, it.BfNo);
                             }
                         }
@@ -2118,6 +2126,59 @@ namespace Data_Product.Controllers
                     return StatusCode(500, "Lỗi khi lưu dữ liệu: " + ex.Message);
                 }
             }
+        }
+        [HttpPost]
+        public async Task<IActionResult> ClearSoMe([FromBody] ClearSoMeRequest request)
+        {
+            if (request.CanRayId <= 0 || request.ID_LoCao <= 0)
+            {
+                return BadRequest("Thiếu thông tin CanRayId hoặc ID_LoCao.");
+            }
+
+            try
+            {
+                // Lò 1-4: Update Tbl_CanRayLG1
+                if (request.ID_LoCao >= 1 && request.ID_LoCao <= 4)
+                {
+                    await _context.Database.ExecuteSqlRawAsync(
+                        @"UPDATE Tbl_CanRayLG1 
+                  SET BKMIS_SoMe = NULL, 
+                      OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe),
+                      Ghi_Chu = NULL, 
+                      SoMe_Cleared = 1 
+                  WHERE ID = {0} AND ID_LoCao = {1}",
+                        request.CanRayId, request.ID_LoCao);
+                }
+                // Lò 5-6: Update Tbl_CanRayLG2
+                else if (request.ID_LoCao == 5 || request.ID_LoCao == 6)
+                {
+                    await _context.Database.ExecuteSqlRawAsync(
+                        @"UPDATE Tbl_CanRayLG2 
+                  SET BKMIS_SoMe = NULL, 
+                      OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe),
+                      Ghi_Chu = NULL, 
+                      SoMe_Cleared = 1 
+                  WHERE ID = {0} AND BF_no = {1}",
+                        request.CanRayId, request.ID_LoCao);
+                }
+                else
+                {
+                    return BadRequest("ID lò cao không hợp lệ.");
+                }
+
+                return Ok(new { success = true, message = "Đã xóa số mẻ thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi khi xóa số mẻ: {ex.Message}");
+            }
+        }
+
+        // DTO class
+        public class ClearSoMeRequest
+        {
+            public int CanRayId { get; set; }
+            public int ID_LoCao { get; set; }
         }
     }
 

@@ -20,16 +20,16 @@
 	}
 
 	/* th.toggle-col, td.toggle-col {
-		display: none;
-		} */
+			display: none;
+			} */
 
 	.is-invalid {
 		border: 1px solid red !important;
 		background-color: #ffe6e6 !important;
 	}
 	/* td.deleteItem {
-		display: none;
-		} */
+			display: none;
+			} */
 	/* Container và table cần thiết lập overflow */
 	.table-container {
 		overflow-x: auto;
@@ -408,7 +408,6 @@
 		</div>
 	</div>
 }
-
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
@@ -432,7 +431,6 @@
 		background: #fff7e6 !important;
 	}
 
-	/* Cố định chiều rộng 1 chút cho cột số mẻ */
 	#tableLeft .ip-some {
 		min-width: 120px;
 	}
@@ -491,7 +489,7 @@
 						</div>
 						<div class="d-flex justify-content-end mt-2">
 							<button class="btn btn-success btn-sm" id="btnApplyLeft" type="button">
-								Cập nhật 
+								Cập nhật
 							</button>
 						</div>
 					</div>
@@ -503,11 +501,11 @@
 
 <script>
 	(function () {
-		// util: escape HTML
-		function esc(s) { return $('<div/>').text(s || '').html(); }
+		function esc(s) {
+			return $('<div/>').text(s || '').html();
+		}
+		var bm16SoMeSet = null;
 
-		// Cache danh sách Số mẻ BM16 để dùng khi render
-		var bm16SoMeSet = null; // Set các id mẻ
 		function fetchBm16SoMeList(done) {
 			var params = {
 				maPhieu: $('#PhieuID').val(),
@@ -522,15 +520,19 @@
 				.done(function (data) {
 					if (Array.isArray(data)) {
 						bm16SoMeSet = new Set(data.map(function (d) { return d.id; }));
-						// Log danh sách BM16 để kiểm tra
 						console.log('[BM16 GetAllSoMe] count=', data.length, 'sample=', data.slice(0, 5));
 					}
 					if (typeof done === 'function') done();
 				})
-				.fail(function () { bm16SoMeSet = null; if (typeof done === 'function') done(); });
+				.fail(function () {
+					bm16SoMeSet = null;
+					if (typeof done === 'function') done();
+				});
 		}
 
-		// Kiểm tra và chỉ prefill nếu tồn tại trong danh sách BM16
+		// ============================================
+		// KIỂM TRA VÀ PREFILL SỐ MẺ
+		// ============================================
 		function checkAndPrefillSoMe($sel, someVal) {
 			if (!someVal) return;
 			var params = {
@@ -538,7 +540,7 @@
 				ngayStr: $('#ID_Day').val(),
 				idLoCao: $('#IDLoCaoNum').val(),
 				idCa: $('#IDCaNum').val(),
-				term: '', // lấy đầy đủ để kiểm tra bằng nhau tuyệt đối
+				term: '',
 				take: 500,
 				select2: true
 			};
@@ -547,12 +549,12 @@
 				method: 'GET',
 				data: params,
 				success: function (data) {
-					// data: array of { id, text }
 					if (!Array.isArray(data)) return;
 					var found = data.find(function (d) { return (d.id || '') === someVal; });
 					if (found) {
-						// đảm bảo option tồn tại trước khi set
-						var hasOpt = $sel.find('option').filter(function(){ return $(this).val() === found.id; }).length > 0;
+						var hasOpt = $sel.find('option').filter(function(){
+							return $(this).val() === found.id;
+						}).length > 0;
 						if (!hasOpt) {
 							var opt = new Option(found.text || found.id, found.id, true, true);
 							$sel.append(opt);
@@ -563,57 +565,145 @@
 			});
 		}
 
-		// init select2 for Số mẻ (ajax)
-			function initSoMeSelectAjax($sel) {
-		if ($sel.data('init') === 'true') return;
+		// ============================================
+		// INIT SELECT2 CHO SỐ MẺ (AJAX)
+		// ============================================
+		function initSoMeSelectAjax($sel) {
+			if ($sel.data('init') === 'true') return;
 
-		$sel.select2({
-			width: '100%',
-			placeholder: 'Chọn Số mẻ',
-			allowClear: true,
-			dropdownParent: $('#doubleAutoCollapse'),
-			ajax: {
-				url: '/BM16_GangThoi/GetAllSoMe',
-				delay: 300,
-				data: function (params) {
-					return {
-						maPhieu: $('#PhieuID').val(),
-						ngayStr: $('#ID_Day').val(),
-						idLoCao: $('#IDLoCaoNum').val(),
-						idCa: $('#IDCaNum').val(),
-						term: params.term,
-						take: 100,
-						select2: true
-					};
-				},
-				processResults: function (data) {
-
-					// THÊM "Khác" vào cuối danh sách
-					data.push({
-						id: "0",
-						text: "Khác"
-					});
-
-					return { results: data };
+			$sel.select2({
+				width: '100%',
+				placeholder: 'Chọn Số mẻ',
+				allowClear: true,
+				dropdownParent: $('#doubleAutoCollapse'),
+				ajax: {
+					url: '/BM16_GangThoi/GetAllSoMe',
+					delay: 300,
+					data: function (params) {
+						return {
+							maPhieu: $('#PhieuID').val(),
+							ngayStr: $('#ID_Day').val(),
+							idLoCao: $('#IDLoCaoNum').val(),
+							idCa: $('#IDCaNum').val(),
+							term: params.term,
+							take: 100,
+							select2: true
+						};
+					},
+					processResults: function (data) {
+						// THÊM "Khác" vào cuối danh sách
+						data.push({
+							id: "0",
+							text: "Khác"
+						});
+						return { results: data };
+					}
 				}
+			});
+
+			$sel.data('init', 'true');
+		}
+
+		// ============================================
+		// XỬ LÝ KHI CHỌN "KHÁC" - XÓA SỐ MẺ TRONG DATABASE
+		// ============================================
+		$(document).on('change', '#tableLeft .ip-some', function() {
+			var $select = $(this);
+			var selectedValue = $select.val();
+			var $row = $select.closest('tr');
+
+			// Nếu chọn "Khác" (id = "0")
+			if (selectedValue === "0" || selectedValue === 0) {
+				var canRayId = parseInt($row.data('crid'), 10);
+				var idLoCao = parseInt($row.data('idlocao'), 10);
+				var originalSoMe = $row.data('original-some') || $row.attr('data-original-some');
+
+				// Chỉ thực hiện nếu có số mẻ cũ cần xóa
+				if (originalSoMe && canRayId && idLoCao) {
+					// Hiển thị confirm
+					if (confirm('Bạn có chắc muốn xóa số mẻ "' + originalSoMe + '" khỏi dòng này?')) {
+						// Gọi API để xóa số mẻ trong database
+						$.ajax({
+							url: '/BM16_GangThoi/ClearSoMe',
+							method: 'POST',
+							contentType: 'application/json; charset=utf-8',
+							data: JSON.stringify({
+								CanRayId: canRayId,
+								ID_LoCao: idLoCao
+							}),
+							success: function(response) {
+								console.log('Đã xóa số mẻ:', originalSoMe);
+
+								// Highlight dòng đã xóa
+								$row.find('td').addClass('cell-changed');
+
+								// Xóa data-original-some để đánh dấu đã clear
+								$row.removeAttr('data-original-some');
+								$row.data('original-some', '');
+
+								// Hiển thị thông báo nhỏ
+								$row.find('.ip-some').after(
+									'<small class="text-success ms-1">Đã xóa</small>'
+								);
+
+								setTimeout(function() {
+									$row.find('small.text-success').fadeOut(function() {
+										$(this).remove();
+									});
+									$row.find('td').removeClass('cell-changed');
+								}, 2000);
+							},
+							error: function(xhr) {
+								alert('Lỗi khi xóa số mẻ: ' + (xhr.responseText || 'Không xác định'));
+								// Khôi phục lại giá trị cũ nếu lỗi
+								if (originalSoMe) {
+									var hasOpt = $select.find('option[value="' + originalSoMe + '"]').length > 0;
+									if (!hasOpt) {
+										var opt = new Option(originalSoMe, originalSoMe, true, true);
+										$select.append(opt);
+									}
+									$select.val(originalSoMe).trigger('change.select2');
+								}
+							}
+						});
+					} else {
+						// User hủy, khôi phục lại giá trị cũ
+						if (originalSoMe) {
+							var hasOpt = $select.find('option[value="' + originalSoMe + '"]').length > 0;
+							if (!hasOpt) {
+								var opt = new Option(originalSoMe, originalSoMe, true, true);
+								$select.append(opt);
+							}
+							$select.val(originalSoMe).trigger('change.select2');
+						}
+					}
+				} else {
+					// Nếu chưa có số mẻ cũ, chỉ cần highlight
+					$row.find('td').addClass('cell-changed');
+					console.log('Dòng chưa có số mẻ, không cần xóa database');
+					setTimeout(function() {
+						$row.find('td').removeClass('cell-changed');
+					}, 2000);
+				}
+			} else if (selectedValue) {
+				// Nếu chọn số mẻ khác (không phải "Khác"), xóa highlight
+				$row.find('td').removeClass('cell-changed');
 			}
 		});
 
-		$sel.data('init', 'true');
-	}
-
-
-		// ===== Render bảng trái =====
+		// ============================================
+		// RENDER BẢNG TRÁI
+		// ============================================
 		function renderLeft(list) {
 			var $tb = $("#tableLeft tbody");
 			$tb.empty();
 
-					if (!list || !list.length) {
-						$tb.append(
-							'<tr class="table-secondary text-center">' +
-							'<td colspan="8" class="small">Không có dữ liệu cân ray.</td>' +
-							'</tr>'
-						);
+			if (!list || !list.length) {
+				$tb.append(
+					'<tr class="table-secondary text-center">' +
+					'<td colspan="8" class="small">Không có dữ liệu cân ray.</td>' +
+					'</tr>'
+				);
 				$("#leftCount").text("0 dòng");
 				return;
 			}
@@ -626,8 +716,10 @@
 				var idLo    = x.iD_LoCao;
 				var canRayId = x.canRayId || null;
 				var bfNo   = x.bF_no || idLo || null;
-				// Chuẩn hoá lấy Số mẻ từ đối tượng trả về (khác biệt kiểu đặt tên)
+
+				// Lấy số mẻ hiện tại
 				var someVal = (x.bkmis_SoMe || x.bkmiS_SoMe || x.soMe || x.SoMe || '').toString();
+				var originalSoMe = someVal || '';
 
 				var tr = '' +
 					'<tr data-row="left"' +
@@ -635,6 +727,7 @@
 					'    data-idlocao="' + esc(idLo) + '"' +
 					'    data-crid="' + esc(canRayId) + '"' +
 					'    data-bfno="' + esc(bfNo) + '"' +
+					'    data-original-some="' + esc(originalSoMe) + '"' +
 					'    data-san="' + esc(san) + '"' +
 					'    data-gioiso="' + esc(gioIso) + '"' +
 					'    data-thungso="' + esc(thungSo) + '">' +
@@ -645,20 +738,21 @@
 					'  <td class="kl-tong">' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
 					'  <td class="kl-gang">' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
 					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
-					'  <td><input name="GhiChu" class="form-control form-control-sm" value="' + esc(x.Ghi_Chu || x.GhiChu || x.ghiChu || '') + '" /></td>' +
+					'  <td><input name="GhiChu" class="form-control form-control-sm" value="' + esc(x.ghiChu || '') + '" /></td>' +
 					'</tr>';
 
 				$tb.append(tr);
 				var $sel = $tb.find('tr:last .ip-some');
-				// Nếu đã có cache BM16, prefill ngay trước khi init select2
+
+				// Prefill số mẻ hiện tại nếu có
 				if (bm16SoMeSet && someVal && bm16SoMeSet.has(someVal)) {
 					var opt = new Option(someVal, someVal, true, true);
 					$sel.append(opt);
 					$sel.val(someVal);
 				}
-				// Sau đó khởi tạo select2 (để người dùng có thể thay đổi)
+
 				initSoMeSelectAjax($sel);
-				// Nếu chưa có cache, fallback gọi kiểm tra qua API
+
 				if (!bm16SoMeSet) {
 					checkAndPrefillSoMe($sel, someVal);
 				}
@@ -671,7 +765,9 @@
 			renderLeft(list);
 		}
 
-		// ===== Fetch auto =====
+		// ============================================
+		// FETCH AUTO - LẤY DỮ LIỆU CÂN RAY
+		// ============================================
 		function fetchAuto() {
 			var fromDateStr = $('#filterFromTime').val();
 			var toDateStr   = $('#filterToTime').val();
@@ -693,8 +789,8 @@
 					idLoCao: idLoCao
 				},
 				success: function (res) {
-					// Log dữ liệu cân ray để kiểm tra
 					console.log('[AutoSourceData] rows=', Array.isArray(res) ? res.length : 0, 'sample=', Array.isArray(res) ? res.slice(0, 5) : res);
+
 					// Trước khi render, lấy danh sách BM16 một lần để prefill ngay
 					fetchBm16SoMeList(function(){
 						renderBoth(res || []);
@@ -706,7 +802,9 @@
 			});
 		}
 
-		// ===== Collect from left =====
+		// ============================================
+		// COLLECT FROM LEFT - GOM DỮ LIỆU TỪ BẢNG
+		// ============================================
 		function collectFromLeft() {
 			var maPhieu = $('#PhieuID').val();
 			var items = [];
@@ -714,14 +812,20 @@
 			$("#tableLeft tbody tr[data-row='left']").each(function () {
 				var $r = $(this);
 				var soMe = $r.find('.ip-some').val();
-				if (!soMe) return; // bỏ dòng chưa chọn Số mẻ
+
+				// Bỏ qua dòng chọn "Khác" (đã xử lý realtime rồi)
+				if (soMe === "0" || soMe === 0) {
+					return;
+				}
+
+				// Bỏ qua dòng chưa chọn Số mẻ
+				if (!soMe) return;
 
 				var idLoCao = parseInt($r.data('idlocao'), 10);
 				var canRayId = parseInt($r.data('crid'), 10) || null;
-				var gioChot = $r.data('gioiso');      // ISO string
+				var gioChot = $r.data('gioiso');
 				var thungSo = $r.data('thungso');
 
-				// lấy theo class để ổn định, tránh phụ thuộc vị trí cột
 				var klBi   = parseFloat($r.find('td.kl-bi').text()) || null;
 				var klTong = parseFloat($r.find('td.kl-tong').text()) || null;
 				var klGang = parseFloat($r.find('td.kl-gang').text()) || null;
@@ -744,15 +848,16 @@
 			return items;
 		}
 
+		// ============================================
+		// APPLY LEFT - LƯU DỮ LIỆU
+		// ============================================
 		function applyLeft() {
 			var items = collectFromLeft();
-			if (!items.length) {
-				alert('Bảng trái: chưa chọn Số mẻ cho dòng nào.');
+
+			if (items.length === 0) {
+				alert('Không có dữ liệu để cập nhật. Vui lòng chọn Số mẻ cho các dòng.');
 				return;
 			}
-
-			if (!confirm('Bạn có chắc muốn cập nhật khối lượng từ cân ray vào BM16 theo các Số mẻ đã chọn?'))
-				return;
 
 			$.ajax({
 				url: '/BM16_GangThoi/SaveAutoMapping',
@@ -761,6 +866,8 @@
 				data: JSON.stringify(items),
 				success: function (res) {
 					alert(res && res.message ? res.message : 'Đã cập nhật khối lượng theo Số mẻ.');
+					// Refresh lại dữ liệu sau khi lưu
+					fetchAuto();
 				},
 				error: function (xhr) {
 					var msg = xhr.responseText || 'Lỗi không xác định khi lưu mapping.';
@@ -769,11 +876,22 @@
 			});
 		}
 
-		// bind events
-		$(document).on('click', '#btnFetchAuto', function (e) { e.preventDefault(); fetchAuto(); });
-		$(document).on('click', '#btnApplyLeft', function (e) { e.preventDefault(); applyLeft(); });
+		// ============================================
+		// BIND EVENTS
+		// ============================================
+		$(document).on('click', '#btnFetchAuto', function (e) {
+			e.preventDefault();
+			fetchAuto();
+		});
 
-		// on ready update counts
+		$(document).on('click', '#btnApplyLeft', function (e) {
+			e.preventDefault();
+			applyLeft();
+		});
+
+		// ============================================
+		// ON READY - UPDATE COUNTS
+		// ============================================
 		$(function () {
 			$("#leftCount").text($("#tableLeft tbody tr[data-row='left']").length + " dòng");
 		});
@@ -1095,7 +1213,7 @@
 					G_KLThungVaGang: parseFloat(row.find("input[name='KLThungGangLong']").val()) || null,
 					G_KLGangLong: parseFloat(row.find("input[name='KLGangLong']").val()) || null,
 					ChuyenDen: chuyenDen,
-					Gio_NM : row.find("input[name='GioNM']").val() || null, 
+					Gio_NM : row.find("input[name='GioNM']").val() || null,
 					G_GhiChu: row.find("textarea[name='GhiChu']").val(),
 					G_SanRaGang : row.find("input[name='G_SanRaGang']").val()
 				});
@@ -1135,7 +1253,7 @@
 			});
 		}
 
-		@* $(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
+	@* $(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
 				let row = $(this).closest("tr");
 
 				let $klThungXeInput = row.find("input[name='KLThungVaXe']");
@@ -1228,7 +1346,7 @@
 		row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
 
 		// Loại thùng: lớn/nhỏ
-		@* let $loaiThung = row.find("span.loai-thung");
+	@* let $loaiThung = row.find("span.loai-thung");
 		if ($loaiThung.length) {
 			let val = parseFloat(row.find("input[name='KLGangLong']").val()) || 0;
 			if (val > 0) {

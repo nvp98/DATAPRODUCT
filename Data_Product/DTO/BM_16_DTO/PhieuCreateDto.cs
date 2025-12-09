@@ -61,10 +61,17 @@ namespace Data_Product.DTO.BM_16_DTO
         public int? Laddle_no { get; set; }
         public int? Shift { get; set; }
         public int? Casthouse { get; set; }
+        // Số mẻ hiện tại (BKMIS_SoMe)
         public string BKMIS_SoMe { get; set; }
+        // Số mẻ gốc (trước khi đổi, để kiểm tra clear)
+        public string OriginalSoMe { get; set; }
 
         // Khoá chính của Tbl_CanRayLG2 để gửi ngược về khi lưu
         public int? CanRayId { get; set; }
+        // Ghi chú (từ bảng cân ray)
+        public string? GhiChu { get; set; }
+        // Trạng thái đánh dấu Số mẻ đã bị xóa/clear
+        public bool? SoMe_Cleared { get; set; }
     }
     public class AutoMappingItemDto
     {
@@ -80,6 +87,11 @@ namespace Data_Product.DTO.BM_16_DTO
         public decimal? G_KLXeThungVaGang { get; set; }  // map từ KL_Tong (TS5)
         public decimal? G_KLGangLong { get; set; }       // map từ KL_Gang (TS6)
         public string? G_GhiChu { get; set; }
+
+        // Số mẻ hiện tại (BKMIS_SoMe)
+        public string BKMIS_SoMe { get; set; }
+        // Số mẻ gốc (trước khi đổi, để kiểm tra clear)
+        public string OriginalSoMe { get; set; }
     }
 
 }
