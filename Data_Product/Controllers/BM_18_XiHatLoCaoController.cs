@@ -1,8 +1,16 @@
 ﻿using System.Security.Claims;
+using ClosedXML.Excel;
 using Data_Product.DTO.BM_18_DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using Data_Product.Services;
+using iText.Barcodes;
+using iText.Html2pdf;
+using iText.Kernel.Events;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas;
+using iText.Kernel.Pdf.Xobject;
+using iText.Layout.Font;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -53,7 +61,7 @@ namespace Data_Product.Controllers
             if (loCaoList.Any())
             {
                 //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
-                var query = _context.Tbl_BM_18_Phieu
+                var query = _context.Tbl_BM_18_PhieuXiHat
                     .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
             {
@@ -184,7 +192,7 @@ namespace Data_Product.Controllers
             {
                 try
                 {
-                    bool existed = await _context.Tbl_BM_18_Phieu.AnyAsync(p =>
+                    bool existed = await _context.Tbl_BM_18_PhieuXiHat.AnyAsync(p =>
                         p.ID_Locao == loId &&
                         p.ID_Kip == model.ID_Kip &&
                         p.NgaySanXuat.Date == model.NgaySanXuat.Date
@@ -204,7 +212,7 @@ namespace Data_Product.Controllers
 
                     string maPhieu = GenerateMaPhieuBM18(loId, kipInfo?.TenCa, kipInfo?.TenKip, model.NgaySanXuat);
 
-                    var header = new Tbl_BM_18_Phieu
+                    var header = new Tbl_BM_18_PhieuXiHat
                     {
                         MaPhieu = maPhieu,
                         NgayTaoPhieu = DateTime.Now,
@@ -213,10 +221,28 @@ namespace Data_Product.Controllers
                         ID_NguoiTao = taiKhoan.ID_TaiKhoan,
                         NgaySanXuat = model.NgaySanXuat,
                         ID_NguoiGiao = 0,
-                        ID_NguoiNhan = 0
+                        ID_NguoiNhan = 0,
+                        ID_TrangThaiBG = 0,
+                        ID_TrangThaiBN = 0
                     };
 
-                    _context.Tbl_BM_18_Phieu.Add(header);
+                    _context.Tbl_BM_18_PhieuXiHat.Add(header);
+                    await _context.SaveChangesAsync();
+
+                    // Thêm dòng chi tiết mặc định vào Tbl_BM_18_XiHatLoCao
+                    var xiHat = new Tbl_BM_18_XiHatLoCao
+                    {
+                        Ca = header.ID_Kip,
+                        Kip = header.ID_Kip,
+                        NgaySanXuat = header.NgaySanXuat,
+                        MaPhieu = header.MaPhieu,
+                        ID_LoCao = header.ID_Locao,
+                        Ten_NVL = "Xỉ hạt lò cao",
+                        DVT = "Tấn",
+                        ID_Lo = null,
+                        HeSo = null,
+                    };
+                    _context.Tbl_BM_18_XiHatLoCao.Add(xiHat);
                     await _context.SaveChangesAsync();
 
                     createdCount++;
@@ -264,9 +290,27 @@ namespace Data_Product.Controllers
         {
             if (string.IsNullOrWhiteSpace(maPhieu))
                 return BadRequest("Thiếu mã phiếu.");
+            DateTime DayNow = DateTime.Now;
+            String Day = DayNow.ToString("dd/MM/yyyy");
+            DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
 
-            var phieu = await _context.Set<Tbl_BM_18_Phieu>()
-                .AsNoTracking()
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+            string TenBP = PhongBan.TenNgan.ToString();
+
+            List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
+            ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
+
+            var NhanVien = await (from a in _context.Tbl_TaiKhoan
+                                  select new Tbl_TaiKhoan
+                                  {
+                                      ID_TaiKhoan = a.ID_TaiKhoan,
+                                      HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                                  }).ToListAsync();
+
+            ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
+            var phieu = await _context.Set<Tbl_BM_18_PhieuXiHat>()
                 .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
 
             if (phieu == null)
@@ -278,15 +322,25 @@ namespace Data_Product.Controllers
                 .OrderBy(x => x.ID)
                 .ToListAsync();
 
+            var MaLo = await (from a in _context.Tbl_MaLo
+                              select new Tbl_MaLo
+                              {
+                                  ID_MaLo = a.ID_MaLo,
+                                  TenMaLo = a.TenMaLo,
+                                  ID_TinhTrang = 1
+                              }).ToListAsync();
+
+            ViewBag.MLList = new SelectList(MaLo, "ID_MaLo", "TenMaLo");
             // Header fields for view
             ViewBag.MaPhieu = phieu.MaPhieu;
             ViewBag.NgaySanXuat = phieu.NgaySanXuat.ToString("yyyy-MM-dd");
-            ViewBag.TenKip = phieu.ID_Kip; 
-           // ViewBag.TenCa = phieu.ID_Kip;
+            ViewBag.TenKip = phieu.ID_Kip;
+            // ViewBag.TenCa = phieu.ID_Kip;
             ViewBag.ID_Locao = phieu.ID_Locao;
             ViewBag.ID_Kip = phieu.ID_Kip;
             ViewBag.TenKip = kip?.TenKip;
             ViewBag.TenCa = kip?.TenCa;
+            ViewBag.Phieu = phieu;
             return View("DetailPhieu", chiTiet);
         }
         [HttpPost]
@@ -295,8 +349,19 @@ namespace Data_Product.Controllers
             if (req == null || req.ChiTiet == null || req.ChiTiet.Count == 0)
                 return BadRequest("Dữ liệu không hợp lệ!");
 
+            // Kiểm tra hợp lệ người nhận
+            if (req.ID_NguoiNhan == null || req.ID_NguoiNhan <= 0)
+                return BadRequest("Vui lòng chọn người nhận!");
+
             foreach (var item in req.ChiTiet)
             {
+                // Kiểm tra hợp lệ Lô
+                if (item.ID_Lo == null || item.ID_Lo <= 0)
+                    return BadRequest("Vui lòng chọn Lô!");
+                // Kiểm tra hợp lệ hệ số quy đổi
+                if (item.HeSo == null || item.HeSo <= 0)
+                    return BadRequest("Vui lòng nhập hệ số quy đổi!");
+
                 if (item.ID == 0)
                 {
                     // THÊM MỚI
@@ -308,7 +373,7 @@ namespace Data_Product.Controllers
                         Kip = item.ID_Kip,
                         Ten_NVL = item.Ten_NVL,
                         DVT = item.DVT,
-                        Lo = item.Lo,
+                        ID_Lo = item.ID_Lo,
                         HeSo = item.HeSo,
                         NgaySanXuat = item.NgaySanXuat,
                         KL_Gang_Giao = item.KL_Gang_Giao,
@@ -317,7 +382,6 @@ namespace Data_Product.Controllers
                         KL_Xi_Nhan = item.KL_Xi_Nhan,
                         GhiChu = item.GhiChu
                     };
-
                     _context.Tbl_BM_18_XiHatLoCao.Add(newItem);
                 }
                 else
@@ -330,12 +394,10 @@ namespace Data_Product.Controllers
                     {
                         updateItem.Ca = item.ID_Ca;
                         updateItem.Kip = item.ID_Kip;
-
                         updateItem.Ten_NVL = item.Ten_NVL;
                         updateItem.DVT = item.DVT;
-                        updateItem.Lo = item.Lo;
+                        updateItem.ID_Lo = item.ID_Lo;
                         updateItem.HeSo = item.HeSo;
-
                         updateItem.KL_Gang_Giao = item.KL_Gang_Giao;
                         updateItem.KL_Xi_Giao = item.KL_Xi_Giao;
                         updateItem.KL_Gang_Nhan = item.KL_Gang_Nhan;
@@ -345,11 +407,139 @@ namespace Data_Product.Controllers
                 }
             }
 
-            await _context.SaveChangesAsync();
+            // Cập nhật ID_NguoiGiao và ID_NguoiNhan vào phiếu
+            if (!string.IsNullOrEmpty(req.MaPhieu) && req.ID_NguoiGiao > 0 && req.ID_NguoiNhan > 0)
+            {
+                var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
+                if (phieu != null)
+                {
+                    phieu.ID_NguoiGiao = req.ID_NguoiGiao;
+                    phieu.ID_NguoiNhan = req.ID_NguoiNhan;
+                    phieu.ID_TrangThaiBG = 1;
+                    await _context.SaveChangesAsync();
+                }
+            }
 
+            await _context.SaveChangesAsync();
             return Ok(new { message = "Đã lưu thành công!" });
         }
+        public async Task<IActionResult> Index_Detail(string maPhieu)
+        {
+            // 1. Lấy thông tin phiếu
+             var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                 .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
 
+             if (phieu == null)
+                 return NotFound("Không tìm thấy phiếu BM18 với mã này.");
+
+             // 2. Lấy chi tiết phiếu với join MaLo
+             var chiTiet = await (
+                 from ct in _context.Tbl_BM_18_XiHatLoCao
+                     .Where(x => x.MaPhieu == phieu.MaPhieu)
+                 join ml in _context.Tbl_MaLo
+                     on ct.ID_Lo equals ml.ID_MaLo into g
+                 from ml in g.DefaultIfEmpty()
+                     // Join thêm bảng Kip
+                 join kp in _context.Tbl_Kip
+                     on ct.Kip equals kp.ID_Kip into g2
+                 from kp in g2.DefaultIfEmpty()
+                 select new Tbl_BM_18_XiHatLoCao
+                 {
+                     ID = ct.ID,
+                     MaPhieu = ct.MaPhieu,
+                     ID_LoCao = ct.ID_LoCao,
+                     Ca = ct.Ca,
+                     Kip = ct.Kip,
+                     Ten_NVL = ct.Ten_NVL,
+                     DVT = ct.DVT,
+                     ID_Lo = ct.ID_Lo,
+                     HeSo = ct.HeSo,
+                     NgaySanXuat = ct.NgaySanXuat,
+                     KL_Gang_Giao = ct.KL_Gang_Giao,
+                     KL_Xi_Giao = ct.KL_Xi_Giao,
+                     KL_Gang_Nhan = ct.KL_Gang_Nhan,
+                     KL_Xi_Nhan = ct.KL_Xi_Nhan,
+                     GhiChu = ct.GhiChu,
+                     TenMaLo = ml != null ? ml.TenMaLo : "",
+                     CaKip = kp != null ? $"{kp.TenCa}{kp.TenKip}" : ""
+                 }
+             ).ToListAsync();
+
+             // 3. Lấy thông tin bên giao
+             Tbl_TaiKhoan thongTinBG = null;
+             Tbl_PhongBan phongBanBG = null;
+             Tbl_Xuong phanXuongBG = null;
+             Tbl_ViTri viTriBG = null;
+             if (phieu.ID_NguoiGiao.HasValue && phieu.ID_NguoiGiao.Value > 0)
+             {
+                 thongTinBG = await _context.Tbl_TaiKhoan
+                     .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiGiao.Value);
+                 if (thongTinBG != null)
+                 {
+                     phongBanBG = await _context.Tbl_PhongBan
+                         .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBG.ID_PhongBan);
+                     phanXuongBG = await _context.Tbl_Xuong
+                         .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBG.ID_PhanXuong);
+                     viTriBG = await _context.Tbl_ViTri
+                         .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBG.ID_ChucVu);
+                 }
+             }
+
+             // 4. Lấy thông tin bên nhận
+             Tbl_TaiKhoan thongTinBN = null;
+             Tbl_PhongBan phongBanBN = null;
+             Tbl_Xuong phanXuongBN = null;
+             Tbl_ViTri viTriBN = null;
+             if (phieu.ID_NguoiNhan.HasValue && phieu.ID_NguoiNhan.Value > 0)
+             {
+                 thongTinBN = await _context.Tbl_TaiKhoan
+                     .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiNhan.Value);
+                 if (thongTinBN != null)
+                 {
+                     phongBanBN = await _context.Tbl_PhongBan
+                         .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBN.ID_PhongBan);
+                     phanXuongBN = await _context.Tbl_Xuong
+                         .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBN.ID_PhanXuong);
+                     viTriBN = await _context.Tbl_ViTri
+                         .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBN.ID_ChucVu);
+                 }
+             }
+
+             // 5. Tạo ViewModel
+             var viewModel = new BM18DetailViewModel
+             {
+                 Phieu = phieu,
+                 ChiTiet = chiTiet,
+                 ThongTinBenGiao = thongTinBG,
+                 PhongBanBenGiao = phongBanBG,
+                 PhanXuongBenGiao = phanXuongBG,
+                 ViTriBenGiao = viTriBG,
+                 ThongTinBenNhan = thongTinBN,
+                 PhongBanBenNhan = phongBanBN,
+                 PhanXuongBenNhan = phanXuongBN,
+                 ViTriBenNhan = viTriBN,
+
+             };
+
+             return View(viewModel);
+         }
+      [HttpPost]
+        public async Task<IActionResult> XacNhanPhieuBN([FromBody] XacNhanPhieuBNRequest req)
+        {
+            if (string.IsNullOrEmpty(req.MaPhieu))
+                return BadRequest("Mã phiếu không hợp lệ!");
+            // if (req.TrangThai != 1 && req.TrangThai != 2)
+            //     return BadRequest("Trạng thái không hợp lệ!");
+
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
+            if (phieu == null)
+                return NotFound("Không tìm thấy phiếu!");
+
+            // 1 = Đã xử lý, 2 = Hủy phiếu
+            phieu.ID_TrangThaiBN = req.TrangThai;
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, message = "Xác nhận thành công!" });
+        }
         [HttpPost]
         public IActionResult ResetPhieu([FromBody] ResetPhieuRequest request)
         {
@@ -364,93 +554,93 @@ namespace Data_Product.Controllers
 
             return Ok(new { success = true });
         }
-        [HttpGet]
-        public async Task<IActionResult> KLGangTrongCa(int ca, int idKip, DateTime ngayLuyenGang, int idLoCao)
-        {
-            // ===== Lấy danh sách thùng theo điều kiện mới =====
-            var dsThung = await _context.Tbl_BM_16_GangLong
-                .Where(t =>
-                    t.G_Ca == ca &&
-                    t.G_ID_Kip == idKip &&
-                    t.NgayTao == ngayLuyenGang.Date &&
-                    t.ID_Locao == idLoCao &&
-                    t.T_copy == false
-                )
-                .ToListAsync();
+        // [HttpGet]
+        // public async Task<IActionResult> KLGangTrongCa(int ca, int idKip, DateTime ngayLuyenGang, int idLoCao)
+        // {
+            
+        //     var dsThung = await _context.Tbl_BM_16_GangLong
+        //         .Where(t =>
+        //             t.G_Ca == ca &&
+        //             t.G_ID_Kip == idKip &&
+        //             t.NgayTao == ngayLuyenGang.Date &&
+        //             t.ID_Locao == idLoCao &&
+        //             t.T_copy == false
+        //         )
+        //         .ToListAsync();
 
-            if (!dsThung.Any())
-                return NotFound("Không tìm thấy dữ liệu theo điều kiện lọc.");
+        //     if (!dsThung.Any())
+        //         return NotFound("Không tìm thấy dữ liệu theo điều kiện lọc.");
 
-            // ===== Lấy % đúc =====
-            decimal ptDuc = await _context.Tbl_BM_16_PhanTramDuc
-                .Where(x => x.ID == 1)
-                .Select(x => x.PhanTram)
-                .FirstOrDefaultAsync();
 
-            // ===== 1) TÍNH TỔNG KL THEO MẺ =====
-            var tongTheoMe = await _context.Tbl_BM_16_GangLong
-                .Where(t =>
-                    t.G_Ca == ca &&
-                    t.G_ID_Kip == idKip &&
-                    t.NgayTao == ngayLuyenGang.Date &&
-                    t.ID_Locao == idLoCao &&
-                    !string.IsNullOrEmpty(t.BKMIS_SoMe)
-                )
-                .GroupBy(t => t.BKMIS_SoMe)
-                .Select(g => new
-                {
-                    SoMe = g.Key,
-                    TongKL = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0)) ?? 0m
-                })
-                .ToDictionaryAsync(x => x.SoMe, x => x.TongKL);
-            // Tổng tất cả KL theo mẻ
-            decimal tongKL_TheoMe = tongTheoMe.Values.Sum();
-            // ===== 2) TÍNH KL ĐÚC THEO MẺ =====
-            var klDucTheoMeRaw = await _context.Tbl_BM_16_GangLong
-                .Where(t =>
-                    t.G_Ca == ca &&
-                    t.G_ID_Kip == idKip &&
-                    t.NgayTao == ngayLuyenGang.Date &&
-                    t.ID_Locao == idLoCao &&
-                    !string.IsNullOrEmpty(t.BKMIS_SoMe) &&
-                    t.ChuyenDen != "HRC1" &&
-                    t.ChuyenDen != "HRC2"
-                )
-                .GroupBy(t => t.BKMIS_SoMe)
-                .Select(g => new
-                {
-                    SoMe = g.Key,
+        //     decimal ptDuc = await _context.Tbl_BM_16_PhanTramDuc
+        //         .Where(x => x.ID == 1)
+        //         .Select(x => x.PhanTram)
+        //         .FirstOrDefaultAsync();
 
-                    SumG = g.Where(x => x.T_copy == false)
-                            .Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
 
-                    SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m,
+        //     var tongTheoMe = await _context.Tbl_BM_16_GangLong
+        //         .Where(t =>
+        //             t.G_Ca == ca &&
+        //             t.G_ID_Kip == idKip &&
+        //             t.NgayTao == ngayLuyenGang.Date &&
+        //             t.ID_Locao == idLoCao &&
+        //             !string.IsNullOrEmpty(t.BKMIS_SoMe)
+        //         )
+        //         .GroupBy(t => t.BKMIS_SoMe)
+        //         .Select(g => new
+        //         {
+        //             SoMe = g.Key,
+        //             TongKL = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0)) ?? 0m
+        //         })
+        //         .ToDictionaryAsync(x => x.SoMe, x => x.TongKL);
+          
+        //     decimal tongKL_TheoMe = tongTheoMe.Values.Sum();
+   
+        //     var klDucTheoMeRaw = await _context.Tbl_BM_16_GangLong
+        //         .Where(t =>
+        //             t.G_Ca == ca &&
+        //             t.G_ID_Kip == idKip &&
+        //             t.NgayTao == ngayLuyenGang.Date &&
+        //             t.ID_Locao == idLoCao &&
+        //             !string.IsNullOrEmpty(t.BKMIS_SoMe) &&
+        //             t.ChuyenDen != "HRC1" &&
+        //             t.ChuyenDen != "HRC2"
+        //         )
+        //         .GroupBy(t => t.BKMIS_SoMe)
+        //         .Select(g => new
+        //         {
+        //             SoMe = g.Key,
 
-                    SumChiaRaw = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
+        //             SumG = g.Where(x => x.T_copy == false)
+        //                     .Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
 
-                    HasChia = g.Any(x => x.KLGangChia != null && x.KLGangChia > 0)
-                })
-                .ToListAsync();
+        //             SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m,
 
-            var klDucTheoMe = klDucTheoMeRaw.ToDictionary(
-                x => x.SoMe,
-                x =>
-                {
-                    var baseValue = x.HasChia ? x.SumChiaRaw : x.SumT;
-                    var kld = (x.SumG - baseValue) * (ptDuc / 100m);
-                    return Math.Round(kld, 2);
-                }
-            );
-            // Tổng tất cả KL đúc
-            decimal tongKLDuc = klDucTheoMe.Values.Sum();
+        //             SumChiaRaw = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
 
-            decimal tongKLGang = tongKLDuc + tongKL_TheoMe;
-            // ===== TRẢ DATA =====
-            ViewBag.TongKL_TheoMe = tongTheoMe;
-            ViewBag.KLDuc_TheoMe = klDucTheoMe;
-            ViewBag.TongKLGang = tongKLGang;
-            return View();
-        }
+        //             HasChia = g.Any(x => x.KLGangChia != null && x.KLGangChia > 0)
+        //         })
+        //         .ToListAsync();
+
+        //     var klDucTheoMe = klDucTheoMeRaw.ToDictionary(
+        //         x => x.SoMe,
+        //         x =>
+        //         {
+        //             var baseValue = x.HasChia ? x.SumChiaRaw : x.SumT;
+        //             var kld = (x.SumG - baseValue) * (ptDuc / 100m);
+        //             return Math.Round(kld, 2);
+        //         }
+        //     );
+       
+        //     decimal tongKLDuc = klDucTheoMe.Values.Sum();
+
+        //     decimal tongKLGang = tongKLDuc + tongKL_TheoMe;
+     
+        //     ViewBag.TongKL_TheoMe = tongTheoMe;
+        //     ViewBag.KLDuc_TheoMe = klDucTheoMe;
+        //     ViewBag.TongKLGang = tongKLGang;
+        //     return View();
+        // }
 
         [HttpGet]
         public async Task<IActionResult> KLGangTrongCaJson(int ca, int idKip, DateTime ngaySanXuat, int idLoCao)
@@ -546,7 +736,368 @@ namespace Data_Product.Controllers
 
         public async Task<IActionResult> ExportPDF()
         {
-            return View();
+            string testMaPhieu = "XHLC-L1-1A-251101";
+
+            // Lấy phiếu tổng
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                 .FirstOrDefaultAsync(x => x.MaPhieu == testMaPhieu);
+
+            if (phieu == null)
+                return NotFound("Không tìm thấy phiếu.");
+
+            // Lấy chi tiết (có TenMaLo)
+            var chiTiet = await (
+                 from ct in _context.Tbl_BM_18_XiHatLoCao
+                     .Where(x => x.MaPhieu == phieu.MaPhieu)
+                 join ml in _context.Tbl_MaLo
+                     on ct.ID_Lo equals ml.ID_MaLo into g
+                 from ml in g.DefaultIfEmpty()
+                     // Join thêm bảng Kip
+                 join kp in _context.Tbl_Kip
+                     on ct.Kip equals kp.ID_Kip into g2
+                 from kp in g2.DefaultIfEmpty()
+                 select new Tbl_BM_18_XiHatLoCao
+                 {
+                     ID = ct.ID,
+                     MaPhieu = ct.MaPhieu,
+                     ID_LoCao = ct.ID_LoCao,
+                     Ca = ct.Ca,
+                     Kip = ct.Kip,
+                     Ten_NVL = ct.Ten_NVL,
+                     DVT = ct.DVT,
+                     ID_Lo = ct.ID_Lo,
+                     HeSo = ct.HeSo,
+                     NgaySanXuat = ct.NgaySanXuat,
+                     KL_Gang_Giao = ct.KL_Gang_Giao,
+                     KL_Xi_Giao = ct.KL_Xi_Giao,
+                     KL_Gang_Nhan = ct.KL_Gang_Nhan,
+                     KL_Xi_Nhan = ct.KL_Xi_Nhan,
+                     GhiChu = ct.GhiChu,
+                     TenMaLo = ml != null ? ml.TenMaLo : "",
+                     CaKip = kp != null ? $"{kp.TenCa}{kp.TenKip}" : ""
+                 }
+             ).ToListAsync();
+
+            var vm = new Data_Product.DTO.BM_18_DTO.BM18DetailViewModel
+            {
+                Phieu = phieu,
+                ChiTiet = chiTiet
+            };
+
+            return View(vm); // truyền đúng ViewModel
         }
+
+        public async Task<IActionResult> ExportToExcel(int BBGN_ID)
+        {
+            try
+            {
+
+                string fileNamemau = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BBGN.xlsx";
+                string fileNamemaunew = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BBGN_Temp.xlsx";
+                XLWorkbook Workbook = new XLWorkbook(fileNamemau);
+                IXLWorksheet Worksheet = Workbook.Worksheet("BBGN");
+                var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == BBGN_ID).FirstOrDefault();
+                var Data = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == BBGN_ID).ToList();
+                int row = 8, stt = 0, icol = 1;
+                if (Data.Count > 0)
+                {
+                    foreach (var item in Data)
+                    {
+
+                        row++; stt++; icol = 1;
+
+                        Worksheet.Cell(row, icol).Value = stt;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_BBGN.ThoiGianXuLyBG;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+                        Worksheet.Cell(row, icol).Style.DateFormat.Format = "dd/MM/yyyy";
+
+
+                        var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_Kip.TenKip;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+
+                        icol++;
+                        if (ID_Kip.TenCa == "1")
+                        {
+                            Worksheet.Cell(row, icol).Value = "Ngày";
+                            Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                            Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                            Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+                        }
+                        else
+                        {
+                            Worksheet.Cell(row, icol).Value = "Đêm";
+                            Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                            Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                            Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+                        }
+
+                        var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item.ID_VatTu).FirstOrDefault();
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_VT.TenVatTu;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        var ID_Lo = _context.Tbl_MaLo.Where(x => x.TenMaLo == item.MaLo).FirstOrDefault();
+                        icol++;
+                        if (ID_Lo != null)
+                        {
+                            Worksheet.Cell(row, icol).Value = ID_Lo.TenMaLo;
+                            Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                            Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                            Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        }
+                        else
+                        {
+                            Worksheet.Cell(row, icol).Value = "";
+                            Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                            Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                            Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+                        }
+
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_VT.DonViTinh;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.KhoiLuong_BN;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = Math.Round(item.DoAm_W, 2);
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.KL_QuyKho_BN;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        var ID_XBN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BN).FirstOrDefault();
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_XBN.TenXuong;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        var ID_BPBN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BN).FirstOrDefault();
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_BPBN.TenPhongBan;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+
+
+
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.KhoiLuong_BG;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = Math.Round(item.DoAm_W, 2);
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.KL_QuyKho_BG;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        var ID_XBG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BG).FirstOrDefault();
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_XBG.TenXuong;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        var ID_BPBG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_BPBG.TenPhongBan;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = item.GhiChu;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = ID_BBGN.SoPhieu;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+
+                    }
+
+                    Worksheet.Range("A7:T" + (row)).Style.Font.SetFontName("Times New Roman");
+                    Worksheet.Range("A7:T" + (row)).Style.Font.SetFontSize(13);
+                    Worksheet.Range("A7:T" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    Worksheet.Range("A7:T" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+
+                    Workbook.SaveAs(fileNamemaunew);
+                    byte[] fileBytes = System.IO.File.ReadAllBytes(fileNamemaunew);
+                    string fileName = "BBGN - " + ID_BBGN.SoPhieu + ".xlsx";
+                    return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
+                }
+                else
+                {
+
+
+                    Workbook.SaveAs(fileNamemaunew);
+                    byte[] fileBytes = System.IO.File.ReadAllBytes(fileNamemaunew);
+                    string fileName = "BBGN - " + ID_BBGN.SoPhieu + ".xlsx";
+                    return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
+
+                return RedirectToAction("Index_Detai", "BM_11", new { id = BBGN_ID });
+            }
+        }
+
+        public async Task<IActionResult> GeneratePdf(string maPhieu)
+        {
+            // Lấy phiếu
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
+
+            if (phieu == null)
+                return NotFound("Không tìm thấy phiếu.");
+
+            // Lấy chi tiết (có TenMaLo)
+            var chiTiet = await (
+                 from ct in _context.Tbl_BM_18_XiHatLoCao
+                     .Where(x => x.MaPhieu == phieu.MaPhieu)
+                 join ml in _context.Tbl_MaLo
+                     on ct.ID_Lo equals ml.ID_MaLo into g
+                 from ml in g.DefaultIfEmpty()
+                     // Join thêm bảng Kip
+                 join kp in _context.Tbl_Kip
+                     on ct.Kip equals kp.ID_Kip into g2
+                 from kp in g2.DefaultIfEmpty()
+                 select new Tbl_BM_18_XiHatLoCao
+                 {
+                     ID = ct.ID,
+                     MaPhieu = ct.MaPhieu,
+                     ID_LoCao = ct.ID_LoCao,
+                     Ca = ct.Ca,
+                     Kip = ct.Kip,
+                     Ten_NVL = ct.Ten_NVL,
+                     DVT = ct.DVT,
+                     ID_Lo = ct.ID_Lo,
+                     HeSo = ct.HeSo,
+                     NgaySanXuat = ct.NgaySanXuat,
+                     KL_Gang_Giao = ct.KL_Gang_Giao,
+                     KL_Xi_Giao = ct.KL_Xi_Giao,
+                     KL_Gang_Nhan = ct.KL_Gang_Nhan,
+                     KL_Xi_Nhan = ct.KL_Xi_Nhan,
+                     GhiChu = ct.GhiChu,
+                     TenMaLo = ml != null ? ml.TenMaLo : "",
+                     CaKip = kp != null ? $"{kp.TenCa}{kp.TenKip}" : ""
+                 }
+             ).ToListAsync();
+
+            // Đưa vào ViewModel
+            var vm = new BM18DetailViewModel
+            {
+                Phieu = phieu,
+                ChiTiet = chiTiet
+            };
+
+            // Render View -> HTML
+            string htmlContent = await RenderViewToStringAsync("ExportPDF", vm);
+
+            // HTML -> PDF
+            byte[] pdfBytes = ConvertHtmlToPdf(htmlContent);
+
+            string filename = phieu.MaPhieu + "_" + DateTime.Now.ToString("yyyyMMddHHmm") + ".pdf";
+
+            return File(pdfBytes, "application/pdf", filename);
+        }
+
+        private async Task<string> RenderViewToStringAsync(string viewName, object model)
+        {
+            ViewData.Model = model;
+
+            using (var sw = new StringWriter())
+            {
+                var viewResult = _viewEngine.FindView(ControllerContext, viewName, false);
+
+                if (!viewResult.Success)
+                    throw new FileNotFoundException($"Không tìm thấy view: {viewName}");
+
+                var viewContext = new ViewContext(
+                    ControllerContext,
+                    viewResult.View,
+                    ViewData,
+                    TempData,
+                    sw,
+                    new Microsoft.AspNetCore.Mvc.ViewFeatures.HtmlHelperOptions()
+                );
+
+                await viewResult.View.RenderAsync(viewContext);
+                return sw.ToString();
+            }
+        }
+        private byte[] ConvertHtmlToPdf(string html)
+        {
+            using (var ms = new MemoryStream())
+            {
+                var writer = new iText.Kernel.Pdf.PdfWriter(ms);
+                var pdf = new iText.Kernel.Pdf.PdfDocument(writer);
+
+                // A4 ngang
+                pdf.SetDefaultPageSize(iText.Kernel.Geom.PageSize.A4.Rotate());
+
+                // Font
+                var fontProvider = new FontProvider();
+                fontProvider.AddFont("C:/Windows/Fonts/times.ttf");
+                fontProvider.AddFont("C:/Windows/Fonts/timesbd.ttf");
+
+                var props = new ConverterProperties();
+                props.SetFontProvider(fontProvider);
+
+                HtmlConverter.ConvertToPdf(html, pdf, props);
+
+                return ms.ToArray();
+            }
+        }
+
     }
 }

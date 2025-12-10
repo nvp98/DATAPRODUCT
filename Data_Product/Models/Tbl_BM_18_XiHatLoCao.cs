@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data_Product.Models
 {
@@ -13,9 +14,9 @@ namespace Data_Product.Models
         public string MaPhieu { get; set; }
         public int ID_LoCao { get; set; }
 
-        public string Ten_NVL { get; set; }
-        public string DVT { get; set; }
-        public string Lo { get; set; }
+        public string? Ten_NVL { get; set; }
+        public string? DVT { get; set; }
+        public int? ID_Lo  { get; set; }
 
         public decimal? HeSo { get; set; }
 
@@ -25,5 +26,9 @@ namespace Data_Product.Models
         public decimal? KL_Xi_Nhan { get; set; }
 
         public string? GhiChu { get; set; }
+        [NotMapped]
+        public string TenMaLo { get; set; }
+        [NotMapped]
+        public string CaKip { get; set; }
     }
 }

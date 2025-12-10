@@ -2,7 +2,7 @@
 
 namespace Data_Product.Models
 {
-    public class Tbl_BM_18_Phieu
+    public class Tbl_BM_18_PhieuXiHat
     {
         [Key]
         public int ID { get; set; }
@@ -21,6 +21,13 @@ namespace Data_Product.Models
 
         public int? ID_NguoiGiao { get; set; }
 
+        public int? ID_TrangThaiBG { get; set; }
+
         public int? ID_NguoiNhan { get; set; }
+
+        public int? ID_TrangThaiBN { get; set; }
+
+        public int? TrangThai { get; set; }
+
     }
 }

@@ -10,7 +10,7 @@
         public DateTime? NgaySanXuat { get; set; }
         public string Ten_NVL { get; set; }
         public string DVT { get; set; }
-        public string Lo { get; set; }
+        public int? ID_Lo { get; set; }
         public decimal HeSo { get; set; }
 
         public decimal KL_Gang_Giao { get; set; }
@@ -23,5 +23,12 @@
     {
         public string MaPhieu { get; set; }
         public List<BM18ChiTietDto> ChiTiet { get; set; }
+        public int ID_NguoiGiao { get; set; }
+        public int ID_NguoiNhan { get; set; }
+    }
+    public class XacNhanPhieuBNRequest
+    {
+        public string MaPhieu { get; set; }
+        public int TrangThai { get; set; }
     }
 }
