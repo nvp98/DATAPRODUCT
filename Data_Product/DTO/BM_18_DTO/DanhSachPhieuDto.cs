@@ -10,6 +10,7 @@
         public string? TenLoCao { get; set; }
         public String? ThoiGianTao { get; set; }
         public int ID_LoCao { get; set; }
+        public int? TrangThai { get; set; }
     }
     public class ResetPhieuRequest
     {

@@ -7,7 +7,7 @@ namespace Data_Product.Models
         [Key]
         public int ID { get; set; }
 
-        public string MaPhieu { get; set; }  // nvarchar(25)
+        public string MaPhieu { get; set; }
         public int? Ca { get; set; }
         public DateTime NgayTaoPhieu { get; set; }
 

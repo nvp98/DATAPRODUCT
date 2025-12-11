@@ -67,56 +67,16 @@
                             }
                             @if (phieu.ID_TrangThaiBG == 1 && phieu.ID_TrangThaiBN == 1)
                             {
-                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%;">
+                                <div class="col-8" style="text-align: right;padding: 2%  2%  2% 0%;">
                                     <button type="button" class="btn btn-primary" id="btn-Export">
                                         <i class="bi bi-file-earmark-excel"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Xuất Excel
                                         </span>
                                     </button>
-
-                                    @*           @if (!string.IsNullOrEmpty(phieu.FilePDF))
-                                    {
-                                        <button type="button" class="btn btn-info">
-                                            <a href="@phieu.FilePDF" target="_blank">
-                                                <i class="bi bi-filetype-pdf" style="color: white;"></i>
-                                                <span class="small pt-2 ps-1" style="color: white;">
-                                                    Xem PDF
-                                                </span>
-                                            </a>S
-                                        </button>
-                                    } *@
-
                                     <button class="btn btn-primary"
                                             onclick="window.location.href='/BM_18_XiHatLoCao/GeneratePdf?maPhieu=@Model.Phieu.MaPhieu'">
                                         Xuất PDF
-                                    </button>
-                                </div>
-
-                                <div class="col-4" style="text-align: right;padding: 2%  2%  2% 0%;" id="showFunc">
-                                    <button type="button" class="btn btn-warning">
-                                        <a href="@Url.Action("YeuCauHieuChinh", "BM_18", new { maPhieu = phieu.MaPhieu })">
-                                            <i class="bi bi-send-x-fill" style="color: white;"></i>
-                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                Đề nghị hiệu chỉnh
-                                            </span>
-                                        </a>
-                                    </button>
-
-                                    <button type="button" class="btn btn-primary">
-                                        <a href="@Url.Action("SaoChep", "BM_18", new { maPhieu = phieu.MaPhieu })">
-                                            <i class="bi bi-clipboard-check" style="color: white;"></i>
-                                            <span class="small pt-2 ps-1" style="color: white;">
-                                                Copy tạo phiếu
-                                            </span>
-                                        </a>
-                                    </button>
-
-                                    <button id="btn-delete" type="button" class="btn btn-danger" style="width: 150px;">
-                                        <i class="bi bi-x-circle" style="color: white;"></i>
-                                        <span class="small pt-2 ps-1" style="color: white;">
-                                            Xóa Phiếu
-                                        </span>
                                     </button>
                                 </div>
                             }

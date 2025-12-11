@@ -106,17 +106,17 @@
                             </div>
                             @{
                                 string ngayPGValue = "";
-                                if (!string.IsNullOrEmpty(ViewBag.NgayPG))
+                                if (!string.IsNullOrEmpty(ViewBag.NgaySanXuat))
                                 {
                                     DateTime parsedDate;
-                                    if (DateTime.TryParseExact(ViewBag.NgayPG, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out parsedDate))
+                                    if (DateTime.TryParseExact(ViewBag.NgaySanXuat, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out parsedDate))
                                     {
                                         ngayPGValue = parsedDate.ToString("yyyy-MM-dd");
                                     }
                                 }
                             }
                             <div class="col-auto">
-                                <input type="date" name="NgayPG" class="form-control form-control-sm" value="@ngayPGValue" />
+                                <input type="date" name="ngaysx" class="form-control form-control-sm" value="@ngayPGValue" />
                             </div>
                             <div class="col-auto">
                                 <select name="ca" class="form-select form-select-sm">
@@ -158,7 +158,7 @@
                                         <th>Lò Cao</th>
                                         <th>Người Tạo</th>
                                         <th>Thời Gian Tạo</th>
-                                        <th>Thao Tác</th>
+                                        <th>Tình Trạng</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -182,11 +182,7 @@
                                                 <td class="text-center">@item.TenNguoiTao</td>
                                                 <td class="text-center">@item.ThoiGianTao</td>
                                                 <td class="text-center">
-                                                    <a href="@Url.Action("DetailPhieu","BM_18_XiHatLoCao", new { maPhieu = item.MaPhieu })" class="btn btn-sm btn-info me-1">Xem</a>
-                                                    @if (PhongBan?.TenNgan != "P.QLCL")
-                                                    {
-                                                        <a href="javascript:void(0);" data-maphieu="@item.MaPhieu" class="btn btn-sm btn-warning btn-xoa-phieu hidden">Xóa</a>
-                                                    }
+                                                    @item.TrangThai
                                                 </td>
                                             </tr>
                                         }

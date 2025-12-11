@@ -3,7 +3,7 @@
 @using Data_Product.Repositorys
 @using Microsoft.EntityFrameworkCore
 @inject Data_Product.Repositorys.DataContext _context
-@model List<Tbl_BM_18_XiHatLoCao>
+@model Data_Product.DTO.BM_18_DTO.BM18DetailViewModel
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
@@ -186,7 +186,7 @@
 				</div>
 				<script type="text/javascript">
 					$(document).ready(function () {
-						$('#IDTaiKhoan').select2({
+							$('#IDTaiKhoan').select2({
 							placeholder: "----- Chọn đại diện bên nhận -----",
 							allowClear: true,
 							width: '100%',
@@ -196,6 +196,12 @@
 								}
 							}
 						});
+						var hasNguoiNhan = @(ViewBag.HasNguoiNhan?.ToString().ToLower() ?? "false");
+						var idNguoiNhan = @(ViewBag.ID_NguoiNhan ?? 0);
+
+						if (hasNguoiNhan && idNguoiNhan > 0) {
+							$('#IDTaiKhoan').trigger('change');
+						}
 					});
 					$("#IDTaiKhoan").change(function () {
 						$.get("/BM_11/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
@@ -259,20 +265,28 @@
 			</div>
 		</div>
 
-
 			<div class="row w-100 justify-content-end mb-3">
 				<div class="row">
 					<div class="col-6"></div>
 					<div class="col-6 d-flex justify-content-end">
-						<button type="button" id="btnLuuBM18" class="btn btn-primary me-2">
-							<i class="bi bi-save"></i> Lưu
-						</button>
+
+						@if (Model.Phieu.ID_TrangThaiBG != 1)
+						{
+							<button type="button" id="btnLuuBM18" class="btn btn-primary me-2">
+								<i class="bi bi-save"></i> Gửi phiếu
+							</button>
+						}
+
 						<button type="button" id="btnResetPhieu" class="btn btn-warning ms-2 me-2">
 							<i class="bi bi-arrow-counterclockwise"></i> Reset Phiếu
 						</button>
-						<button type="button" class="btn btn-success btn-sm px-4 me-2" id="BtnXuatPhieuExcel">
-							Xuất Excel
-						</button>
+						@if(Model.Phieu.ID_TrangThaiBG == 1 && Model.Phieu.ID_TrangThaiBN == 1)
+						{
+							<button type="button" class="btn btn-success btn-sm px-4 me-2" id="BtnXuatPhieuExcel">
+								Xuất Excel
+							</button>
+						}
+
 						<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">
 							Xuất PDF
 						</button>
@@ -303,10 +317,10 @@
 							</tr>
 						</thead>
 						<tbody>
-							@if (Model != null && Model.Count > 0)
+							@if (Model != null && Model.ChiTiet != null && Model.ChiTiet.Count > 0)
 							{
 								var stt = 1;
-								foreach (var item in Model.OrderBy(x => x.ID))
+								foreach (var item in Model.ChiTiet)
 								{
 									<tr>
 										<input type="hidden" name="ID" value="@item.ID" />
