@@ -182,8 +182,44 @@
                                                 <td class="text-center">@item.TenNguoiTao</td>
                                                 <td class="text-center">@item.ThoiGianTao</td>
                                                 <td class="text-center">
-                                                    @item.TrangThai
+                                                    @{
+                                                        string buttonClass;
+                                                        string statusText;
+                                                        string textColorStyle; // Biến mới để kiểm soát màu chữ (trắng hoặc đen)
+
+                                                        switch (item.TrangThai)
+                                                        {
+                                                            case 0:
+                                                                buttonClass = "btn-warning";
+                                                                statusText = "Chưa xử lý";
+                                                                textColorStyle = "color: black;"; // Chữ đen trên nền vàng (Tương phản tốt hơn)
+                                                                break;
+                                                            case 1:
+                                                                buttonClass = "btn-success";
+                                                                statusText = "Đã xử lý";
+                                                                textColorStyle = "color: white;"; // Chữ trắng trên nền xanh
+                                                                break;
+                                                            case 2:
+                                                                buttonClass = "btn-danger";
+                                                                statusText = "BN đã hủy";
+                                                                textColorStyle = "color: white;"; // Chữ trắng trên nền đỏ
+                                                                break;
+                                                            default:
+                                                                buttonClass = "btn-secondary";
+                                                                statusText = "Không xác định";
+                                                                textColorStyle = "color: white;";
+                                                                break;
+                                                        }
+
+                                                        // Áp dụng style cố định và cấu trúc span theo yêu cầu
+                                                        <button type="button" class="btn @buttonClass" style="width: 150px;" >
+                                                            <span class="small pt-2 ps-1" style="@textColorStyle">
+                                                                @statusText
+                                                            </span>
+                                                        </button>
+                                                    }
                                                 </td>
+                                               
                                             </tr>
                                         }
                                     }

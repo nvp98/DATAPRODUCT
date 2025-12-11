@@ -10,6 +10,14 @@
         public string? TenLoCao { get; set; }
         public String? ThoiGianTao { get; set; }
         public int ID_LoCao { get; set; }
+
+        public int? ID_NguoiGiao { get; set; }
+
+        public int? ID_TrangThaiBG { get; set; }
+
+        public int? ID_NguoiNhan { get; set; }
+
+        public int? ID_TrangThaiBN { get; set; }
         public int? TrangThai { get; set; }
     }
     public class ResetPhieuRequest

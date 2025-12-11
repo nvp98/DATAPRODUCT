@@ -145,6 +145,10 @@ namespace Data_Product.Controllers
         }
         public async Task<IActionResult> Index_All(string maPhieu, DateTime? ngay, DateTime? ngaysx, string ca, string locao, int page = 1)
         {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            int ID_NhanVien_BN = TaiKhoan.ID_TaiKhoan;
+
             const int pageSize = 10;
             if (page < 1) page = 1;
             var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
@@ -158,24 +162,26 @@ namespace Data_Product.Controllers
                 var query = _context.Tbl_BM_18_PhieuXiHat
                     .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
-            {
-                MaPhieu = p.MaPhieu,
-                NgayTaoPhieu = p.NgayTaoPhieu,
-                NgaySanXuat = p.NgaySanXuat,
-                ID_LoCao = p.ID_Locao,
-                TenNguoiTao = _context.Tbl_TaiKhoan
-                                .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
-                                .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
-                TenCa = _context.Tbl_Kip
-                            .Where(k => k.ID_Kip == p.ID_Kip)
-                            .Select(k => k.TenKip)
-                            .FirstOrDefault(),
-                TenLoCao = _context.Tbl_LoCao
-                            .Where(lc => lc.ID == p.ID_Locao)
-                            .Select(lc => lc.TenLoCao)
-                            .FirstOrDefault(),
-            });
-
+                {
+                    MaPhieu = p.MaPhieu,
+                    NgayTaoPhieu = p.NgayTaoPhieu,
+                    NgaySanXuat = p.NgaySanXuat,
+                    ID_LoCao = p.ID_Locao,
+                    TenNguoiTao = _context.Tbl_TaiKhoan
+                                    .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
+                                    .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
+                    TenCa = _context.Tbl_Kip
+                                .Where(k => k.ID_Kip == p.ID_Kip)
+                                .Select(k => k.TenKip)
+                                .FirstOrDefault(),
+                    TenLoCao = _context.Tbl_LoCao
+                                .Where(lc => lc.ID == p.ID_Locao)
+                                .Select(lc => lc.TenLoCao)
+                                .FirstOrDefault(),
+                    TrangThai = p.TrangThai,
+                ID_NguoiNhan = p.ID_NguoiNhan,
+              });
+                query = query.Where(p => p.ID_NguoiNhan == ID_NhanVien_BN);
                 // Lọc theo Mã Phiếu (chuỗi)
                 if (!string.IsNullOrEmpty(maPhieu))
                 {
@@ -187,12 +193,6 @@ namespace Data_Product.Controllers
                 {
                     query = query.Where(s => s.NgaySanXuat.Date == ngaysx.Value.Date);
                 }
-                //// Lọc theo ngày
-                //if (ngay.HasValue)
-                //{
-                //    query = query.Where(s => s.NgayTaoPhieu.Date == ngay.Value.Date);
-                //}
-
                 // Lọc theo Ca (chuỗi)
                 if (!string.IsNullOrEmpty(ca))
                 {
@@ -317,7 +317,8 @@ namespace Data_Product.Controllers
                         ID_NguoiGiao = 0,
                         ID_NguoiNhan = 0,
                         ID_TrangThaiBG = 0,
-                        ID_TrangThaiBN = 0
+                        ID_TrangThaiBN = 0,
+                        TrangThai = 0
                     };
 
                     _context.Tbl_BM_18_PhieuXiHat.Add(header);
@@ -592,6 +593,7 @@ namespace Data_Product.Controllers
                     phieu.ID_NguoiGiao = req.ID_NguoiGiao;
                     phieu.ID_NguoiNhan = req.ID_NguoiNhan;
                     phieu.ID_TrangThaiBG = 1;
+                    phieu.TrangThai = 0;
                     await _context.SaveChangesAsync();
                 }
             }
@@ -728,7 +730,7 @@ namespace Data_Product.Controllers
             phieu.ID_TrangThaiBG = 0;
             phieu.ID_NguoiNhan = null;
             phieu.ID_TrangThaiBN = 0;
-            phieu.TrangThai = 0;   // Trạng thái phiếu về mặc định (Chưa xử lý)
+            phieu.TrangThai = 0;  
 
             // Xóa chi tiết phiếu
             var chiTietList = _context.Tbl_BM_18_XiHatLoCao

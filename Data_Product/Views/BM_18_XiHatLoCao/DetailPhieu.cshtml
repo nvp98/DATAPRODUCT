@@ -285,11 +285,10 @@
 							<button type="button" class="btn btn-success btn-sm px-4 me-2" id="BtnXuatPhieuExcel">
 								Xuất Excel
 							</button>
-						}
-
-						<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">
-							Xuất PDF
-						</button>
+							<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">
+								Xuất PDF
+							</button>
+						}					
 					</div>
 				</div>
 			</div>
@@ -584,16 +583,57 @@
 				}
 			});
 		});
+		$('#BtnXuatPhieuPDF').click(function () {
+			var maPhieu = $('#PhieuID').val();
 
-		// --- 6. Xuất Excel / PDF ---
-		$('#BtnXuatPhieuExcel').on('click', function () {
-			var maPhieu = $("#PhieuID").val();
-			exportExcel(maPhieu);
+			if (!maPhieu) {
+				alert("Không tìm thấy mã phiếu!");
+				return;
+			}
+
+			// Hiệu ứng loading
+			var $btn = $(this);
+			var oldText = $btn.html();
+			$btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
+
+			$.ajax({
+				url: '/BM_18_XiHatLoCao/GeneratePdf',
+				type: 'GET',
+				data: { maPhieu: maPhieu },
+				xhrFields: {
+					responseType: 'blob' // Vẫn giữ nguyên phần này để xử lý file
+				},
+				success: function (blob) {
+
+					// --- PHẦN ĐÃ ĐƯỢC ĐƠN GIẢN HÓA ---
+					// Tên file cố định/đơn giản dựa trên mã phiếu
+					var filename = "Phieu_" + maPhieu + ".pdf";
+
+					// Tạo link ảo để tải file
+					var link = document.createElement('a');
+					link.href = window.URL.createObjectURL(blob);
+					link.download = filename; // Vẫn cần thuộc tính này để trình duyệt lưu file
+					// ------------------------------------
+
+					// Kích hoạt click
+					document.body.appendChild(link);
+					link.click();
+
+					// Dọn dẹp
+					document.body.removeChild(link);
+					window.URL.revokeObjectURL(link.href);
+				},
+				error: function (xhr) {
+					console.error(xhr);
+					alert("Lỗi khi xuất PDF. Vui lòng thử lại sau.");
+				},
+				complete: function () {
+					// Mở khóa nút
+					$btn.html(oldText).prop('disabled', false);
+				}
+			});
 		});
 
-		$("#BtnXuatPhieuPDF").click(function () {
-			ExportToPDF();
-		});
 	});
 
 	// --- HÀM XỬ LÝ DỮ LIỆU ---
