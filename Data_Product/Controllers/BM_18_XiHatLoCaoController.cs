@@ -162,25 +162,25 @@ namespace Data_Product.Controllers
                 var query = _context.Tbl_BM_18_PhieuXiHat
                     .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
-                {
-                    MaPhieu = p.MaPhieu,
-                    NgayTaoPhieu = p.NgayTaoPhieu,
-                    NgaySanXuat = p.NgaySanXuat,
-                    ID_LoCao = p.ID_Locao,
-                    TenNguoiTao = _context.Tbl_TaiKhoan
+            {
+                MaPhieu = p.MaPhieu,
+                NgayTaoPhieu = p.NgayTaoPhieu,
+                NgaySanXuat = p.NgaySanXuat,
+                ID_LoCao = p.ID_Locao,
+                TenNguoiTao = _context.Tbl_TaiKhoan
                                     .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
                                     .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
-                    TenCa = _context.Tbl_Kip
+                TenCa = _context.Tbl_Kip
                                 .Where(k => k.ID_Kip == p.ID_Kip)
                                 .Select(k => k.TenKip)
                                 .FirstOrDefault(),
-                    TenLoCao = _context.Tbl_LoCao
+                TenLoCao = _context.Tbl_LoCao
                                 .Where(lc => lc.ID == p.ID_Locao)
                                 .Select(lc => lc.TenLoCao)
                                 .FirstOrDefault(),
-                    TrangThai = p.TrangThai,
+                TrangThai = p.TrangThai,
                 ID_NguoiNhan = p.ID_NguoiNhan,
-              });
+            });
                 query = query.Where(p => p.ID_NguoiNhan == ID_NhanVien_BN);
                 // Lọc theo Mã Phiếu (chuỗi)
                 if (!string.IsNullOrEmpty(maPhieu))
@@ -604,103 +604,103 @@ namespace Data_Product.Controllers
         public async Task<IActionResult> Index_Detail(string maPhieu)
         {
             // 1. Lấy thông tin phiếu
-             var phieu = await _context.Tbl_BM_18_PhieuXiHat
-                 .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
 
-             if (phieu == null)
-                 return NotFound("Không tìm thấy phiếu BM18 với mã này.");
+            if (phieu == null)
+                return NotFound("Không tìm thấy phiếu BM18 với mã này.");
 
-             // 2. Lấy chi tiết phiếu với join MaLo
-             var chiTiet = await (
-                 from ct in _context.Tbl_BM_18_XiHatLoCao
-                     .Where(x => x.MaPhieu == phieu.MaPhieu)
-                 join ml in _context.Tbl_MaLo
-                     on ct.ID_Lo equals ml.ID_MaLo into g
-                 from ml in g.DefaultIfEmpty()
-                     // Join thêm bảng Kip
-                 join kp in _context.Tbl_Kip
-                     on ct.Kip equals kp.ID_Kip into g2
-                 from kp in g2.DefaultIfEmpty()
-                 select new Tbl_BM_18_XiHatLoCao
-                 {
-                     ID = ct.ID,
-                     MaPhieu = ct.MaPhieu,
-                     ID_LoCao = ct.ID_LoCao,
-                     Ca = ct.Ca,
-                     Kip = ct.Kip,
-                     Ten_NVL = ct.Ten_NVL,
-                     DVT = ct.DVT,
-                     ID_Lo = ct.ID_Lo,
-                     HeSo = ct.HeSo,
-                     NgaySanXuat = ct.NgaySanXuat,
-                     KL_Gang_Giao = ct.KL_Gang_Giao,
-                     KL_Xi_Giao = ct.KL_Xi_Giao,
-                     KL_Gang_Nhan = ct.KL_Gang_Nhan,
-                     KL_Xi_Nhan = ct.KL_Xi_Nhan,
-                     GhiChu = ct.GhiChu,
-                     TenMaLo = ml != null ? ml.TenMaLo : "",
-                     CaKip = kp != null ? $"{kp.TenCa}{kp.TenKip}" : ""
-                 }
-             ).ToListAsync();
+            // 2. Lấy chi tiết phiếu với join MaLo
+            var chiTiet = await (
+                from ct in _context.Tbl_BM_18_XiHatLoCao
+                    .Where(x => x.MaPhieu == phieu.MaPhieu)
+                join ml in _context.Tbl_MaLo
+                    on ct.ID_Lo equals ml.ID_MaLo into g
+                from ml in g.DefaultIfEmpty()
+                    // Join thêm bảng Kip
+                join kp in _context.Tbl_Kip
+                    on ct.Kip equals kp.ID_Kip into g2
+                from kp in g2.DefaultIfEmpty()
+                select new Tbl_BM_18_XiHatLoCao
+                {
+                    ID = ct.ID,
+                    MaPhieu = ct.MaPhieu,
+                    ID_LoCao = ct.ID_LoCao,
+                    Ca = ct.Ca,
+                    Kip = ct.Kip,
+                    Ten_NVL = ct.Ten_NVL,
+                    DVT = ct.DVT,
+                    ID_Lo = ct.ID_Lo,
+                    HeSo = ct.HeSo,
+                    NgaySanXuat = ct.NgaySanXuat,
+                    KL_Gang_Giao = ct.KL_Gang_Giao,
+                    KL_Xi_Giao = ct.KL_Xi_Giao,
+                    KL_Gang_Nhan = ct.KL_Gang_Nhan,
+                    KL_Xi_Nhan = ct.KL_Xi_Nhan,
+                    GhiChu = ct.GhiChu,
+                    TenMaLo = ml != null ? ml.TenMaLo : "",
+                    CaKip = kp != null ? $"{kp.TenCa}{kp.TenKip}" : ""
+                }
+            ).ToListAsync();
 
-             // 3. Lấy thông tin bên giao
-             Tbl_TaiKhoan thongTinBG = null;
-             Tbl_PhongBan phongBanBG = null;
-             Tbl_Xuong phanXuongBG = null;
-             Tbl_ViTri viTriBG = null;
-             if (phieu.ID_NguoiGiao.HasValue && phieu.ID_NguoiGiao.Value > 0)
-             {
-                 thongTinBG = await _context.Tbl_TaiKhoan
-                     .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiGiao.Value);
-                 if (thongTinBG != null)
-                 {
-                     phongBanBG = await _context.Tbl_PhongBan
-                         .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBG.ID_PhongBan);
-                     phanXuongBG = await _context.Tbl_Xuong
-                         .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBG.ID_PhanXuong);
-                     viTriBG = await _context.Tbl_ViTri
-                         .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBG.ID_ChucVu);
-                 }
-             }
+            // 3. Lấy thông tin bên giao
+            Tbl_TaiKhoan thongTinBG = null;
+            Tbl_PhongBan phongBanBG = null;
+            Tbl_Xuong phanXuongBG = null;
+            Tbl_ViTri viTriBG = null;
+            if (phieu.ID_NguoiGiao.HasValue && phieu.ID_NguoiGiao.Value > 0)
+            {
+                thongTinBG = await _context.Tbl_TaiKhoan
+                    .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiGiao.Value);
+                if (thongTinBG != null)
+                {
+                    phongBanBG = await _context.Tbl_PhongBan
+                        .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBG.ID_PhongBan);
+                    phanXuongBG = await _context.Tbl_Xuong
+                        .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBG.ID_PhanXuong);
+                    viTriBG = await _context.Tbl_ViTri
+                        .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBG.ID_ChucVu);
+                }
+            }
 
-             // 4. Lấy thông tin bên nhận
-             Tbl_TaiKhoan thongTinBN = null;
-             Tbl_PhongBan phongBanBN = null;
-             Tbl_Xuong phanXuongBN = null;
-             Tbl_ViTri viTriBN = null;
-             if (phieu.ID_NguoiNhan.HasValue && phieu.ID_NguoiNhan.Value > 0)
-             {
-                 thongTinBN = await _context.Tbl_TaiKhoan
-                     .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiNhan.Value);
-                 if (thongTinBN != null)
-                 {
-                     phongBanBN = await _context.Tbl_PhongBan
-                         .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBN.ID_PhongBan);
-                     phanXuongBN = await _context.Tbl_Xuong
-                         .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBN.ID_PhanXuong);
-                     viTriBN = await _context.Tbl_ViTri
-                         .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBN.ID_ChucVu);
-                 }
-             }
+            // 4. Lấy thông tin bên nhận
+            Tbl_TaiKhoan thongTinBN = null;
+            Tbl_PhongBan phongBanBN = null;
+            Tbl_Xuong phanXuongBN = null;
+            Tbl_ViTri viTriBN = null;
+            if (phieu.ID_NguoiNhan.HasValue && phieu.ID_NguoiNhan.Value > 0)
+            {
+                thongTinBN = await _context.Tbl_TaiKhoan
+                    .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiNhan.Value);
+                if (thongTinBN != null)
+                {
+                    phongBanBN = await _context.Tbl_PhongBan
+                        .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBN.ID_PhongBan);
+                    phanXuongBN = await _context.Tbl_Xuong
+                        .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBN.ID_PhanXuong);
+                    viTriBN = await _context.Tbl_ViTri
+                        .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBN.ID_ChucVu);
+                }
+            }
 
-             // 5. Tạo ViewModel
-             var viewModel = new BM18DetailViewModel
-             {
-                 Phieu = phieu,
-                 ChiTiet = chiTiet,
-                 ThongTinBenGiao = thongTinBG,
-                 PhongBanBenGiao = phongBanBG,
-                 PhanXuongBenGiao = phanXuongBG,
-                 ViTriBenGiao = viTriBG,
-                 ThongTinBenNhan = thongTinBN,
-                 PhongBanBenNhan = phongBanBN,
-                 PhanXuongBenNhan = phanXuongBN,
-                 ViTriBenNhan = viTriBN,
+            // 5. Tạo ViewModel
+            var viewModel = new BM18DetailViewModel
+            {
+                Phieu = phieu,
+                ChiTiet = chiTiet,
+                ThongTinBenGiao = thongTinBG,
+                PhongBanBenGiao = phongBanBG,
+                PhanXuongBenGiao = phanXuongBG,
+                ViTriBenGiao = viTriBG,
+                ThongTinBenNhan = thongTinBN,
+                PhongBanBenNhan = phongBanBN,
+                PhanXuongBenNhan = phanXuongBN,
+                ViTriBenNhan = viTriBN,
 
-             };
+            };
 
-             return View(viewModel);
-         }
+            return View(viewModel);
+        }
         [HttpPost]
         public async Task<IActionResult> XacNhanPhieuBN([FromBody] XacNhanPhieuBNRequest req)
         {
@@ -708,10 +708,23 @@ namespace Data_Product.Controllers
                 return BadRequest("Mã phiếu không hợp lệ!");
             // if (req.TrangThai != 1 && req.TrangThai != 2)
             //     return BadRequest("Trạng thái không hợp lệ!");
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            int ID_NhanVien_BN = TaiKhoan.ID_TaiKhoan;
 
             var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
             if (phieu == null)
+            {
                 return NotFound("Không tìm thấy phiếu!");
+            }
+
+
+            if (phieu.ID_NguoiNhan != ID_NhanVien_BN)
+            {
+                return NotFound("Không có quyền xử lý đơn");
+            }
+
+
 
             // 1 = Đã xử lý, 2 = Hủy phiếu
             phieu.ID_TrangThaiBN = req.TrangThai;
@@ -730,7 +743,7 @@ namespace Data_Product.Controllers
             phieu.ID_TrangThaiBG = 0;
             phieu.ID_NguoiNhan = null;
             phieu.ID_TrangThaiBN = 0;
-            phieu.TrangThai = 0;  
+            phieu.TrangThai = 0;
 
             // Xóa chi tiết phiếu
             var chiTietList = _context.Tbl_BM_18_XiHatLoCao
@@ -751,7 +764,7 @@ namespace Data_Product.Controllers
         // [HttpGet]
         // public async Task<IActionResult> KLGangTrongCa(int ca, int idKip, DateTime ngayLuyenGang, int idLoCao)
         // {
-            
+
         //     var dsThung = await _context.Tbl_BM_16_GangLong
         //         .Where(t =>
         //             t.G_Ca == ca &&
@@ -787,9 +800,9 @@ namespace Data_Product.Controllers
         //             TongKL = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0)) ?? 0m
         //         })
         //         .ToDictionaryAsync(x => x.SoMe, x => x.TongKL);
-          
+
         //     decimal tongKL_TheoMe = tongTheoMe.Values.Sum();
-   
+
         //     var klDucTheoMeRaw = await _context.Tbl_BM_16_GangLong
         //         .Where(t =>
         //             t.G_Ca == ca &&
@@ -825,11 +838,11 @@ namespace Data_Product.Controllers
         //             return Math.Round(kld, 2);
         //         }
         //     );
-       
+
         //     decimal tongKLDuc = klDucTheoMe.Values.Sum();
 
         //     decimal tongKLGang = tongKLDuc + tongKL_TheoMe;
-     
+
         //     ViewBag.TongKL_TheoMe = tongTheoMe;
         //     ViewBag.KLDuc_TheoMe = klDucTheoMe;
         //     ViewBag.TongKLGang = tongKLGang;

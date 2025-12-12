@@ -13,77 +13,77 @@
 
 <style>
 	table th {
-		text-align: center;
+	text-align: center;
 	}
 
 	#dataTable input {
-		border-radius: 0px !important;
+	border-radius: 0px !important;
 	}
 
 	.is-invalid {
-		border: 1px solid red !important;
-		background-color: #ffe6e6 !important;
+	border: 1px solid red !important;
+	background-color: #ffe6e6 !important;
 	}
 
 	.bm18-table-wrapper {
-		overflow-x: auto;
-		border: 1px solid #dee2e6;
-		border-radius: .25rem;
+	overflow-x: auto;
+	border: 1px solid #dee2e6;
+	border-radius: .25rem;
 	}
 
 	.bm18-table {
-		min-width: 1500px;
-		font-size: 14px;
+	min-width: 1500px;
+	font-size: 14px;
 	}
 
 	.table td,
 	.table th {
-		vertical-align: middle;
-		padding: .5rem .6rem;
+	vertical-align: middle;
+	padding: .5rem .6rem;
 	}
 
 	.table-striped-custom tbody tr:nth-of-type(odd) {
-		background-color: rgba(0, 0, 0, .02);
+	background-color: rgba(0, 0, 0, .02);
 	}
 
 	.text-right {
-		text-align: right;
+	text-align: right;
 	}
 
 	thead.table-light.sticky-top {
-		position: sticky;
-		top: 0;
-		z-index: 5;
+	position: sticky;
+	top: 0;
+	z-index: 5;
 	}
 
 	/* Select2 Custom Styles */
 	.select2-container {
-		font-size: 14px;
-		width: 100% !important;
+	font-size: 14px;
+	width: 100% !important;
 	}
 
 	.select2-container .select2-selection--single {
-		height: 38px !important;
-		border-radius: 0px !important;
-		border: 1px solid #ced4da !important;
+	height: 38px !important;
+	border-radius: 0px !important;
+	border: 1px solid #ced4da !important;
 	}
 
 	.select2-container .select2-selection--single .select2-selection__rendered {
-		line-height: 38px !important;
-		padding-left: 12px !important;
+	line-height: 38px !important;
+	padding-left: 12px !important;
 	}
 
 	.select2-container--default .select2-selection--single .select2-selection__arrow {
-		height: 36px !important;
+	height: 36px !important;
 	}
 
 	.select2-dropdown {
-		border-radius: 0px !important;
-		border: 1px solid #ced4da !important;
+	border-radius: 0px !important;
+	border: 1px solid #ced4da !important;
 	}
 
 	.select-lo-wrapper {
-		min-width: 180px;
+	min-width: 180px;
 	}
 </style>
 
@@ -133,137 +133,137 @@
 				</div>
 			</div>
 			<div class="row g-3 mb-3" style="padding-top:1%;">
-			@{
-				var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-				var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-				var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
-				var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
-				var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
-			}
-			<div class="col-12 col-md-4">
-				<div class="card shadow-sm h-100" style="border-radius:14px;">
-					<div class="card-body p-3">
-						<div class="mb-1 text-muted" style="font-size:14px;">Đại diện bên giao:</div>
-						<div style="font-size:15px; color:#222; font-weight:500;">
-							@TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
+				@{
+					var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+					var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+					var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+					var PhanXuong = _context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong).FirstOrDefault();
+					var ViTri = _context.Tbl_ViTri.Where(x => x.ID_ViTri == TaiKhoan.ID_ChucVu).FirstOrDefault();
+				}
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">Đại diện bên giao:</div>
+							<div style="font-size:15px; color:#222; font-weight:500;">
+								@TaiKhoan.TenTaiKhoan - @TaiKhoan.HoVaTen
+							</div>
+							<input type="hidden" id="IDNguoiGiao" value="@TaiKhoan.ID_TaiKhoan" />
 						</div>
-						<input type="hidden" id="IDNguoiGiao" value="@TaiKhoan.ID_TaiKhoan" />
+					</div>
+				</div>
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">Chức vụ:</div>
+							<div style="font-size:15px; color:#222; font-weight:500;">
+								@ViTri.TenViTri
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">BP/NM:</div>
+							<div style="font-size:15px; color:#222; font-weight:500;">
+								@PhongBan.TenPhongBan - @PhanXuong.TenXuong
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
-			<div class="col-12 col-md-4">
-				<div class="card shadow-sm h-100" style="border-radius:14px;">
-					<div class="card-body p-3">
-						<div class="mb-1 text-muted" style="font-size:14px;">Chức vụ:</div>
-						<div style="font-size:15px; color:#222; font-weight:500;">
-							@ViTri.TenViTri
+			<div class="row g-3 mb-3">
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">
+								Đại diện bên nhận <span style="color:red; font-size:14px;"> (*)</span>:
+							</div>
+							<div>
+								@Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan", name = "IDTaiKhoan", @class = "form-control select2", })
+							</div>
 						</div>
 					</div>
-				</div>
-			</div>
-			<div class="col-12 col-md-4">
-				<div class="card shadow-sm h-100" style="border-radius:14px;">
-					<div class="card-body p-3">
-						<div class="mb-1 text-muted" style="font-size:14px;">BP/NM:</div>
-						<div style="font-size:15px; color:#222; font-weight:500;">
-							@PhongBan.TenPhongBan - @PhanXuong.TenXuong
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="row g-3 mb-3">
-			<div class="col-12 col-md-4">
-				<div class="card shadow-sm h-100" style="border-radius:14px;">
-					<div class="card-body p-3">
-						<div class="mb-1 text-muted" style="font-size:14px;">
-							Đại diện bên nhận <span style="color:red; font-size:14px;"> (*)</span>:
-						</div>
-						<div>
-							@Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan", name = "IDTaiKhoan", @class = "form-control select2", })
-						</div>
-					</div>
-				</div>
-				<script type="text/javascript">
-					$(document).ready(function () {
-							$('#IDTaiKhoan').select2({
-							placeholder: "----- Chọn đại diện bên nhận -----",
-							allowClear: true,
-							width: '100%',
-							language: {
-								noResults: function() {
-									return "Không tìm thấy kết quả";
-								}
-							}
+					<script type="text/javascript">
+						$(document).ready(function () {
+						$('#IDTaiKhoan').select2({
+						placeholder: "----- Chọn đại diện bên nhận -----",
+						allowClear: true,
+						width: '100%',
+						language: {
+						noResults: function() {
+						return "Không tìm thấy kết quả";
+						}
+						}
 						});
 						var hasNguoiNhan = @(ViewBag.HasNguoiNhan?.ToString().ToLower() ?? "false");
 						var idNguoiNhan = @(ViewBag.ID_NguoiNhan ?? 0);
 
 						if (hasNguoiNhan && idNguoiNhan > 0) {
-							$('#IDTaiKhoan').trigger('change');
+						$('#IDTaiKhoan').trigger('change');
 						}
-					});
-					$("#IDTaiKhoan").change(function () {
+						});
+						$("#IDTaiKhoan").change(function () {
 						$.get("/BM_11/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
-							if (data[0] != null) {
-								$("#IDChucVu").empty();
-								$.each(data, function (index, row) {
-									$("#IDChucVu").append("<option value ='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
-								});
-							}
-							else {
-								$("#IDChucVu").empty();
-								$("#IDChucVu").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
-							}
+						if (data[0] != null) {
+						$("#IDChucVu").empty();
+						$.each(data, function (index, row) {
+						$("#IDChucVu").append("<option value ='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
 						});
-					});
-				</script>
-			</div>
-			<div class="col-12 col-md-4">
-				<div class="card shadow-sm h-100" style="border-radius:14px;">
-					<div class="card-body p-3">
-						<div class="mb-1 text-muted" style="font-size:14px;">
-							Chức vụ <span style="color:red; font-size:14px;"> (*)</span>:
-						</div>
-						<div>
-							<select class="form-control" name="IDChucVu" id="IDChucVu" disabled="disabled">
-							</select>
+						}
+						else {
+						$("#IDChucVu").empty();
+						$("#IDChucVu").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+						}
+						});
+						});
+					</script>
+				</div>
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">
+								Chức vụ <span style="color:red; font-size:14px;"> (*)</span>:
+							</div>
+							<div>
+								<select class="form-control" name="IDChucVu" id="IDChucVu" disabled="disabled">
+								</select>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-			<div class="col-12 col-md-4">
-				<div class="card shadow-sm h-100" style="border-radius:14px;">
-					<div class="card-body p-3">
-						<div class="mb-1 text-muted" style="font-size:14px;">
-							BP/NM <span style="color:red; font-size:14px;"> (*)</span>:
-						</div>
-						<div>
-							<select class="form-control" name="IDPhongBan" id="IDPhongBan" disabled="disabled">
-							</select>
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">
+								BP/NM <span style="color:red; font-size:14px;"> (*)</span>:
+							</div>
+							<div>
+								<select class="form-control" name="IDPhongBan" id="IDPhongBan" disabled="disabled">
+								</select>
+							</div>
 						</div>
 					</div>
-				</div>
-				<script type="text/javascript">
-					$("#IDTaiKhoan").change(function () {
+					<script type="text/javascript">
+						$("#IDTaiKhoan").change(function () {
 						$.get("/BM_11/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
-							if (data[0] != null) {
-								$("#IDPhongBan").empty();
-								$.each(data, function (index, row) {
-									@* console.log(row.tenChucVu)
+						if (data[0] != null) {
+						$("#IDPhongBan").empty();
+						$.each(data, function (index, row) {
+						@* console.log(row.tenChucVu)
 									console.log(row.iD_TaiKhoan) *@
-									$("#IDPhongBan").append("<option value ='" + row.iD_PhongBan + "' selected>" + row.tenPhongBan + "</option>");
-								});
-							}
-							else {
-								$("#IDPhongBan").empty();
-								$("#IDPhongBan").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
-							}
+						$("#IDPhongBan").append("<option value ='" + row.iD_PhongBan + "' selected>" + row.tenPhongBan + "</option>");
 						});
-					});
-				</script>
+						}
+						else {
+						$("#IDPhongBan").empty();
+						$("#IDPhongBan").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+						}
+						});
+						});
+					</script>
+				</div>
 			</div>
-		</div>
 
 			<div class="row w-100 justify-content-end mb-3">
 				<div class="row">
@@ -276,10 +276,13 @@
 								<i class="bi bi-save"></i> Gửi phiếu
 							</button>
 						}
+						@if (PhongBan?.TenNgan == "P.KH")
+						{
+							<button type="button" id="btnResetPhieu" class="btn btn-warning ms-2 me-2">
+								<i class="bi bi-arrow-counterclockwise"></i> Reset Phiếu
+							</button>
+						}
 
-						<button type="button" id="btnResetPhieu" class="btn btn-warning ms-2 me-2">
-							<i class="bi bi-arrow-counterclockwise"></i> Reset Phiếu
-						</button>
 						@if(Model.Phieu.ID_TrangThaiBG == 1 && Model.Phieu.ID_TrangThaiBN == 1)
 						{
 							<button type="button" class="btn btn-success btn-sm px-4 me-2" id="BtnXuatPhieuExcel">
