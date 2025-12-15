@@ -183,43 +183,24 @@
                                                 <td class="text-center">@item.ThoiGianTao</td>
                                                 <td class="text-center">
                                                     @{
-                                                        string buttonClass;
-                                                        string statusText;
-                                                        string textColorStyle; // Biến mới để kiểm soát màu chữ (trắng hoặc đen)
-
+                                                        string text = "";
+                                                        string btnClass = "";
                                                         switch (item.TrangThai)
                                                         {
-                                                            case 0:
-                                                                buttonClass = "btn-warning";
-                                                                statusText = "Chưa xử lý";
-                                                                textColorStyle = "color: black;"; // Chữ đen trên nền vàng (Tương phản tốt hơn)
-                                                                break;
-                                                            case 1:
-                                                                buttonClass = "btn-success";
-                                                                statusText = "Đã xử lý";
-                                                                textColorStyle = "color: white;"; // Chữ trắng trên nền xanh
-                                                                break;
-                                                            case 2:
-                                                                buttonClass = "btn-danger";
-                                                                statusText = "BN đã hủy";
-                                                                textColorStyle = "color: white;"; // Chữ trắng trên nền đỏ
-                                                                break;
+                                                            case (int)Data_Product.Common.Enums.TrangThaiXuLy.ChuaXuLy:
+                                                                text = "Chưa xử lý"; btnClass = "btn-warning"; break;
+                                                            case (int)Data_Product.Common.Enums.TrangThaiXuLy.DangXuLy:
+                                                                text = "Đang xử lý"; btnClass = "btn-primary"; break;
+                                                            case (int)Data_Product.Common.Enums.TrangThaiXuLy.HoanThanh:
+                                                                text = "Hoàn thành"; btnClass = "btn-success"; break;
+                                                            case (int)Data_Product.Common.Enums.TrangThaiXuLy.TuChoi:
+                                                                text = "Từ chối"; btnClass = "btn-danger"; break;
                                                             default:
-                                                                buttonClass = "btn-secondary";
-                                                                statusText = "Không xác định";
-                                                                textColorStyle = "color: white;";
-                                                                break;
+                                                                text = "Không xác định"; btnClass = "btn-secondary"; break;
                                                         }
-
-                                                        // Áp dụng style cố định và cấu trúc span theo yêu cầu
-                                                        <button type="button" class="btn @buttonClass" style="width: 150px;" >
-                                                            <span class="small pt-2 ps-1" style="@textColorStyle">
-                                                                @statusText
-                                                            </span>
-                                                        </button>
                                                     }
+                                                    <button class="btn @btnClass" style="width:150px">@text</button>
                                                 </td>
-                                               
                                             </tr>
                                         }
                                     }

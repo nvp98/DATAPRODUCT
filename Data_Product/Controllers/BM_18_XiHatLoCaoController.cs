@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using ClosedXML.Excel;
+using Data_Product.Common.Enums;
 using Data_Product.DTO.BM_18_DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
@@ -316,9 +317,9 @@ namespace Data_Product.Controllers
                         NgaySanXuat = model.NgaySanXuat,
                         ID_NguoiGiao = 0,
                         ID_NguoiNhan = 0,
-                        ID_TrangThaiBG = 0,
-                        ID_TrangThaiBN = 0,
-                        TrangThai = 0
+                        ID_TrangThaiBG = (int)TrangThaiXuLy.ChuaXuLy,
+                        ID_TrangThaiBN = (int)TrangThaiXuLy.ChuaXuLy,
+                        TrangThai = (int)TrangThaiXuLy.ChuaXuLy
                     };
 
                     _context.Tbl_BM_18_PhieuXiHat.Add(header);
@@ -377,74 +378,8 @@ namespace Data_Product.Controllers
         {
             string ca = tenCa ?? "";
             string kip = tenKip ?? "";
-            return $"XHLC-L{idLoCao}-{ca}{kip}-{ngay:yyMMdd}";
+            return $"XHLC-L{idLoCao}-{ca}{kip}-{ngay:ddMMyy}";
         }
-
-        // [HttpGet("DetailPhieu")]
-        //public async Task<IActionResult> DetailPhieu(string maPhieu)
-        //{
-        //    if (string.IsNullOrWhiteSpace(maPhieu))
-        //        return BadRequest("Thiếu mã phiếu.");
-
-        //    DateTime DayNow = DateTime.Now;
-        //    String Day = DayNow.ToString("dd/MM/yyyy");
-        //    DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
-
-        //    var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-        //    var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-        //    var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
-        //    string TenBP = PhongBan.TenNgan.ToString();
-
-        //    List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
-        //    ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
-
-        //    var NhanVien = await (from a in _context.Tbl_TaiKhoan
-        //                          select new Tbl_TaiKhoan
-        //                          {
-        //                              ID_TaiKhoan = a.ID_TaiKhoan,
-        //                              HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
-        //                          }).ToListAsync();
-
-        //    var phieu = await _context.Set<Tbl_BM_18_PhieuXiHat>()
-        //        .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
-
-        //    if (phieu == null)
-        //        return NotFound($"Không tìm thấy phiếu với mã: {maPhieu}");
-
-        //    // Tạo SelectList với giá trị được chọn sẵn nếu có ID_NguoiNhan
-        //    ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", phieu.ID_NguoiNhan);
-
-        //    // Thêm ViewBag để biết có ID_NguoiNhan hay không
-        //    ViewBag.HasNguoiNhan = phieu.ID_NguoiNhan.HasValue;
-        //    ViewBag.ID_NguoiNhan = phieu.ID_NguoiNhan;
-
-        //    var kip = await _context.Tbl_Kip.FirstOrDefaultAsync(k => k.ID_Kip == phieu.ID_Kip);
-        //    var chiTiet = await _context.Set<Tbl_BM_18_XiHatLoCao>()
-        //        .AsNoTracking()
-        //        .Where(x => x.MaPhieu == maPhieu)
-        //        .OrderBy(x => x.ID)
-        //        .ToListAsync();
-
-        //    var MaLo = await (from a in _context.Tbl_MaLo
-        //                      select new Tbl_MaLo
-        //                      {
-        //                          ID_MaLo = a.ID_MaLo,
-        //                          TenMaLo = a.TenMaLo,
-        //                          ID_TinhTrang = 1
-        //                      }).ToListAsync();
-
-        //    ViewBag.MLList = new SelectList(MaLo, "ID_MaLo", "TenMaLo");
-        //    ViewBag.MaPhieu = phieu.MaPhieu;
-        //    ViewBag.NgaySanXuat = phieu.NgaySanXuat.ToString("yyyy-MM-dd");
-        //    ViewBag.TenKip = phieu.ID_Kip;
-        //    ViewBag.ID_Locao = phieu.ID_Locao;
-        //    ViewBag.ID_Kip = phieu.ID_Kip;
-        //    ViewBag.TenKip = kip?.TenKip;
-        //    ViewBag.TenCa = kip?.TenCa;
-        //    ViewBag.Phieu = phieu;
-
-        //    return View("DetailPhieu", chiTiet);
-        //}
         [HttpGet("DetailPhieu")]
         public async Task<IActionResult> DetailPhieu(string maPhieu)
         {
@@ -590,10 +525,12 @@ namespace Data_Product.Controllers
                 var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
                 if (phieu != null)
                 {
+                    
                     phieu.ID_NguoiGiao = req.ID_NguoiGiao;
                     phieu.ID_NguoiNhan = req.ID_NguoiNhan;
-                    phieu.ID_TrangThaiBG = 1;
-                    phieu.TrangThai = 0;
+                    phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.DangXuLy;
+                    phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.DangXuLy;
+                    phieu.TrangThai = (int)TrangThaiXuLy.DangXuLy; ;
                     await _context.SaveChangesAsync();
                 }
             }
@@ -705,33 +642,48 @@ namespace Data_Product.Controllers
         public async Task<IActionResult> XacNhanPhieuBN([FromBody] XacNhanPhieuBNRequest req)
         {
             if (string.IsNullOrEmpty(req.MaPhieu))
-                return BadRequest("Mã phiếu không hợp lệ!");
-            // if (req.TrangThai != 1 && req.TrangThai != 2)
-            //     return BadRequest("Trạng thái không hợp lệ!");
-            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-            int ID_NhanVien_BN = TaiKhoan.ID_TaiKhoan;
+                return BadRequest(new { success = false, message = "Mã phiếu không hợp lệ!" });
 
-            var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var taiKhoan = await _context.Tbl_TaiKhoan
+                .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+            if (taiKhoan == null)
+                return Unauthorized(new { success = false, message = "Không xác định được tài khoản!" });
+
+            int idNhanVienBN = taiKhoan.ID_TaiKhoan;
+
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
+
             if (phieu == null)
-            {
-                return NotFound("Không tìm thấy phiếu!");
-            }
+                return NotFound(new { success = false, message = "Không tìm thấy phiếu!" });
 
+            if (phieu.ID_NguoiNhan != idNhanVienBN)
+                return Forbid();
 
-            if (phieu.ID_NguoiNhan != ID_NhanVien_BN)
-            {
-                return NotFound("Không có quyền xử lý đơn");
-            }
-
-
-
-            // 1 = Đã xử lý, 2 = Hủy phiếu
             phieu.ID_TrangThaiBN = req.TrangThai;
-            phieu.TrangThai = (req.TrangThai == 1) ? 1 : 2;
+            if (req.TrangThai == (int)TrangThaiXuLy.HoanThanh)
+            {
+                phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.HoanThanh;
+                phieu.TrangThai = (int)TrangThaiXuLy.HoanThanh;
+            }
+            else if (req.TrangThai == (int)TrangThaiXuLy.TuChoi)
+            {
+                phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.TuChoi;
+                phieu.TrangThai = (int)TrangThaiXuLy.TuChoi;
+            }
+            else
+            {
+                phieu.ID_TrangThaiBN = req.TrangThai;
+                phieu.TrangThai = (int)TrangThaiXuLy.DangXuLy;
+            }
+
             await _context.SaveChangesAsync();
+
             return Ok(new { success = true, message = "Xác nhận thành công!" });
         }
+
         [HttpPost]
         public IActionResult ResetPhieu([FromBody] ResetPhieuRequest request)
         {
@@ -740,10 +692,10 @@ namespace Data_Product.Controllers
 
             var phieu = _context.Tbl_BM_18_PhieuXiHat.FirstOrDefault(x => x.MaPhieu == request.MaPhieu);
             phieu.ID_NguoiGiao = null;
-            phieu.ID_TrangThaiBG = 0;
+            phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.ChuaXuLy;
             phieu.ID_NguoiNhan = null;
-            phieu.ID_TrangThaiBN = 0;
-            phieu.TrangThai = 0;
+            phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.ChuaXuLy;
+            phieu.TrangThai = (int)TrangThaiXuLy.ChuaXuLy;
 
             // Xóa chi tiết phiếu
             var chiTietList = _context.Tbl_BM_18_XiHatLoCao
@@ -850,8 +802,20 @@ namespace Data_Product.Controllers
         // }
 
         [HttpGet]
-        public async Task<IActionResult> KLGangTrongCaJson(int ca, int idKip, DateTime ngaySanXuat, int idLoCao)
+        public async Task<IActionResult> KLGangTrongCaJson(int ca, int idKip, DateTime ngaySanXuat, int idLoCao, string maPhieu = null)
         {
+            // Nếu có mã phiếu, kiểm tra trạng thái phiếu
+            if (!string.IsNullOrEmpty(maPhieu))
+            {
+                var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
+                if (phieu != null && phieu.ID_TrangThaiBG != (int)TrangThaiXuLy.ChuaXuLy)
+                {
+                    // Lấy giá trị KL_Gang đã lưu trong DB (dòng đầu tiên của phiếu)
+                    var chiTiet = await _context.Tbl_BM_18_XiHatLoCao.Where(x => x.MaPhieu == maPhieu).OrderBy(x => x.ID).FirstOrDefaultAsync();
+                    decimal tongKLGangFromDb = chiTiet?.KL_Gang_Giao ?? 0;
+                    return Ok(new { tongKLGang = tongKLGangFromDb });
+                }
+            }
             // ===== Lấy danh sách thùng theo điều kiện mới =====
             var dsThung = await _context.Tbl_BM_16_GangLong
                 .Where(t =>

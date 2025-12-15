@@ -1,4 +1,5 @@
-﻿@using Data_Product.Models
+﻿@using Data_Product.Common.Enums
+@using Data_Product.Models
 @using Data_Product.DTO.BM_18_DTO
 @model BM18DetailViewModel
 
@@ -47,7 +48,7 @@
                                     </b>
                                 </span>
                             </div>
-                            @if (phieu.ID_TrangThaiBN == 0)
+                            @if (phieu.TrangThai == (int)TrangThaiXuLy.DangXuLy)
                             {
                                 <div class="col-8" style="text-align: right;padding: 2%  2%  2% 0%; ">
                                     <button type="button" class="btn btn-primary" id="btnXacNhan" value="1">
@@ -276,7 +277,7 @@
                                 <b>NM.NL</b>
                             </div>
                             <div style="text-align: center; font-size: 14px; padding:2%;">
-                                @if (phieu.ID_TrangThaiBN == 1)
+                                @if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.HoanThanh)
                                 {
                                     if (!string.IsNullOrEmpty(thongTinBN?.ChuKy))
                                     {
@@ -285,15 +286,19 @@
                                     else
                                     {
                                         <div style="height:50px" class="text-danger">
-                                            Đã ký<br />(Chưa có chữ ký)
+                                            Đã xác nhận<br />(Chưa có chữ ký)
                                         </div>
                                     }
                                 }
-                                else if (phieu.ID_TrangThaiBN == 0)
+                                else if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.ChuaXuLy)
                                 {
                                     <div style="height:50px" class="text-danger">Chưa xử lý</div>
                                 }
-                                else if (phieu.ID_TrangThaiBN == 2)
+                                else if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.DangXuLy)
+                                {
+                                    <div style="height:50px" class="text-warning">Đang xử lý</div>
+                                }
+                                else if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.TuChoi)
                                 {
                                     <div style="height:50px" class="text-danger">Không xác nhận</div>
                                 }
@@ -344,33 +349,38 @@
         // Xác nhận phiếu
         $('#btnXacNhan').click(function (e) {
             e.preventDefault();
-            updateTrangThai(1);
+            updateTrangThai(2);
         });
 
         // Không xác nhận phiếu
         $('#btnKhongXacNhan').click(function (e) {
             e.preventDefault();
-            updateTrangThai(2);
+            updateTrangThai(3);
         });
 
         function updateTrangThai(status) {
-            $.ajax({
-                url: '/BM_18_XiHatLoCao/XacNhanPhieuBN',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    MaPhieu: '@Model.Phieu.MaPhieu',
-                    TrangThai: status
-                }),
-                success: function (res) {
-                    alert(res.message || 'Thành công!');
-                    location.reload();
-                },
-                error: function (xhr) {
-                    alert(xhr.responseJSON?.message || 'Có lỗi xảy ra!');
+        $.ajax({
+            url: '/BM_18_XiHatLoCao/XacNhanPhieuBN',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                MaPhieu: '@Model.Phieu.MaPhieu',
+                TrangThai: status
+            }),
+            success: function (res) {
+                alert(res.message);
+                location.reload();
+            },
+            error: function (xhr) {
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    alert(xhr.responseJSON.message);
+                } else {
+                    alert('Có lỗi xảy ra!');
                 }
-            });
-        }
+            }
+        });
+    }
+
     });
 
 </script>
