@@ -12,6 +12,7 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+
 <style>
 	table th {
 		text-align: center;
@@ -298,28 +299,27 @@
 				<div class="col-6"></div>
 				<div class="col-6 d-flex justify-content-end">
 
-						@if (Model.Phieu.ID_TrangThaiBG == (int)TrangThaiXuLy.ChuaXuLy)
-					{
-						<button type="button" id="btnLuuBM18" class="btn btn-primary me-2">
-							<i class="bi bi-save"></i> Gửi phiếu
-						</button>
-					}
-					@if (PhongBan?.TenNgan == "P.KH")
-					{
-						<button type="button" id="btnResetPhieu" class="btn btn-warning ms-2 me-2">
-							<i class="bi bi-arrow-counterclockwise"></i> Reset Phiếu
-						</button>
-					}
-
-					@if (Model.Phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
-					{
-						<button type="button" class="btn btn-success btn-sm px-4 me-2" id="BtnXuatPhieuExcel">
-							Xuất Excel
-						</button>
-						<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">
-							Xuất PDF
-						</button>
-					}
+				@if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
+				{
+					<button type="button" id="btnResetPhieu" class="btn btn-warning ms-2 me-2">
+						<i class="bi bi-arrow-counterclockwise"></i> Reset Phiếu
+					</button>
+				}
+				@if (Model.Phieu.ID_TrangThaiBG == (int)TrangThaiXuLy.ChuaXuLy)
+				{
+					<button type="button" id="btnLuuBM18" class="btn btn-primary me-2">
+						<i class="bi bi-save"></i> Gửi phiếu
+					</button>
+				}
+				@if (Model.Phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
+				{
+					<button type="button" class="btn btn-success btn-sm px-4 me-2" id="BtnXuatPhieuExcel">
+						Xuất Excel
+					</button>
+					<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">
+						Xuất PDF
+					</button>
+				}
 				</div>
 			</div>
 		</div>
@@ -365,7 +365,7 @@
 									</td>
 									<td>
 										<div class="select-lo-wrapper">
-											<select name="Lo" class="form-control select2-malo">
+												<select name="Lo" class="form-control select2-malo" @(Model.Phieu.TrangThai == (int)TrangThaiXuLy.ChuaXuLy ? "" : "disabled")>
 												<option value="">-- Chọn lô --</option>
 												@foreach (var lo in ViewBag.MLList as SelectList)
 												{
@@ -384,7 +384,7 @@
 									</td>
 									<td>
 										<input type="number" step="0.001" name="HeSo" class="form-control text-right"
-											value="@item.HeSo" />
+												   value="@item.HeSo" @(Model.Phieu.TrangThai == (int)TrangThaiXuLy.ChuaXuLy ? "" : "disabled") />
 									</td>
 
 									<td>
@@ -642,7 +642,34 @@
 			});
 		});
 	});
+	$('#BtnXuatPhieuExcel').click(function () {
+	var maPhieu = $('#PhieuID').val();
+	exportDanhSachExcel(maPhieu);
+	});
 
+	function exportDanhSachExcel(maPhieu) {
+		if (!maPhieu) {
+			alert("Không có mã phiếu!");
+			return;
+		}
+		$.ajax({
+			url: '/BM_18_XiHatLoCao/ExportDanhSachExcel',
+			method: 'GET',
+			data: { maPhieu: maPhieu },
+			xhrFields: { responseType: 'blob' },
+			success: function (data) {
+				var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+				var fileName = `DanhSach_BM18_${maPhieu}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+				var a = document.createElement('a');
+				a.href = window.URL.createObjectURL(blob);
+				a.download = fileName;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+			},
+			error: function () { alert("Lỗi khi xuất Excel!"); }
+		});
+	}
 	// --- HÀM XỬ LÝ DỮ LIỆU ---
 	function getDanhSachBM18() {
 		const danhSach = [];
