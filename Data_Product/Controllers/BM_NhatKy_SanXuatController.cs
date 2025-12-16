@@ -67,8 +67,11 @@ namespace Data_Product.Controllers
               }),
                "Value", "Text", ID_TrangThai
            );
+            var XuongThem = _context.Tbl_QuyenXuLy.Where(x => x.MaXL == "DUNGSX" && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan).Select(x=>x.ID_XuongXL).ToList();
             //ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
-            var res = await (from a in _context.Tbl_NhatKy_SanXuat.Where(x => x.ID_NhanVien_SX == ID_NhanVien_BG && !x.IsDelete || x.ID_Xuong_SX == TaiKhoan.ID_PhanXuong && !x.IsDelete)
+            var res = await (from a in _context.Tbl_NhatKy_SanXuat.Where(x => x.ID_NhanVien_SX == ID_NhanVien_BG && !x.IsDelete || x.ID_Xuong_SX == TaiKhoan.ID_PhanXuong && !x.IsDelete
+                             || XuongThem.Contains(x.ID_Xuong_SX) && !x.IsDelete
+                             )
                              join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan
                              into gj
                              from b in gj.DefaultIfEmpty()

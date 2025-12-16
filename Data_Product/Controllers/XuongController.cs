@@ -324,6 +324,8 @@ namespace Data_Product.Controllers
         {
             public string TaiKhoan { get; set; }
             public List<string> DanhSachXuong { get; set; }
+            public string TaiKhoan_DungSX { get; set; }
+            public List<string> DanhSachXuong_DungSX { get; set; }
         }
 
         [HttpPost]
@@ -361,6 +363,43 @@ namespace Data_Product.Controllers
             }
             return Ok(new { message = "Đã lưu thành công!" });
         }
+
+        [HttpPost]
+        public IActionResult SaveQuyenThemDungSX([FromBody] List<QuyenBTBDModel> data)
+        {
+            foreach (var item in data)
+            {
+                string taiKhoan = item.TaiKhoan;
+                if (taiKhoan != null)
+                {
+                    var danhSachXuong = ((IEnumerable<dynamic>)item.DanhSachXuong).Select(x => x.ToString()).ToList();
+                    foreach (var xuong in danhSachXuong)
+                    {
+                        if (xuong != null)
+                        {
+                            int IDTaiKhoan = Convert.ToInt32(taiKhoan);
+                            int IDXuong = Convert.ToInt32(xuong);
+                            //check trùng
+                            var che = _context.Tbl_QuyenXuLy.FirstOrDefault(x => x.MaXL == "DUNGSX" && x.ID_TaiKhoan == IDTaiKhoan && x.ID_XuongXL == IDXuong);
+                            if (che == null)
+                            {
+                                var newQuyen = new Tbl_QuyenXuLy()
+                                {
+                                    ID_TaiKhoan = IDTaiKhoan,
+                                    ID_XuongXL = IDXuong,
+                                    MaXL = "DUNGSX"
+                                };
+                                _context.Tbl_QuyenXuLy.Add(newQuyen);
+                            }
+                        }
+                    }
+                }
+                _context.SaveChanges();
+                // TODO: xử lý
+            }
+            return Ok(new { message = "Đã lưu thành công!" });
+        }
+
         [HttpPost]
         public IActionResult DeleteQuyen(int id)
         {
