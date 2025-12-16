@@ -66,7 +66,7 @@
                                     </button>
                                 </div>
                             }
-                            @if (phieu.ID_TrangThaiBG == 1 && phieu.ID_TrangThaiBN == 1)
+                            @if (phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
                             {
                                 <div class="col-8" style="text-align: right;padding: 2%  2%  2% 0%;">
                                     <button type="button" class="btn btn-primary" id="btn-Export">
@@ -84,7 +84,7 @@
 
                             <script type="text/javascript">
                                 $('#btn-Export').click(function () {
-                                    window.location.href = '@Url.Action("ExportToExcel", "BM_18")?maPhieu=' + '@phieu.MaPhieu';
+                                    window.location.href = '@Url.Action("ExportDanhSachExcel", "BM_18_XiHatLoCao")?maPhieu=' + '@phieu.MaPhieu';
                                 });
                             </script>
                         </div>
@@ -382,5 +382,4 @@
     }
 
     });
-
 </script>
