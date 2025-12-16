@@ -549,6 +549,7 @@
                         <th class="hide-col">KL gang lỏng (T)</th>
                         <th class="hide-col">KL gang chia CCT (T)</th>
                         <th class="hide-col">KL gang chia CR (T)</th>
+                        <th>KL Thùng & Gang Trước KR (T)</th>
                         <th>KL Gang nhận (T)</th>
                         <th>Lò thổi</th>
                         <th>Thùng trung gian</th>
@@ -585,6 +586,7 @@
                         </td>
                         <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
                         <td class="hide-col" id="IDTongKLGangChiaCR" style="font-weight: 600">0.00</td>
+                        <td></td>
                         <td id="IDTongKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -615,6 +617,7 @@
                         </td>
                         <td class="hide-col" id="IDTongAllKLGangChia" style="font-weight: 600">0.00</td>
                         <td class="hide-col" id="IDTongAllKLGangChiaCR" style="font-weight: 600">0.00</td>
+                        <td></td>
                         <td id="IDTongAllKLGangNhan" style="font-weight: 600">
                             0.00
                         </td>
@@ -1320,6 +1323,7 @@
                       </td>
                     `);
                     if (isFirstRow) {
+                        row.append(`<td rowspan="${rowspan}" class="KLThungVaGangTruocKR">${item.klThungVaGangTruocKR?.toFixed(2) ?? ''} ${ isCopy ? '' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}" class="Tong_KLGangNhan">${item.tong_KLGangNhan?.toFixed(2) ?? ''} ${ isCopy ? '<span style="color: red;">TTG Copy</span>' : ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.iD_LoThoi ?? ''}</td>`);
                         row.append(`<td style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" rowspan="${rowspan}">${item.soThungTG ?? ''}</td>`);

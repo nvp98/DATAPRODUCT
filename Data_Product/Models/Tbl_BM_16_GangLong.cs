@@ -85,6 +85,7 @@ namespace Data_Product.Models
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KL_phe { get; set; }
 
+
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? T_KLGangLongThoi { get; set; }
 
@@ -171,6 +172,9 @@ namespace Data_Product.Models
         public decimal? KLGang_Thoi { get; set; }
         [NotMapped]
         public decimal? KL_phe { get; set; }
+        [NotMapped]
+        public decimal? KLThungVaGangTruocKR { get; set; }
+
         [NotMapped]
         public decimal? Tong_KLGangNhan { get; set; }
 

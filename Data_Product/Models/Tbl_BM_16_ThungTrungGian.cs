@@ -26,5 +26,7 @@ namespace Data_Product.Models
 	    public string? GioNhan { get; set; }
         public string? MaThungTG_Copy { get; set; }
         public int? ID_NguoiNhan { get; set; }
+
+        public decimal? KLThungVaGangTruocKR { get; set; }
     }
 }

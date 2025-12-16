@@ -614,6 +614,7 @@ namespace Data_Product.Controllers
                         KLThungVaGang_Thoi = ttg.KLThungVaGang_Thoi,
                         KL_phe = ttg.KL_phe,
                         KLGang_Thoi = ttg.KLGang_Thoi,
+                        KLThungVaGangTruocKR = ttg.KLThungVaGangTruocKR,
                         Tong_KLGangNhan = ttg.Tong_KLGangNhan,
                         ID_MeThoi = ttg.ID_MeThoi,
                         MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
@@ -2095,7 +2096,7 @@ namespace Data_Product.Controllers
                 if (isHRC1)
                     await XuLyNhietDo_HRC1(dsThungTG);
                 else
-                    XuLyNhietDo_HRC2(dsThungTG);
+                    await XuLyNhietDo_HRC2(dsThungTG);
 
                 // ===========================================
                 // 2) LƯU THÔNG TIN THÙNG TRUNG GIAN
@@ -2162,6 +2163,7 @@ namespace Data_Product.Controllers
                     ttg.GhiChu = tgDto.GhiChu;
                     ttg.ID_MeThoi = tgDto.ID_MeThoi;
                     ttg.GioChonMe = tgDto.GioChonMe;
+                    ttg.KLThungVaGangTruocKR = tgDto.KLThungVaGangTruocKR;
 
                     // ===========================================
                     // 3) CẬP NHẬT THÙNG GANG (HRC1 & HRC2 đã xử lý NhietDo từ trước)
@@ -2784,6 +2786,24 @@ namespace Data_Product.Controllers
                         int r1 = startRow_TTG, r2 = row - 1;
                         int col = 12;
 
+
+                        var cellKLThungVaGangTruocKR = ws.Cell(r1, col);
+                        cellKLThungVaGangTruocKR.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        cellKLThungVaGangTruocKR.Style.Font.Bold = true;
+                        if (ttg.IsCopy == true)
+                        {
+                            cellKLThungVaGangTruocKR.Value = "";
+                            cellKLThungVaGangTruocKR.Style.Font.FontColor = XLColor.Red;
+                        }
+                        else if (ttg.KLThungVaGangTruocKR.HasValue)
+                        {
+                            cellKLThungVaGangTruocKR.Value = ttg.KLThungVaGangTruocKR.Value;
+                            cellKLThungVaGangTruocKR.Style.NumberFormat.Format = "0.00";
+                        }
+                        else cellKLThungVaGangTruocKR.Value = "";
+
+                        ws.Range(r1, col, r2, col).Merge(); col++;
+
                         var cellTongKLGang = ws.Cell(r1, col);
                         cellTongKLGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                         cellTongKLGang.Style.Font.Bold = true;
@@ -2891,32 +2911,32 @@ namespace Data_Product.Controllers
                     ws.Cell(sumRow, 10).Style.Font.SetBold();
                     ws.Cell(sumRow, 10).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel2 = ws.Range($"K{sumRow}:K{sumRow}").Merge();
+                    var totalLabel2 = ws.Range($"K{sumRow}:L{sumRow}").Merge();
                     totalLabel2.Value = "";
                     totalLabel2.Style.Font.SetBold();
                     totalLabel2.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                    ws.Cell(sumRow, 12).FormulaA1 = $"=SUM(L8:L{row - 1})";
-                    ws.Cell(sumRow, 12).Style.NumberFormat.Format = "#,##0.00";
-                    ws.Cell(sumRow, 12).Style.Font.SetBold();
-                    ws.Cell(sumRow, 12).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Cell(sumRow, 13).FormulaA1 = $"=SUM(M8:M{row - 1})";
+                    ws.Cell(sumRow, 13).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 13).Style.Font.SetBold();
+                    ws.Cell(sumRow, 13).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel3 = ws.Range($"M{sumRow}:P{sumRow}").Merge();
+                    var totalLabel3 = ws.Range($"N{sumRow}:Q{sumRow}").Merge();
                     totalLabel3.Value = "";
                     totalLabel3.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
-                    ws.Cell(sumRow, 17).FormulaA1 = $"=SUM(Q8:Q{row - 1})";
-                    ws.Cell(sumRow, 17).Style.NumberFormat.Format = "#,##0.00";
-                    ws.Cell(sumRow, 17).Style.Font.SetBold();
-                    ws.Cell(sumRow, 17).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    ws.Cell(sumRow, 18).FormulaA1 = $"=SUM(R8:R{row - 1})";
+                    ws.Cell(sumRow, 18).Style.NumberFormat.Format = "#,##0.00";
+                    ws.Cell(sumRow, 18).Style.Font.SetBold();
+                    ws.Cell(sumRow, 18).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                    var totalLabel4 = ws.Range($"R{sumRow}:T{sumRow}").Merge();
+                    var totalLabel4 = ws.Range($"S{sumRow}:U{sumRow}").Merge();
                     totalLabel4.Value = "";
                     totalLabel4.Style.Font.SetBold();
                     totalLabel4.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
                     // Format chung
-                    var usedRange = ws.Range($"A7:T{sumRow}");
+                    var usedRange = ws.Range($"A7:U{sumRow}");
                     usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                     //usedRange.Style.Font.FontColor = XLColor.Black;
                     usedRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
