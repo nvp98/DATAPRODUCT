@@ -675,7 +675,6 @@ namespace Data_Product.Controllers
                 GhiChu = t.G_GhiChu,
                 TrangThaiGang = t.G_ID_TrangThai == 1, 
                 TrangThai = t.ID_TrangThai,
-                Loai_Thung =t.Loai_Thung,
                 NguoiLuu = t.G_ID_NguoiLuu.HasValue && nguoiLuuDict.ContainsKey(t.G_ID_NguoiLuu.Value)
                 ? nguoiLuuDict[t.G_ID_NguoiLuu.Value]
                 : null,
@@ -726,7 +725,6 @@ namespace Data_Product.Controllers
                     x.KLDuc,
                     x.G_SanRaGang,
                     x.GioChonMe,
-                    x.Loai_Thung
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
@@ -879,7 +877,6 @@ namespace Data_Product.Controllers
                 thung.ChuyenDen = item.ChuyenDen;
                 thung.G_ID_NguoiLuu = idNhanVienLuu;
                 thung.G_SanRaGang = item.G_SanRaGang;
-                thung.Loai_Thung = item.Loai_Thung;
 
 
                 bool daNhan = await _context.Tbl_BM_16_TaiKhoan_Thung.AnyAsync(x => x.MaThungGang == thung.MaThungGang);
@@ -915,7 +912,6 @@ namespace Data_Product.Controllers
                     copy.ChuyenDen = item.ChuyenDen;
                     copy.G_ID_NguoiLuu = idNhanVienLuu;
                     copy.G_SanRaGang = item.G_SanRaGang;
-                    copy.Loai_Thung = item.Loai_Thung;
 
                     copy.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : copy.T_ID_TrangThai;
                     copy.G_ID_TrangThai = duDuLieu ? 3 : 1;
@@ -2074,12 +2070,6 @@ namespace Data_Product.Controllers
                                 var klGangLongCalc = klThungGang - klThung;
                                 if (klGangLongCalc < 0) klGangLongCalc = 0;
                                 thung.G_KLGangLong = klGangLongCalc;
-
-                                // Gán loại thùng theo KL tinh (vẫn dùng klTinh = Max_Tong - Min_Bi)
-                                if (klTinh < 150)
-                                    thung.Loai_Thung = 1;      // Thùng nhỏ
-                                else
-                                    thung.Loai_Thung = 2;      // Thùng lớn
                             }
                         }
 
@@ -2173,7 +2163,104 @@ namespace Data_Product.Controllers
                 return StatusCode(500, $"Lỗi khi xóa số mẻ: {ex.Message}");
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> AddCanRayLG1([FromBody] CanRayLG1Dto dto)
+        {
+            if (dto == null || dto.ID_LoCao <= 0)
+                return BadRequest("Thiếu/lỗi thông tin đầu vào");
 
+            try
+            {
+                var entity = new Tbl_CanRayLG1
+                {
+                    ID_LoCao = dto.ID_LoCao,
+                    Gio = DateTime.TryParse(dto.Gio, out var gioVal) ? gioVal : (DateTime?)null,
+                    ThungSo = dto.ThungSo,
+                    Ray = dto.Ray,
+                    SanRaGang = dto.SanRaGang,
+                    KL_Bi = dto.KL_Bi,
+                    KL_Tong = dto.KL_Tong,
+                    KL_Gang = dto.KL_Gang,
+                    BKMIS_SoMe = dto.BKMIS_SoMe,
+                    Ghi_Chu = dto.GhiChu,
+                    SoMe_Cleared = null
+                };
+                _context.Tbl_CanRayLG1.Add(entity);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Đã thêm mới dòng cân ray (LG1)!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi khi thêm mới: " + ex.Message);
+            }
+        }
+
+        public class CanRayLG1Dto
+        {
+            public int ID_LoCao { get; set; }
+            public int? SanRaGang { get; set; } 
+            public int? ThungSo { get; set; }
+            public string Gio { get; set; }
+            public decimal? KL_Bi { get; set; }
+            public decimal? KL_Tong { get; set; }
+            public decimal? KL_Gang { get; set; }
+            public string BKMIS_SoMe { get; set; }
+            public string GhiChu { get; set; }
+            public int? Ray { get; set; }
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddCanRayLG2([FromBody] CanRayLG2Dto dto)
+        {
+            if (dto == null || dto.BF_no <= 0)
+                return BadRequest("Thiếu/lỗi thông tin đầu vào");
+
+            try
+            {
+                
+                var entity = new Tbl_CanRayLG2
+                {
+                    
+                    BF_no = dto.BF_no,
+                    Laddle_no = dto.Laddle_no ?? 0,              
+                    Shift = dto.Shift ?? 0,                      
+                    BF_Timestap = DateTime.TryParse(dto.Gio, out var gioVal) ? gioVal : DateTime.Now,
+                    Casthouse = dto.Casthouse ?? 0,              
+                    Weight_TARE = dto.KL_Bi ?? 0,
+                    Weight_GROSS = dto.KL_Tong ?? 0,
+                    Weight_NET = dto.KL_Gang ?? 0,
+                    BKMIS_SoMe = dto.BKMIS_SoMe,
+                    Ghi_Chu = dto.GhiChu,
+                    LyDo = "",               
+                    Is_Nhap = true,         
+                    SoMe_Cleared = false,     
+                    OriginalSoMe = null
+                };
+                    _context.Entry(entity).State = EntityState.Added;
+                    _context.Tbl_CanRayLG2.Add(entity);
+                    await _context.SaveChangesAsync();
+                return Ok(new { success = true, message = "Đã thêm mới dòng cân ray (LG2)!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi khi thêm mới: " + ex.Message);
+            }
+        }
+
+        public class CanRayLG2Dto
+        {
+            public int BF_no { get; set; }
+            public int? Laddle_no { get; set; }
+            public int? Shift { get; set; }
+            public string Gio { get; set; }
+            public int? Casthouse { get; set; }
+            public decimal? KL_Bi { get; set; }
+            public decimal? KL_Tong { get; set; }
+            public decimal? KL_Gang { get; set; }
+            public string BKMIS_SoMe { get; set; }
+            public string GhiChu { get; set; }
+            // Các trường khác nếu cần!
+        }
         // DTO class
         public class ClearSoMeRequest
         {

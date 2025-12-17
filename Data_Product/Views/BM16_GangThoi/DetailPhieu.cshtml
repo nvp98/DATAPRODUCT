@@ -218,7 +218,6 @@
 										<th rowspan="2">KL thùng</th>
 										<th rowspan="2">KL thùng & gang lỏng</th>
 										<th rowspan="2">KL gang lỏng cân ray</th>
-										<th rowspan="2" style="min-width: 150px; width: 150px;">Loại thùng</th>
 										<th rowspan="2">KL thùng cân lại</th>
 										<th rowspan="2">KL gang lỏng tính lại</th>
 										<th colspan="4">Vận chuyển đến</th>
@@ -307,29 +306,6 @@
 												</td>
 												<td>
 													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;" disabled>
-												</td>
-												<td style="min-width: 150px; width: 150px;">
-													<select name="LoaiThung" class="form-select form-select-sm" style="width: 100%;">
-														@{
-															var loaiThung = item.Loai_Thung ?? 0;
-														}
-														@if (loaiThung == 1)
-														{
-															<option value="1" selected>Thùng nhỏ</option>
-															<option value="2">Thùng lớn</option>
-														}
-														else if (loaiThung == 2)
-														{
-															<option value="1">Thùng nhỏ</option>
-															<option value="2" selected>Thùng lớn</option>
-														}
-														else
-														{
-															<option value="">-- Chọn loại thùng --</option>
-															<option value="1">Thùng nhỏ</option>
-															<option value="2">Thùng lớn</option>
-														}
-													</select>
 												</td>
 												<td></td>
 												<td></td>
@@ -488,6 +464,9 @@
 							</table>
 						</div>
 						<div class="d-flex justify-content-end mt-2">
+							<button class="btn btn-outline-primary btn-sm me-2" id="btnAddRow" type="button">
+								Thêm mới
+							</button>
 							<button class="btn btn-success btn-sm" id="btnApplyLeft" type="button">
 								Cập nhật
 							</button>
@@ -875,6 +854,88 @@
 				}
 			});
 		}
+		$(document).on('click', '#btnAddRow', function(e) {
+			e.preventDefault();
+
+			// Tùy vào ID_LoCao quyết định cấu hình các input (đơn giản hóa: nhập hết trường có thể)
+			var newRow = `
+				<tr data-row="new">
+					<td><input class="form-control form-control-sm ip-san"  /></td>
+					<td><input class="form-control form-control-sm ip-thungso" type="number" /></td>
+					<td><input class="form-control form-control-sm ip-gio" type="datetime-local" /></td>
+					<td><input class="form-control form-control-sm ip-klbi" type="number" step="0.01" /></td>
+					<td><input class="form-control form-control-sm ip-kltong" type="number" step="0.01" /></td>
+					<td><input class="form-control form-control-sm ip-klgang" type="number" step="0.01" /></td>
+					<td><input class="form-control form-control-sm ip-some" /></td>
+					<td><input class="form-control form-control-sm ip-ghichu" /></td>
+					<td>
+						<button class="btn btn-sm btn-success btn-save-row" title="Lưu"><i class="bi bi-check2"></i></button>
+						<button class="btn btn-sm btn-danger btn-cancel-row" title="Hủy"><i class="bi bi-x"></i></button>
+					</td>
+				</tr>
+			`;
+
+			$("#tableLeft tbody").prepend(newRow);
+		});
+			// Khi lưu dòng mới
+		$(document).on('click', '.btn-save-row', function () {
+			var $row = $(this).closest('tr');
+			var data = {
+				// mapping tên trường theo bảng, tuỳ lò cao sẽ thay đổi phía server
+				SanRaGang: parseInt($row.find('.ip-san').val()) || null,
+				ThungSo: $row.find('.ip-thungso').val(),
+				Gio: $row.find('.ip-gio').val(),
+				KL_Bi: $row.find('.ip-klbi').val(),
+				KL_Tong: $row.find('.ip-kltong').val(),
+				KL_Gang: $row.find('.ip-klgang').val(),
+				BKMIS_SoMe: $row.find('.ip-some').val(),
+				GhiChu: $row.find('.ip-ghichu').val(),
+				// Nhập thêm nếu xác định được
+				ID_LoCao: parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val()),    // LG1
+				BF_no: parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val()),      // LG2
+				// v.v...
+			};
+
+			// Tùy theo lò cao sẽ gọi API tương ứng!
+			if (data.ID_LoCao >= 1 && data.ID_LoCao <= 4) {
+				// Gọi API LG1
+				$.ajax({
+					url: '/BM16_GangThoi/AddCanRayLG1',
+					method: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify(data),
+					success: function (res) {
+						alert(res && res.message ? res.message : 'Đã thêm mới.');
+						fetchAuto(); // làm mới dữ liệu bảng
+					},
+					error: function (xhr) {
+						alert('Lỗi thêm mới: ' + (xhr.responseText || 'Không rõ'));
+					}
+				});
+			} else if (data.BF_no == 5 || data.BF_no == 6) {
+				// Gọi API LG2
+				$.ajax({
+					url: '/BM16_GangThoi/AddCanRayLG2',
+					method: 'POST',
+					contentType: 'application/json',
+					data: JSON.stringify(data),
+					success: function (res) {
+						alert(res && res.message ? res.message : 'Đã thêm mới.');
+						fetchAuto();
+					},
+					error: function (xhr) {
+						alert('Lỗi thêm mới: ' + (xhr.responseText || 'Không rõ'));
+					}
+				});
+			} else {
+				alert('ID Lò Cao không hợp lệ!');
+			}
+		});
+
+	// Hủy dòng mới
+	$(document).on('click', '.btn-cancel-row', function () {
+		$(this).closest('tr').remove();
+	});
 
 		// ============================================
 		// BIND EVENTS
