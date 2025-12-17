@@ -499,7 +499,7 @@ namespace Data_Product.Controllers
                                   }).ToListAsync();
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
 
-            ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.Where(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong), "ID_Xuong", "TenXuong");
+          
 
             ViewBag.CumThietBi = new SelectList(_context.Tbl_NhatKy_CumTB
                 .Where(cum => _context.Tbl_NhatKy_CumTB_Xuong
@@ -510,6 +510,7 @@ namespace Data_Product.Controllers
             ViewBag.IsHieuChinh = isHieuChinh;
             var res = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == IDNKSX);
             res.NhatKy_SanXuat_ChiTiet = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == IDNKSX).ToList();
+            ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.Where(x => x.ID_Xuong == res.ID_Xuong_SX), "ID_Xuong", "TenXuong");
 
             var CaKip = await (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == NgayLamViec)
                                select new Tbl_Kip
