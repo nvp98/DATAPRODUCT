@@ -2202,16 +2202,15 @@ namespace Data_Product.Controllers
                 {
                     
                     BF_no = dto.BF_no,
-                    Laddle_no = dto.Laddle_no ?? 0,              
+                    Laddle_no = dto.ThungSo,              
                     Shift = dto.Shift ?? 0,                      
                     BF_Timestap = DateTime.TryParse(dto.Gio, out var gioVal) ? gioVal : DateTime.Now,
-                    Casthouse = dto.Casthouse ?? 0,              
+                    Casthouse = dto.SanRaGang,              
                     Weight_TARE = dto.KL_Bi ?? 0,
                     Weight_GROSS = dto.KL_Tong ?? 0,
                     Weight_NET = dto.KL_Gang ?? 0,
                     BKMIS_SoMe = dto.BKMIS_SoMe,
-                    Ghi_Chu = dto.GhiChu,
-                    LyDo = "",               
+                    Ghi_Chu = dto.GhiChu,             
                     Is_Nhap = true,         
                     SoMe_Cleared = false,     
                     OriginalSoMe = null

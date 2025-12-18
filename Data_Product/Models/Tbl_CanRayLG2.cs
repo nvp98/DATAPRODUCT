@@ -20,8 +20,6 @@ namespace Data_Product.Models
             public decimal? Weight_NET { get; set; }   // Trọng Lượng Tịnh
             public string? BKMIS_SoMe { get; set; } // Mã số theo dõi BKMIS
 
-            public string? LyDo { get; set; }
-
             public bool Is_Nhap { get; set; }
 
             public string? Ghi_Chu { get; set; }

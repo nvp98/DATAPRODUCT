@@ -847,7 +847,7 @@
 		function applyLeft() {
 			var items = collectFromLeft();
 
-			if (items.length === 0) {
+			if (!items || items.length === 0) {
 				alert('Không có dữ liệu để cập nhật. Vui lòng chọn Số mẻ cho các dòng.');
 				return;
 			}
@@ -1356,49 +1356,49 @@
 			recalcRow(row);
 		}
 	);
-		$(document).ready(function() {
-			function tinhTongKL() {
-				let tong = 0;
-				let tongKLGangChia = 0;
-				let tongKLDuc = 0;
+	$(document).ready(function() {
+		function tinhTongKL() {
+			let tong = 0;
+			let tongKLGangChia = 0;
+			let tongKLDuc = 0;
 
-				$('input[name="KLGangLong"]').each(function() {
-					let val = parseFloat($(this).val());
-					if (!isNaN(val)) {
-						tong += val;
-					}
-				});
-				$('td[name="KLGangChia"]').each(function() {
-					let val = parseFloat($(this).text());
-					if (!isNaN(val)) {
-						tongKLGangChia += val;
-					}
-				});
-				$('td[name="KLDuc"]').each(function() {
-					let val = parseFloat($(this).text());
-					if (!isNaN(val)) {
-						tongKLDuc += val;
-					}
-				});
-				$('#dataTable tbody tr.tong-row').remove();
+			$('input[name="KLGangLong"]').each(function() {
+				let val = parseFloat($(this).val());
+				if (!isNaN(val)) {
+					tong += val;
+				}
+			});
+			$('td[name="KLGangChia"]').each(function() {
+				let val = parseFloat($(this).text());
+				if (!isNaN(val)) {
+					tongKLGangChia += val;
+				}
+			});
+			$('td[name="KLDuc"]').each(function() {
+				let val = parseFloat($(this).text());
+				if (!isNaN(val)) {
+					tongKLDuc += val;
+				}
+			});
+			$('#dataTable tbody tr.tong-row').remove();
 
-			let tongRow = `
-				<tr class="tong-row" style="font-weight:bold; background-color:#f0f0f0;">
-					<td colspan="3"></td>
-					<td>${soLuongMe}</td>
-					<td colspan="9"></td>
-					<td>${tong.toFixed(2)}</td>
-					<td colspan="12"></td>
-					<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
-					<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
-					<td colspan="3"></td>
-				</tr>
-			`;
+		let tongRow = `
+			<tr class="tong-row" style="font-weight:bold; background-color:#f0f0f0;">
+				<td colspan="3"></td>
+				<td>${soLuongMe}</td>
+				<td colspan="9"></td>
+				<td>${tong.toFixed(2)}</td>
+				<td colspan="12"></td>
+				<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
+				<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
+				<td colspan="3"></td>
+			</tr>
+		`;
 
-		$('#dataTable tfoot').html(tongRow);
-			}
-			tinhTongKL();
-				});
+	$('#dataTable tfoot').html(tongRow);
+		}
+		tinhTongKL();
+			});
 
 	function exportExcel(maPhieu) {
 			if (!maPhieu) {
