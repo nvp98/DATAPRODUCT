@@ -387,8 +387,7 @@ namespace Data_Product.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
-        }
-
+        } 
         [HttpGet]
         public async Task< IActionResult> TaoPhieu()
         {
@@ -676,7 +675,6 @@ namespace Data_Product.Controllers
                 GhiChu = t.G_GhiChu,
                 TrangThaiGang = t.G_ID_TrangThai == 1, 
                 TrangThai = t.ID_TrangThai,
-                Loai_Thung =t.Loai_Thung,
                 NguoiLuu = t.G_ID_NguoiLuu.HasValue && nguoiLuuDict.ContainsKey(t.G_ID_NguoiLuu.Value)
                 ? nguoiLuuDict[t.G_ID_NguoiLuu.Value]
                 : null,
@@ -727,7 +725,6 @@ namespace Data_Product.Controllers
                     x.KLDuc,
                     x.G_SanRaGang,
                     x.GioChonMe,
-                    x.Loai_Thung
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
@@ -880,7 +877,6 @@ namespace Data_Product.Controllers
                 thung.ChuyenDen = item.ChuyenDen;
                 thung.G_ID_NguoiLuu = idNhanVienLuu;
                 thung.G_SanRaGang = item.G_SanRaGang;
-                thung.Loai_Thung = item.Loai_Thung;
 
 
                 bool daNhan = await _context.Tbl_BM_16_TaiKhoan_Thung.AnyAsync(x => x.MaThungGang == thung.MaThungGang);
@@ -916,7 +912,6 @@ namespace Data_Product.Controllers
                     copy.ChuyenDen = item.ChuyenDen;
                     copy.G_ID_NguoiLuu = idNhanVienLuu;
                     copy.G_SanRaGang = item.G_SanRaGang;
-                    copy.Loai_Thung = item.Loai_Thung;
 
                     copy.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? 4 : copy.T_ID_TrangThai;
                     copy.G_ID_TrangThai = duDuLieu ? 3 : 1;
@@ -1836,7 +1831,6 @@ namespace Data_Product.Controllers
         {
             try
             {
-                // SELECT bằng DbContext từ bảng Tbl_CanRayLG1 (lò 1..4)
                 var query = _context.Tbl_CanRayLG1.AsQueryable();
                 query = query.Where(d => d.ID_LoCao == idLoCao && d.Gio >= fromTime && d.Gio <= toTime);
 
@@ -1854,7 +1848,9 @@ namespace Data_Product.Controllers
                         KL_Bi = d.KL_Bi,
                         KL_Tong = d.KL_Tong,
                         KL_Gang = d.KL_Gang,
-                        BKMIS_SoMe = d.BKMIS_SoMe
+                        BKMIS_SoMe = d.BKMIS_SoMe,
+                        GhiChu = d.Ghi_Chu,
+                        SoMe_Cleared = d.SoMe_Cleared
                     })
                     .ToListAsync();
 
@@ -1862,7 +1858,7 @@ namespace Data_Product.Controllers
                 var list = rawData.Select(d =>
                 {
                     rowId++;
-                    return new MappingCanRayDto
+                        return new MappingCanRayDto
                     {
                         RowId = rowId,
                         ID_LoCao = d.ID_LoCao ?? idLoCao,
@@ -1874,7 +1870,9 @@ namespace Data_Product.Controllers
                         KL_Tong = d.KL_Tong,
                         KL_Gang = d.KL_Gang,
                         SanRaGang = d.SanRaGang,
-                        BKMIS_SoMe = d.BKMIS_SoMe
+                        BKMIS_SoMe = d.BKMIS_SoMe,
+                        GhiChu = d.GhiChu,
+                        SoMe_Cleared = d.SoMe_Cleared
                     };
                 }).ToList();
 
@@ -1919,7 +1917,9 @@ namespace Data_Product.Controllers
                         Weight_TARE = d.Weight_TARE,
                         Weight_GROSS = d.Weight_GROSS,
                         Weight_NET = d.Weight_NET,
-                        BKMIS_SoMe = d.BKMIS_SoMe
+                        BKMIS_SoMe = d.BKMIS_SoMe,
+                        GhiChu = d.Ghi_Chu,
+                        SoMe_Cleared = d.SoMe_Cleared
 
                     })
                     .ToListAsync(); // Thực thi truy vấn và tải dữ liệu
@@ -1932,7 +1932,6 @@ namespace Data_Product.Controllers
 
                     return new MappingCanRayDto
                     {
-                        // Ánh xạ các giá trị đã lấy được
                         RowId = rowId,
                         ID_LoCao = idLoCao,
                         CanRayId = d.ID,
@@ -1943,14 +1942,14 @@ namespace Data_Product.Controllers
                         KL_Bi = (decimal?)d.Weight_TARE,
                         KL_Tong = (decimal?)d.Weight_GROSS,
                         KL_Gang = (decimal?)d.Weight_NET,
-
-                        // Các cột còn lại (đã có sẵn trong rawData)
                         BF_no = d.BF_no,
                         Laddle_no = d.Laddle_no,
                         Shift = d.Shift,
                         Casthouse = d.Casthouse,
-                        SanRaGang = d.Casthouse, // Giả định SanRaGang dùng Casthouse
-                        BKMIS_SoMe = d.BKMIS_SoMe
+                        SanRaGang = d.Casthouse,
+                        BKMIS_SoMe = d.BKMIS_SoMe,
+                        GhiChu = d.GhiChu,
+                        SoMe_Cleared = d.SoMe_Cleared
                     };
                 }).ToList();
 
@@ -1990,8 +1989,6 @@ namespace Data_Product.Controllers
             if (!soMes.Any())
                 return BadRequest("Không có Số mẻ hợp lệ.");
 
-            // Lấy các dòng BM16 tương ứng MaPhieu + SoMe (lọc theo MaPhieu, trạng thái != 5)
-            // Lưu ý: nếu DB chứa khoảng trắng, bạn có thể cần trimming trên DB hoặc đưa về xử lý phía client.
             var listThung = await _context.Tbl_BM_16_GangLong
                 .Where(x => x.MaPhieu == maPhieu
                             && x.BKMIS_SoMe != null
@@ -2066,12 +2063,6 @@ namespace Data_Product.Controllers
                                 var klGangLongCalc = klThungGang - klThung;
                                 if (klGangLongCalc < 0) klGangLongCalc = 0;
                                 thung.G_KLGangLong = klGangLongCalc;
-
-                                // Gán loại thùng theo KL tinh (vẫn dùng klTinh = Max_Tong - Min_Bi)
-                                if (klTinh < 150)
-                                    thung.Loai_Thung = 1;      // Thùng nhỏ
-                                else
-                                    thung.Loai_Thung = 2;      // Thùng lớn
                             }
                         }
 
@@ -2094,13 +2085,13 @@ namespace Data_Product.Controllers
                             if (it.BfNo >= 1 && it.BfNo <= 4)
                             {
                                 await _context.Database.ExecuteSqlRawAsync(
-                                    "UPDATE Tbl_CanRayLG1 SET BKMIS_SoMe = {0}, Ghi_Chu = {1} WHERE ID = {2} AND ID_LoCao = {3}",
+                                    "UPDATE Tbl_CanRayLG1 SET BKMIS_SoMe = {0}, Ghi_Chu = {1}, SoMe_Cleared = 0, OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe) WHERE ID = {2} AND ID_LoCao = {3}",
                                     grp.SoMe, ghiChu, it.Id, it.BfNo);
                             }
                             else
                             {
                                 await _context.Database.ExecuteSqlRawAsync(
-                                    "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0}, Ghi_Chu = {1} WHERE ID = {2} AND BF_no = {3}",
+                                    "UPDATE Tbl_CanRayLG2 SET BKMIS_SoMe = {0}, Ghi_Chu = {1}, SoMe_Cleared = 0, OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe) WHERE ID = {2} AND BF_no = {3}",
                                     grp.SoMe, ghiChu, it.Id, it.BfNo);
                             }
                         }
@@ -2117,6 +2108,122 @@ namespace Data_Product.Controllers
                     // log exception nếu cần
                     return StatusCode(500, "Lỗi khi lưu dữ liệu: " + ex.Message);
                 }
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> ClearSoMe([FromBody] ClearSoMeRequest request)
+        {
+            if (request.CanRayId <= 0 || request.ID_LoCao <= 0)
+            {
+                return BadRequest("Thiếu thông tin CanRayId hoặc ID_LoCao.");
+            }
+
+            try
+            {
+                // Lò 1-4: Update Tbl_CanRayLG1
+                if (request.ID_LoCao >= 1 && request.ID_LoCao <= 4)
+                {
+                    await _context.Database.ExecuteSqlRawAsync(
+                        @"UPDATE Tbl_CanRayLG1 
+                  SET BKMIS_SoMe = NULL, 
+                      OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe),
+                      Ghi_Chu = NULL, 
+                      SoMe_Cleared = 1 
+                  WHERE ID = {0} AND ID_LoCao = {1}",
+                        request.CanRayId, request.ID_LoCao);
+                }
+                // Lò 5-6: Update Tbl_CanRayLG2
+                else if (request.ID_LoCao == 5 || request.ID_LoCao == 6)
+                {
+                    await _context.Database.ExecuteSqlRawAsync(
+                        @"UPDATE Tbl_CanRayLG2 
+                  SET BKMIS_SoMe = NULL, 
+                      OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe),
+                      Ghi_Chu = NULL, 
+                      SoMe_Cleared = 1 
+                  WHERE ID = {0} AND BF_no = {1}",
+                        request.CanRayId, request.ID_LoCao);
+                }
+                else
+                {
+                    return BadRequest("ID lò cao không hợp lệ.");
+                }
+
+                return Ok(new { success = true, message = "Đã xóa số mẻ thành công." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi khi xóa số mẻ: {ex.Message}");
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> AddCanRayLG1([FromBody] CanRayLG1Dto dto)
+        {
+            if (dto == null || dto.ID_LoCao <= 0)
+                return BadRequest("Thiếu/lỗi thông tin đầu vào");
+
+            try
+            {
+                var entity = new Tbl_CanRayLG1
+                {
+                    ID_LoCao = dto.ID_LoCao,
+                    Gio = DateTime.TryParse(dto.Gio, out var gioVal) ? gioVal : (DateTime?)null,
+                    ThungSo = dto.ThungSo,
+                    Ray = dto.Ray,
+                    SanRaGang = dto.SanRaGang,
+                    KL_Bi = dto.KL_Bi,
+                    KL_Tong = dto.KL_Tong,
+                    KL_Gang = dto.KL_Gang,
+                    BKMIS_SoMe = dto.BKMIS_SoMe,
+                    Ghi_Chu = dto.GhiChu,
+                    SoMe_Cleared = null
+                };
+                _context.Tbl_CanRayLG1.Add(entity);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, message = "Đã thêm mới dòng cân ray (LG1)!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi khi thêm mới: " + ex.Message);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddCanRayLG2([FromBody] CanRayLG2Dto dto)
+        {
+            if (dto == null || dto.BF_no <= 0)
+                return BadRequest("Thiếu/lỗi thông tin đầu vào");
+
+            try
+            {
+                
+                var entity = new Tbl_CanRayLG2
+                {
+                    
+                    BF_no = dto.BF_no,
+                    Laddle_no = dto.Laddle_no ?? 0,              
+                    Shift = dto.Shift ?? 0,                      
+                    BF_Timestap = DateTime.TryParse(dto.Gio, out var gioVal) ? gioVal : DateTime.Now,
+                    Casthouse = dto.Casthouse ?? 0,              
+                    Weight_TARE = dto.KL_Bi ?? 0,
+                    Weight_GROSS = dto.KL_Tong ?? 0,
+                    Weight_NET = dto.KL_Gang ?? 0,
+                    BKMIS_SoMe = dto.BKMIS_SoMe,
+                    Ghi_Chu = dto.GhiChu,
+                    LyDo = "",               
+                    Is_Nhap = true,         
+                    SoMe_Cleared = false,     
+                    OriginalSoMe = null
+                };
+                _context.Entry(entity).State = EntityState.Added;
+                _context.Tbl_CanRayLG2.Add(entity);
+                await _context.SaveChangesAsync();
+                return Ok(new { success = true, message = "Đã thêm mới dòng cân ray (LG2)!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi khi thêm mới: " + ex.Message);
             }
         }
     }
