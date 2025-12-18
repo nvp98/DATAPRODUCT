@@ -787,7 +787,7 @@
 		function collectFromLeft() {
 			var maPhieu = $('#PhieuID').val();
 			var items = [];
-
+			var isValid = true;
 			$("#tableLeft tbody tr[data-row='left']").each(function () {
 				var $r = $(this);
 				var soMe = $r.find('.ip-some').val();
@@ -810,6 +810,19 @@
 				var klGang = parseFloat($r.find('td.kl-gang').text()) || null;
 
 				var ghiChu = $r.find('input[name="GhiChu"]').val() || null;
+				var hasCan = (klBi && klBi !== '') ||
+					(klTong && klTong !== '') ||
+					(klGang && klGang !== '');
+					// Hoặc tốt hơn:
+				var hasCan = (klBi > 0) || (klTong > 0) || (klGang > 0);
+
+				if (hasCan && $.trim(ghiChu) === '') {
+					isValid = false;
+					$r.find('input[name="GhiChu"]').addClass('is-invalid');
+					setTimeout(() => $r.find('input[name="GhiChu"]').removeClass('is-invalid'), 3000);
+					$r.find('input[name="GhiChu"]').focus();
+					return false; // thoát each ngay khi tìm thấy lỗi
+				}
 
 				items.push({
 					MaPhieu: maPhieu,
@@ -824,6 +837,7 @@
 				});
 			});
 
+			if (!isValid) return null;
 			return items;
 		}
 
@@ -877,9 +891,30 @@
 
 			$("#tableLeft tbody").prepend(newRow);
 		});
+			// Tự động tính khối lượng gang khi nhập KL bì hoặc KL tổng (dòng thêm mới)
+		$(document).on('input', '.ip-klbi, .ip-kltong', function () {
+			var $row = $(this).closest('tr');
+			var klbi = parseFloat($row.find('.ip-klbi').val()) || 0;
+			var kltong = parseFloat($row.find('.ip-kltong').val()) || 0;
+			var klgang = kltong - klbi;
+			$row.find('.ip-klgang').val(klgang >= 0 ? klgang.toFixed(2) : '');
+		});
 			// Khi lưu dòng mới
 		$(document).on('click', '.btn-save-row', function () {
 			var $row = $(this).closest('tr');
+			var ghiChu = $row.find('.ip-ghichu').val();
+			var klBi = $row.find('.ip-klbi').val();
+			var klTong = $row.find('.ip-kltong').val();
+			var klGang = $row.find('.ip-klgang').val();
+
+			var hasCan = klBi || klTong || klGang;
+
+			if (hasCan && $.trim(ghiChu) === '') {
+				alert('Bạn phải nhập ghi chú nếu có nhập số cân!');
+				$row.find('.ip-ghichu').addClass('is-invalid').focus();
+				setTimeout(() => $row.find('.ip-ghichu').removeClass('is-invalid'), 3000);
+				return;
+			}
 			var data = {
 				// mapping tên trường theo bảng, tuỳ lò cao sẽ thay đổi phía server
 				SanRaGang: parseInt($row.find('.ip-san').val()) || null,
@@ -890,10 +925,8 @@
 				KL_Gang: $row.find('.ip-klgang').val(),
 				BKMIS_SoMe: $row.find('.ip-some').val(),
 				GhiChu: $row.find('.ip-ghichu').val(),
-				// Nhập thêm nếu xác định được
 				ID_LoCao: parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val()),    // LG1
 				BF_no: parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val()),      // LG2
-				// v.v...
 			};
 
 			// Tùy theo lò cao sẽ gọi API tương ứng!
@@ -1058,47 +1091,6 @@
 				ExportToPDF();
 				})
 			});
-
-			$(document).on("click", ".deleteItem", function () {
-				const row = $(this).closest("tr");
-				const maThung = row.find('td[name="maThung"]').text().trim();
-				const tinhTrang = row.find('td[name="ChotThung"] button').text().trim();
-
-				if (tinhTrang == 'Đã chốt' || maThung.endsWith(".00")) {
-					alert("Không thể xóa");
-					return;
-				}
-				// Trường hợp 1: Dòng sao chép (data-new="true")
-				if (row.attr("data-new") === "true") {
-					if (confirm("Có muốn xóa thùng này")) {
-						row.remove();
-					}
-				}
-				// Trường hợp 2: Dòng không phải copy nhưng không phải thùng gốc (VD: .01, .02,...)
-				else if (!maThung.endsWith(".00")) {
-					if (confirm("Có chắc muốn xóa thùng copy này?")) {
-						$.ajax({
-							url: '/BM16_GangThoi/Xoathungcopy',
-							method: 'POST',
-							contentType: 'application/json',
-							data: JSON.stringify(maThung),
-							success: function (response) {
-								alert(response.message);
-								row.remove();
-							},
-							error: function (err) {
-								alert("Xóa thất bại: " + (err.responseJSON?.message || "Lỗi không xác định"));
-							}
-						});
-					}
-				}
-				// Trường hợp 3: Là thùng gốc (.00) → không cho xóa
-				else {
-					alert("Không được xóa thùng gốc.");
-				}
-				});
-				// ===== Function==========
-
 		$(document).ready(function () {
 					// Đánh dấu dòng thay đổi khi người dùng nhập liệu
 					$('#dataTable tbody').on('change', 'input, textarea', function () {
@@ -1313,81 +1305,6 @@
 				}
 			});
 		}
-
-	@* $(document).on("input", "input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']", function () {
-				let row = $(this).closest("tr");
-
-				let $klThungXeInput = row.find("input[name='KLThungVaXe']");
-				let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
-				let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
-
-				let klThungXe = parseFloat($klThungXeInput.val()) || 0;
-				let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
-				let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
-
-				let klThung = klThungXe - klXeGoong;
-				row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
-
-				let klThungGang = klThungGangXe - klXeGoong;
-				row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
-
-				let klGangLong = klThungGang - klThung;
-				row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
-
-				// Reset tooltip và màu
-				[$klThungXeInput, $klThungGangXeInput, $klXeGoongInput].forEach(function ($input) {
-					$input.removeAttr("title").removeClass("tooltip-error");
-				});
-
-				// Kiểm tra từng lỗi và gán tooltip cho từng ô
-				if (klThungXe < klXeGoong) {
-					$klThungXeInput
-						.attr("title", "KL Thùng + Xe < KL Xe Goòng")
-						.addClass("tooltip-error");
-				}
-				if (klThungGangXe < klXeGoong) {
-					$klThungGangXeInput
-						.attr("title", "KL Thùng & Gang + Xe < KL Xe Goòng")
-						.addClass("tooltip-error");
-				}
-		}); *@
-
-		// // ⭐ Hàm tính toán cho 1 dòng
-		// function tinhToanRow(row) {
-		// 	let $klThungXeInput = row.find("input[name='KLThungVaXe']");
-		// 	let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
-		// 	let $klXeGoongInput = row.find("input[name='KhoiLuongXeGoong']");
-
-		// 	let klThungXe = parseFloat($klThungXeInput.val()) || 0;
-		// 	let klThungGangXe = parseFloat($klThungGangXeInput.val()) || 0;
-		// 	let klXeGoong = parseFloat($klXeGoongInput.val()) || 0;
-
-		// 	let klThung = klThungXe - klXeGoong;
-		// 	row.find("input[name='KhoiLuongThung']").val(klThung > 0 ? klThung.toFixed(2) : 0);
-
-		// 	let klThungGang = klThungGangXe - klXeGoong;
-		// 	row.find("input[name='KLThungGangLong']").val(klThungGang > 0 ? klThungGang.toFixed(2) : 0);
-
-		// 	let klGangLong = klThungGang - klThung;
-		// 	row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
-		// }
-
-		// // ⭐ 1) Khi trang load → tự tính cho tất cả dòng
-		// $(document).ready(function () {
-		// 	$("#dataTable tbody tr").each(function () {
-		// 		tinhToanRow($(this));
-		// 	});
-		// });
-
-
-		// // ⭐ 2) Khi người dùng nhập → tính lại dòng đó
-		// $(document).on("input",
-		// 	"input[name='KLThungVaXe'], input[name='KLThungGangXe'], input[name='KhoiLuongXeGoong']",
-		// 	function () {
-		// 		let row = $(this).closest("tr");
-		// 		tinhToanRow(row);
-		// 	}
-		// );
 		function recalcRow(row) {
 		let $klThungXeInput = row.find("input[name='KLThungVaXe']");
 		let $klThungGangXeInput = row.find("input[name='KLThungGangXe']");
@@ -1406,17 +1323,6 @@
 		let klGangLong = klThungGang - klThung;
 		row.find("input[name='KLGangLong']").val(klGangLong > 0 ? klGangLong.toFixed(2) : 0);
 
-		// Loại thùng: lớn/nhỏ
-	@* let $loaiThung = row.find("span.loai-thung");
-		if ($loaiThung.length) {
-			let val = parseFloat(row.find("input[name='KLGangLong']").val()) || 0;
-			if (val > 0) {
-				$loaiThung.text(val >= 150 ? "Thùng lớn" : "Thùng nhỏ");
-			} else {
-				$loaiThung.text("");
-			}
-		} *@
-
 		// Reset tooltip và màu
 		[$klThungXeInput, $klThungGangXeInput, $klXeGoongInput].forEach(function ($input) {
 			$input.removeAttr("title").removeClass("tooltip-error");
@@ -1425,12 +1331,12 @@
 		// Kiểm tra từng lỗi và gán tooltip cho từng ô
 		if (klThungXe < klXeGoong) {
 			$klThungXeInput
-				.attr("title", "KL Thùng + Xe < KL Xe Goòng")
+				.attr("title", "KL Thùng + Xe < KL Xe Goong")
 				.addClass("tooltip-error");
 		}
 		if (klThungGangXe < klXeGoong) {
 			$klThungGangXeInput
-				.attr("title", "KL Thùng & Gang + Xe < KL Xe Goòng")
+				.attr("title", "KL Thùng & Gang + Xe < KL Xe Goong")
 				.addClass("tooltip-error");
 		}
 	}
@@ -1526,78 +1432,6 @@
 				}
 			});
 		}
-
-		$(document).on("click", ".copyItem", function () {
-		const row = $(this).closest("tr");
-			const trangThai = row.find("td[name='ChotThung']").text().trim().toLowerCase();
-
-			// Kiểm tra nếu thùng đã chốt
-			if (trangThai === "đã chốt") {
-				alert("Thùng này đã được chốt và không thể sao chép.");
-				return;
-			}
-			const clonedRow = row.clone();
-			//console.log("clonedRow",clonedRow)
-			const maThungCell = row.find("td[name='maThung']");
-			let maThung = maThungCell.text().trim();
-
-			let [prefix, _] = maThung.split(".");
-
-			// Tìm hậu tố lớn nhất có cùng tiền tố
-			let maxSuffix = 0;
-			$("td[name='maThung']").each(function () {
-				let text = $(this).text().trim();
-				let [pfx, sfx] = text.split(".");
-				if (pfx === prefix) {
-					let number = parseInt(sfx, 10);
-					if (!isNaN(number)) {
-						maxSuffix = Math.max(maxSuffix, number);
-					}
-				}
-			});
-
-			// Sinh mã mới
-			let newMaThung = `${prefix}.${(maxSuffix + 1).toString().padStart(2, '0')}`;
-			clonedRow.find("td[name='maThung']").text(newMaThung);
-
-			// Đánh dấu dòng mới
-			clonedRow.attr("data-new", "true");
-
-
-			// clonedRow.find("input[type='text'], input[type='number'], textarea").each(function () {
-			// 	$(this).val('');
-			// 	$(this).prop("disabled", false);
-			// });
-				clonedRow.find("input, textarea").each(function () {
-				if (this.type === "checkbox") {
-					$(this).prop("checked", false);
-				} else {
-					$(this).val('');
-				}
-				$(this).prop("disabled", false);
-			});
-
-			//console.log('clonedRow====',clonedRow)
-
-			// Chèn vào đúng vị trí theo thứ tự tăng dần mã thùng
-			let inserted = false;
-			$("#dataTable tbody tr").each(function () {
-				const currentCell = $(this).find("td[name='maThung']");
-				if (currentCell.length > 0) {
-					let currentMaThung = currentCell.text().trim();
-					if (currentMaThung > newMaThung) {
-						clonedRow.insertBefore($(this));
-						inserted = true;
-						return false;
-					}
-				}
-			});
-
-			if (!inserted) {
-				$("#dataTable tbody").append(clonedRow);
-			}
-			});
-
 	function ExportToPDF(){
 		// value cac field
 		const MaPhieu = $('#PhieuID').val() || null;
@@ -1730,5 +1564,25 @@
 			$row.addClass('table-warning');
 		});
 
+
+		// Lưu giá trị filter vào localStorage khi thay đổi
+		$('#filterFromTime, #filterToTime').on('change', function () {
+			localStorage.setItem('filterFromTime', $('#filterFromTime').val());
+			localStorage.setItem('filterToTime', $('#filterToTime').val());
+		});
+
+		// Khi trang load, tự động fill lại giá trị filter nếu có
+		$(document).ready(function () {
+			var from = localStorage.getItem('filterFromTime');
+			var to = localStorage.getItem('filterToTime');
+			if (from) $('#filterFromTime').val(from);
+			if (to) $('#filterToTime').val(to);
+		});
+
+		// Nếu muốn xóa filter sau khi lấy dữ liệu, bỏ comment dòng dưới
+		// $('#btnFetchAuto').on('click', function () {
+		//     localStorage.removeItem('filterFromTime');
+		//     localStorage.removeItem('filterToTime');
+		// });
 
 </script>

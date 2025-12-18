@@ -1831,7 +1831,6 @@ namespace Data_Product.Controllers
         {
             try
             {
-                // SELECT bằng DbContext từ bảng Tbl_CanRayLG1 (lò 1..4)
                 var query = _context.Tbl_CanRayLG1.AsQueryable();
                 query = query.Where(d => d.ID_LoCao == idLoCao && d.Gio >= fromTime && d.Gio <= toTime);
 
@@ -1933,7 +1932,6 @@ namespace Data_Product.Controllers
 
                     return new MappingCanRayDto
                     {
-                        // Ánh xạ các giá trị đã lấy được
                         RowId = rowId,
                         ID_LoCao = idLoCao,
                         CanRayId = d.ID,
@@ -1944,16 +1942,13 @@ namespace Data_Product.Controllers
                         KL_Bi = (decimal?)d.Weight_TARE,
                         KL_Tong = (decimal?)d.Weight_GROSS,
                         KL_Gang = (decimal?)d.Weight_NET,
-
-                        // Các cột còn lại (đã có sẵn trong rawData)
                         BF_no = d.BF_no,
                         Laddle_no = d.Laddle_no,
                         Shift = d.Shift,
                         Casthouse = d.Casthouse,
-                        SanRaGang = d.Casthouse, // Giả định SanRaGang dùng Casthouse
+                        SanRaGang = d.Casthouse,
                         BKMIS_SoMe = d.BKMIS_SoMe,
-                        GhiChu = d.GhiChu
-                        ,
+                        GhiChu = d.GhiChu,
                         SoMe_Cleared = d.SoMe_Cleared
                     };
                 }).ToList();
@@ -1994,8 +1989,6 @@ namespace Data_Product.Controllers
             if (!soMes.Any())
                 return BadRequest("Không có Số mẻ hợp lệ.");
 
-            // Lấy các dòng BM16 tương ứng MaPhieu + SoMe (lọc theo MaPhieu, trạng thái != 5)
-            // Lưu ý: nếu DB chứa khoảng trắng, bạn có thể cần trimming trên DB hoặc đưa về xử lý phía client.
             var listThung = await _context.Tbl_BM_16_GangLong
                 .Where(x => x.MaPhieu == maPhieu
                             && x.BKMIS_SoMe != null
@@ -2196,19 +2189,6 @@ namespace Data_Product.Controllers
             }
         }
 
-        public class CanRayLG1Dto
-        {
-            public int ID_LoCao { get; set; }
-            public int? SanRaGang { get; set; } 
-            public int? ThungSo { get; set; }
-            public string Gio { get; set; }
-            public decimal? KL_Bi { get; set; }
-            public decimal? KL_Tong { get; set; }
-            public decimal? KL_Gang { get; set; }
-            public string BKMIS_SoMe { get; set; }
-            public string GhiChu { get; set; }
-            public int? Ray { get; set; }
-        }
         [HttpPost]
         public async Task<IActionResult> AddCanRayLG2([FromBody] CanRayLG2Dto dto)
         {
@@ -2236,36 +2216,15 @@ namespace Data_Product.Controllers
                     SoMe_Cleared = false,     
                     OriginalSoMe = null
                 };
-                    _context.Entry(entity).State = EntityState.Added;
-                    _context.Tbl_CanRayLG2.Add(entity);
-                    await _context.SaveChangesAsync();
+                _context.Entry(entity).State = EntityState.Added;
+                _context.Tbl_CanRayLG2.Add(entity);
+                await _context.SaveChangesAsync();
                 return Ok(new { success = true, message = "Đã thêm mới dòng cân ray (LG2)!" });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, "Lỗi khi thêm mới: " + ex.Message);
             }
-        }
-
-        public class CanRayLG2Dto
-        {
-            public int BF_no { get; set; }
-            public int? Laddle_no { get; set; }
-            public int? Shift { get; set; }
-            public string Gio { get; set; }
-            public int? Casthouse { get; set; }
-            public decimal? KL_Bi { get; set; }
-            public decimal? KL_Tong { get; set; }
-            public decimal? KL_Gang { get; set; }
-            public string BKMIS_SoMe { get; set; }
-            public string GhiChu { get; set; }
-            // Các trường khác nếu cần!
-        }
-        // DTO class
-        public class ClearSoMeRequest
-        {
-            public int CanRayId { get; set; }
-            public int ID_LoCao { get; set; }
         }
     }
 
