@@ -64,11 +64,12 @@
                                             Không xác nhận phiếu
                                         </span>
                                     </button>
+
                                 </div>
                             }
                             @if (phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
                             {
-                                <div class="col-8" style="text-align: right;padding: 2%  2%  2% 0%;">
+                                <div class="col-6" style="text-align: right;padding: 2%  2%  2% 0%;">
                                     <button type="button" class="btn btn-primary" id="btn-Export">
                                         <i class="bi bi-file-earmark-excel"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
@@ -81,7 +82,15 @@
                                     </button>
                                 </div>
                             }
-
+                            @if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
+                            {
+                                <div class="col-2" style="text-align: right;padding: 2%  2%  2% 0%;">
+                                <button type="button" id="btnResetPhieu" class="btn btn-warning ms-2 me-2">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                    <span class="small pt-2 ps-1">Reset Phiếu</span>
+                                </button>
+                                </div>
+                            }
                             <script type="text/javascript">
                                 $('#btn-Export').click(function () {
                                     window.location.href = '@Url.Action("ExportDanhSachExcel", "BM_18_XiHatLoCao")?maPhieu=' + '@phieu.MaPhieu';
@@ -89,21 +98,6 @@
                             </script>
                         </div>
                     </div>
-
-                    <!-- Modal xóa phiếu -->
-                    <div class="modal" id="myModal" role="dialog"
-                        data-url='@Url.Action("XoaPhieu", "BM_18", new { maPhieu = phieu.MaPhieu })'></div>
-                    <script type="text/javascript">
-                        $('#btn-delete').click(function () {
-                            var url = $('#myModal').data('url');
-                            $.get(url, function (data) {
-                                $("#myModal").html(data);
-                                $("#ModalTitle").html("XÁC NHẬN XÓA PHIẾU");
-                                $("#myModal").modal('show');
-                            });
-                        });
-                    </script>
-
                     <!-- Header thông tin phiếu -->
                     <div class="row" style="width:100%;padding-top:7.5%;">
                         <div class="col-lg-12" style="text-align: left;height: 210px;display: flex;">
@@ -344,6 +338,7 @@
             document.getElementById("showFunc").style.display = "";
         }
     });
+
     $(document).ready(function () {
 
         // Xác nhận phiếu
@@ -357,7 +352,27 @@
             e.preventDefault();
             updateTrangThai(3);
         });
-
+        // --- 5. Sự kiện Reset Phiếu ---
+        $('#btnResetPhieu').click(function () {
+            if (!confirm("Bạn có chắc chắn muốn reset phiếu? Toàn bộ dữ liệu chi tiết sẽ bị xóa!")) return;
+            const maPhieu = '@Model.Phieu.MaPhieu';
+            $.ajax({
+                url: '/BM_18_XiHatLoCao/ResetPhieu',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ MaPhieu: maPhieu }),
+                success: function (res) {
+                    alert("Phiếu đã được reset!");
+                    const tbody = $('#dataTable tbody');
+                    tbody.empty();
+                    tbody.append('<tr><td colspan="10" class="text-center text-muted p-3">Không có dữ liệu chi tiết cho phiếu ' + maPhieu + '.</td></tr>');
+                    location.reload();
+                },
+                error: function (xhr) {
+                    alert("Lỗi khi reset phiếu: " + (xhr.responseText || "Không xác định"));
+                }
+            });
+        });
         function updateTrangThai(status) {
         $.ajax({
             url: '/BM_18_XiHatLoCao/XacNhanPhieuBN',

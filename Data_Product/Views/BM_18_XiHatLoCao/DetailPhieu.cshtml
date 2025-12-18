@@ -723,8 +723,6 @@
 			success: function (res) {
 				alert("Đã cập nhật thành công!");
 				if (req.MaPhieu) {
-					window.location.href = '/BM_18_XiHatLoCao/Index_Detail?maPhieu=' + encodeURIComponent(req.MaPhieu);
-				} else {
 					location.reload();
 				}
 			},

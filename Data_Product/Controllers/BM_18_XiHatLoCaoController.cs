@@ -181,7 +181,7 @@ namespace Data_Product.Controllers
                                 .FirstOrDefault(),
                 TrangThai = p.TrangThai,
                 ID_NguoiNhan = p.ID_NguoiNhan,
-            });
+             });
                 query = query.Where(p => p.ID_NguoiNhan == ID_NhanVien_BN);
                 // Lọc theo Mã Phiếu (chuỗi)
                 if (!string.IsNullOrEmpty(maPhieu))
@@ -698,8 +698,6 @@ namespace Data_Product.Controllers
                         .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBG.ID_ChucVu);
                 }
             }
-
-            // 4. Lấy thông tin bên nhận
             Tbl_TaiKhoan thongTinBN = null;
             Tbl_PhongBan phongBanBN = null;
             Tbl_Xuong phanXuongBN = null;
@@ -718,7 +716,13 @@ namespace Data_Product.Controllers
                         .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBN.ID_ChucVu);
                 }
             }
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+            var PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
+            string TenBP = PhongBan.TenNgan;
 
+            List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
+            ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
             // 5. Tạo ViewModel
             var viewModel = new BM18DetailViewModel
             {
@@ -732,9 +736,8 @@ namespace Data_Product.Controllers
                 PhongBanBenNhan = phongBanBN,
                 PhanXuongBenNhan = phanXuongBN,
                 ViTriBenNhan = viTriBN,
-
             };
-
+            ViewBag.PhongBan = PhongBan?.TenNgan;
             return View(viewModel);
         }
         [HttpPost]
