@@ -218,8 +218,6 @@
 										<th rowspan="2">KL thùng</th>
 										<th rowspan="2">KL thùng & gang lỏng</th>
 										<th rowspan="2">KL gang lỏng cân ray</th>
-										<th rowspan="2">KL thùng cân lại</th>
-										<th rowspan="2">KL gang lỏng tính lại</th>
 										<th colspan="4">Vận chuyển đến</th>
 										<th rowspan="2">Giờ đầy thùng</th>
 										<th rowspan="2">Thời điểm bắt đầu rót</th>
@@ -307,8 +305,6 @@
 												<td>
 													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;" disabled>
 												</td>
-												<td></td>
-												<td></td>
 												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") @disabledAttr /></td>
@@ -810,19 +806,6 @@
 				var klGang = parseFloat($r.find('td.kl-gang').text()) || null;
 
 				var ghiChu = $r.find('input[name="GhiChu"]').val() || null;
-				var hasCan = (klBi && klBi !== '') ||
-					(klTong && klTong !== '') ||
-					(klGang && klGang !== '');
-					// Hoặc tốt hơn:
-				var hasCan = (klBi > 0) || (klTong > 0) || (klGang > 0);
-
-				if (hasCan && $.trim(ghiChu) === '') {
-					isValid = false;
-					$r.find('input[name="GhiChu"]').addClass('is-invalid');
-					setTimeout(() => $r.find('input[name="GhiChu"]').removeClass('is-invalid'), 3000);
-					$r.find('input[name="GhiChu"]').focus();
-					return false; // thoát each ngay khi tìm thấy lỗi
-				}
 
 				items.push({
 					MaPhieu: maPhieu,
@@ -1388,7 +1371,7 @@
 				<td>${soLuongMe}</td>
 				<td colspan="9"></td>
 				<td>${tong.toFixed(2)}</td>
-				<td colspan="12"></td>
+				<td colspan="9"></td>
 				<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
 				<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
 				<td colspan="3"></td>
@@ -1554,35 +1537,26 @@
 				$row.find("input[name^='VanChuyen']").not(this).prop("checked", false);
 			}
 		});
-
-		// Khi người dùng thay đổi LoaiThung, gắn flag data-changed để đưa vào payload khi lưu
-		$("#dataTable").on("change", "select[name='LoaiThung']", function () {
-			const $row = $(this).closest("tr");
-			// Đánh dấu dòng đã thay đổi
-			$row.attr('data-changed', 'true');
-			// Optionally add a visual hint
-			$row.addClass('table-warning');
-		});
-
-
-		// Lưu giá trị filter vào localStorage khi thay đổi
-		$('#filterFromTime, #filterToTime').on('change', function () {
+		
+		function saveFilterTime() {
 			localStorage.setItem('filterFromTime', $('#filterFromTime').val());
 			localStorage.setItem('filterToTime', $('#filterToTime').val());
-		});
+		}
 
-		// Khi trang load, tự động fill lại giá trị filter nếu có
+		$('#filterFromTime, #filterToTime').on('change', saveFilterTime);
+
 		$(document).ready(function () {
 			var from = localStorage.getItem('filterFromTime');
 			var to = localStorage.getItem('filterToTime');
+
 			if (from) $('#filterFromTime').val(from);
 			if (to) $('#filterToTime').val(to);
 		});
 
 		// Nếu muốn xóa filter sau khi lấy dữ liệu, bỏ comment dòng dưới
-		// $('#btnFetchAuto').on('click', function () {
-		//     localStorage.removeItem('filterFromTime');
-		//     localStorage.removeItem('filterToTime');
-		// });
+		@* $('#btnFetchAuto').on('click', function () {
+		    localStorage.removeItem('filterFromTime');
+		    localStorage.removeItem('filterToTime');
+		}); *@
 
 </script>

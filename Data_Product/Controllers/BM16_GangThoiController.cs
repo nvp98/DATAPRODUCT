@@ -2036,7 +2036,7 @@ namespace Data_Product.Controllers
                         if (grp.HasBi && grp.HasTong)
                         {
                             var klTinh = grp.Max_Tong - grp.Min_Bi;
-                            if (klTinh < 0) klTinh = 0; // tránh âm nếu dữ liệu bất thường
+                            if (klTinh < 0) klTinh = 0;
 
                             foreach (var thung in thungsCungSoMe)
                             {
@@ -2045,12 +2045,10 @@ namespace Data_Product.Controllers
                                 // Cập nhật KL thùng & gang & xe (KL tổng lớn nhất)
                                 thung.G_KLXeThungVaGang = grp.Max_Tong;
 
-                                // Lấy KL xe gòn (nếu có) từ bản ghi BM16 để tính theo công thức gốc
+                                // Lấy KL xe gòn
                                 var klXeGoong = thung.KL_XeGoong ?? 0m;
 
                                 // Tính theo công thức client-side:
-                                // klThung = KLThungVaXe - KL_XeGoong
-                                // klThungGang = KLThungGangXe - KL_XeGoong
                                 var klThung = grp.Min_Bi - klXeGoong;
                                 if (klThung < 0) klThung = 0;
                                 thung.G_KLThungChua = klThung;
@@ -2063,11 +2061,18 @@ namespace Data_Product.Controllers
                                 var klGangLongCalc = klThungGang - klThung;
                                 if (klGangLongCalc < 0) klGangLongCalc = 0;
                                 thung.G_KLGangLong = klGangLongCalc;
+                                // Cập nhật giờ chốt gang
+                                var gioChot = items
+                                .Where(i => i.SoMe != null && i.SoMe.Trim() == grp.SoMe && i.GioChotGang.HasValue)
+                                .Select(i => i.GioChotGang.Value)
+                                .OrderByDescending(i => i)
+                                .FirstOrDefault();
+                            if (gioChot != default(DateTime))
+                                thung.Gio_NM = gioChot.ToString("HH:mm");
                             }
                         }
 
                         // Sau khi cập nhật bảng chính, cập nhật "Số mẻ" vào bảng cân ray (Tbl_CanRayLG2)
-                        // YÊU CẦU: cập nhật THEO ID + BF_no, không dùng thời gian
                         var relatedById = items
                             .Where(i => !string.IsNullOrWhiteSpace(i.SoMe)
                                         && i.SoMe.Trim() == grp.SoMe
