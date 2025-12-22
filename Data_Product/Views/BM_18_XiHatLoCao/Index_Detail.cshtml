@@ -39,8 +39,7 @@
                 <div class="card">
                     <!-- Header với các nút chức năng -->
                     <div class="row" style="width:100%">
-                        <div
-                        style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;width: -webkit-fill-available;z-index: 100;">
+                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;width: -webkit-fill-available;z-index: 100;">
                             <div class="col-4" style="text-align: left;padding: 2%  2%  2% 0%;">
                                 <span class="text-muted small pt-2 ps-1">
                                     <b style="color:#06428b">
@@ -48,28 +47,26 @@
                                     </b>
                                 </span>
                             </div>
-                            @if (phieu.TrangThai == (int)TrangThaiXuLy.DangXuLy)
-                            {
-                                <div class="col-8" style="text-align: right;padding: 2%  2%  2% 0%; ">
+
+                            <div class="col-8" style="text-align: right;padding: 2%  2%  2% 0%;">
+                                @if (phieu.TrangThai == (int)TrangThaiXuLy.DangXuLy)
+                                {
                                     <button type="button" class="btn btn-primary" id="btnXacNhan" value="1">
                                         <i class="bi bi-floppy"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Xác nhận phiếu
                                         </span>
                                     </button>
-
                                     <button type="button" class="btn btn-danger" id="btnKhongXacNhan" value="2">
                                         <i class="bi bi-send"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
                                             Không xác nhận phiếu
                                         </span>
                                     </button>
+                                }
 
-                                </div>
-                            }
-                            @if (phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
-                            {
-                                <div class="col-6" style="text-align: right;padding: 2%  2%  2% 0%;">
+                                @if (phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
+                                {
                                     <button type="button" class="btn btn-primary" id="btn-Export">
                                         <i class="bi bi-file-earmark-excel"></i>
                                         <span class="small pt-2 ps-1" style="color: white;">
@@ -80,17 +77,17 @@
                                             onclick="window.location.href='/BM_18_XiHatLoCao/GeneratePdf?maPhieu=@Model.Phieu.MaPhieu'">
                                         Xuất PDF
                                     </button>
-                                </div>
-                            }
-                            @if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
-                            {
-                                <div class="col-2" style="text-align: right;padding: 2%  2%  2% 0%;">
-                                <button type="button" id="btnResetPhieu" class="btn btn-warning ms-2 me-2">
-                                    <i class="bi bi-arrow-counterclockwise"></i>
-                                    <span class="small pt-2 ps-1">Reset Phiếu</span>
-                                </button>
-                                </div>
-                            }
+                                }
+
+                                @if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
+                                {
+                                    <button type="button" id="btnResetPhieu" class="btn btn-warning ms-2">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                        <span class="small pt-2 ps-1">Reset Phiếu</span>
+                                    </button>
+                                }
+                            </div>
+
                             <script type="text/javascript">
                                 $('#btn-Export').click(function () {
                                     window.location.href = '@Url.Action("ExportDanhSachExcel", "BM_18_XiHatLoCao")?maPhieu=' + '@phieu.MaPhieu';

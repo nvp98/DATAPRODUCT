@@ -50,12 +50,57 @@ namespace Data_Product.Controllers
 
             return new SelectList(loCaos, "ID", "TenLoCao");
         }
+        public async Task<SelectList> GetLoCaoWithAuth()
+        {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = await _context.Tbl_TaiKhoan
+                         .FirstOrDefaultAsync(x => x.TenTaiKhoan == TenTaiKhoan);
+
+            if (TaiKhoan == null)
+            {
+                return new SelectList(Enumerable.Empty<object>());
+            }
+
+            var quyenLo = await (from map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan
+                                 join lo in _context.Tbl_BM_16_LoSanXuat on map.ID_LoSanXuat equals lo.ID
+                                 where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && lo.IsActived == true
+                                 select new
+                                 {
+                                     ID_BoPhan = lo.ID_BoPhan,
+                                     MaLo = lo.MaLo
+                                 }).ToListAsync();
+
+            // Group theo ID_BoPhan
+            var quyenGroup = quyenLo
+                .GroupBy(x => x.ID_BoPhan)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.MaLo).Distinct().ToList()
+                );
+
+
+            // Danh sách lò cao cuối cùng
+            List<Tbl_LoCao> loCaos = new();
+
+            foreach (var kvp in quyenGroup)
+            {
+                int idBoPhan = kvp.Key;
+                var dsMaLo = kvp.Value;
+
+                var loCaoTrongBoPhan = await _context.Tbl_LoCao
+                    .Where(x => x.ID_PhongBan == idBoPhan && dsMaLo.Contains(x.ID))
+                    .ToListAsync();
+
+                loCaos.AddRange(loCaoTrongBoPhan);
+            }
+            return new SelectList(loCaos, "ID", "TenLoCao");
+        }
         public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, DateTime? ngaysx, string ca, string locao, int page = 1)
         {
             const int pageSize = 10;
             if (page < 1) page = 1;
             var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
-            var loCaoList = await GetLoCaoList();
+            var loCaoList = await GetLoCaoWithAuth();
             ViewBag.LoCaoList = loCaoList;
             var data = new List<DanhSachPhieuDto>();
             var pager = new Pager();
@@ -112,8 +157,6 @@ namespace Data_Product.Controllers
                                                   .Select(lc => lc.TenLoCao)
                                                   .FirstOrDefault() == s.TenLoCao);
                     }
-
-
                 }
                 else
                 {
