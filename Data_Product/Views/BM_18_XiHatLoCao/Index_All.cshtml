@@ -1,0 +1,250 @@
+﻿@model List<Data_Product.DTO.BM_18_DTO.DanhSachPhieuDto>
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@inject Data_Product.Repositorys.DataContext _context
+@using System.Security.Claims;
+@if (TempData["msgSuccess"] != null)
+{
+	@Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+	@Html.Raw(TempData["msgError"])
+}
+@{
+	ViewData["Title"] = "Index";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	Pager pager = new Pager();
+	int pageNo = 0;
+	if (ViewBag.Pager != null)
+	{
+		pager = ViewBag.Pager;
+		pageNo = pager.CurrentPage;
+	}
+
+}
+@{
+	var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+	var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+	var PhongBan = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan).FirstOrDefault();
+}
+@{
+	string search = ViewBag.Search as string ?? "";
+}
+<style>
+	.filter-row select, .filter-row input {
+		max-width: 200px;
+	}
+
+	table thead tr th.text-center[rowspan="3"] {
+		vertical-align: middle !important;
+		background-color: #f7f7f7 !important;
+		width: 150px !important;
+	}
+
+	table tbody tr td.text-center {
+		vertical-align: middle !important;
+	}
+
+	.table-responsive {
+		max-height: 600px;
+	}
+
+	.text-nowrap {
+		white-space: nowrap;
+	}
+
+	.custom-button {
+		background-color: #28a745;
+		color: white;
+		padding: 8px 16px;
+		border: none;
+		border-radius: 4px;
+		font-weight: bold;
+		font-size: 14px;
+		cursor: pointer;
+		transition: background-color 0.3s ease;
+	}
+
+		.custom-button:hover {
+			background-color: #218838;
+		}
+
+	.hidden {
+		display: none;
+	}
+
+</style>
+<div class="app-main__outer">
+	<div class="app-main__inner" style="display:block; padding-bottom: 0px;">
+		<div class="tab-content">
+			<div class="row">
+				<div class="card">
+					<div class="row" style="width:100%; height: 120px;z-index: 1;">
+						<div style="display: flex; border-bottom: 0.8px solid #E8E8E8; position: fixed; background-color:#F9F9F9; width: -webkit-fill-available;">
+							<div class="col-8" style="text-align: left; padding: 2% 2% 2% 0%;">
+								<span class="text-muted small pt-2 ps-1">
+									<b style="color:#06428b; font-size: 15px;">
+										DANH SÁCH PHIẾU GIAO NHẬN XỈ HẠT LÒ CAO
+									</b>
+								</span>
+							</div>
+						</div>
+					</div>
+					<div class="card-header" style="border-bottom: 0px; padding-bottom:2%">
+						<form method="get" asp-action="Index_All" asp-controller="BM_18_XiHatLoCao" class="row g-2 align-items-end mb-3">
+							<div class="col-md-2">
+								<label class="form-label">Mã Phiếu</label>
+								<input type="text" name="maPhieu" class="form-control form-control-sm" placeholder="Mã Phiếu" value="@ViewBag.MaPhieu" />
+							</div>
+							<div class="col-md-2">
+								<label class="form-label">Ngày Sản Xuất</label>
+								@{
+									string ngaySXValue = "";
+									if (!string.IsNullOrEmpty(ViewBag.NgaySanXuat))
+									{
+										DateTime parsed;
+										if (DateTime.TryParseExact(ViewBag.NgaySanXuat, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out parsed))
+										{
+											ngaySXValue = parsed.ToString("yyyy-MM-dd");
+										}
+									}
+								}
+								<input type="date" name="ngaysx" class="form-control form-control-sm" value="@ngaySXValue" />
+							</div>
+							<div class="col-md-2">
+								<label class="form-label">Kíp</label>
+								<select name="ca" class="form-select form-select-sm">
+									<option value="">-- Chọn Kíp --</option>
+									<option value="A" selected="@(ViewBag.Ca == "A")">A</option>
+									<option value="B" selected="@(ViewBag.Ca == "B")">B</option>
+									<option value="C" selected="@(ViewBag.Ca == "C")">C</option>
+								</select>
+							</div>
+							<div class="col-md-2">
+								<label class="form-label">Lò Cao</label>
+								<select name="locao" class="form-select form-select-sm">
+									<option value="">-- Chọn Lò Cao --</option>
+									@foreach (var item in (SelectList)ViewBag.LoCaoList)
+									{
+										<option value="@item.Value" selected="@(ViewBag.TenLoCao == item.Value)">@item.Text</option>
+									}
+								</select>
+							</div>
+							<div class="col-md-2">
+								<button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
+							</div>
+						</form>
+
+						<div class="table-responsive">
+							<table class="table table-bordered table-hover text-nowrap align-middle">
+								<thead class="thead-light">
+									<tr class="text-center align-middle">
+										<th>Mã Phiếu</th>
+										<th>Ngày Sản Xuất</th>
+										<th>Ca</th>
+										<th>Lò Cao</th>
+										<th>Người Tạo</th>
+										<th>Thời Gian Tạo</th>
+										<th>Tình trạng</th>
+									</tr>
+								</thead>
+								<tbody>
+									@if (Model.Count == 0)
+									{
+										<tr>
+											<td colspan="7" class="text-center text-muted">Không có dữ liệu phù hợp</td>
+										</tr>
+									}
+									else
+									{
+										foreach (var item in Model)
+										{
+											<tr>
+												<td class="text-center">
+													<a href="@Url.Action("Index_Detail","BM_18_XiHatLoCao", new { maPhieu = item.MaPhieu })" class="text-primary">@item.MaPhieu</a>
+												</td>
+												<td class="text-center">@item.NgaySanXuat.ToString("dd-MM-yyyy")</td>
+												<td class="text-center">@item.TenCa</td>
+												<td class="text-center">@item.TenLoCao</td>
+												<td class="text-center">@item.TenNguoiTao</td>
+												<td class="text-center">@item.ThoiGianTao</td>
+												<td class="text-center">
+													@{
+														string text = "";
+														string btnClass = "";
+														switch (item.TrangThai)
+														{
+															case (int)Data_Product.Common.Enums.TrangThaiXuLy.ChuaXuLy:
+																text = "Chưa xử lý"; btnClass = "btn-warning"; break;
+															case (int)Data_Product.Common.Enums.TrangThaiXuLy.DangXuLy:
+																text = "Đang xử lý"; btnClass = "btn-primary"; break;
+															case (int)Data_Product.Common.Enums.TrangThaiXuLy.HoanThanh:
+																text = "Hoàn thành"; btnClass = "btn-success"; break;
+															case (int)Data_Product.Common.Enums.TrangThaiXuLy.TuChoi:
+																text = "Từ chối"; btnClass = "btn-danger"; break;
+															default:
+																text = "Không xác định"; btnClass = "btn-secondary"; break;
+														}
+													}
+													<button class="btn @btnClass" style="width:150px">@text</button>
+												</td>
+											</tr>
+										}
+									}
+								</tbody>
+							</table>
+						</div>
+
+						<nav aria-label="Page navigation example">
+							@if (pager.TotalPages > 0)
+							{
+								<ul class="pagination justify-content-start">
+									@for (var pge = pager.StartPages; pge <= pager.EndPages; pge++)
+									{
+										<li class="page-item @(pge == pager.CurrentPage ? "active" : "")">
+											<a class="page-link"
+											   asp-action="Index_All"
+											   asp-controller="BM_18_XiHatLoCao"
+											   asp-route-page="@pge"
+											   asp-route-search="@search">
+												@pge
+											</a>
+										</li>
+									}
+									@if (pager.CurrentPage < pager.TotalPages)
+									{
+										<li class="page-item">
+											<a class="page-link"
+											   asp-action="Index_All"
+											   asp-controller="BM_18_XiHatLoCao"
+											   asp-route-page="@(pager.CurrentPage + 1)"
+											   asp-route-search="@search">
+												Next
+											</a>
+										</li>
+										<li class="page-item">
+											<a class="page-link"
+											   asp-action="Index_All"
+											   asp-controller="BM_18_XiHatLoCao"
+											   asp-route-page="@(pager.TotalPages)"
+											   asp-route-search="@search">
+												Last
+											</a>
+										</li>
+									}
+								</ul>
+							}
+						</nav>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+
+		</script>
+
+

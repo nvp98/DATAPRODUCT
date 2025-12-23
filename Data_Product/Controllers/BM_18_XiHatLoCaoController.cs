@@ -1,0 +1,1518 @@
+﻿using System.Security.Claims;
+using ClosedXML.Excel;
+using Data_Product.Common.Enums;
+using Data_Product.DTO.BM_18_DTO;
+using Data_Product.Models;
+using Data_Product.Repositorys;
+using Data_Product.Services;
+using iText.Barcodes;
+using iText.Html2pdf;
+using iText.Kernel.Events;
+using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas;
+using iText.Kernel.Pdf.Xobject;
+using iText.Layout.Font;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.EntityFrameworkCore;
+
+namespace Data_Product.Controllers
+{
+    public class BM_18_XiHatLoCaoController : Controller
+    {
+        private readonly DataContext _context;
+        private readonly ICompositeViewEngine _viewEngine;
+        private readonly ILogger<BM_18_XiHatLoCaoController> _logger;
+        public BM_18_XiHatLoCaoController(DataContext _context, ICompositeViewEngine viewEngine, ILogger<BM_18_XiHatLoCaoController> logger)
+        {
+            this._context = _context;
+            _viewEngine = viewEngine;
+            _logger = logger;
+        }
+        public async Task<IActionResult> GetKipFromCa(DateTime? Ngay, string Ca)
+        {
+            DateTime day_datetime = (DateTime)Ngay;
+            string Day = day_datetime.ToString("dd-MM-yyyy");
+            DateTime Day_Convert = DateTime.ParseExact(Day, "dd-MM-yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None);
+            var CaKip = await (from a in _context.Tbl_Kip.Where(x => x.NgayLamViec == Day_Convert && x.TenCa == Ca)
+                               select new Tbl_Kip
+                               {
+                                   ID_Kip = a.ID_Kip,
+                                   TenKip = a.TenKip,
+                               }).ToListAsync();
+
+            return Json(CaKip);
+        }
+        public async Task<SelectList> GetLoCaoList()
+        {
+            var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
+
+            return new SelectList(loCaos, "ID", "TenLoCao");
+        }
+        public async Task<SelectList> GetLoCaoWithAuth()
+        {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = await _context.Tbl_TaiKhoan
+                         .FirstOrDefaultAsync(x => x.TenTaiKhoan == TenTaiKhoan);
+
+            if (TaiKhoan == null)
+            {
+                return new SelectList(Enumerable.Empty<object>());
+            }
+
+            var quyenLo = await (from map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan
+                                 join lo in _context.Tbl_BM_16_LoSanXuat on map.ID_LoSanXuat equals lo.ID
+                                 where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && lo.IsActived == true
+                                 select new
+                                 {
+                                     ID_BoPhan = lo.ID_BoPhan,
+                                     MaLo = lo.MaLo
+                                 }).ToListAsync();
+
+            // Group theo ID_BoPhan
+            var quyenGroup = quyenLo
+                .GroupBy(x => x.ID_BoPhan)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.MaLo).Distinct().ToList()
+                );
+
+
+            // Danh sách lò cao cuối cùng
+            List<Tbl_LoCao> loCaos = new();
+
+            foreach (var kvp in quyenGroup)
+            {
+                int idBoPhan = kvp.Key;
+                var dsMaLo = kvp.Value;
+
+                var loCaoTrongBoPhan = await _context.Tbl_LoCao
+                    .Where(x => x.ID_PhongBan == idBoPhan && dsMaLo.Contains(x.ID))
+                    .ToListAsync();
+
+                loCaos.AddRange(loCaoTrongBoPhan);
+            }
+            return new SelectList(loCaos, "ID", "TenLoCao");
+        }
+        public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, DateTime? tuNgaySX,
+              DateTime? denNgaySX, string ca, string locao, int page = 1)
+        {
+            const int pageSize = 10;
+            if (page < 1) page = 1;
+            var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
+            var loCaoList = await GetLoCaoWithAuth();
+            ViewBag.LoCaoList = loCaoList;
+            var data = new List<DanhSachPhieuDto>();
+            var pager = new Pager();
+            if (loCaoList.Any())
+            {
+                //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
+                var query = _context.Tbl_BM_18_PhieuXiHat
+                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+            .Select(p => new DanhSachPhieuDto
+                {
+                    MaPhieu = p.MaPhieu,
+                    NgayTaoPhieu = p.NgayTaoPhieu,
+                    NgaySanXuat = p.NgaySanXuat,
+                    ID_LoCao = p.ID_Locao,
+                    TenNguoiTao = _context.Tbl_TaiKhoan
+                                    .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
+                                    .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
+                    TenCa = _context.Tbl_Kip
+                                .Where(k => k.ID_Kip == p.ID_Kip)
+                                .Select(k => k.TenKip)
+                                .FirstOrDefault(),
+                    TenLoCao = _context.Tbl_LoCao
+                                .Where(lc => lc.ID == p.ID_Locao)
+                                .Select(lc => lc.TenLoCao)
+                                .FirstOrDefault(),
+                    TrangThai = p.TrangThai,
+                });
+
+                // Lọc theo Mã Phiếu (chuỗi)
+                if (!string.IsNullOrEmpty(maPhieu))
+                {
+                    string maPhieuLower = maPhieu.ToLower();
+                    query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
+                }
+                // Lọc theo ngày phiếu gang
+                if (tuNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat >= tuNgaySX.Value.Date);
+                }
+
+                if (denNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat < denNgaySX.Value.Date.AddDays(1));
+                }
+
+
+                // Lọc theo Ca (chuỗi)
+                if (!string.IsNullOrEmpty(ca))
+                {
+                    string caLower = ca.ToLower();
+                    query = query.Where(s => s.TenCa.ToLower() == caLower);
+                }
+
+                if (!string.IsNullOrEmpty(locao))
+                {
+                    if (int.TryParse(locao, out int locaoId))
+                    {
+                        query = query.Where(s => _context.Tbl_LoCao
+                                                  .Where(lc => lc.ID == locaoId)
+                                                  .Select(lc => lc.TenLoCao)
+                                                  .FirstOrDefault() == s.TenLoCao);
+                    }
+                }
+                else
+                {
+                    if (loCaoList.Any())
+                    {
+                        var idList = loCaoList.Items.Cast<Tbl_LoCao>().Select(x => x.ID).ToList();
+                        query = query.Where(s => idList.Contains(s.ID_LoCao));
+                    }
+                }
+
+                int resCount = await query.CountAsync();
+
+                data = await query
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync();
+                pager = new Pager(resCount, page, pageSize);
+            }
+
+            ViewBag.Pager = pager;
+
+            // Truyền lại giá trị tìm kiếm cho view
+            ViewBag.MaPhieu = maPhieu;
+            ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.TuNgaySX = tuNgaySX?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.DenNgaySX = denNgaySX?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.Ca = ca;
+            ViewBag.TenLoCao = locao;
+
+            return View(data);
+        }
+        public async Task<IActionResult> Index_All(string maPhieu, DateTime? ngay, DateTime? ngaysx, string ca, string locao, int page = 1)
+        {
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+            int ID_NhanVien_BN = TaiKhoan.ID_TaiKhoan;
+
+            const int pageSize = 10;
+            if (page < 1) page = 1;
+            var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
+            var loCaoList = await GetLoCaoList();
+            ViewBag.LoCaoList = loCaoList;
+            var data = new List<DanhSachPhieuDto>();
+            var pager = new Pager();
+            if (loCaoList.Any())
+            {
+                //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
+                var query = _context.Tbl_BM_18_PhieuXiHat
+                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+            .Select(p => new DanhSachPhieuDto
+            {
+                MaPhieu = p.MaPhieu,
+                NgayTaoPhieu = p.NgayTaoPhieu,
+                NgaySanXuat = p.NgaySanXuat,
+                ID_LoCao = p.ID_Locao,
+                TenNguoiTao = _context.Tbl_TaiKhoan
+                                    .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
+                                    .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
+                TenCa = _context.Tbl_Kip
+                                .Where(k => k.ID_Kip == p.ID_Kip)
+                                .Select(k => k.TenKip)
+                                .FirstOrDefault(),
+                TenLoCao = _context.Tbl_LoCao
+                                .Where(lc => lc.ID == p.ID_Locao)
+                                .Select(lc => lc.TenLoCao)
+                                .FirstOrDefault(),
+                TrangThai = p.TrangThai,
+                ID_NguoiNhan = p.ID_NguoiNhan,
+             });
+                query = query.Where(p => p.ID_NguoiNhan == ID_NhanVien_BN);
+                // Lọc theo Mã Phiếu (chuỗi)
+                if (!string.IsNullOrEmpty(maPhieu))
+                {
+                    string maPhieuLower = maPhieu.ToLower();
+                    query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
+                }
+                // Lọc theo ngày phiếu gang
+                if (ngaysx.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date == ngaysx.Value.Date);
+                }
+                // Lọc theo Ca (chuỗi)
+                if (!string.IsNullOrEmpty(ca))
+                {
+                    string caLower = ca.ToLower();
+                    query = query.Where(s => s.TenCa.ToLower() == caLower);
+                }
+
+                if (!string.IsNullOrEmpty(locao))
+                {
+                    if (int.TryParse(locao, out int locaoId))
+                    {
+                        query = query.Where(s => _context.Tbl_LoCao
+                                                  .Where(lc => lc.ID == locaoId)
+                                                  .Select(lc => lc.TenLoCao)
+                                                  .FirstOrDefault() == s.TenLoCao);
+                    }
+
+
+                }
+                else
+                {
+                    if (loCaoList.Any())
+                    {
+                        var idList = loCaoList.Items.Cast<Tbl_LoCao>().Select(x => x.ID).ToList();
+                        query = query.Where(s => idList.Contains(s.ID_LoCao));
+                    }
+                }
+
+                int resCount = await query.CountAsync();
+
+                data = await query
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync();
+                pager = new Pager(resCount, page, pageSize);
+            }
+
+            ViewBag.Pager = pager;
+
+            // Truyền lại giá trị tìm kiếm cho view
+            ViewBag.MaPhieu = maPhieu;
+            ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.NgaySanXuat = ngaysx?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.Ca = ca;
+            ViewBag.TenLoCao = locao;
+
+            return View(data);
+        }
+        public async Task<IActionResult> Index_All_PKH(string maPhieu, DateTime? ngay, DateTime? tuNgaySX, DateTime? denNgaySX, string ca, string locao, int? trangThai, int page = 1)
+        {
+            const int pageSize = 10;
+            if (page < 1) page = 1;
+            var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
+            var loCaoList = await GetLoCaoList();
+            ViewBag.LoCaoList = loCaoList;
+            var data = new List<DanhSachPhieuDto>();
+            var pager = new Pager();
+            if (loCaoList.Any())
+            {
+                //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
+                var query = _context.Tbl_BM_18_PhieuXiHat
+                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+            .Select(p => new DanhSachPhieuDto
+                {
+                    MaPhieu = p.MaPhieu,
+                    NgayTaoPhieu = p.NgayTaoPhieu,
+                    NgaySanXuat = p.NgaySanXuat,
+                    ID_LoCao = p.ID_Locao,
+                    TenNguoiTao = _context.Tbl_TaiKhoan
+                                    .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
+                                    .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
+                    TenCa = _context.Tbl_Kip
+                                .Where(k => k.ID_Kip == p.ID_Kip)
+                                .Select(k => k.TenKip)
+                                .FirstOrDefault(),
+                    TenLoCao = _context.Tbl_LoCao
+                                .Where(lc => lc.ID == p.ID_Locao)
+                                .Select(lc => lc.TenLoCao)
+                                .FirstOrDefault(),
+                    TrangThai = p.TrangThai,
+                });
+
+                // Lọc theo Mã Phiếu (chuỗi)
+                if (!string.IsNullOrEmpty(maPhieu))
+                {
+                    string maPhieuLower = maPhieu.ToLower();
+                    query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
+                }
+                // Lọc theo ngày phiếu gang
+                //if (ngaysx.HasValue)
+                //{
+                //    query = query.Where(s => s.NgaySanXuat.Date == ngaysx.Value.Date);
+                //}
+                if (tuNgaySX.HasValue && denNgaySX.HasValue)
+                {
+                    query = query.Where(s =>
+                        s.NgaySanXuat.Date >= tuNgaySX.Value.Date &&
+                        s.NgaySanXuat.Date <= denNgaySX.Value.Date
+                    );
+                }
+                else if (tuNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date >= tuNgaySX.Value.Date);
+                }
+                else if (denNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date <= denNgaySX.Value.Date);
+                }
+
+                // Lọc theo Ca (chuỗi)
+                if (!string.IsNullOrEmpty(ca))
+                {
+                    string caLower = ca.ToLower();
+                    query = query.Where(s => s.TenCa.ToLower() == caLower);
+                }
+
+                if (!string.IsNullOrEmpty(locao))
+                {
+                    if (int.TryParse(locao, out int locaoId))
+                    {
+                        query = query.Where(s => _context.Tbl_LoCao
+                                                  .Where(lc => lc.ID == locaoId)
+                                                  .Select(lc => lc.TenLoCao)
+                                                  .FirstOrDefault() == s.TenLoCao);
+                    }
+                }
+                else
+                {
+                    if (loCaoList.Any())
+                    {
+                        var idList = loCaoList.Items.Cast<Tbl_LoCao>().Select(x => x.ID).ToList();
+                        query = query.Where(s => idList.Contains(s.ID_LoCao));
+                    }
+                }
+                if (trangThai.HasValue)
+                {
+                    query = query.Where(x => x.TrangThai == trangThai.Value);
+                }
+                int resCount = await query.CountAsync();
+
+                data = await query
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync();
+                pager = new Pager(resCount, page, pageSize);
+            }
+
+            ViewBag.Pager = pager;
+            ViewBag.TrangThai = trangThai;
+
+            // Truyền lại giá trị tìm kiếm cho view
+            ViewBag.MaPhieu = maPhieu;
+            ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.TuNgaySX = tuNgaySX?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.DenNgaySX = denNgaySX?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.Ca = ca;
+            ViewBag.TenLoCao = locao;
+
+            return View(data);
+        }
+        [HttpGet]
+        public async Task<IActionResult> TaoPhieu()
+        {
+
+            ViewBag.LoCaoList = await GetLoCaoList();
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> TaoPhieu([FromBody] TaoPhieuDto model)
+        {
+            if (model == null)
+                return BadRequest(new { success = false, message = "Dữ liệu rỗng." });
+
+            if (model.NgaySanXuat == default)
+                return BadRequest(new { success = false, message = "Ngày phiếu không hợp lệ." });
+
+            if (model.ID_Kip <= 0)
+                return BadRequest(new { success = false, message = "Kíp không hợp lệ." });
+
+            if (model.ID_LoCaos == null || model.ID_LoCaos.Count == 0)
+                return BadRequest(new { success = false, message = "Vui lòng chọn ít nhất 1 lò cao." });
+
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            if (string.IsNullOrEmpty(tenTaiKhoan))
+                return Unauthorized(new { success = false, message = "Phiên đăng nhập không hợp lệ." });
+
+            var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+            if (taiKhoan == null)
+                return Unauthorized(new { success = false, message = "Tài khoản không tồn tại." });
+
+            // Lấy thông tin Ca/Kíp (để sinh mã phiếu)
+            var kipInfo = await _context.Tbl_Kip
+                .Where(x => x.ID_Kip == model.ID_Kip)
+                .Select(x => new { x.TenCa, x.TenKip })
+                .FirstOrDefaultAsync();
+
+            var results = new List<object>();
+            int createdCount = 0;
+            int duplicateCount = 0;
+            int errorCount = 0;
+
+            foreach (var loId in model.ID_LoCaos.Distinct())
+            {
+                try
+                {
+                    bool existed = await _context.Tbl_BM_18_PhieuXiHat.AnyAsync(p =>
+                        p.ID_Locao == loId &&
+                        p.ID_Kip == model.ID_Kip &&
+                        p.NgaySanXuat.Date == model.NgaySanXuat.Date
+                    );
+
+                    if (existed)
+                    {
+                        duplicateCount++;
+                        results.Add(new
+                        {
+                            ID_LoCao = loId,
+                            status = "duplicate",
+                            message = "Đã tồn tại phiếu cho lò/kíp/ngày này."
+                        });
+                        continue;
+                    }
+
+                    string maPhieu = GenerateMaPhieuBM18(loId, kipInfo?.TenCa, kipInfo?.TenKip, model.NgaySanXuat);
+
+                    var header = new Tbl_BM_18_PhieuXiHat
+                    {
+                        MaPhieu = maPhieu,
+                        NgayTaoPhieu = DateTime.Now,
+                        ID_Locao = loId,
+                        ID_Kip = model.ID_Kip,
+                        ID_NguoiTao = taiKhoan.ID_TaiKhoan,
+                        NgaySanXuat = model.NgaySanXuat,
+                        ID_NguoiGiao = 0,
+                        ID_NguoiNhan = 0,
+                        ID_TrangThaiBG = (int)TrangThaiXuLy.ChuaXuLy,
+                        ID_TrangThaiBN = (int)TrangThaiXuLy.ChuaXuLy,
+                        TrangThai = (int)TrangThaiXuLy.ChuaXuLy
+                    };
+
+                    _context.Tbl_BM_18_PhieuXiHat.Add(header);
+                    await _context.SaveChangesAsync();
+
+                    // Thêm dòng chi tiết mặc định vào Tbl_BM_18_XiHatLoCao
+                    var xiHat = new Tbl_BM_18_XiHatLoCao
+                    {
+                        Ca = null,
+                        Kip = header.ID_Kip,
+                        NgaySanXuat = header.NgaySanXuat,
+                        MaPhieu = header.MaPhieu,
+                        ID_LoCao = header.ID_Locao,
+                        Ten_NVL = "Xỉ hạt lò cao",
+                        DVT = "Tấn",
+                        ID_Lo = null,
+                        HeSo = null,
+                    };
+                    _context.Tbl_BM_18_XiHatLoCao.Add(xiHat);
+                    await _context.SaveChangesAsync();
+
+                    createdCount++;
+                    results.Add(new
+                    {
+                        ID_LoCao = loId,
+                        status = "created",
+                        id = header.ID,
+                        maPhieu = header.MaPhieu,
+                        redirectUrl = Url.Action("DetailPhieu", "BM_18_XiHatLoCao", new { id = header.ID })
+                    });
+                }
+                catch (Exception ex)
+                {
+                    errorCount++;
+                    _logger.LogError(ex, "Lỗi tạo phiếu BM18 cho lò {LoId}", loId);
+                    results.Add(new
+                    {
+                        ID_LoCao = loId,
+                        status = "error",
+                        message = ex.Message
+                    });
+                }
+            }
+
+            return Json(new
+            {
+                success = true,
+                createdCount,
+                duplicateCount,
+                errorCount,
+                results
+            });
+        }
+
+        private string GenerateMaPhieuBM18(int idLoCao, string? tenCa, string? tenKip, DateTime ngay)
+        {
+            string ca = tenCa ?? "";
+            string kip = tenKip ?? "";
+            return $"XHLC-L{idLoCao}-{ca}{kip}-{ngay:ddMMyy}";
+        }
+        [HttpGet("DetailPhieu")]
+        public async Task<IActionResult> DetailPhieu(string maPhieu)
+        {
+            if (string.IsNullOrWhiteSpace(maPhieu))
+                return BadRequest("Thiếu mã phiếu.");
+
+            DateTime DayNow = DateTime.Now;
+            String Day = DayNow.ToString("dd/MM/yyyy");
+            DateTime NgayLamViec = DateTime.ParseExact(Day, "dd/MM/yyyy",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None);
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+            var PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
+            string TenBP = PhongBan.TenNgan;
+
+            List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
+            ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
+
+            var NhanVien = await (from a in _context.Tbl_TaiKhoan
+                                  select new Tbl_TaiKhoan
+                                  {
+                                      ID_TaiKhoan = a.ID_TaiKhoan,
+                                      HoVaTen = a.TenTaiKhoan + " - " + a.HoVaTen
+                                  }).ToListAsync();
+
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
+
+            if (phieu == null)
+                return NotFound($"Không tìm thấy phiếu với mã: {maPhieu}");
+
+            ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", phieu.ID_NguoiNhan);
+            ViewBag.HasNguoiNhan = phieu.ID_NguoiNhan.HasValue;
+            ViewBag.ID_NguoiNhan = phieu.ID_NguoiNhan;
+
+            var kip = await _context.Tbl_Kip.FirstOrDefaultAsync(k => k.ID_Kip == phieu.ID_Kip);
+
+            var chiTiet = await _context.Tbl_BM_18_XiHatLoCao
+                .AsNoTracking()
+                .Where(x => x.MaPhieu == maPhieu)
+                .OrderBy(x => x.ID)
+                .ToListAsync();
+
+            var MaLo = await _context.Tbl_MaLo
+                .Select(a => new Tbl_MaLo
+                {
+                    ID_MaLo = a.ID_MaLo,
+                    TenMaLo = a.TenMaLo,
+                    ID_TinhTrang = 1
+                }).ToListAsync();
+
+            ViewBag.MLList = new SelectList(MaLo, "ID_MaLo", "TenMaLo");
+            ViewBag.MaPhieu = phieu.MaPhieu;
+            ViewBag.NgaySanXuat = phieu.NgaySanXuat.ToString("yyyy-MM-dd");
+            ViewBag.TenKip = phieu.ID_Kip;
+            ViewBag.ID_Locao = phieu.ID_Locao;
+            ViewBag.ID_Kip = phieu.ID_Kip;
+            ViewBag.TenKip = kip?.TenKip;
+            ViewBag.TenCa = kip?.TenCa;
+            ViewBag.Phieu = phieu;
+            ViewBag.PhongBan = PhongBan?.TenNgan;
+
+            // ===== Build ViewModel chỉ để đưa vào view =====
+
+            var vm = new Data_Product.DTO.BM_18_DTO.BM18DetailViewModel
+            {
+                Phieu = phieu,
+                ChiTiet = chiTiet
+            };
+
+            // ViewBag giữ nguyên, chỉ đổi return
+            return View("DetailPhieu", vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveChiTiet([FromBody] BM18Request req)
+        {
+            if (req == null || req.ChiTiet == null || req.ChiTiet.Count == 0)
+                return BadRequest("Dữ liệu không hợp lệ!");
+
+            // Kiểm tra hợp lệ người nhận
+            if (req.ID_NguoiNhan == null || req.ID_NguoiNhan <= 0)
+                return BadRequest("Vui lòng chọn người nhận!");
+
+            foreach (var item in req.ChiTiet)
+            {
+                // Kiểm tra hợp lệ Lô
+                if (item.ID_Lo == null || item.ID_Lo <= 0)
+                    return BadRequest("Vui lòng chọn Lô!");
+                // Kiểm tra hợp lệ hệ số quy đổi
+                if (item.HeSo == null || item.HeSo <= 0)
+                    return BadRequest("Vui lòng nhập hệ số quy đổi!");
+
+                if (item.ID == 0)
+                {
+                    // THÊM MỚI
+                    var newItem = new Tbl_BM_18_XiHatLoCao
+                    {
+                        MaPhieu = item.MaPhieu,
+                        ID_LoCao = item.ID_LoCao,
+                        Ca = item.ID_Ca,
+                        Kip = item.ID_Kip,
+                        Ten_NVL = item.Ten_NVL,
+                        DVT = item.DVT,
+                        ID_Lo = item.ID_Lo,
+                        HeSo = item.HeSo,
+                        NgaySanXuat = item.NgaySanXuat,
+                        KL_Gang_Giao = item.KL_Gang_Giao,
+                        KL_Xi_Giao = item.KL_Xi_Giao,
+                        KL_Gang_Nhan = item.KL_Gang_Nhan,
+                        KL_Xi_Nhan = item.KL_Xi_Nhan,
+                        GhiChu = item.GhiChu
+                    };
+                    _context.Tbl_BM_18_XiHatLoCao.Add(newItem);
+                }
+                else
+                {
+                    // UPDATE
+                    var updateItem = await _context.Tbl_BM_18_XiHatLoCao
+                        .FirstOrDefaultAsync(x => x.ID == item.ID);
+
+                    if (updateItem != null)
+                    {
+                        updateItem.Ca = item.ID_Ca;
+                        updateItem.Kip = item.ID_Kip;
+                        updateItem.Ten_NVL = item.Ten_NVL;
+                        updateItem.DVT = item.DVT;
+                        updateItem.ID_Lo = item.ID_Lo;
+                        updateItem.HeSo = item.HeSo;
+                        updateItem.KL_Gang_Giao = item.KL_Gang_Giao;
+                        updateItem.KL_Xi_Giao = item.KL_Xi_Giao;
+                        updateItem.KL_Gang_Nhan = item.KL_Gang_Nhan;
+                        updateItem.KL_Xi_Nhan = item.KL_Xi_Nhan;
+                        updateItem.GhiChu = item.GhiChu;
+                    }
+                }
+            }
+
+            // Cập nhật ID_NguoiGiao và ID_NguoiNhan vào phiếu
+            if (!string.IsNullOrEmpty(req.MaPhieu) && req.ID_NguoiGiao > 0 && req.ID_NguoiNhan > 0)
+            {
+                var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
+                if (phieu != null)
+                {
+                    
+                    phieu.ID_NguoiGiao = req.ID_NguoiGiao;
+                    phieu.ID_NguoiNhan = req.ID_NguoiNhan;
+                    phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.DangXuLy;
+                    phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.DangXuLy;
+                    phieu.TrangThai = (int)TrangThaiXuLy.DangXuLy; ;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Đã lưu thành công!" });
+        }
+        public async Task<IActionResult> Index_Detail(string maPhieu)
+        {
+            // 1. Lấy thông tin phiếu
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
+
+            if (phieu == null)
+                return NotFound("Không tìm thấy phiếu BM18 với mã này.");
+
+            // 2. Lấy chi tiết phiếu với join MaLo
+            var chiTiet = await (
+                from ct in _context.Tbl_BM_18_XiHatLoCao
+                    .Where(x => x.MaPhieu == phieu.MaPhieu)
+                join ml in _context.Tbl_MaLo
+                    on ct.ID_Lo equals ml.ID_MaLo into g
+                from ml in g.DefaultIfEmpty()
+                    // Join thêm bảng Kip
+                join kp in _context.Tbl_Kip
+                    on ct.Kip equals kp.ID_Kip into g2
+                from kp in g2.DefaultIfEmpty()
+                select new Tbl_BM_18_XiHatLoCao
+                {
+                    ID = ct.ID,
+                    MaPhieu = ct.MaPhieu,
+                    ID_LoCao = ct.ID_LoCao,
+                    Ca = ct.Ca,
+                    Kip = ct.Kip,
+                    Ten_NVL = ct.Ten_NVL,
+                    DVT = ct.DVT,
+                    ID_Lo = ct.ID_Lo,
+                    HeSo = ct.HeSo,
+                    NgaySanXuat = ct.NgaySanXuat,
+                    KL_Gang_Giao = ct.KL_Gang_Giao,
+                    KL_Xi_Giao = ct.KL_Xi_Giao,
+                    KL_Gang_Nhan = ct.KL_Gang_Nhan,
+                    KL_Xi_Nhan = ct.KL_Xi_Nhan,
+                    GhiChu = ct.GhiChu,
+                    TenMaLo = ml != null ? ml.TenMaLo : "",
+                    CaKip = kp != null ? $"{kp.TenCa}{kp.TenKip}" : ""
+                }
+            ).ToListAsync();
+
+            // 3. Lấy thông tin bên giao
+            Tbl_TaiKhoan thongTinBG = null;
+            Tbl_PhongBan phongBanBG = null;
+            Tbl_Xuong phanXuongBG = null;
+            Tbl_ViTri viTriBG = null;
+            if (phieu.ID_NguoiGiao.HasValue && phieu.ID_NguoiGiao.Value > 0)
+            {
+                thongTinBG = await _context.Tbl_TaiKhoan
+                    .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiGiao.Value);
+                if (thongTinBG != null)
+                {
+                    phongBanBG = await _context.Tbl_PhongBan
+                        .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBG.ID_PhongBan);
+                    phanXuongBG = await _context.Tbl_Xuong
+                        .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBG.ID_PhanXuong);
+                    viTriBG = await _context.Tbl_ViTri
+                        .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBG.ID_ChucVu);
+                }
+            }
+            Tbl_TaiKhoan thongTinBN = null;
+            Tbl_PhongBan phongBanBN = null;
+            Tbl_Xuong phanXuongBN = null;
+            Tbl_ViTri viTriBN = null;
+            if (phieu.ID_NguoiNhan.HasValue && phieu.ID_NguoiNhan.Value > 0)
+            {
+                thongTinBN = await _context.Tbl_TaiKhoan
+                    .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiNhan.Value);
+                if (thongTinBN != null)
+                {
+                    phongBanBN = await _context.Tbl_PhongBan
+                        .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBN.ID_PhongBan);
+                    phanXuongBN = await _context.Tbl_Xuong
+                        .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBN.ID_PhanXuong);
+                    viTriBN = await _context.Tbl_ViTri
+                        .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBN.ID_ChucVu);
+                }
+            }
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+            var PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
+            string TenBP = PhongBan.TenNgan;
+
+            List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
+            ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
+            // 5. Tạo ViewModel
+            var viewModel = new BM18DetailViewModel
+            {
+                Phieu = phieu,
+                ChiTiet = chiTiet,
+                ThongTinBenGiao = thongTinBG,
+                PhongBanBenGiao = phongBanBG,
+                PhanXuongBenGiao = phanXuongBG,
+                ViTriBenGiao = viTriBG,
+                ThongTinBenNhan = thongTinBN,
+                PhongBanBenNhan = phongBanBN,
+                PhanXuongBenNhan = phanXuongBN,
+                ViTriBenNhan = viTriBN,
+            };
+            ViewBag.PhongBan = PhongBan?.TenNgan;
+            return View(viewModel);
+        }
+        [HttpPost]
+        public async Task<IActionResult> XacNhanPhieuBN([FromBody] XacNhanPhieuBNRequest req)
+        {
+            if (string.IsNullOrEmpty(req.MaPhieu))
+                return BadRequest(new { success = false, message = "Mã phiếu không hợp lệ!" });
+
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var taiKhoan = await _context.Tbl_TaiKhoan
+                .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+            if (taiKhoan == null)
+                return Unauthorized(new { success = false, message = "Không xác định được tài khoản!" });
+
+            int idNhanVienBN = taiKhoan.ID_TaiKhoan;
+
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
+
+            if (phieu == null)
+                return NotFound(new { success = false, message = "Không tìm thấy phiếu!" });
+
+            if (phieu.ID_NguoiNhan != idNhanVienBN)
+                return Forbid();
+
+            phieu.ID_TrangThaiBN = req.TrangThai;
+            if (req.TrangThai == (int)TrangThaiXuLy.HoanThanh)
+            {
+                phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.HoanThanh;
+                phieu.TrangThai = (int)TrangThaiXuLy.HoanThanh;
+            }
+            else if (req.TrangThai == (int)TrangThaiXuLy.TuChoi)
+            {
+                phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.TuChoi;
+                phieu.TrangThai = (int)TrangThaiXuLy.TuChoi;
+            }
+            else
+            {
+                phieu.ID_TrangThaiBN = req.TrangThai;
+                phieu.TrangThai = (int)TrangThaiXuLy.DangXuLy;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, message = "Xác nhận thành công!" });
+        }
+
+        [HttpPost]
+        public IActionResult ResetPhieu([FromBody] ResetPhieuRequest request)
+        {
+            if (string.IsNullOrEmpty(request.MaPhieu))
+                return BadRequest("Mã phiếu không hợp lệ");
+
+            var phieu = _context.Tbl_BM_18_PhieuXiHat.FirstOrDefault(x => x.MaPhieu == request.MaPhieu);
+            phieu.ID_NguoiGiao = null;
+            phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.ChuaXuLy;
+            phieu.ID_NguoiNhan = null;
+            phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.ChuaXuLy;
+            phieu.TrangThai = (int)TrangThaiXuLy.ChuaXuLy;
+
+            // Xóa chi tiết phiếu
+            var chiTietList = _context.Tbl_BM_18_XiHatLoCao
+                                  .Where(x => x.MaPhieu == request.MaPhieu).ToList();
+            foreach (var ct in chiTietList)
+            {
+                ct.HeSo = 0;
+                ct.ID_Lo = 0;
+                ct.KL_Gang_Giao = 0;
+                ct.KL_Xi_Giao = 0;
+                ct.KL_Gang_Nhan = 0;
+                ct.KL_Xi_Nhan = 0;
+                ct.GhiChu = null;
+            }
+            _context.SaveChanges();
+
+            return Ok(new { success = true });
+        }
+        // [HttpGet]
+        // public async Task<IActionResult> KLGangTrongCa(int ca, int idKip, DateTime ngayLuyenGang, int idLoCao)
+        // {
+
+        //     var dsThung = await _context.Tbl_BM_16_GangLong
+        //         .Where(t =>
+        //             t.G_Ca == ca &&
+        //             t.G_ID_Kip == idKip &&
+        //             t.NgayTao == ngayLuyenGang.Date &&
+        //             t.ID_Locao == idLoCao &&
+        //             t.T_copy == false
+        //         )
+        //         .ToListAsync();
+
+        //     if (!dsThung.Any())
+        //         return NotFound("Không tìm thấy dữ liệu theo điều kiện lọc.");
+
+
+        //     decimal ptDuc = await _context.Tbl_BM_16_PhanTramDuc
+        //         .Where(x => x.ID == 1)
+        //         .Select(x => x.PhanTram)
+        //         .FirstOrDefaultAsync();
+
+
+        //     var tongTheoMe = await _context.Tbl_BM_16_GangLong
+        //         .Where(t =>
+        //             t.G_Ca == ca &&
+        //             t.G_ID_Kip == idKip &&
+        //             t.NgayTao == ngayLuyenGang.Date &&
+        //             t.ID_Locao == idLoCao &&
+        //             !string.IsNullOrEmpty(t.BKMIS_SoMe)
+        //         )
+        //         .GroupBy(t => t.BKMIS_SoMe)
+        //         .Select(g => new
+        //         {
+        //             SoMe = g.Key,
+        //             TongKL = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0)) ?? 0m
+        //         })
+        //         .ToDictionaryAsync(x => x.SoMe, x => x.TongKL);
+
+        //     decimal tongKL_TheoMe = tongTheoMe.Values.Sum();
+
+        //     var klDucTheoMeRaw = await _context.Tbl_BM_16_GangLong
+        //         .Where(t =>
+        //             t.G_Ca == ca &&
+        //             t.G_ID_Kip == idKip &&
+        //             t.NgayTao == ngayLuyenGang.Date &&
+        //             t.ID_Locao == idLoCao &&
+        //             !string.IsNullOrEmpty(t.BKMIS_SoMe) &&
+        //             t.ChuyenDen != "HRC1" &&
+        //             t.ChuyenDen != "HRC2"
+        //         )
+        //         .GroupBy(t => t.BKMIS_SoMe)
+        //         .Select(g => new
+        //         {
+        //             SoMe = g.Key,
+
+        //             SumG = g.Where(x => x.T_copy == false)
+        //                     .Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
+
+        //             SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m,
+
+        //             SumChiaRaw = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
+
+        //             HasChia = g.Any(x => x.KLGangChia != null && x.KLGangChia > 0)
+        //         })
+        //         .ToListAsync();
+
+        //     var klDucTheoMe = klDucTheoMeRaw.ToDictionary(
+        //         x => x.SoMe,
+        //         x =>
+        //         {
+        //             var baseValue = x.HasChia ? x.SumChiaRaw : x.SumT;
+        //             var kld = (x.SumG - baseValue) * (ptDuc / 100m);
+        //             return Math.Round(kld, 2);
+        //         }
+        //     );
+
+        //     decimal tongKLDuc = klDucTheoMe.Values.Sum();
+
+        //     decimal tongKLGang = tongKLDuc + tongKL_TheoMe;
+
+        //     ViewBag.TongKL_TheoMe = tongTheoMe;
+        //     ViewBag.KLDuc_TheoMe = klDucTheoMe;
+        //     ViewBag.TongKLGang = tongKLGang;
+        //     return View();
+        // }
+
+        [HttpGet]
+        public async Task<IActionResult> KLGangTrongCaJson(int ca, int idKip, DateTime ngaySanXuat, int idLoCao, string maPhieu = null)
+        {
+            // Nếu có mã phiếu, kiểm tra trạng thái phiếu
+            if (!string.IsNullOrEmpty(maPhieu))
+            {
+                var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
+                if (phieu != null && phieu.ID_TrangThaiBG != (int)TrangThaiXuLy.ChuaXuLy)
+                {
+                    // Lấy giá trị KL_Gang đã lưu trong DB (dòng đầu tiên của phiếu)
+                    var chiTiet = await _context.Tbl_BM_18_XiHatLoCao.Where(x => x.MaPhieu == maPhieu).OrderBy(x => x.ID).FirstOrDefaultAsync();
+                    decimal tongKLGangFromDb = chiTiet?.KL_Gang_Giao ?? 0;
+                    return Ok(new { tongKLGang = tongKLGangFromDb });
+                }
+            }
+            // ===== Lấy danh sách thùng theo điều kiện mới =====
+            var dsThung = await _context.Tbl_BM_16_GangLong
+                .Where(t =>
+                    t.G_Ca == ca &&
+                    t.G_ID_Kip == idKip &&
+                    t.NgayTao == ngaySanXuat.Date &&
+                    t.ID_Locao == idLoCao &&
+                    t.T_copy == false
+                )
+                .ToListAsync();
+
+            if (!dsThung.Any())
+                return NotFound("Không tìm thấy dữ liệu theo điều kiện lọc.");
+
+            // ===== Lấy % đúc =====
+            decimal ptDuc = await _context.Tbl_BM_16_PhanTramDuc
+                .Where(x => x.ID == 1)
+                .Select(x => x.PhanTram)
+                .FirstOrDefaultAsync();
+
+            // ===== 1) TÍNH TỔNG KL THEO MẺ =====
+            var tongTheoMe = await _context.Tbl_BM_16_GangLong
+                .Where(t =>
+                    t.G_Ca == ca &&
+                    t.G_ID_Kip == idKip &&
+                    t.NgayTao == ngaySanXuat.Date &&
+                    t.ID_Locao == idLoCao &&
+                    !string.IsNullOrEmpty(t.BKMIS_SoMe)
+                )
+                .GroupBy(t => t.BKMIS_SoMe)
+                .Select(g => new
+                {
+                    SoMe = g.Key,
+                    TongKL = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0)) ?? 0m
+                })
+                .ToDictionaryAsync(x => x.SoMe, x => x.TongKL);
+            // Tổng tất cả KL theo mẻ
+            decimal tongKL_TheoMe = tongTheoMe.Values.Sum();
+
+            // ===== 2) TÍNH KL ĐÚC THEO MẺ =====
+            var klDucTheoMeRaw = await _context.Tbl_BM_16_GangLong
+                .Where(t =>
+                    t.G_Ca == ca &&
+                    t.G_ID_Kip == idKip &&
+                    t.NgayTao == ngaySanXuat.Date &&
+                    t.ID_Locao == idLoCao &&
+                    !string.IsNullOrEmpty(t.BKMIS_SoMe) &&
+                    t.ChuyenDen != "HRC1" &&
+                    t.ChuyenDen != "HRC2"
+                )
+                .GroupBy(t => t.BKMIS_SoMe)
+                .Select(g => new
+                {
+                    SoMe = g.Key,
+
+                    SumG = g.Where(x => x.T_copy == false)
+                            .Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
+
+                    SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m,
+
+                    SumChiaRaw = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
+
+                    HasChia = g.Any(x => x.KLGangChia != null && x.KLGangChia > 0)
+                })
+                .ToListAsync();
+
+            var klDucTheoMe = klDucTheoMeRaw.ToDictionary(
+                x => x.SoMe,
+                x =>
+                {
+                    var baseValue = x.HasChia ? x.SumChiaRaw : x.SumT;
+                    var kld = (x.SumG - baseValue) * (ptDuc / 100m);
+                    return Math.Round(kld, 2);
+                }
+            );
+            // Tổng tất cả KL đúc
+            decimal tongKLDuc = klDucTheoMe.Values.Sum();
+            decimal tongKLGang = tongKL_TheoMe + tongKLDuc;
+
+            return Ok(new
+            {
+                tongKLGang,
+                tongKL_TheoMe = tongTheoMe,
+                klDuc_TheoMe = klDucTheoMe
+            });
+        }
+
+        [HttpGet]
+
+        public async Task<IActionResult> ExportPDF()
+        {
+            string testMaPhieu = "XHLC-L1-1A-251101";
+
+            // Lấy phiếu tổng
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                 .FirstOrDefaultAsync(x => x.MaPhieu == testMaPhieu);
+
+            if (phieu == null)
+                return NotFound("Không tìm thấy phiếu.");
+
+            // Lấy chi tiết (có TenMaLo)
+            var chiTiet = await (
+                 from ct in _context.Tbl_BM_18_XiHatLoCao
+                     .Where(x => x.MaPhieu == phieu.MaPhieu)
+                 join ml in _context.Tbl_MaLo
+                     on ct.ID_Lo equals ml.ID_MaLo into g
+                 from ml in g.DefaultIfEmpty()
+                     // Join thêm bảng Kip
+                 join kp in _context.Tbl_Kip
+                     on ct.Kip equals kp.ID_Kip into g2
+                 from kp in g2.DefaultIfEmpty()
+                 select new Tbl_BM_18_XiHatLoCao
+                 {
+                     ID = ct.ID,
+                     MaPhieu = ct.MaPhieu,
+                     ID_LoCao = ct.ID_LoCao,
+                     Ca = ct.Ca,
+                     Kip = ct.Kip,
+                     Ten_NVL = ct.Ten_NVL,
+                     DVT = ct.DVT,
+                     ID_Lo = ct.ID_Lo,
+                     HeSo = ct.HeSo,
+                     NgaySanXuat = ct.NgaySanXuat,
+                     KL_Gang_Giao = ct.KL_Gang_Giao,
+                     KL_Xi_Giao = ct.KL_Xi_Giao,
+                     KL_Gang_Nhan = ct.KL_Gang_Nhan,
+                     KL_Xi_Nhan = ct.KL_Xi_Nhan,
+                     GhiChu = ct.GhiChu,
+                     TenMaLo = ml != null ? ml.TenMaLo : "",
+                     CaKip = kp != null ? $"{kp.TenCa}{kp.TenKip}" : ""
+                 }
+             ).ToListAsync();
+
+            var vm = new Data_Product.DTO.BM_18_DTO.BM18DetailViewModel
+            {
+                Phieu = phieu,
+                ChiTiet = chiTiet
+            };
+
+            return View(vm); // truyền đúng ViewModel
+        }
+        public async Task<IActionResult> ExportDanhSachExcel(string maPhieu, DateTime? tuNgaySX,DateTime? denNgaySX, string ca, string locao, string trangThai)
+        {
+            string fileNamemaunew = null;
+            try
+            {
+
+                // Query danh sách phiếu với filter
+                var query = _context.Tbl_BM_18_PhieuXiHat.AsQueryable();
+
+                if (!string.IsNullOrEmpty(maPhieu))
+                {
+                    query = query.Where(x => x.MaPhieu.Contains(maPhieu));
+                }
+
+                if (tuNgaySX.HasValue && denNgaySX.HasValue)
+                {
+                    query = query.Where(s =>
+                        s.NgaySanXuat.Date >= tuNgaySX.Value.Date &&
+                        s.NgaySanXuat.Date <= denNgaySX.Value.Date
+                    );
+                }
+                else if (tuNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date >= tuNgaySX.Value.Date);
+                }
+                else if (denNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date <= denNgaySX.Value.Date);
+                }
+
+
+                if (!string.IsNullOrEmpty(ca) && int.TryParse(ca, out int caInt))
+                {
+                    query = query.Where(x => x.Ca.HasValue && x.Ca.Value == caInt);
+                }
+
+                if (!string.IsNullOrEmpty(locao))
+                {
+                    if (int.TryParse(locao, out int loCaoId))
+                    {
+                        query = query.Where(x => x.ID_Locao == loCaoId);
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(trangThai))
+                {
+                    if (int.TryParse(trangThai, out int ttValue))
+                    {
+                        query = query.Where(x => x.TrangThai == ttValue);
+                    }
+                }
+
+                var danhSachPhieu = await query.OrderByDescending(x => x.NgaySanXuat).ToListAsync();
+
+                if (danhSachPhieu.Count == 0)
+                {
+                    TempData["msgError"] = "<script>alert('Không có dữ liệu để xuất!');</script>";
+                    return RedirectToAction("Index_All_PKH");
+                }
+
+                // Lấy tất cả mã phiếu
+                var maPhieuList = danhSachPhieu.Select(x => x.MaPhieu).ToList();
+
+                // Load chi tiết của tất cả phiếu
+                var chiTietList = await _context.Tbl_BM_18_XiHatLoCao
+                    .Where(x => maPhieuList.Contains(x.MaPhieu))
+                    .OrderBy(x => x.MaPhieu)
+                    .ThenBy(x => x.ID)
+                    .ToListAsync();
+
+                if (chiTietList.Count == 0)
+                {
+                    TempData["msgError"] = "<script>alert('Không có chi tiết dữ liệu!');</script>";
+                    return RedirectToAction("Index_All_PKH");
+                }
+
+                // Load dữ liệu liên quan
+                var kipIds = danhSachPhieu.Select(x => x.ID_Kip).Where(x => x.HasValue).Select(x => x.Value).Distinct().ToArray();
+                var kips = await _context.Tbl_Kip
+                    .Where(x => kipIds.Contains(x.ID_Kip))
+                    .ToDictionaryAsync(x => x.ID_Kip);
+
+                var loCaoIds = chiTietList.Select(x => x.ID_LoCao).Distinct().ToArray();
+                var loCaos = await _context.Tbl_LoCao
+                    .Where(x => loCaoIds.Contains(x.ID))
+                    .ToDictionaryAsync(x => x.ID);
+
+                var loIds = chiTietList.Select(x => x.ID_Lo).Where(x => x.HasValue).Select(x => x.Value).Distinct().ToArray();
+                var los = await _context.Tbl_MaLo
+                    .Where(x => loIds.Contains(x.ID_MaLo))
+                    .ToDictionaryAsync(x => x.ID_MaLo);
+
+                // Tạo dictionary phiếu để lookup nhanh
+                var phieuDict = danhSachPhieu.ToDictionary(x => x.MaPhieu);
+
+                // Tạo file Excel từ template hoặc tạo mới
+                string fileNamemau = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BM_TongHopXiHatLoCao.xlsx";
+                fileNamemaunew = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BM_TongHopXiHatLoCao" + Guid.NewGuid() + ".xlsx";
+
+                // ✅ KHỞI TẠO Ở ĐÂY – BẮT BUỘC
+                XLWorkbook Workbook = new XLWorkbook(fileNamemau);
+                IXLWorksheet Worksheet = Workbook.Worksheet(1);
+
+                string tuNgayText = tuNgaySX.HasValue ? tuNgaySX.Value.ToString("dd/MM/yyyy") : "....";
+                string denNgayText = denNgaySX.HasValue ? denNgaySX.Value.ToString("dd/MM/yyyy") : ".......";
+
+                string filterNgay = $"Từ ngày: {tuNgayText} đến ngày: {denNgayText}";
+
+                Worksheet.Range("A4:R4").Merge();
+                Worksheet.Cell("A4").Value = filterNgay;
+
+                Worksheet.Range("A4:R4").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                Worksheet.Range("A4:R4").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                Worksheet.Range("A4:R4").Style.Font.Italic = true;
+                Worksheet.Range("A4:R4").Style.Font.SetFontSize(11);
+
+                if (!System.IO.File.Exists(fileNamemau))
+                {
+                    TempData["msgError"] =
+                        "<script>alert('Không tìm thấy file template BM_TongHopXiHatLoCao.xlsx');</script>";
+                    return RedirectToAction("Index_All_PKH");
+                }
+
+                // Bắt đầu ghi dữ liệu từ dòng 8
+                int currentRow = 9;
+                int stt = 0;
+
+                foreach (var item in chiTietList)
+                {
+                    stt++;
+                    int col = 1;
+
+                    // Lấy thông tin phiếu
+                    var phieu = phieuDict.ContainsKey(item.MaPhieu) ? phieuDict[item.MaPhieu] : null;
+
+                    // STT
+                    SetCellValue(Worksheet.Cell(currentRow, col++), stt, XLAlignmentHorizontalValues.Center);
+
+                    // Ngày
+                    if (item.NgaySanXuat.HasValue)
+                    {
+                        var cell = Worksheet.Cell(currentRow, col++);
+                        cell.Value = item.NgaySanXuat.Value;
+                        cell.Style.DateFormat.Format = "dd/MM/yyyy";
+                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    }
+                    else
+                    {
+                        SetCellValue(Worksheet.Cell(currentRow, col++), "", XLAlignmentHorizontalValues.Center);
+                    }
+
+                    // Lò cao
+                    string tenLoCao = "";
+                    if (loCaos.ContainsKey(item.ID_LoCao))
+                    {
+                        tenLoCao = loCaos[item.ID_LoCao].TenLoCao ?? "";
+                    }
+                    SetCellValue(Worksheet.Cell(currentRow, col++), tenLoCao, XLAlignmentHorizontalValues.Center);
+
+                    // Kíp
+                    string tenKip = "";
+                    if (phieu != null && phieu.ID_Kip.HasValue && kips.ContainsKey(phieu.ID_Kip.Value))
+                    {
+                        tenKip = kips[phieu.ID_Kip.Value].TenKip ?? "";
+                    }
+                    SetCellValue(Worksheet.Cell(currentRow, col++), tenKip, XLAlignmentHorizontalValues.Center);
+
+                    // Ca
+                    string tenCa = item.Ca == 1 ? "Ngày" : item.Ca == 2 ? "Đêm" : (item.Ca?.ToString() ?? "");
+                    SetCellValue(Worksheet.Cell(currentRow, col++), tenCa, XLAlignmentHorizontalValues.Center);
+
+                    // Tên N/VL
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.Ten_NVL ?? "");
+
+                    // Tên lò
+                    string tenLo = "";
+                    if (item.ID_Lo.HasValue && los.ContainsKey(item.ID_Lo.Value))
+                    {
+                        tenLo = los[item.ID_Lo.Value].TenMaLo ?? "";
+                    }
+                    SetCellValue(Worksheet.Cell(currentRow, col++), tenLo);
+
+                    // Hệ số quy đổi
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.HeSo ?? 0, XLAlignmentHorizontalValues.Center);
+
+                    // ĐVT
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.DVT ?? "", XLAlignmentHorizontalValues.Center);
+
+                    // === KL bên giao ===
+                    // KL gang
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+
+                    // KL xỉ
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+
+                    // Bộ phận giao
+                    SetCellValue(Worksheet.Cell(currentRow, col++), "");
+
+                    // === KL bên nhận ===
+                    // KL gang
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+
+                    // KL Xi
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+
+                    // Bộ phận nhận
+                    SetCellValue(Worksheet.Cell(currentRow, col++), "");
+
+                    // Ghi chú
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.GhiChu ?? "");
+
+                    // Mã phiếu
+                    SetCellValue(Worksheet.Cell(currentRow, col++), item.MaPhieu ?? "");
+
+                    // Tình trạng phiếu
+                    string trangThaiText = "";
+                    if (phieu != null)
+                    {
+                        switch (phieu.TrangThai)
+                        {
+                            case 0: trangThaiText = "Chưa xử lý"; break;
+                            case 1: trangThaiText = "Đang xử lý"; break;
+                            case 2: trangThaiText = "Hoàn thành"; break;
+                            case 3: trangThaiText = "Từ chối"; break;
+                            default: trangThaiText = ""; break;
+                        }
+                    }
+                    SetCellValue(Worksheet.Cell(currentRow, col++), trangThaiText, XLAlignmentHorizontalValues.Center);
+
+                    currentRow++;
+                }
+
+                // Format toàn bộ vùng dữ liệu
+                int lastRow = currentRow - 1;
+                if (lastRow >= 8)
+                {
+                    var dataRange = Worksheet.Range($"A7:R{lastRow}");
+                    dataRange.Style.Font.SetFontName("Times New Roman");
+                    dataRange.Style.Font.SetFontSize(11);
+                    dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                }
+
+                // Lưu file
+                Workbook.SaveAs(fileNamemaunew);
+
+                // Đọc và trả về
+                byte[] fileBytes = System.IO.File.ReadAllBytes(fileNamemaunew);
+                string fileName = $"TongHop_XiHatLoCao_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["msgError"] = $"<script>alert('Có lỗi khi xuất Excel: {ex.Message}');</script>";
+                return RedirectToAction("Index_All_PKH");
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(fileNamemaunew) && System.IO.File.Exists(fileNamemaunew))
+                {
+                    try
+                    {
+                        System.IO.File.Delete(fileNamemaunew);
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        // Hàm helper
+        private void SetCellValue(IXLCell cell, object value, XLAlignmentHorizontalValues horizontal = XLAlignmentHorizontalValues.Left)
+        {
+            cell.SetValue(value?.ToString() ?? string.Empty);
+            cell.Style.Alignment.Horizontal = horizontal;
+            cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            cell.Style.Alignment.WrapText = true;
+        }
+
+
+        public async Task<IActionResult> GeneratePdf(string maPhieu)
+        {
+            // Lấy phiếu
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == maPhieu);
+
+            if (phieu == null)
+                return NotFound("Không tìm thấy phiếu.");
+
+            // Lấy chi tiết (có TenMaLo)
+            var chiTiet = await (
+                 from ct in _context.Tbl_BM_18_XiHatLoCao
+                     .Where(x => x.MaPhieu == phieu.MaPhieu)
+                 join ml in _context.Tbl_MaLo
+                     on ct.ID_Lo equals ml.ID_MaLo into g
+                 from ml in g.DefaultIfEmpty()
+                     // Join thêm bảng Kip
+                 join kp in _context.Tbl_Kip
+                     on ct.Kip equals kp.ID_Kip into g2
+                 from kp in g2.DefaultIfEmpty()
+                 select new Tbl_BM_18_XiHatLoCao
+                 {
+                     ID = ct.ID,
+                     MaPhieu = ct.MaPhieu,
+                     ID_LoCao = ct.ID_LoCao,
+                     Ca = ct.Ca,
+                     Kip = ct.Kip,
+                     Ten_NVL = ct.Ten_NVL,
+                     DVT = ct.DVT,
+                     ID_Lo = ct.ID_Lo,
+                     HeSo = ct.HeSo,
+                     NgaySanXuat = ct.NgaySanXuat,
+                     KL_Gang_Giao = ct.KL_Gang_Giao,
+                     KL_Xi_Giao = ct.KL_Xi_Giao,
+                     KL_Gang_Nhan = ct.KL_Gang_Nhan,
+                     KL_Xi_Nhan = ct.KL_Xi_Nhan,
+                     GhiChu = ct.GhiChu,
+                     TenMaLo = ml != null ? ml.TenMaLo : "",
+                     CaKip = kp != null ? $"{kp.TenCa}{kp.TenKip}" : ""
+                 }
+             ).ToListAsync();
+
+            // Đưa vào ViewModel
+            var vm = new BM18DetailViewModel
+            {
+                Phieu = phieu,
+                ChiTiet = chiTiet
+            };
+
+            // Render View -> HTML
+            string htmlContent = await RenderViewToStringAsync("ExportPDF", vm);
+
+            // HTML -> PDF
+            byte[] pdfBytes = ConvertHtmlToPdf(htmlContent);
+
+            string filename = phieu.MaPhieu + "_" + DateTime.Now.ToString("yyyyMMddHHmm") + ".pdf";
+
+            return File(pdfBytes, "application/pdf", filename);
+        }
+
+        private async Task<string> RenderViewToStringAsync(string viewName, object model)
+        {
+            ViewData.Model = model;
+
+            using (var sw = new StringWriter())
+            {
+                var viewResult = _viewEngine.FindView(ControllerContext, viewName, false);
+
+                if (!viewResult.Success)
+                    throw new FileNotFoundException($"Không tìm thấy view: {viewName}");
+
+                var viewContext = new ViewContext(
+                    ControllerContext,
+                    viewResult.View,
+                    ViewData,
+                    TempData,
+                    sw,
+                    new Microsoft.AspNetCore.Mvc.ViewFeatures.HtmlHelperOptions()
+                );
+
+                await viewResult.View.RenderAsync(viewContext);
+                return sw.ToString();
+            }
+        }
+        private byte[] ConvertHtmlToPdf(string html)
+        {
+            using (var ms = new MemoryStream())
+            {
+                var writer = new iText.Kernel.Pdf.PdfWriter(ms);
+                var pdf = new iText.Kernel.Pdf.PdfDocument(writer);
+
+                // A4 ngang
+                pdf.SetDefaultPageSize(iText.Kernel.Geom.PageSize.A4.Rotate());
+
+                // Font
+                var fontProvider = new FontProvider();
+                fontProvider.AddFont("C:/Windows/Fonts/times.ttf");
+                fontProvider.AddFont("C:/Windows/Fonts/timesbd.ttf");
+
+                var props = new ConverterProperties();
+                props.SetFontProvider(fontProvider);
+
+                HtmlConverter.ConvertToPdf(html, pdf, props);
+
+                return ms.ToArray();
+            }
+        }
+
+    }
+}

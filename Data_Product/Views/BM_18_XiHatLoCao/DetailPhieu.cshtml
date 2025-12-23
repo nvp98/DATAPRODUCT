@@ -1,0 +1,793 @@
+﻿@using Data_Product.Common.Enums
+@using Data_Product.Models
+@using System.Security.Claims
+@using Data_Product.Repositorys
+@using Microsoft.EntityFrameworkCore
+@inject Data_Product.Repositorys.DataContext _context
+@model Data_Product.DTO.BM_18_DTO.BM18DetailViewModel
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+<style>
+	table th {
+		text-align: center;
+	}
+
+	#dataTable input {
+		border-radius: 0px !important;
+	}
+
+	.is-invalid {
+		border: 1px solid red !important;
+		background-color: #ffe6e6 !important;
+	}
+
+	.bm18-table-wrapper {
+		overflow-x: auto;
+		border: 1px solid #dee2e6;
+		border-radius: .25rem;
+	}
+
+	.bm18-table {
+		min-width: 1500px;
+		font-size: 14px;
+	}
+
+	.table td,
+	.table th {
+		vertical-align: middle;
+		padding: .5rem .6rem;
+	}
+
+	.table-striped-custom tbody tr:nth-of-type(odd) {
+		background-color: rgba(0, 0, 0, .02);
+	}
+
+	.text-right {
+		text-align: right;
+	}
+
+	thead.table-light.sticky-top {
+		position: sticky;
+		top: 0;
+		z-index: 5;
+	}
+
+	/* Select2 Custom Styles */
+	.select2-container {
+		font-size: 14px;
+		width: 100% !important;
+	}
+
+	.select2-container .select2-selection--single {
+		height: 38px !important;
+		border-radius: 0px !important;
+		border: 1px solid #ced4da !important;
+	}
+
+	.select2-container .select2-selection--single .select2-selection__rendered {
+		line-height: 38px !important;
+		padding-left: 12px !important;
+	}
+
+	.select2-container--default .select2-selection--single .select2-selection__arrow {
+		height: 36px !important;
+	}
+
+	.select2-dropdown {
+		border-radius: 0px !important;
+		border: 1px solid #ced4da !important;
+	}
+
+	.select-lo-wrapper {
+		min-width: 180px;
+	}
+</style>
+
+@if (TempData["msgSuccess"] != null)
+{
+	@Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+	@Html.Raw(TempData["msgError"])
+}
+
+@{
+	ViewData["Title"] = "Chi tiết phiếu BM18";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("LuuBM18", "BM18", FormMethod.Post, new { enctype = "multipart/form-data", id = "FormBM18" }))
+{
+	<div class="app-main__outer">
+		<div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+			<div id="alertContainer" class="mt-3"></div>
+
+			<div class="row">
+				<div class="col mb-3">
+					<label class="form-label">Mã phiếu:</label>
+					<input type="text" class="form-control" value="@ViewBag.MaPhieu" readonly id="PhieuID" />
+				</div>
+				<div class="col mb-3">
+					<label class="form-label">Ngày sản xuất:</label>
+					<input type="date" class="form-control" value="@ViewBag.NgaySanXuat" readonly id="ID_Day" />
+				</div>
+				<div class="col mb-3">
+					<label class="form-label">Tên kíp:</label>
+					<input type="text" class="form-control" value="@ViewBag.TenKip" readonly />
+				</div>
+				<div class="col mb-3">
+					<label class="form-label">Tên ca:</label>
+					<input type="text" class="form-control" value="@ViewBag.TenCa" readonly id="IDCa" />
+				</div>
+				<div class="col mb-3">
+					<label class="form-label">Lò cao:</label>
+					<input type="text" class="form-control" value="@ViewBag.ID_Locao" readonly id="ID_Locao" />
+				</div>
+				<div class="col mb-3" hidden>
+					<input type="text" class="form-control" value="@ViewBag.ID_Kip" readonly id="ID_Kip" />
+				</div>
+			</div>
+			<div class="row g-3 mb-3" style="padding-top:1%;">
+				@{
+					var phieu = Model.Phieu;
+					Data_Product.Models.Tbl_TaiKhoan TaiKhoan = null;
+					Data_Product.Models.Tbl_PhongBan PhongBan = null;
+					Data_Product.Models.Tbl_Xuong PhanXuong = null;
+					Data_Product.Models.Tbl_ViTri ViTri = null;
+					if (phieu != null && phieu.ID_NguoiGiao != null && phieu.ID_NguoiGiao > 0)
+					{
+						TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == phieu.ID_NguoiGiao);
+					}
+					else
+					{
+						var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+						TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+					}
+					if (TaiKhoan != null)
+					{
+						PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
+						PhanXuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong);
+						ViTri = _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == TaiKhoan.ID_ChucVu);
+					}
+				}
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">Đại diện bên giao:</div>
+							<div style="font-size:15px; color:#222; font-weight:500;">
+								@(TaiKhoan != null ? (TaiKhoan.TenTaiKhoan + " - " + TaiKhoan.HoVaTen) : "")
+							</div>
+							<input type="hidden" id="IDNguoiGiao" value="@(TaiKhoan?.ID_TaiKhoan ?? 0)" />
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">Chức vụ:</div>
+							<div style="font-size:15px; color:#222; font-weight:500;">
+								@ViTri.TenViTri
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">BP/NM:</div>
+							<div style="font-size:15px; color:#222; font-weight:500;">
+								@PhongBan.TenPhongBan - @PhanXuong.TenXuong
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row g-3 mb-3">
+				<div class="col-12 col-md-4">
+					<div class="card shadow-sm h-100" style="border-radius:14px;">
+						<div class="card-body p-3">
+							<div class="mb-1 text-muted" style="font-size:14px;">
+								Đại diện bên nhận <span style="color:red; font-size:14px;"> (*)</span>:
+							</div>
+							<div>
+								@{
+									var hasNguoiNhan = Model.Phieu != null && Model.Phieu.ID_NguoiNhan != null && Model.Phieu.ID_NguoiNhan > 0;
+								}
+								@if (!hasNguoiNhan)
+								{
+									@Html.DropDownList("IDTaiKhoan", null, "----- Chọn đại diện bên nhận -----", new { id = "IDTaiKhoan", name = "IDTaiKhoan", @class = "form-control select2" })
+								}
+								else
+								{
+									var nguoiNhan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == Model.Phieu.ID_NguoiNhan);
+									<div style="font-size:15px; color:#222; font-weight:500; padding:6px 0;">
+										@(nguoiNhan != null ? nguoiNhan.TenTaiKhoan + " - " + nguoiNhan.HoVaTen : "")
+									</div>
+									<input type="hidden" id="IDTaiKhoan" name="IDTaiKhoan" value="@Model.Phieu.ID_NguoiNhan" />
+								}
+							</div>
+						</div>
+					</div>
+				<script type="text/javascript">
+					$(document).ready(function () {
+						$('#IDTaiKhoan').select2({
+							placeholder: "----- Chọn đại diện bên nhận -----",
+							allowClear: true,
+							width: '100%',
+							language: {
+								noResults: function () {
+									return "Không tìm thấy kết quả";
+								}
+							}
+						});
+						var hasNguoiNhan = @(ViewBag.HasNguoiNhan?.ToString().ToLower() ?? "false");
+						var idNguoiNhan = @(ViewBag.ID_NguoiNhan ?? 0);
+
+						if (hasNguoiNhan && idNguoiNhan > 0) {
+							$('#IDTaiKhoan').trigger('change');
+						}
+					});
+					$("#IDTaiKhoan").change(function () {
+						$.get("/BM_11/ChucVu", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+							if (data[0] != null) {
+								$("#IDChucVu").empty();
+								$.each(data, function (index, row) {
+									$("#IDChucVu").append("<option value ='" + row.iD_ChucVu + "' selected>" + row.tenChucVu + "</option>");
+								});
+							}
+							else {
+								$("#IDChucVu").empty();
+								$("#IDChucVu").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+							}
+						});
+					});
+				</script>
+			</div>
+			<div class="col-12 col-md-4">
+				<div class="card shadow-sm h-100" style="border-radius:14px;">
+					<div class="card-body p-3">
+						<div class="mb-1 text-muted" style="font-size:14px;">
+							Chức vụ <span style="color:red; font-size:14px;"> (*)</span>:
+						</div>
+						<div>
+							<select class="form-control" name="IDChucVu" id="IDChucVu" disabled="disabled">
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-12 col-md-4">
+				<div class="card shadow-sm h-100" style="border-radius:14px;">
+					<div class="card-body p-3">
+						<div class="mb-1 text-muted" style="font-size:14px;">
+							BP/NM <span style="color:red; font-size:14px;"> (*)</span>:
+						</div>
+						<div>
+							<select class="form-control" name="IDPhongBan" id="IDPhongBan" disabled="disabled">
+							</select>
+						</div>
+					</div>
+				</div>
+				<script type="text/javascript">
+					$("#IDTaiKhoan").change(function () {
+						$.get("/BM_11/PhongBan", { IDTaiKhoan: $("#IDTaiKhoan").val() }, function (data) {
+							if (data[0] != null) {
+								$("#IDPhongBan").empty();
+								$.each(data, function (index, row) {
+										$("#IDPhongBan").append("<option value ='" + row.iD_PhongBan + "' selected>" + row.tenPhongBan + "</option>");
+								});
+							}
+							else {
+								$("#IDPhongBan").empty();
+								$("#IDPhongBan").append("<option value ='" + 0 + "'>" + "--Không có chức vụ--" + "</option>")
+							}
+						});
+					});
+				</script>
+			</div>
+		</div>
+
+		<div class="row w-100 justify-content-end mb-3">
+			<div class="row">
+				<div class="col-6"></div>
+				<div class="col-6 d-flex justify-content-end">
+
+				@if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
+				{
+					<button type="button" id="btnResetPhieu" class="btn btn-warning ms-2 me-2">
+						<i class="bi bi-arrow-counterclockwise"></i> Reset Phiếu
+					</button>
+				}
+				@if (Model.Phieu.ID_TrangThaiBG == (int)TrangThaiXuLy.ChuaXuLy)
+				{
+					<button type="button" id="btnLuuBM18" class="btn btn-primary me-2">
+						<i class="bi bi-save"></i> Gửi phiếu
+					</button>
+				}
+				@if (Model.Phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
+				{
+					<button type="button" class="btn btn-success btn-sm px-4 me-2" id="BtnXuatPhieuExcel">
+						Xuất Excel
+					</button>
+					<button type="button" class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">
+						Xuất PDF
+					</button>
+				}
+				</div>
+			</div>
+		</div>
+
+		<div class="card-body" style="padding-top: 0%; overflow-x: auto; font-size: 14px; z-index:1;">
+			<div class="bm18-table-wrapper" style="max-height: 700px; overflow-y: auto;">
+				<table class="table table-bordered table-hover align-middle text-center bm18-table table-striped-custom"
+					id="dataTable">
+					<thead class="table-light sticky-top">
+						<tr>
+							<th rowspan="2">STT</th>
+							<th rowspan="2">Tên nguyên/nhiên/phụ liệu</th>
+							<th rowspan="2">ĐVT</th>
+							<th rowspan="2">Lô</th>
+							<th rowspan="2">Hệ số quy đổi<br />(xuất lượng xỉ)</th>
+							<th colspan="2">Khối lượng bên giao</th>
+							<th colspan="2">Khối lượng bên nhận</th>
+							<th rowspan="2">Ghi chú</th>
+						</tr>
+						<tr>
+							<th>KL gang</th>
+							<th>KL xỉ</th>
+							<th>KL gang</th>
+							<th>KL xỉ</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (Model != null && Model.ChiTiet != null && Model.ChiTiet.Count > 0)
+						{
+							var stt = 1;
+							foreach (var item in Model.ChiTiet)
+							{
+								<tr>
+									<input type="hidden" name="ID" value="@item.ID" />
+
+									<td>@stt</td>
+									<td>
+										<input type="text" name="TenNVL" class="form-control" value="@item.Ten_NVL" disabled />
+									</td>
+									<td>
+										<input type="text" name="DVT" class="form-control" value="@item.DVT" style="width:80px"
+											disabled />
+									</td>
+									<td>
+										<div class="select-lo-wrapper">
+												<select name="Lo" class="form-control select2-malo" @(Model.Phieu.TrangThai == (int)TrangThaiXuLy.ChuaXuLy ? "" : "disabled")>
+												<option value="">-- Chọn lô --</option>
+												@foreach (var lo in ViewBag.MLList as SelectList)
+												{
+													var idLoStr = item.ID_Lo?.ToString() ?? "";
+													if (lo.Value == idLoStr)
+													{
+														<option value="@lo.Value" selected>@lo.Text</option>
+													}
+													else
+													{
+														<option value="@lo.Value">@lo.Text</option>
+													}
+												}
+											</select>
+										</div>
+									</td>
+									<td>
+										<input type="number" step="0.001" name="HeSo" class="form-control text-right"
+												   value="@item.HeSo" @(Model.Phieu.TrangThai == (int)TrangThaiXuLy.ChuaXuLy ? "" : "disabled") />
+									</td>
+
+									<td>
+										<input type="number" step="0.001" min="0" name="KL_Gang_Giao"
+											class="form-control text-right" value="@item.KL_Gang_Giao" disabled />
+									</td>
+									<td>
+										<input type="number" step="0.001" min="0" name="KL_Xi_Giao"
+											class="form-control text-right" value="@item.KL_Xi_Giao" disabled />
+									</td>
+
+									<td>
+										<input type="number" step="0.001" min="0" name="KL_Gang_Nhan"
+											class="form-control text-right" value="@item.KL_Gang_Nhan" disabled />
+									</td>
+									<td>
+										<input type="number" step="0.001" min="0" name="KL_Xi_Nhan"
+											class="form-control text-right" value="@item.KL_Xi_Nhan" disabled />
+									</td>
+
+									<td>
+										<textarea name="GhiChu" class="form-control" rows="2"
+									style="min-width:180px">@item.GhiChu</textarea>
+									</td>
+								</tr>
+								stt++;
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="10" class="text-center text-muted p-3">
+									Không có dữ liệu chi tiết cho phiếu @ViewBag.MaPhieu.
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+			@* 
+				<div class="d-flex justify-content-start mt-3 mb-5">
+					<button type="button" id="btnThemHang" class="btn btn-info">
+						<i class="bi bi-plus-circle"></i> Thêm hàng
+					</button>
+				</div> *@
+		</div>
+	</div>
+</div>
+}
+
+<script>
+	// Khai báo biến toàn cục để lưu trữ Tổng KL Gang từ Ajax
+	let tongKLGangTrongCa = 0;
+
+	// Lưu trữ danh sách lô để dùng cho dòng mới
+	let cacLoHienCo = [];
+
+	$(document).ready(function () {
+		// Khởi tạo Select2 cho các dropdown riêng biệt:
+		$('.select2-malo').select2({
+			placeholder: "-- Chọn lô --",
+			allowClear: true,
+			language: { noResults: function () { return "Không tìm thấy kết quả"; } },
+			width: '100%'
+		});
+		if ($('.select2-nguoinhan').length > 0) {
+			$('.select2-nguoinhan').select2({
+				placeholder: "----- Chọn đại diện bên nhận -----",
+				allowClear: true,
+				width: '100%',
+				language: {
+					noResults: function () { return "Không tìm thấy kết quả"; }
+				}
+			});
+		}
+
+		// Lấy danh sách lô từ ViewBag
+	@foreach (var lo in ViewBag.MLList as SelectList)
+	{
+		<text>
+					cacLoHienCo.push({value: '@lo.Value', text: '@lo.Text'});
+		</text>
+	}
+
+		// Lấy dữ liệu Header
+		const ca = parseInt($('#IDCa').val()) || 0;
+		const idKip = parseInt($('#ID_Kip').val()) || 0;
+		const ngaySanXuat = $('#ID_Day').val();
+		const idLoCao = parseInt($('#ID_Locao').val()) || 0;
+		const maPhieu = $('#PhieuID').val();
+
+		// --- 1. Lấy dữ liệu KL Gang từ API (để điền tự động) ---
+		if (ca && idKip && ngaySanXuat && idLoCao) {
+			$.ajax({
+				url: '/BM_18_XiHatLoCao/KLGangTrongCaJson',
+				type: 'GET',
+				data: {
+					ca: ca,
+					idKip: idKip,
+					ngaySanXuat: ngaySanXuat,
+					idLoCao: idLoCao,
+					maPhieu: maPhieu
+				},
+				success: function (result) {
+					tongKLGangTrongCa = result.tongKLGang || 0;
+					$("#dataTable tbody tr:first-child input[name='KL_Gang_Giao']").val(tongKLGangTrongCa.toFixed(3));
+					$("#dataTable tbody tr:first-child input[name='KL_Gang_Nhan']").val(tongKLGangTrongCa.toFixed(3));
+					$("#dataTable tbody tr:first-child input[name='KL_Gang_Giao']").trigger('input');
+					$("#dataTable tbody tr:first-child input[name='KL_Gang_Nhan']").trigger('input');
+				},
+				error: function (xhr) {
+					console.error("Không lấy được dữ liệu KL Gang:", xhr.responseText);
+				}
+			});
+		} else {
+			console.warn("Thiếu thông tin Ca/Kíp/Ngày/Lò cao!");
+		}
+
+		// --- 2. Sự kiện Thêm hàng (Mới) ---
+		$("#btnThemHang").click(function () {
+			const tbody = $("#dataTable tbody");
+			if (tbody.find('tr:first-child td[colspan="10"]').length > 0) {
+				tbody.empty();
+			}
+			const stt = tbody.find("tr").length + 1;
+			const defaultKLGang = tongKLGangTrongCa.toFixed(3);
+
+			let loOptions = '<option value="">-- Chọn lô --</option>';
+			cacLoHienCo.forEach(function (lo) {
+				loOptions += `<option value="${lo.value}">${lo.text}</option>`;
+			});
+
+			const newRow = `
+				<tr class="new-row">
+					<input type="hidden" name="ID" value="0" />
+					<td class="text-center">${stt}</td>
+					<td><input type="text" name="TenNVL" class="form-control" placeholder="Nhập tên..." /></td>
+					<td><input type="text" name="DVT" class="form-control" style="width:80px" /></td>
+					<td>
+						<div class="select-lo-wrapper">
+							<select name="Lo" class="form-control select-lo-new">
+								${loOptions}
+							</select>
+						</div>
+					</td>
+					<td><input type="number" step="0.001" name="HeSo" class="form-control text-right" value="0" /></td>
+					<td><input type="number" step="0.001" min="0" name="KL_Gang_Giao" class="form-control text-right" value="${defaultKLGang}" /></td>
+					<td><input type="number" step="0.001" min="0" name="KL_Xi_Giao" class="form-control text-right" value="0" /></td>
+					<td><input type="number" step="0.001" min="0" name="KL_Gang_Nhan" class="form-control text-right" value="${defaultKLGang}" /></td>
+					<td><input type="number" step="0.001" min="0" name="KL_Xi_Nhan" class="form-control text-right" value="0" /></td>
+					<td><textarea name="GhiChu" class="form-control" rows="2" style="min-width:180px"></textarea></td>
+				</tr>
+			`;
+
+			tbody.append(newRow);
+
+			tbody.find("tr:last-child .select-lo-new").select2({
+				placeholder: "-- Chọn lô --",
+				allowClear: true,
+				language: {
+					noResults: function () {
+						return "Không tìm thấy kết quả";
+					}
+				},
+				width: '100%',
+				dropdownParent: tbody.find("tr:last-child .select-lo-wrapper")
+			});
+
+			tbody.find("tr:last-child input[name='KL_Gang_Giao']").trigger('input');
+			$('.bm18-table-wrapper').scrollTop($('.bm18-table-wrapper')[0].scrollHeight);
+		});
+
+		// --- 3. Sự kiện Tự động Tính KL Xỉ ---
+		$(document).on("input", 'input[name="KL_Gang_Giao"], input[name="KL_Gang_Nhan"], input[name="HeSo"]', function () {
+			const row = $(this).closest("tr");
+
+			let heSo = parseFloat(row.find('input[name="HeSo"]').val()) || 0;
+			let kgGiao = parseFloat(row.find('input[name="KL_Gang_Giao"]').val()) || 0;
+			let kgNhan = parseFloat(row.find('input[name="KL_Gang_Nhan"]').val()) || 0;
+
+			let xiGiao = kgGiao * heSo;
+			let xiNhan = kgNhan * heSo;
+
+			row.find('input[name="KL_Xi_Giao"]').val(xiGiao.toFixed(3));
+			row.find('input[name="KL_Xi_Nhan"]').val(xiNhan.toFixed(3));
+		});
+
+		// --- 4. Sự kiện Lưu dữ liệu ---
+		$("#btnLuuBM18").click(function () {
+			const danhSach = getDanhSachBM18();
+			if (danhSach.length === 0) {
+				alert("Không có dữ liệu để lưu!");
+				return;
+			}
+			if (!confirm("Bạn có chắc chắn muốn lưu dữ liệu?")) return;
+			saveBM18(danhSach);
+		});
+
+		// --- 5. Sự kiện Reset Phiếu ---
+		$('#btnResetPhieu').click(function () {
+			if (!confirm("Bạn có chắc chắn muốn reset phiếu? Toàn bộ dữ liệu chi tiết sẽ bị xóa!")) return;
+			const maPhieu = $('#PhieuID').val();
+			$.ajax({
+				url: '/BM_18_XiHatLoCao/ResetPhieu',
+				method: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify({ MaPhieu: maPhieu }),
+				success: function (res) {
+					alert("Phiếu đã được reset!");
+					const tbody = $('#dataTable tbody');
+					tbody.empty();
+					tbody.append('<tr><td colspan="10" class="text-center text-muted p-3">Không có dữ liệu chi tiết cho phiếu ' + maPhieu + '.</td></tr>');
+					location.reload();
+				},
+				error: function (xhr) {
+					alert("Lỗi khi reset phiếu: " + (xhr.responseText || "Không xác định"));
+				}
+			});
+		});
+
+		$('#BtnXuatPhieuPDF').click(function () {
+			var maPhieu = $('#PhieuID').val();
+			if (!maPhieu) {
+				alert("Không tìm thấy mã phiếu!");
+				return;
+			}
+			var $btn = $(this);
+			var oldText = $btn.html();
+			$btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
+
+			$.ajax({
+				url: '/BM_18_XiHatLoCao/GeneratePdf',
+				type: 'GET',
+				data: { maPhieu: maPhieu },
+				xhrFields: {
+					responseType: 'blob'
+				},
+				success: function (blob) {
+					var filename = "Phieu_" + maPhieu + ".pdf";
+					var link = document.createElement('a');
+					link.href = window.URL.createObjectURL(blob);
+					link.download = filename;
+					document.body.appendChild(link);
+					link.click();
+					document.body.removeChild(link);
+					window.URL.revokeObjectURL(link.href);
+				},
+				error: function (xhr) {
+					console.error(xhr);
+					alert("Lỗi khi xuất PDF. Vui lòng thử lại sau.");
+				},
+				complete: function () {
+					$btn.html(oldText).prop('disabled', false);
+				}
+			});
+		});
+	});
+	$('#BtnXuatPhieuExcel').click(function () {
+	var maPhieu = $('#PhieuID').val();
+	exportDanhSachExcel(maPhieu);
+	});
+
+	function exportDanhSachExcel(maPhieu) {
+		if (!maPhieu) {
+			alert("Không có mã phiếu!");
+			return;
+		}
+		$.ajax({
+			url: '/BM_18_XiHatLoCao/ExportDanhSachExcel',
+			method: 'GET',
+			data: { maPhieu: maPhieu },
+			xhrFields: { responseType: 'blob' },
+			success: function (data) {
+				var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+				var fileName = `DanhSach_BM18_${maPhieu}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+				var a = document.createElement('a');
+				a.href = window.URL.createObjectURL(blob);
+				a.download = fileName;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+			},
+			error: function () { alert("Lỗi khi xuất Excel!"); }
+		});
+	}
+	// --- HÀM XỬ LÝ DỮ LIỆU ---
+	function getDanhSachBM18() {
+		const danhSach = [];
+		const maPhieu = $('#PhieuID').val();
+		const idLoCao = parseInt($('#ID_Locao').val()) || 0;
+		const idCa = $('#IDCa').val();
+		const idKip = $('#ID_Kip').val();
+		const ngaySanXuat = $('#ID_Day').val();
+
+		$('#dataTable tbody tr').each(function () {
+			const row = $(this);
+			if (row.find('td[colspan="10"]').length > 0) return;
+
+			let id = parseInt(row.find('input[name="ID"]').val()) || 0;
+
+			danhSach.push({
+				ID: id,
+				MaPhieu: maPhieu,
+				ID_LoCao: idLoCao,
+				ID_Ca: idCa,
+				ID_Kip: idKip,
+				NgaySanXuat: ngaySanXuat,
+				Ten_NVL: row.find('input[name="TenNVL"]').val() || null,
+				DVT: row.find('input[name="DVT"]').val() || null,
+				ID_Lo: row.find('select[name="Lo"]').val() || null,
+				HeSo: parseFloat((row.find('input[name="HeSo"]').val() || '0').replace(',', '.')) || 0,
+				KL_Gang_Giao: parseFloat((row.find('input[name="KL_Gang_Giao"]').val() || '0').replace(',', '.')) || 0,
+				KL_Xi_Giao: parseFloat((row.find('input[name="KL_Xi_Giao"]').val() || '0').replace(',', '.')) || 0,
+				KL_Gang_Nhan: parseFloat((row.find('input[name="KL_Gang_Nhan"]').val() || '0').replace(',', '.')) || 0,
+				KL_Xi_Nhan: parseFloat((row.find('input[name="KL_Xi_Nhan"]').val() || '0').replace(',', '.')) || 0,
+				GhiChu: row.find('textarea[name="GhiChu"]').val() || null
+			});
+		});
+		return danhSach;
+	}
+
+	function saveBM18(danhSach) {
+		const idNguoiGiao = $('#IDNguoiGiao').val() || null;
+		const idNguoiNhan = $('#IDTaiKhoan').val() || null;
+		const req = {
+			MaPhieu: $('#PhieuID').val(),
+			ChiTiet: danhSach,
+			ID_NguoiGiao: idNguoiGiao,
+			ID_NguoiNhan: idNguoiNhan
+		};
+		$.ajax({
+			url: '/BM_18_XiHatLoCao/SaveChiTiet',
+			method: 'POST',
+			contentType: 'application/json',
+			data: JSON.stringify(req),
+			success: function (res) {
+				alert("Đã cập nhật thành công!");
+				if (req.MaPhieu) {
+					location.reload();
+				}
+			},
+			error: function (xhr) {
+				alert("Lỗi khi cập nhật: " + (xhr.responseText || "Không xác định"));
+			}
+		});
+	}
+
+	function exportExcel(maPhieu) {
+		if (!maPhieu) {
+			alert("Không có mã phiếu!");
+			return;
+		}
+		$.ajax({
+			url: '/BM_18_XiHatLoCao/ExportToExcel',
+			method: 'GET',
+			data: { MaPhieu: maPhieu },
+			xhrFields: { responseType: 'blob' },
+			success: function (data) {
+				var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+				var fileName = `BM18_${maPhieu}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+				var a = document.createElement('a');
+				a.href = window.URL.createObjectURL(blob);
+				a.download = fileName;
+				document.body.appendChild(a);
+				a.click();
+				document.body.removeChild(a);
+			},
+			error: function () { alert("Lỗi khi xuất Excel!"); }
+		});
+	}
+
+	function ExportToPDF() {
+		const MaPhieu = $('#PhieuID').val() || null;
+		fetch('/BM18/ExportToPDF', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(MaPhieu)
+		})
+			.then(async res => {
+				if (!res.ok) {
+					const errorText = await res.text();
+					alert("Xuất PDF thất bại: " + errorText);
+					throw new Error("Lỗi khi xuất PDF");
+				}
+				return res.blob();
+			})
+			.then(blob => {
+				const url = window.URL.createObjectURL(blob);
+				const a = document.createElement('a');
+				a.href = url;
+				a.download = 'BM18 - Xi hạt lò cao.pdf';
+				a.click();
+				window.URL.revokeObjectURL(url);
+			});
+	}
+</script>
+@if (Model.Phieu != null && Model.Phieu.ID_NguoiNhan != null && Model.Phieu.ID_NguoiNhan > 0)
+{
+    <script>
+        $(document).ready(function() {
+            // Xóa select2-container và input select người nhận nếu còn tồn tại
+            $('#IDTaiKhoan').next('.select2').remove();
+            $('#IDTaiKhoan').remove();
+        });
+    </script>
+}

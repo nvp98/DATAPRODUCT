@@ -59,6 +59,10 @@
                                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#phanQuyenModal">
                                     Phân quyền BTBD
                                 </button>
+                                <!-- Nút mở modal -->
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#PhanQuyenModalDungSX">
+                                    Phân quyền Xử lý
+                                </button>
                                
                               
 
@@ -120,6 +124,7 @@
                     </div>
                     <!-- Gọi partial view -->
                     @Html.Partial("_PhanQuyenModal",Model)
+                    @Html.Partial("_PhanQuyenModalDungSX", Model)
                     <div class="card-body">
                         <div class="table-responsive" style="">
                             <table class="table table-bordered table-hover" id="table" cellpadding="0">
@@ -131,6 +136,7 @@
                                         <th class="text-center"    width="150px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Thống kê xử lý</th>
                                         <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhân viên xử lý BTBD</th>
+                                        <th class="text-center" width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhân viên xử lý đình trệ</th>
                                         <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
                                     </tr>
@@ -147,6 +153,18 @@
                                         var dsBTBD = (from q in _context.Tbl_QuyenXuLy
                                                       join tk in _context.Tbl_TaiKhoan on q.ID_TaiKhoan equals tk.ID_TaiKhoan
                                                       where q.MaXL == "BTBD" && q.ID_XuongXL == item.ID_Xuong
+                                                      select new
+                                                      {
+                                                          q.ID_TaiKhoan,
+                                                          tk.HoVaTen,
+                                                          tk.TenTaiKhoan,
+                                                          q.ID_XuongXL,
+                                                          q.MaXL,
+                                                          q.ID
+                                                      }).ToList();
+                                        var dsDinhtre = (from q in _context.Tbl_QuyenXuLy
+                                                      join tk in _context.Tbl_TaiKhoan on q.ID_TaiKhoan equals tk.ID_TaiKhoan
+                                                      where q.MaXL == "DUNGSX" && q.ID_XuongXL == item.ID_Xuong
                                                       select new
                                                       {
                                                           q.ID_TaiKhoan,
@@ -209,6 +227,23 @@
                                                 <td class="text-center" style="font-size:14px;">
                                                 </td>
                                             }
+                                        @if (dsDinhtre.Count() != 0)
+                                        {
+                                            <td class="text-center" id="myTd_@item.ID_Xuong" style="font-size:14px;">
+                                                @foreach (var k in dsDinhtre)
+                                                {
+                                                    <div id="row_@k.ID">
+                                                        <span>@k.TenTaiKhoan - @k.HoVaTen</span>
+                                                        <button class="btn btn-sm btn-danger ms-2" onclick="xoaQuyen(@k.ID)">Xóa</button>
+                                                    </div>
+                                                }
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td class="text-center" style="font-size:14px;">
+                                            </td>
+                                        }
                                            
                                             @if (item.ID_TrangThai == 1)
                                             {
@@ -429,6 +464,33 @@
         $.ajax({
             type: "POST",
             url: "/Xuong/SaveQuyenBTBD", // thay bằng controller thực tế
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            success: function (res) {
+                alert(res.message);
+                location.reload();
+            },
+            error: function (err) {
+                alert("Lỗi khi lưu: " + err.responseText);
+            }
+        });
+    }
+    function submitPhanQuyenDungSX() {
+        let data = [];
+
+        $("#phanQuyenTableBody tr").each(function () {
+            const taiKhoan = $(this).find("select[name='TaiKhoan_DungSX']").val();
+            const dsXuong = $(this).find("select[name='DanhSachXuong_DungSX']").val(); // array
+
+            data.push({
+                TaiKhoan: taiKhoan,
+                DanhSachXuong: dsXuong // mảng
+            });
+        });
+
+        $.ajax({
+            type: "POST",
+            url: "/Xuong/SaveQuyenThemDungSX", // thay bằng controller thực tế
             data: JSON.stringify(data),
             contentType: "application/json",
             success: function (res) {

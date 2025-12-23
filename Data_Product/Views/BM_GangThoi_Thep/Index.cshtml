@@ -498,6 +498,7 @@
                                     <th class="hide-col">KL gang chia CCT (T)</th> 
                                     <th>KL gang chia CR (T)</th>
                                     <th class="hrc2">Thao tác</th>
+                                    <th>KL thùng & gang trước KR (T)</th>
                                     <th>KL gang nhận (T)</th>
                                     <th>Thùng trung gian</th>
                                     <th>KL thùng & gang lỏng (T) </th>
@@ -522,7 +523,7 @@
                                     <td id="IDTongKLGangLong" style="font-weight: 600">0.00</td>
                                     <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
                                     @* <td style="@(PhongBan != "HRC2" ? "display:none;" : "")"></td> *@
-                                    <td class="total-space-tmp"></td>
+                                    <td class="total-space-tmp" colspan="2"></td>
                                     <td id="IDTongKLGangNhan" style="font-weight: 600">
                                         0.00
                                     </td>
@@ -763,6 +764,10 @@
 
               row += `
                 <td class="hrc2">${actionHtml}</td>
+                <td class="col-ganglongtruockr">
+                     <input class="table_tbx KLThungVaGangTruocKR" type="number" min="0"
+                         name="klThungVaGangTruocKR" value="${tg.klThungVaGangTruocKR ?? ''}"/>
+                </td>
                 <td class="col-gangnhan tong_KL_GangNhan">${isCopyTTG ? '':tg.tong_KLGangNhan ?? 0}</td>
                 <td class="col-sothungtg">${tg.soThungTG ?? ''}</td>
 
@@ -801,7 +806,7 @@
           });
 
         // ========== MERGE SAU KHI RENDER ==========
-        const TTG_COLS = ['td.hrc2','td.col-gangnhan','td.col-sothungtg','td.col-thungvagangthoi','td.col-thungthoi',
+        const TTG_COLS = ['td.hrc2','td.col-gangnhan','td.col-sothungtg','td.col-thungvagangthoi','td.col-thungthoi', 'td.col-ganglongtruockr',
           'td.col-phe','td.col-gangthoi','td.col-methoi','td.col-giochonme','td.col-ghichu'
         ];
         const MACHIA_COLS = ['td.col-nhietDo','td.col-vagang','td.col-thung','td.col-ganglong'];
@@ -1692,7 +1697,7 @@
             if( phongBan == "HRC2"){
                 $('.hrc2').css('display', display);
                 $('.total-space').attr('colspan', isHidden ? 7 : 9);
-                $('.total-space-tmp').attr('colspan', isHidden ? 1: 2)
+                $('.total-space-tmp').attr('colspan', isHidden ? 2: 3)
             } else {
                 // Nếu bạn có cột tổng cuối bảng cần cập nhật colspan
                 $('.total-space').attr('colspan', isHidden ? 7 : 9);
@@ -1979,7 +1984,7 @@
                     selectedThungsGlobal = [];
                 },
                 error: function () {
-                    alert("Lỗi khi nhận dữ liệu!");
+                    alert("Lỗi khi nhận thùng!");
                 }
             });
 
@@ -2020,7 +2025,7 @@
                     ReLoad();
                 },
                 error: function () {
-                    alert("Lỗi khi nhận dữ liệu!");
+                    alert("Lỗi khi nhận thùng!");
                 }
             });
         }
@@ -2057,6 +2062,8 @@
                 groups[groupKey].push($row);
             });
 
+           
+
             let isValidLuu = true;
             for (const key in groups) {
                 const groupRows = groups[key];
@@ -2065,8 +2072,7 @@
                 const maThungTG = $firstRow.attr('data-mathungtg') || null;
                 const maThungTG_Copy = $firstRow.attr('data-mathungcopy') || null;
                 const isCopy = String($firstRow.attr('data-copy')).toLowerCase() === 'true';
-
-                
+                const phongBan = $('#IDPhongBan').val();
 
                 const parent = {
                     MaThungTG: maThungTG,
@@ -2085,7 +2091,9 @@
                     ID_MeThoi: null,
                     GioChonMe: null,
                     DanhSachThungGang: [],
-                    MaChia: $firstRow.attr('data-machia') || null
+                    MaChia: $firstRow.attr('data-machia') || null,
+                    PhongBan: phongBan,
+                    KLThungVaGangTruocKR: null
                 };
 
                 // Lấy dữ liệu từ dòng đầu tiên
@@ -2096,6 +2104,7 @@
                 parent.KLGang_Thoi = parseFloat($firstRow.find('.KLVaoLoThoi').text()) || 0;
                 parent.KLPhe = getNumberValue($firstRow.find('input[name="kl_phe"]').val());
                 parent.Tong_KLGangNhan = parseFloat($firstRow.find('.tong_KL_GangNhan').text()) || 0;
+                parent.KLThungVaGangTruocKR = getNumberValue($firstRow.find('input[name="klThungVaGangTruocKR"]').val());
 
                 const idMeThoiVal = $firstRow.find('.selectMeThoi').val();
                 parent.ID_MeThoi = idMeThoiVal ? parseInt(idMeThoiVal) : null;
@@ -2108,10 +2117,12 @@
                 // Nếu không phải copy, duyệt từng dòng trong group để lấy danh sách thùng gang
                 if (!isCopy) {
                     groupRows.forEach(($row) => {
+                        const rawNhietDo = $row.find('input[name="nhietDo"]').val();
+                        const NhietDo = rawNhietDo === "" ? null : parseFloat(rawNhietDo);
                         const thungGang = {
                             MaThungThep: $row.find('td.maThungThep').text().trim(),
                             MaThungGang: $row.find('td.maThungThep').attr('data-mathungganggoc'),
-                            NhietDo: parseFloat($row.find('input[name="nhietDo"]').val()) || null,
+                            NhietDo: NhietDo,
                             T_KLThungVaGang: parseFloat($row.find('input[name="t_KLThungVaGang"]').val()) || null,
                             T_KLThungChua: parseFloat($row.find('input[name="t_KLThungChua"]').val()) || null,
                             T_KLGangLong: parseFloat($row.find('.KLGangLong').text()) || 0
@@ -2121,7 +2132,7 @@
                 }
 
                 // Gán đặc biệt cho HRC1
-                const phongBan = $('#IDPhongBan').val();
+                // const phongBan = $('#IDPhongBan').val();
                 if (phongBan === 'HRC1' && parent.DanhSachThungGang.length > 0) {
                     const firstItem = parent.DanhSachThungGang[0];
                     parent.KLThungVaGang_Thoi = parent.KLThungVaGang_Thoi ?? firstItem.T_KLThungVaGang;
@@ -2223,7 +2234,7 @@
                     ReLoad();
                 },
                 error: function () {
-                    alert("Lỗi khi nhận dữ liệu!");
+                    alert("Lỗi khi lưu dữ liệu!");
                 }
             });
         });

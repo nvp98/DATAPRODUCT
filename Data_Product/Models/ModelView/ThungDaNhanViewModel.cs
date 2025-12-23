@@ -58,6 +58,7 @@ namespace Data_Product.Models.ModelView
         public decimal? KLGang_Thoi { get; set; }
         public decimal? Tong_KLGangNhan { get; set; }
         public string? GioChonMe { get; set; }
+        public decimal? KLThungVaGangTruocKR { get; set; }
 
         public DateTime? NgayTaoTTG { get; set; }
 
@@ -87,6 +88,7 @@ namespace Data_Product.Models.ModelView
         public decimal? Tong_KLGangNhan { get; set; }
         public int? ID_MeThoi { get; set; }
         public string? MaMeThoi { get; set; }
+        public decimal? KLThungVaGangTruocKR { get; set; }
         public DateTime? NgayTaoTTG { get; set; }
         public string? GioChonMe { get; set; }
         public List<ItemRowViewModel> DanhSachThungGang { get; set; } = new();
