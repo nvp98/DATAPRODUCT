@@ -95,7 +95,8 @@ namespace Data_Product.Controllers
             }
             return new SelectList(loCaos, "ID", "TenLoCao");
         }
-        public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, DateTime? ngaysx, string ca, string locao, int page = 1)
+        public async Task<IActionResult> Danhsachphieu(string maPhieu, DateTime? ngay, DateTime? tuNgaySX,
+              DateTime? denNgaySX, string ca, string locao, int page = 1)
         {
             const int pageSize = 10;
             if (page < 1) page = 1;
@@ -110,24 +111,24 @@ namespace Data_Product.Controllers
                 var query = _context.Tbl_BM_18_PhieuXiHat
                     .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
-            {
-                MaPhieu = p.MaPhieu,
-                NgayTaoPhieu = p.NgayTaoPhieu,
-                NgaySanXuat = p.NgaySanXuat,
-                ID_LoCao = p.ID_Locao,
-                TenNguoiTao = _context.Tbl_TaiKhoan
-                                .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
-                                .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
-                TenCa = _context.Tbl_Kip
-                            .Where(k => k.ID_Kip == p.ID_Kip)
-                            .Select(k => k.TenKip)
-                            .FirstOrDefault(),
-                TenLoCao = _context.Tbl_LoCao
-                            .Where(lc => lc.ID == p.ID_Locao)
-                            .Select(lc => lc.TenLoCao)
-                            .FirstOrDefault(),
-                TrangThai = p.TrangThai,
-            });
+                {
+                    MaPhieu = p.MaPhieu,
+                    NgayTaoPhieu = p.NgayTaoPhieu,
+                    NgaySanXuat = p.NgaySanXuat,
+                    ID_LoCao = p.ID_Locao,
+                    TenNguoiTao = _context.Tbl_TaiKhoan
+                                    .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
+                                    .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
+                    TenCa = _context.Tbl_Kip
+                                .Where(k => k.ID_Kip == p.ID_Kip)
+                                .Select(k => k.TenKip)
+                                .FirstOrDefault(),
+                    TenLoCao = _context.Tbl_LoCao
+                                .Where(lc => lc.ID == p.ID_Locao)
+                                .Select(lc => lc.TenLoCao)
+                                .FirstOrDefault(),
+                    TrangThai = p.TrangThai,
+                });
 
                 // Lọc theo Mã Phiếu (chuỗi)
                 if (!string.IsNullOrEmpty(maPhieu))
@@ -136,10 +137,16 @@ namespace Data_Product.Controllers
                     query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
                 }
                 // Lọc theo ngày phiếu gang
-                if (ngaysx.HasValue)
+                if (tuNgaySX.HasValue)
                 {
-                    query = query.Where(s => s.NgaySanXuat.Date == ngaysx.Value.Date);
+                    query = query.Where(s => s.NgaySanXuat >= tuNgaySX.Value.Date);
                 }
+
+                if (denNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat < denNgaySX.Value.Date.AddDays(1));
+                }
+
 
                 // Lọc theo Ca (chuỗi)
                 if (!string.IsNullOrEmpty(ca))
@@ -181,7 +188,8 @@ namespace Data_Product.Controllers
             // Truyền lại giá trị tìm kiếm cho view
             ViewBag.MaPhieu = maPhieu;
             ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
-            ViewBag.NgaySanXuat = ngaysx?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.TuNgaySX = tuNgaySX?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.DenNgaySX = denNgaySX?.ToString("dd-MM-yyyy") ?? "";
             ViewBag.Ca = ca;
             ViewBag.TenLoCao = locao;
 
@@ -285,7 +293,7 @@ namespace Data_Product.Controllers
 
             return View(data);
         }
-        public async Task<IActionResult> Index_All_PKH(string maPhieu, DateTime? ngay, DateTime? ngaysx, string ca, string locao, int? trangThai, int page = 1)
+        public async Task<IActionResult> Index_All_PKH(string maPhieu, DateTime? ngay, DateTime? tuNgaySX, DateTime? denNgaySX, string ca, string locao, int? trangThai, int page = 1)
         {
             const int pageSize = 10;
             if (page < 1) page = 1;
@@ -300,24 +308,24 @@ namespace Data_Product.Controllers
                 var query = _context.Tbl_BM_18_PhieuXiHat
                     .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
-            {
-                MaPhieu = p.MaPhieu,
-                NgayTaoPhieu = p.NgayTaoPhieu,
-                NgaySanXuat = p.NgaySanXuat,
-                ID_LoCao = p.ID_Locao,
-                TenNguoiTao = _context.Tbl_TaiKhoan
-                                .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
-                                .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
-                TenCa = _context.Tbl_Kip
-                            .Where(k => k.ID_Kip == p.ID_Kip)
-                            .Select(k => k.TenKip)
-                            .FirstOrDefault(),
-                TenLoCao = _context.Tbl_LoCao
-                            .Where(lc => lc.ID == p.ID_Locao)
-                            .Select(lc => lc.TenLoCao)
-                            .FirstOrDefault(),
-                TrangThai = p.TrangThai,
-            });
+                {
+                    MaPhieu = p.MaPhieu,
+                    NgayTaoPhieu = p.NgayTaoPhieu,
+                    NgaySanXuat = p.NgaySanXuat,
+                    ID_LoCao = p.ID_Locao,
+                    TenNguoiTao = _context.Tbl_TaiKhoan
+                                    .Where(tk => tk.ID_TaiKhoan == p.ID_NguoiTao)
+                                    .Select(tk => tk.TenTaiKhoan + " " + "-" + " " + tk.HoVaTen).FirstOrDefault(),
+                    TenCa = _context.Tbl_Kip
+                                .Where(k => k.ID_Kip == p.ID_Kip)
+                                .Select(k => k.TenKip)
+                                .FirstOrDefault(),
+                    TenLoCao = _context.Tbl_LoCao
+                                .Where(lc => lc.ID == p.ID_Locao)
+                                .Select(lc => lc.TenLoCao)
+                                .FirstOrDefault(),
+                    TrangThai = p.TrangThai,
+                });
 
                 // Lọc theo Mã Phiếu (chuỗi)
                 if (!string.IsNullOrEmpty(maPhieu))
@@ -326,9 +334,24 @@ namespace Data_Product.Controllers
                     query = query.Where(s => s.MaPhieu.ToLower().Contains(maPhieuLower));
                 }
                 // Lọc theo ngày phiếu gang
-                if (ngaysx.HasValue)
+                //if (ngaysx.HasValue)
+                //{
+                //    query = query.Where(s => s.NgaySanXuat.Date == ngaysx.Value.Date);
+                //}
+                if (tuNgaySX.HasValue && denNgaySX.HasValue)
                 {
-                    query = query.Where(s => s.NgaySanXuat.Date == ngaysx.Value.Date);
+                    query = query.Where(s =>
+                        s.NgaySanXuat.Date >= tuNgaySX.Value.Date &&
+                        s.NgaySanXuat.Date <= denNgaySX.Value.Date
+                    );
+                }
+                else if (tuNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date >= tuNgaySX.Value.Date);
+                }
+                else if (denNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date <= denNgaySX.Value.Date);
                 }
 
                 // Lọc theo Ca (chuỗi)
@@ -347,8 +370,6 @@ namespace Data_Product.Controllers
                                                   .Select(lc => lc.TenLoCao)
                                                   .FirstOrDefault() == s.TenLoCao);
                     }
-
-
                 }
                 else
                 {
@@ -377,7 +398,8 @@ namespace Data_Product.Controllers
             // Truyền lại giá trị tìm kiếm cho view
             ViewBag.MaPhieu = maPhieu;
             ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
-            ViewBag.NgaySanXuat = ngaysx?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.TuNgaySX = tuNgaySX?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.DenNgaySX = denNgaySX?.ToString("yyyy-MM-dd") ?? "";
             ViewBag.Ca = ca;
             ViewBag.TenLoCao = locao;
 
@@ -469,7 +491,7 @@ namespace Data_Product.Controllers
                     // Thêm dòng chi tiết mặc định vào Tbl_BM_18_XiHatLoCao
                     var xiHat = new Tbl_BM_18_XiHatLoCao
                     {
-                        Ca = header.ID_Kip,
+                        Ca = null,
                         Kip = header.ID_Kip,
                         NgaySanXuat = header.NgaySanXuat,
                         MaPhieu = header.MaPhieu,
@@ -1103,215 +1125,12 @@ namespace Data_Product.Controllers
 
             return View(vm); // truyền đúng ViewModel
         }
-
-        public async Task<IActionResult> ExportToExcel1(int BBGN_ID)
-        {
-            try
-            {
-
-                string fileNamemau = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BBGN.xlsx";
-                string fileNamemaunew = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BBGN_Temp.xlsx";
-                XLWorkbook Workbook = new XLWorkbook(fileNamemau);
-                IXLWorksheet Worksheet = Workbook.Worksheet("BBGN");
-                var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == BBGN_ID).FirstOrDefault();
-                var Data = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == BBGN_ID).ToList();
-                int row = 8, stt = 0, icol = 1;
-                if (Data.Count > 0)
-                {
-                    foreach (var item in Data)
-                    {
-
-                        row++; stt++; icol = 1;
-
-                        Worksheet.Cell(row, icol).Value = stt;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_BBGN.ThoiGianXuLyBG;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-                        Worksheet.Cell(row, icol).Style.DateFormat.Format = "dd/MM/yyyy";
-
-
-                        var ID_Kip = _context.Tbl_Kip.Where(x => x.ID_Kip == ID_BBGN.ID_Kip).FirstOrDefault();
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_Kip.TenKip;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-                        icol++;
-                        if (ID_Kip.TenCa == "1")
-                        {
-                            Worksheet.Cell(row, icol).Value = "Ngày";
-                            Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                            Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-                        }
-                        else
-                        {
-                            Worksheet.Cell(row, icol).Value = "Đêm";
-                            Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                            Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-                        }
-
-                        var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item.ID_VatTu).FirstOrDefault();
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_VT.TenVatTu;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        var ID_Lo = _context.Tbl_MaLo.Where(x => x.TenMaLo == item.MaLo).FirstOrDefault();
-                        icol++;
-                        if (ID_Lo != null)
-                        {
-                            Worksheet.Cell(row, icol).Value = ID_Lo.TenMaLo;
-                            Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                            Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        }
-                        else
-                        {
-                            Worksheet.Cell(row, icol).Value = "";
-                            Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                            Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                            Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-                        }
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_VT.DonViTinh;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.KhoiLuong_BN;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = Math.Round(item.DoAm_W, 2);
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.KL_QuyKho_BN;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        var ID_XBN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BN).FirstOrDefault();
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_XBN.TenXuong;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        var ID_BPBN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BN).FirstOrDefault();
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_BPBN.TenPhongBan;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.KhoiLuong_BG;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = Math.Round(item.DoAm_W, 2);
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.KL_QuyKho_BG;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        var ID_XBG = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_BBGN.ID_Xuong_BG).FirstOrDefault();
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_XBG.TenXuong;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        var ID_BPBG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_BPBG.TenPhongBan;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = item.GhiChu;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = ID_BBGN.SoPhieu;
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-
-
-                    }
-
-                    Worksheet.Range("A7:T" + (row)).Style.Font.SetFontName("Times New Roman");
-                    Worksheet.Range("A7:T" + (row)).Style.Font.SetFontSize(13);
-                    Worksheet.Range("A7:T" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                    Worksheet.Range("A7:T" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-
-
-                    Workbook.SaveAs(fileNamemaunew);
-                    byte[] fileBytes = System.IO.File.ReadAllBytes(fileNamemaunew);
-                    string fileName = "BBGN - " + ID_BBGN.SoPhieu + ".xlsx";
-                    return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
-                }
-                else
-                {
-
-
-                    Workbook.SaveAs(fileNamemaunew);
-                    byte[] fileBytes = System.IO.File.ReadAllBytes(fileNamemaunew);
-                    string fileName = "BBGN - " + ID_BBGN.SoPhieu + ".xlsx";
-                    return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
-                }
-            }
-            catch (Exception ex)
-            {
-                TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
-
-                return RedirectToAction("Index_Detai", "BM_11", new { id = BBGN_ID });
-            }
-        }
-        public async Task<IActionResult> ExportDanhSachExcel(string maPhieu, string ngaysx, string ca, string locao, string trangThai)
+        public async Task<IActionResult> ExportDanhSachExcel(string maPhieu, DateTime? tuNgaySX,DateTime? denNgaySX, string ca, string locao, string trangThai)
         {
             string fileNamemaunew = null;
             try
             {
+
                 // Query danh sách phiếu với filter
                 var query = _context.Tbl_BM_18_PhieuXiHat.AsQueryable();
 
@@ -1320,17 +1139,20 @@ namespace Data_Product.Controllers
                     query = query.Where(x => x.MaPhieu.Contains(maPhieu));
                 }
 
-                if (!string.IsNullOrEmpty(ngaysx))
+                if (tuNgaySX.HasValue && denNgaySX.HasValue)
                 {
-                    if (DateTime.TryParseExact(
-                        ngaysx,
-                        "yyyy-MM-dd",
-                        null,
-                        System.Globalization.DateTimeStyles.None,
-                        out DateTime parsedDate))
-                    {
-                        query = query.Where(x => x.NgaySanXuat.Date == parsedDate.Date);
-                    }
+                    query = query.Where(s =>
+                        s.NgaySanXuat.Date >= tuNgaySX.Value.Date &&
+                        s.NgaySanXuat.Date <= denNgaySX.Value.Date
+                    );
+                }
+                else if (tuNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date >= tuNgaySX.Value.Date);
+                }
+                else if (denNgaySX.HasValue)
+                {
+                    query = query.Where(s => s.NgaySanXuat.Date <= denNgaySX.Value.Date);
                 }
 
 
@@ -1355,7 +1177,7 @@ namespace Data_Product.Controllers
                     }
                 }
 
-                var danhSachPhieu = await query.OrderByDescending(x => x.NgayTaoPhieu).ToListAsync();
+                var danhSachPhieu = await query.OrderByDescending(x => x.NgaySanXuat).ToListAsync();
 
                 if (danhSachPhieu.Count == 0)
                 {
@@ -1405,6 +1227,19 @@ namespace Data_Product.Controllers
                 // ✅ KHỞI TẠO Ở ĐÂY – BẮT BUỘC
                 XLWorkbook Workbook = new XLWorkbook(fileNamemau);
                 IXLWorksheet Worksheet = Workbook.Worksheet(1);
+
+                string tuNgayText = tuNgaySX.HasValue ? tuNgaySX.Value.ToString("dd/MM/yyyy") : "....";
+                string denNgayText = denNgaySX.HasValue ? denNgaySX.Value.ToString("dd/MM/yyyy") : ".......";
+
+                string filterNgay = $"Từ ngày: {tuNgayText} đến ngày: {denNgayText}";
+
+                Worksheet.Range("A4:R4").Merge();
+                Worksheet.Cell("A4").Value = filterNgay;
+
+                Worksheet.Range("A4:R4").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                Worksheet.Range("A4:R4").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                Worksheet.Range("A4:R4").Style.Font.Italic = true;
+                Worksheet.Range("A4:R4").Style.Font.SetFontSize(11);
 
                 if (!System.IO.File.Exists(fileNamemau))
                 {

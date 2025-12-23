@@ -99,7 +99,8 @@
                                    asp-action="ExportDanhSachExcel"
                                    asp-controller="BM_18_XiHatLoCao"
                                    asp-route-maPhieu="@ViewBag.MaPhieu"
-                                   asp-route-ngaysx="@ViewBag.NgaySanXuat"
+                                   asp-route-tuNgaySX="@ViewBag.TuNgaySX"
+                                   asp-route-denNgaySX="@ViewBag.DenNgaySX"
                                    asp-route-ca="@ViewBag.Ca"
                                    asp-route-locao="@ViewBag.LoCao"
                                    asp-route-trangThai="@ViewBag.TrangThai">
@@ -116,18 +117,42 @@
                                 <input type="text" name="maPhieu" class="form-control form-control-sm" placeholder="Mã Phiếu" value="@ViewBag.MaPhieu" />
                             </div>
                             @{
-                                string ngayPGValue = "";
-                                if (!string.IsNullOrEmpty(ViewBag.NgaySanXuat))
+                                string tuNgaySXValue = "";
+                                string denNgaySXValue = "";
+
+                                if (!string.IsNullOrEmpty(ViewBag.TuNgaySX))
                                 {
-                                    DateTime parsedDate;
-                                    if (DateTime.TryParseExact(ViewBag.NgaySanXuat, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out parsedDate))
+                                    DateTime d;
+                                    if (DateTime.TryParseExact(ViewBag.TuNgaySX, "dd-MM-yyyy", null,
+                                    System.Globalization.DateTimeStyles.None, out d))
                                     {
-                                        ngayPGValue = parsedDate.ToString("yyyy-MM-dd");
+                                        tuNgaySXValue = d.ToString("yyyy-MM-dd");
+                                    }
+                                }
+
+                                if (!string.IsNullOrEmpty(ViewBag.DenNgaySX))
+                                {
+                                    DateTime d;
+                                    if (DateTime.TryParseExact(ViewBag.DenNgaySX, "dd-MM-yyyy", null,
+                                    System.Globalization.DateTimeStyles.None, out d))
+                                    {
+                                        denNgaySXValue = d.ToString("yyyy-MM-dd");
                                     }
                                 }
                             }
                             <div class="col-auto">
-                                <input type="date" name="ngaysx" class="form-control form-control-sm" value="@ngayPGValue" />
+                                <input type="date"
+                                       name="tuNgaySX"
+                                       class="form-control form-control-sm"
+                                       value="@tuNgaySXValue"
+                                       placeholder="Từ ngày SX" />
+                            </div>
+                            <div class="col-auto">
+                                <input type="date"
+                                       name="denNgaySX"
+                                       class="form-control form-control-sm"
+                                       value="@denNgaySXValue"
+                                       placeholder="Đến ngày SX" />
                             </div>
                             <div class="col-auto">
                                 <select name="ca" class="form-select form-select-sm">
