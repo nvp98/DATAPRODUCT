@@ -425,8 +425,8 @@ namespace Data_Product.Controllers
                 //}
                 //else NhatKyNew.TinhTrang = 1; // gửi
                 NhatKyNew.TinhTrang = 0; // gửi dữ liệu
-                _context.Tbl_NhatKy_SanXuat.Add(NhatKyNew);
-                _context.SaveChanges();
+                //_context.Tbl_NhatKy_SanXuat.Add(NhatKyNew);
+                //_context.SaveChanges();
                 // Danh sach Tbl_NhatKy_SanXuat_ChiTiet
                 if (_DO.NhatKy_SanXuat_ChiTiet != null && _DO.NhatKy_SanXuat_ChiTiet.Any())
                 {
@@ -459,7 +459,7 @@ namespace Data_Product.Controllers
                         };
                         _context.Tbl_NhatKy_SanXuat_ChiTiet.Add(nhatkychitiet);
                     }
-                    _context.SaveChanges();
+                    //_context.SaveChanges();
                 }
                 TempData["msgSuccess"] = "<script>alert('Thêm mới thành công');</script>";
                 if (XacNhan != null)
