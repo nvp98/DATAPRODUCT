@@ -142,6 +142,7 @@ namespace Data_Product.Controllers
                         join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan
                         where !a.IsDelete
                         let c = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == a.ID_NhanVien_BTBD)
+                        let xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == a.ID_Xuong_SX)
                         select new Tbl_NhatKy_SanXuat
                         {
                             ID = a.ID,
@@ -155,7 +156,9 @@ namespace Data_Product.Controllers
                             IsLock = a.IsLock,
                             ID_NhanVien_BTBD = a.ID_NhanVien_BTBD,
                             HoTen_NhanVien_BTBD = (c.TenTaiKhoan ?? "") + " - " + (c.HoVaTen ?? ""),
-                            GhiChu = a.GhiChu
+                            GhiChu = a.GhiChu,
+                            TenXuong_SX = xuong.TenXuong ?? "",
+                            ID_Xuong_SX = xuong.ID_Xuong
                         };
 
             // Áp dụng lọc trang thái
