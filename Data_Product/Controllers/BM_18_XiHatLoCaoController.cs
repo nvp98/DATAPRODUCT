@@ -745,22 +745,45 @@ namespace Data_Product.Controllers
             ).ToListAsync();
 
             // 3. Lấy thông tin bên giao
+            // 3. Lấy thông tin bên giao (GỘP QUERY – AN TOÀN)
             Tbl_TaiKhoan thongTinBG = null;
             Tbl_PhongBan phongBanBG = null;
             Tbl_Xuong phanXuongBG = null;
             Tbl_ViTri viTriBG = null;
+
             if (phieu.ID_NguoiGiao.HasValue && phieu.ID_NguoiGiao.Value > 0)
             {
-                thongTinBG = await _context.Tbl_TaiKhoan
-                    .FirstOrDefaultAsync(x => x.ID_TaiKhoan == phieu.ID_NguoiGiao.Value);
-                if (thongTinBG != null)
+                var benGiao = await (
+                    from tk in _context.Tbl_TaiKhoan.AsNoTracking()
+
+                    join pbBG in _context.Tbl_PhongBan
+                        on tk.ID_PhongBan equals pbBG.ID_PhongBan into pbj
+                    from pbBG in pbj.DefaultIfEmpty()
+
+                    join pxBG in _context.Tbl_Xuong
+                        on tk.ID_PhanXuong equals pxBG.ID_Xuong into pxj
+                    from pxBG in pxj.DefaultIfEmpty()
+
+                    join vtBG in _context.Tbl_ViTri
+                        on tk.ID_ChucVu equals vtBG.ID_ViTri into vtj
+                    from vtBG in vtj.DefaultIfEmpty()
+
+                    where tk.ID_TaiKhoan == phieu.ID_NguoiGiao.Value
+                    select new
+                    {
+                        TaiKhoan = tk,
+                        PhongBan = pbBG,
+                        PhanXuong = pxBG,
+                        ViTri = vtBG
+                    }
+                ).FirstOrDefaultAsync();
+
+                if (benGiao != null)
                 {
-                    phongBanBG = await _context.Tbl_PhongBan
-                        .FirstOrDefaultAsync(x => x.ID_PhongBan == thongTinBG.ID_PhongBan);
-                    phanXuongBG = await _context.Tbl_Xuong
-                        .FirstOrDefaultAsync(x => x.ID_Xuong == thongTinBG.ID_PhanXuong);
-                    viTriBG = await _context.Tbl_ViTri
-                        .FirstOrDefaultAsync(x => x.ID_ViTri == thongTinBG.ID_ChucVu);
+                    thongTinBG = benGiao.TaiKhoan;
+                    phongBanBG = benGiao.PhongBan;
+                    phanXuongBG = benGiao.PhanXuong;
+                    viTriBG = benGiao.ViTri;
                 }
             }
             Tbl_TaiKhoan thongTinBN = null;
@@ -788,6 +811,11 @@ namespace Data_Product.Controllers
 
             List<Tbl_PhongBan> pb = _context.Tbl_PhongBan.ToList();
             ViewBag.ID_PhongBan = new SelectList(pb, "ID_PhongBan", "TenPhongBan");
+            ViewBag.DsMaLo = await _context.Tbl_MaLo
+                .AsNoTracking()
+                .OrderBy(x => x.TenMaLo)
+                .ToListAsync();
+
             // 5. Tạo ViewModel
             var viewModel = new BM18DetailViewModel
             {
@@ -1513,6 +1541,65 @@ namespace Data_Product.Controllers
                 return ms.ToArray();
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> CapNhatMaLo([FromBody] UpdateMaLoDto model)
+        {
+            if (model == null || model.MaPhieu == null || model.ID_MaLo == 0)
+                return BadRequest("Dữ liệu không hợp lệ.");
 
+            // 1. Lấy user đang đăng nhập
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var user = await _context.Tbl_TaiKhoan
+                .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+            if (user == null)
+                return Unauthorized("Không xác định người dùng.");
+
+            // 2. Lấy chi tiết BM18
+            var chiTiet = await _context.Tbl_BM_18_XiHatLoCao
+                .FirstOrDefaultAsync(x => x.MaPhieu == model.MaPhieu);
+
+            if (chiTiet == null)
+                return NotFound("Không tìm thấy dòng chi tiết.");
+
+            // 3. Lấy phiếu BM18
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == chiTiet.MaPhieu);
+
+            if (phieu == null)
+                return NotFound("Không tìm thấy phiếu.");
+
+            // 4. CHECK NGHIỆP VỤ
+            // Chỉ cho sửa khi:
+            // - Phiếu đang xử lý
+            // - User là BÊN NHẬN
+            if (phieu.TrangThai != (int)TrangThaiXuLy.DangXuLy)
+                return Forbid("Phiếu đã hoàn thành, không được chỉnh sửa.");
+
+            if (!phieu.ID_NguoiNhan.HasValue || phieu.ID_NguoiNhan.Value != user.ID_TaiKhoan)
+                return Forbid("Bạn không có quyền chỉnh sửa mã lô.");
+
+            // 5. Check mã lô tồn tại
+            var maLoMoi = await _context.Tbl_MaLo
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ID_MaLo == model.ID_MaLo);
+
+            if (maLoMoi == null)
+                return BadRequest("Mã lô không tồn tại.");
+
+            // 6. Không update nếu không thay đổi
+            if (chiTiet.ID_Lo == model.ID_MaLo)
+                return Ok(new { message = "Mã lô không thay đổi." });
+            // 8. Cập nhật mã lô
+            chiTiet.ID_Lo = model.ID_MaLo;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Cập nhật mã lô thành công",
+                MaLoMoi = maLoMoi.TenMaLo
+            });
+        }
     }
 }

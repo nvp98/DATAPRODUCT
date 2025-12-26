@@ -426,6 +426,12 @@
 			<button class="btn btn-outline-primary btn-sm" id="btnFetchAuto" type="button">
 				Lấy dữ liệu cân ray
 			</button>
+			<button class="btn btn-outline-primary btn-sm me-2" id="btnAddRow" type="button">
+				Thêm mới
+			</button>
+			<button class="btn btn-success btn-sm" id="btnApplyLeft" type="button">
+				Cập nhật
+			</button>
 		</div>
 	</div>
 
@@ -442,9 +448,9 @@
 							<table class="table table-sm table-bordered table-hover align-middle" id="tableLeft">
 								<thead class="table-light">
 									<tr>
-										<th>Sàn ra gang</th>
-										<th>Số thùng</th>
-										<th>Giờ chốt gang</th>
+										<th style="width:100px">Sàn ra gang</th>
+										<th style="width:100px">Số thùng</th>
+										<th style="width:200px">Giờ chốt gang</th>
 										<th>KL bì</th>
 										<th>KL tổng</th>
 										<th>KL gang</th>
@@ -459,14 +465,6 @@
 								</tbody>
 							</table>
 						</div>
-						<div class="d-flex justify-content-end mt-2">
-							<button class="btn btn-outline-primary btn-sm me-2" id="btnAddRow" type="button">
-								Thêm mới
-							</button>
-							<button class="btn btn-success btn-sm" id="btnApplyLeft" type="button">
-								Cập nhật
-							</button>
-						</div>
 					</div>
 				</div>
 			</div>
@@ -475,78 +473,86 @@
 </div>
 
 <script>
-	(function () {
-		function esc(s) {
-			return $('<div/>').text(s || '').html();
-		}
-		var bm16SoMeSet = null;
+	(function() {
+		let bm16SoMeSet = null;
 
-		function fetchBm16SoMeList(done) {
-			var params = {
-				maPhieu: $('#PhieuID').val(),
-				ngayStr: $('#ID_Day').val(),
-				idLoCao: $('#IDLoCaoNum').val(),
-				idCa: $('#IDCaNum').val(),
-				term: '',
-				take: 500,
-				select2: true
-			};
-			$.get('/BM16_GangThoi/GetAllSoMe', params)
-				.done(function (data) {
-					if (Array.isArray(data)) {
-						bm16SoMeSet = new Set(data.map(function (d) { return d.id; }));
-						console.log('[BM16 GetAllSoMe] count=', data.length, 'sample=', data.slice(0, 5));
-					}
-					if (typeof done === 'function') done();
-				})
-				.fail(function () {
-					bm16SoMeSet = null;
-					if (typeof done === 'function') done();
+		const escapeHtml = (str) => $('<div/>').text(str || '').html();
+
+		const getFormParams = () => ({
+			maPhieu: $('#PhieuID').val(),
+			ngayStr: $('#ID_Day').val(),
+			idLoCao: $('#IDLoCaoNum').val(),
+			idCa: $('#IDCaNum').val()
+		});
+
+		const showNotification = ($row, message, duration = 2000) => {
+			$row.find('td').addClass('cell-changed');
+			$row.find('.ip-some').after(`<small class="text-success ms-1">${message}</small>`);
+
+			setTimeout(() => {
+				$row.find('small.text-success').fadeOut(function() {
+					$(this).remove();
 				});
-		}
+				$row.find('td').removeClass('cell-changed');
+			}, duration);
+		};
 
-		// ============================================
-		// KIỂM TRA VÀ PREFILL SỐ MẺ
-		// ============================================
-		function checkAndPrefillSoMe($sel, someVal) {
-			if (!someVal) return;
-			var params = {
-				maPhieu: $('#PhieuID').val(),
-				ngayStr: $('#ID_Day').val(),
-				idLoCao: $('#IDLoCaoNum').val(),
-				idCa: $('#IDCaNum').val(),
+		const fetchBm16SoMeList = (callback) => {
+			const params = {
+				...getFormParams(),
 				term: '',
 				take: 500,
 				select2: true
 			};
+
+			$.get('/BM16_GangThoi/GetAllSoMe', params)
+				.done(data => {
+					if (Array.isArray(data)) {
+						bm16SoMeSet = new Set(data.map(d => d.id));
+						console.log('[BM16 GetAllSoMe] count=', data.length);
+					}
+					if (typeof callback === 'function') callback();
+				})
+				.fail(() => {
+					bm16SoMeSet = null;
+					if (typeof callback === 'function') callback();
+				});
+		};
+
+		const checkAndPrefillSoMe = ($select, someVal) => {
+			if (!someVal) return;
+
+			const params = {
+				...getFormParams(),
+				term: '',
+				take: 500,
+				select2: true
+			};
+
 			$.ajax({
 				url: '/BM16_GangThoi/GetAllSoMe',
 				method: 'GET',
 				data: params,
-				success: function (data) {
+				success: data => {
 					if (!Array.isArray(data)) return;
-					var found = data.find(function (d) { return (d.id || '') === someVal; });
+
+					const found = data.find(d => (d.id || '') === someVal);
 					if (found) {
-						var hasOpt = $sel.find('option').filter(function(){
-							return $(this).val() === found.id;
-						}).length > 0;
+						const hasOpt = $select.find(`option[value="${found.id}"]`).length > 0;
 						if (!hasOpt) {
-							var opt = new Option(found.text || found.id, found.id, true, true);
-							$sel.append(opt);
+							const opt = new Option(found.text || found.id, found.id, true, true);
+							$select.append(opt);
 						}
-						$sel.val(found.id).trigger('change');
+						$select.val(found.id).trigger('change');
 					}
 				}
 			});
-		}
+		};
 
-		// ============================================
-		// INIT SELECT2 CHO SỐ MẺ (AJAX)
-		// ============================================
-		function initSoMeSelectAjax($sel) {
-			if ($sel.data('init') === 'true') return;
+		const initSoMeSelectAjax = ($select) => {
+			if ($select.data('init') === 'true') return;
 
-			$sel.select2({
+			$select.select2({
 				width: '100%',
 				placeholder: 'Chọn Số mẻ',
 				allowClear: true,
@@ -554,281 +560,232 @@
 				ajax: {
 					url: '/BM16_GangThoi/GetAllSoMe',
 					delay: 300,
-					data: function (params) {
-						return {
-							maPhieu: $('#PhieuID').val(),
-							ngayStr: $('#ID_Day').val(),
-							idLoCao: $('#IDLoCaoNum').val(),
-							idCa: $('#IDCaNum').val(),
-							term: params.term,
-							take: 100,
-							select2: true
-						};
-					},
-					processResults: function (data) {
-						// THÊM "Khác" vào cuối danh sách
-						data.push({
-							id: "0",
-							text: "Khác"
-						});
+					data: params => ({
+						...getFormParams(),
+						term: params.term,
+						take: 100,
+						select2: true
+					}),
+					processResults: data => {
+						data.push({ id: "0", text: "Khác" });
 						return { results: data };
 					}
 				}
 			});
 
-			$sel.data('init', 'true');
-		}
+			$select.data('init', 'true');
+		};
 
-		// ============================================
-		// XỬ LÝ KHI CHỌN "KHÁC" - XÓA SỐ MẺ TRONG DATABASE
-		// ============================================
+		const updateSoMeToZero = ($row, maPhieu, idLoCao, canRayId, successMessage) => {
+			const payload = [{
+				MaPhieu: maPhieu,
+				SoMe: "0",
+				ID_LoCao: idLoCao,
+				CanRayId: canRayId,
+				GioChotGang: $row.data('gioiso'),
+				G_KLXeVaThung: parseFloat($row.find('td.kl-bi').text()) || null,
+				G_KLXeThungVaGang: parseFloat($row.find('td.kl-tong').text()) || null,
+				G_KLGangLong: parseFloat($row.find('td.kl-gang').text()) || null,
+				G_GhiChu: $row.find('input[name="GhiChu"]').val() || null
+			}];
+
+			$.ajax({
+				url: '/BM16_GangThoi/SaveAutoMapping',
+				method: 'POST',
+				contentType: 'application/json; charset=utf-8',
+				data: JSON.stringify(payload),
+				success: () => {
+					$row.removeAttr('data-original-some').data('original-some', '');
+					showNotification($row, successMessage);
+				},
+				error: xhr => {
+					alert('Lỗi khi cập nhật số mẻ = 0: ' + (xhr.responseText || 'Không xác định'));
+					console.error('Lỗi cập nhật:', xhr);
+				}
+			});
+		};
+
+		const rollbackSelect = ($select, originalValue) => {
+			if (originalValue) {
+				const hasOpt = $select.find(`option[value="${originalValue}"]`).length > 0;
+				if (!hasOpt) {
+					const opt = new Option(originalValue, originalValue, true, true);
+					$select.append(opt);
+				}
+				$select.val(originalValue).trigger('change.select2');
+			} else {
+				$select.val('').trigger('change.select2');
+			}
+		};
+
 		$(document).on('change', '#tableLeft .ip-some', function() {
-			var $select = $(this);
-			var selectedValue = $select.val();
-			var $row = $select.closest('tr');
+			const $select = $(this);
+			const selectedValue = $select.val();
+			const $row = $select.closest('tr');
 
-			// Nếu chọn "Khác" (id = "0")
 			if (selectedValue === "0" || selectedValue === 0) {
-				var canRayId = parseInt($row.data('crid'), 10);
-				var idLoCao = parseInt($row.data('idlocao'), 10);
-				var originalSoMe = $row.data('original-some') || $row.attr('data-original-some');
+				const canRayId = parseInt($row.data('crid'), 10);
+				const idLoCao = parseInt($row.data('idlocao'), 10);
+				const originalSoMe = $row.data('original-some') || $row.attr('data-original-some');
+				const maPhieu = $('#PhieuID').val();
 
-				// Chỉ thực hiện nếu có số mẻ cũ cần xóa
-				if (originalSoMe && canRayId && idLoCao) {
-					// Hiển thị confirm
-					if (confirm('Bạn có chắc muốn xóa số mẻ "' + originalSoMe + '" khỏi dòng này?')) {
-						// Gọi API để xóa số mẻ trong database
+				if (originalSoMe && originalSoMe !== "0" && canRayId && idLoCao) {
+					if (confirm(`Bạn có chắc muốn xóa số mẻ "${originalSoMe}" và cập nhật giá trị 0?`)) {
 						$.ajax({
 							url: '/BM16_GangThoi/ClearSoMe',
 							method: 'POST',
 							contentType: 'application/json; charset=utf-8',
-							data: JSON.stringify({
-								CanRayId: canRayId,
-								ID_LoCao: idLoCao
-							}),
-							success: function(response) {
+							data: JSON.stringify({ CanRayId: canRayId, ID_LoCao: idLoCao }),
+							success: () => {
 								console.log('Đã xóa số mẻ:', originalSoMe);
-
-								// Highlight dòng đã xóa
-								$row.find('td').addClass('cell-changed');
-
-								// Xóa data-original-some để đánh dấu đã clear
-								$row.removeAttr('data-original-some');
-								$row.data('original-some', '');
-
-								// Hiển thị thông báo nhỏ
-								$row.find('.ip-some').after(
-									'<small class="text-success ms-1">Đã xóa</small>'
-								);
-
-								setTimeout(function() {
-									$row.find('small.text-success').fadeOut(function() {
-										$(this).remove();
-									});
-									$row.find('td').removeClass('cell-changed');
-								}, 2000);
+								updateSoMeToZero($row, maPhieu, idLoCao, canRayId, 'Đã xóa & cập nhật số mẻ = 0');
 							},
-							error: function(xhr) {
+							error: xhr => {
 								alert('Lỗi khi xóa số mẻ: ' + (xhr.responseText || 'Không xác định'));
-								// Khôi phục lại giá trị cũ nếu lỗi
-								if (originalSoMe) {
-									var hasOpt = $select.find('option[value="' + originalSoMe + '"]').length > 0;
-									if (!hasOpt) {
-										var opt = new Option(originalSoMe, originalSoMe, true, true);
-										$select.append(opt);
-									}
-									$select.val(originalSoMe).trigger('change.select2');
-								}
+								rollbackSelect($select, originalSoMe);
 							}
 						});
 					} else {
-						// User hủy, khôi phục lại giá trị cũ
-						if (originalSoMe) {
-							var hasOpt = $select.find('option[value="' + originalSoMe + '"]').length > 0;
-							if (!hasOpt) {
-								var opt = new Option(originalSoMe, originalSoMe, true, true);
-								$select.append(opt);
-							}
-							$select.val(originalSoMe).trigger('change.select2');
-						}
+						rollbackSelect($select, originalSoMe);
+					}
+				} else if (canRayId && idLoCao) {
+					if (confirm('Bạn có chắc muốn cập nhật số mẻ = 0 cho dòng này?')) {
+						updateSoMeToZero($row, maPhieu, idLoCao, canRayId, 'Đã cập nhật số mẻ = 0');
+					} else {
+						$select.val('').trigger('change.select2');
 					}
 				} else {
-					// Nếu chưa có số mẻ cũ, chỉ cần highlight
 					$row.find('td').addClass('cell-changed');
-					console.log('Dòng chưa có số mẻ, không cần xóa database');
-					setTimeout(function() {
-						$row.find('td').removeClass('cell-changed');
-					}, 2000);
+					console.log('Dòng thiếu thông tin canRayId hoặc idLoCao');
+					setTimeout(() => $row.find('td').removeClass('cell-changed'), 2000);
 				}
 			} else if (selectedValue) {
-				// Nếu chọn số mẻ khác (không phải "Khác"), xóa highlight
 				$row.find('td').removeClass('cell-changed');
 			}
 		});
 
-		// ============================================
-		// RENDER BẢNG TRÁI
-		// ============================================
-		function renderLeft(list) {
-			var $tb = $("#tableLeft tbody");
-			$tb.empty();
+		const renderLeft = (list) => {
+			const $tbody = $("#tableLeft tbody");
+			$tbody.empty();
 
 			if (!list || !list.length) {
-				$tb.append(
+				$tbody.append(
 					'<tr class="table-secondary text-center">' +
-					'<td colspan="8" class="small">Không có dữ liệu cân ray.</td>' +
-					'</tr>'
+					'<td colspan="8" class="small">Không có dữ liệu cân ray.</td></tr>'
 				);
 				$("#leftCount").text("0 dòng");
 				return;
 			}
 
-			list.forEach(function (x) {
-				var san     = (x.sanRaGang != null) ? x.sanRaGang : (x.san != null ? x.san : '');
-				var gioIso  = x.gioChotGang;
-				var gioStr  = x.gioStr || '';
-				var thungSo = x.thungSo != null ? x.thungSo : '';
-				var idLo    = x.iD_LoCao;
-				var canRayId = x.canRayId || null;
-				var bfNo   = x.bF_no || idLo || null;
+			list.forEach(x => {
+				const san = x.sanRaGang ?? x.san ?? '';
+				const gioIso = x.gioChotGang;
+				const gioStr = x.gioStr || '';
+				const thungSo = x.thungSo ?? '';
+				const idLo = x.iD_LoCao;
+				const canRayId = x.canRayId || null;
+				const bfNo = x.bF_no || idLo || null;
 
-				// Lấy số mẻ hiện tại
-				var someVal = (x.bkmis_SoMe || x.bkmiS_SoMe || x.soMe || x.SoMe || '').toString();
-				var originalSoMe = someVal || '';
+				const rawSoMe = x.bkmis_SoMe ?? x.bkmiS_SoMe ?? x.soMe ?? x.SoMe;
+				const someVal = (rawSoMe === 0 || rawSoMe === "0") ? "0" : (rawSoMe ? rawSoMe.toString() : '');
+				const originalSoMe = someVal;
 
-				var tr = '' +
-					'<tr data-row="left"' +
-					'    data-rowid="' + esc(x.rowId) + '"' +
-					'    data-idlocao="' + esc(idLo) + '"' +
-					'    data-crid="' + esc(canRayId) + '"' +
-					'    data-bfno="' + esc(bfNo) + '"' +
-					'    data-original-some="' + esc(originalSoMe) + '"' +
-					'    data-san="' + esc(san) + '"' +
-					'    data-gioiso="' + esc(gioIso) + '"' +
-					'    data-thungso="' + esc(thungSo) + '">' +
-					'  <td>' + esc(san) + '</td>' +
-					'  <td>' + esc(thungSo) + '</td>' +
-					'  <td>' + esc(gioStr) + '</td>' +
-					'  <td class="kl-bi">' + (x.kL_Bi   != null ? x.kL_Bi   : '') + '</td>' +
-					'  <td class="kl-tong">' + (x.kL_Tong != null ? x.kL_Tong : '') + '</td>' +
-					'  <td class="kl-gang">' + (x.kL_Gang != null ? x.kL_Gang : '') + '</td>' +
-					'  <td><select class="form-select form-select-sm ip-some"></select></td>' +
-					'  <td><input name="GhiChu" class="form-control form-control-sm" value="' + esc(x.ghiChu || '') + '" /></td>' +
-					'</tr>';
+				const tr = `
+					<tr data-row="left"
+						data-rowid="${escapeHtml(x.rowId)}"
+						data-idlocao="${escapeHtml(idLo)}"
+						data-crid="${escapeHtml(canRayId)}"
+						data-bfno="${escapeHtml(bfNo)}"
+						data-original-some="${escapeHtml(originalSoMe)}"
+						data-san="${escapeHtml(san)}"
+						data-gioiso="${escapeHtml(gioIso)}"
+						data-thungso="${escapeHtml(thungSo)}">
+						<td>${escapeHtml(san)}</td>
+						<td>${escapeHtml(thungSo)}</td>
+						<td>${escapeHtml(gioStr)}</td>
+						<td class="kl-bi">${x.kL_Bi ?? ''}</td>
+						<td class="kl-tong">${x.kL_Tong ?? ''}</td>
+						<td class="kl-gang">${x.kL_Gang ?? ''}</td>
+						<td><select class="form-select form-select-sm ip-some"></select></td>
+						<td><input name="GhiChu" class="form-control form-control-sm" value="${escapeHtml(x.ghiChu || '')}"/></td>
+					</tr>
+				`;
 
-				$tb.append(tr);
-				var $sel = $tb.find('tr:last .ip-some');
+				$tbody.append(tr);
+				const $select = $tbody.find('tr:last .ip-some');
 
-				// Prefill số mẻ hiện tại nếu có
-				if (bm16SoMeSet && someVal && bm16SoMeSet.has(someVal)) {
-					var opt = new Option(someVal, someVal, true, true);
-					$sel.append(opt);
-					$sel.val(someVal);
+				if (someVal !== '') {
+					if (someVal === "0") {
+						$select.append(new Option("Khác", "0", true, true));
+					} else if (bm16SoMeSet && bm16SoMeSet.has(someVal)) {
+						$select.append(new Option(someVal, someVal, true, true));
+					} else if (!bm16SoMeSet) {
+						checkAndPrefillSoMe($select, someVal);
+					}
 				}
 
-				initSoMeSelectAjax($sel);
-
-				if (!bm16SoMeSet) {
-					checkAndPrefillSoMe($sel, someVal);
-				}
+				initSoMeSelectAjax($select);
 			});
 
-			$("#leftCount").text(list.length + " dòng");
-		}
+			$("#leftCount").text(`${list.length} dòng`);
+		};
 
-		function renderBoth(list) {
-			renderLeft(list);
-		}
-
-		// ============================================
-		// FETCH AUTO - LẤY DỮ LIỆU CÂN RAY
-		// ============================================
-		function fetchAuto() {
-			var fromDateStr = $('#filterFromTime').val();
-			var toDateStr   = $('#filterToTime').val();
-			var idLoCao     = parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val());
+		const fetchAuto = () => {
+			const fromDateStr = $('#filterFromTime').val();
+			const toDateStr = $('#filterToTime').val();
+			const idLoCao = parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val());
 
 			if (!fromDateStr || !toDateStr || !idLoCao) {
 				alert('Nhập đủ Từ giờ, Đến giờ');
 				return;
 			}
 
-			$("#tableLeft tbody").html('<tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>');
+			$("#tableLeft tbody").html(
+				'<tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>'
+			);
 
 			$.ajax({
 				url: '/BM16_GangThoi/GetAutoSourceData',
 				method: 'GET',
-				data: {
-					fromDateStr: fromDateStr,
-					toDateStr: toDateStr,
-					idLoCao: idLoCao
+				data: { fromDateStr, toDateStr, idLoCao },
+				success: res => {
+					console.log('[AutoSourceData] rows=', Array.isArray(res) ? res.length : 0);
+					fetchBm16SoMeList(() => renderLeft(res || []));
 				},
-				success: function (res) {
-					console.log('[AutoSourceData] rows=', Array.isArray(res) ? res.length : 0, 'sample=', Array.isArray(res) ? res.slice(0, 5) : res);
-
-					// Trước khi render, lấy danh sách BM16 một lần để prefill ngay
-					fetchBm16SoMeList(function(){
-						renderBoth(res || []);
-					});
-				},
-				error: function (xhr) {
+				error: xhr => {
 					alert('Lỗi tải dữ liệu auto: ' + (xhr.responseText || 'Không xác định'));
 				}
 			});
-		}
+		};
 
-		// ============================================
-		// COLLECT FROM LEFT - GOM DỮ LIỆU TỪ BẢNG
-		// ============================================
-		function collectFromLeft() {
-			var maPhieu = $('#PhieuID').val();
-			var items = [];
-			var isValid = true;
-			$("#tableLeft tbody tr[data-row='left']").each(function () {
-				var $r = $(this);
-				var soMe = $r.find('.ip-some').val();
+		const collectFromLeft = () => {
+			const maPhieu = $('#PhieuID').val();
+			const items = [];
 
-				// Bỏ qua dòng chọn "Khác" (đã xử lý realtime rồi)
-				if (soMe === "0" || soMe === 0) {
-					return;
-				}
+			$("#tableLeft tbody tr[data-row='left']").each(function() {
+				const $row = $(this);
+				const soMe = $row.find('.ip-some').val();
 
-				// Bỏ qua dòng chưa chọn Số mẻ
-				if (!soMe) return;
-
-				var idLoCao = parseInt($r.data('idlocao'), 10);
-				var canRayId = parseInt($r.data('crid'), 10) || null;
-				var gioChot = $r.data('gioiso');
-				var thungSo = $r.data('thungso');
-
-				var klBi   = parseFloat($r.find('td.kl-bi').text()) || null;
-				var klTong = parseFloat($r.find('td.kl-tong').text()) || null;
-				var klGang = parseFloat($r.find('td.kl-gang').text()) || null;
-
-				var ghiChu = $r.find('input[name="GhiChu"]').val() || null;
+				if (!soMe || soMe === "0") return;
 
 				items.push({
 					MaPhieu: maPhieu,
 					SoMe: soMe,
-					ID_LoCao: idLoCao,
-					CanRayId: canRayId,
-					GioChotGang: gioChot,
-					G_KLXeVaThung: klBi,
-					G_KLXeThungVaGang: klTong,
-					G_KLGangLong: klGang,
-					G_GhiChu: ghiChu
+					ID_LoCao: parseInt($row.data('idlocao'), 10),
+					CanRayId: parseInt($row.data('crid'), 10) || null,
+					GioChotGang: $row.data('gioiso'),
+					G_KLXeVaThung: parseFloat($row.find('td.kl-bi').text()) || null,
+					G_KLXeThungVaGang: parseFloat($row.find('td.kl-tong').text()) || null,
+					G_KLGangLong: parseFloat($row.find('td.kl-gang').text()) || null,
+					G_GhiChu: $row.find('input[name="GhiChu"]').val() || null
 				});
 			});
 
-			if (!isValid) return null;
 			return items;
-		}
+		};
 
-		// ============================================
-		// APPLY LEFT - LƯU DỮ LIỆU
-		// ============================================
-		function applyLeft() {
-			var items = collectFromLeft();
+		const applyLeft = () => {
+			const items = collectFromLeft();
 
 			if (!items || items.length === 0) {
 				alert('Không có dữ liệu để cập nhật. Vui lòng chọn Số mẻ cho các dòng.');
@@ -840,57 +797,58 @@
 				method: 'POST',
 				contentType: 'application/json; charset=utf-8',
 				data: JSON.stringify(items),
-				success: function (res) {
-					alert(res && res.message ? res.message : 'Đã cập nhật khối lượng theo Số mẻ.');
-					// Refresh lại dữ liệu sau khi lưu
-					fetchAuto();
+				success: res => {
+					alert(res?.message || 'Đã cập nhật khối lượng theo Số mẻ.');
+					location.reload();
 				},
-				error: function (xhr) {
-					var msg = xhr.responseText || 'Lỗi không xác định khi lưu mapping.';
-					alert('Lỗi lưu mapping auto: ' + msg);
+				error: xhr => {
+					alert('Lỗi lưu mapping auto: ' + (xhr.responseText || 'Không xác định'));
 				}
 			});
-		}
+		};
+
 		$(document).on('click', '#btnAddRow', function(e) {
 			e.preventDefault();
 
-			// Tùy vào ID_LoCao quyết định cấu hình các input (đơn giản hóa: nhập hết trường có thể)
-			var newRow = `
+			const newRow = `
 				<tr data-row="new">
-					<td><input class="form-control form-control-sm ip-san"  /></td>
-					<td><input class="form-control form-control-sm ip-thungso" type="number" /></td>
-					<td><input class="form-control form-control-sm ip-gio" type="datetime-local" /></td>
-					<td><input class="form-control form-control-sm ip-klbi" type="number" step="0.01" /></td>
-					<td><input class="form-control form-control-sm ip-kltong" type="number" step="0.01" /></td>
-					<td><input class="form-control form-control-sm ip-klgang" type="number" step="0.01" /></td>
-					<td><input class="form-control form-control-sm ip-some" /></td>
-					<td><input class="form-control form-control-sm ip-ghichu" /></td>
+					<td><input class="form-control form-control-sm ip-san" type="number"/></td>
+					<td><input class="form-control form-control-sm ip-thungso" type="number"/></td>
+					<td><input class="form-control form-control-sm ip-gio" type="datetime-local"/></td>
+					<td><input class="form-control form-control-sm ip-klbi" type="number" step="0.01"/></td>
+					<td><input class="form-control form-control-sm ip-kltong" type="number" step="0.01"/></td>
+					<td><input class="form-control form-control-sm ip-klgang" type="number" step="0.01"/></td>
+					<td><input class="form-control form-control-sm ip-some"/></td>
+					<td><input class="form-control form-control-sm ip-ghichu"/></td>
 					<td>
-						<button class="btn btn-sm btn-success btn-save-row" title="Lưu"><i class="bi bi-check2"></i></button>
-						<button class="btn btn-sm btn-danger btn-cancel-row" title="Hủy"><i class="bi bi-x"></i></button>
+						<button class="btn btn-sm btn-success btn-save-row" title="Lưu">
+							<i class="bi bi-check2"></i>
+						</button>
+						<button class="btn btn-sm btn-danger btn-cancel-row" title="Hủy">
+							<i class="bi bi-x"></i>
+						</button>
 					</td>
 				</tr>
 			`;
 
 			$("#tableLeft tbody").prepend(newRow);
 		});
-			// Tự động tính khối lượng gang khi nhập KL bì hoặc KL tổng (dòng thêm mới)
-		$(document).on('input', '.ip-klbi, .ip-kltong', function () {
-			var $row = $(this).closest('tr');
-			var klbi = parseFloat($row.find('.ip-klbi').val()) || 0;
-			var kltong = parseFloat($row.find('.ip-kltong').val()) || 0;
-			var klgang = kltong - klbi;
-			$row.find('.ip-klgang').val(klgang >= 0 ? klgang.toFixed(2) : '');
-		});
-			// Khi lưu dòng mới
-		$(document).on('click', '.btn-save-row', function () {
-			var $row = $(this).closest('tr');
-			var ghiChu = $row.find('.ip-ghichu').val();
-			var klBi = $row.find('.ip-klbi').val();
-			var klTong = $row.find('.ip-kltong').val();
-			var klGang = $row.find('.ip-klgang').val();
 
-			var hasCan = klBi || klTong || klGang;
+		$(document).on('input', '.ip-klbi, .ip-kltong', function() {
+			const $row = $(this).closest('tr');
+			const klBi = parseFloat($row.find('.ip-klbi').val()) || 0;
+			const klTong = parseFloat($row.find('.ip-kltong').val()) || 0;
+			const klGang = klTong - klBi;
+			$row.find('.ip-klgang').val(klGang >= 0 ? klGang.toFixed(2) : '');
+		});
+
+		$(document).on('click', '.btn-save-row', function() {
+			const $row = $(this).closest('tr');
+			const ghiChu = $row.find('.ip-ghichu').val();
+			const klBi = $row.find('.ip-klbi').val();
+			const klTong = $row.find('.ip-kltong').val();
+			const klGang = $row.find('.ip-klgang').val();
+			const hasCan = klBi || klTong || klGang;
 
 			if (hasCan && $.trim(ghiChu) === '') {
 				alert('Bạn phải nhập ghi chú nếu có nhập số cân!');
@@ -898,80 +856,65 @@
 				setTimeout(() => $row.find('.ip-ghichu').removeClass('is-invalid'), 3000);
 				return;
 			}
-			var data = {
-				// mapping tên trường theo bảng, tuỳ lò cao sẽ thay đổi phía server
+
+			const idLoCao = parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val());
+			const data = {
 				SanRaGang: parseInt($row.find('.ip-san').val()) || null,
 				ThungSo: $row.find('.ip-thungso').val(),
 				Gio: $row.find('.ip-gio').val(),
-				KL_Bi: $row.find('.ip-klbi').val(),
-				KL_Tong: $row.find('.ip-kltong').val(),
-				KL_Gang: $row.find('.ip-klgang').val(),
+				KL_Bi: klBi,
+				KL_Tong: klTong,
+				KL_Gang: klGang,
 				BKMIS_SoMe: $row.find('.ip-some').val(),
-				GhiChu: $row.find('.ip-ghichu').val(),
-				ID_LoCao: parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val()),    // LG1
-				BF_no: parseInt($('#IDLoCaoNum').val() || $('#ID_Locao').val()),      // LG2
+				GhiChu: ghiChu,
+				ID_LoCao: idLoCao,
+				BF_no: idLoCao
 			};
 
-			// Tùy theo lò cao sẽ gọi API tương ứng!
-			if (data.ID_LoCao >= 1 && data.ID_LoCao <= 4) {
-				// Gọi API LG1
-				$.ajax({
-					url: '/BM16_GangThoi/AddCanRayLG1',
-					method: 'POST',
-					contentType: 'application/json',
-					data: JSON.stringify(data),
-					success: function (res) {
-						alert(res && res.message ? res.message : 'Đã thêm mới.');
-						fetchAuto(); // làm mới dữ liệu bảng
-					},
-					error: function (xhr) {
-						alert('Lỗi thêm mới: ' + (xhr.responseText || 'Không rõ'));
-					}
-				});
-			} else if (data.BF_no == 5 || data.BF_no == 6) {
-				// Gọi API LG2
-				$.ajax({
-					url: '/BM16_GangThoi/AddCanRayLG2',
-					method: 'POST',
-					contentType: 'application/json',
-					data: JSON.stringify(data),
-					success: function (res) {
-						alert(res && res.message ? res.message : 'Đã thêm mới.');
-						fetchAuto();
-					},
-					error: function (xhr) {
-						alert('Lỗi thêm mới: ' + (xhr.responseText || 'Không rõ'));
-					}
-				});
-			} else {
+			const apiUrl = (idLoCao >= 1 && idLoCao <= 4)
+				? '/BM16_GangThoi/AddCanRayLG1'
+				: (idLoCao === 5 || idLoCao === 6)
+					? '/BM16_GangThoi/AddCanRayLG2'
+					: null;
+
+			if (!apiUrl) {
 				alert('ID Lò Cao không hợp lệ!');
+				return;
 			}
+
+			$.ajax({
+				url: apiUrl,
+				method: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify(data),
+				success: res => {
+					alert(res?.message || 'Đã thêm mới.');
+					fetchAuto();
+				},
+				error: xhr => {
+					alert('Lỗi thêm mới: ' + (xhr.responseText || 'Không rõ'));
+				}
+			});
 		});
 
-	// Hủy dòng mới
-	$(document).on('click', '.btn-cancel-row', function () {
-		$(this).closest('tr').remove();
-	});
+		$(document).on('click', '.btn-cancel-row', function() {
+			$(this).closest('tr').remove();
+		});
 
-		// ============================================
-		// BIND EVENTS
-		// ============================================
-		$(document).on('click', '#btnFetchAuto', function (e) {
+		$(document).on('click', '#btnFetchAuto', e => {
 			e.preventDefault();
 			fetchAuto();
 		});
 
-		$(document).on('click', '#btnApplyLeft', function (e) {
+		$(document).on('click', '#btnApplyLeft', e => {
 			e.preventDefault();
 			applyLeft();
 		});
 
-		// ============================================
-		// ON READY - UPDATE COUNTS
-		// ============================================
-		$(function () {
+		$(() => {
 			$("#leftCount").text($("#tableLeft tbody tr[data-row='left']").length + " dòng");
 		});
+
 	})();
 </script>
 <script>
@@ -1538,21 +1481,6 @@
 			}
 		});
 		
-		function saveFilterTime() {
-			localStorage.setItem('filterFromTime', $('#filterFromTime').val());
-			localStorage.setItem('filterToTime', $('#filterToTime').val());
-		}
-
-		$('#filterFromTime, #filterToTime').on('change', saveFilterTime);
-
-		$(document).ready(function () {
-			var from = localStorage.getItem('filterFromTime');
-			var to = localStorage.getItem('filterToTime');
-
-			if (from) $('#filterFromTime').val(from);
-			if (to) $('#filterToTime').val(to);
-		});
-
 		// Nếu muốn xóa filter sau khi lấy dữ liệu, bỏ comment dòng dưới
 		@* $('#btnFetchAuto').on('click', function () {
 		    localStorage.removeItem('filterFromTime');

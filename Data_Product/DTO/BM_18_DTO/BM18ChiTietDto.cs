@@ -31,4 +31,10 @@
         public string MaPhieu { get; set; }
         public int TrangThai { get; set; }
     }
+    public class UpdateMaLoDto
+    {
+        public string MaPhieu { get; set; }
+        public int ID_MaLo { get; set; }
+    }
+
 }
