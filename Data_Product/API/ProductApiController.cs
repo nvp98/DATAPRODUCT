@@ -312,6 +312,12 @@ namespace Data_Product.API
         {
             try
             {
+                if (!BasicAuth.IsAuthorized(HttpContext, "apilg", "123456a@"))
+                {
+                    Response.Headers["WWW-Authenticate"] = "Basic";
+                    return Unauthorized("Bạn không có quyền truy cập.");
+                }
+
                 var result = new List<TongHopKLGangLongDto>();
 
                 // Lấy connection string từ DbContext
