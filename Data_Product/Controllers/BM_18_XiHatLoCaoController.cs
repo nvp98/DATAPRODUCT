@@ -1216,6 +1216,37 @@ namespace Data_Product.Controllers
                 // Lấy tất cả mã phiếu
                 var maPhieuList = danhSachPhieu.Select(x => x.MaPhieu).ToList();
 
+                var nguoiIds = danhSachPhieu
+                .Where(x => x.ID_NguoiGiao.HasValue || x.ID_NguoiNhan.HasValue)
+                .SelectMany(x => new int?[] { x.ID_NguoiGiao, x.ID_NguoiNhan })
+                .Where(x => x.HasValue)
+                .Select(x => x.Value)
+                .Distinct()
+                .ToList();
+
+                var nhanSuList = await (
+                    from nv in _context.Tbl_TaiKhoan
+                    join pb in _context.Tbl_PhongBan
+                        on nv.ID_PhongBan equals pb.ID_PhongBan
+                    join x in _context.Tbl_Xuong
+                        on pb.ID_PhongBan equals x.ID_PhongBan
+                    where nguoiIds.Contains(nv.ID_TaiKhoan)
+                    select new
+                    {
+                        NhanVienId = nv.ID_TaiKhoan,
+                        TenPhongBan = pb.TenPhongBan,
+                        TenXuong = x.TenXuong
+                    }
+                ).ToListAsync();
+
+
+                var nhanSuDict = nhanSuList
+                    .GroupBy(x => x.NhanVienId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.First()
+                    );
+
                 // Load chi tiết của tất cả phiếu
                 var chiTietList = await _context.Tbl_BM_18_XiHatLoCao
                     .Where(x => maPhieuList.Contains(x.MaPhieu))
@@ -1261,13 +1292,13 @@ namespace Data_Product.Controllers
 
                 string filterNgay = $"Từ ngày: {tuNgayText} đến ngày: {denNgayText}";
 
-                Worksheet.Range("A4:R4").Merge();
+                Worksheet.Range("A4:T4").Merge();
                 Worksheet.Cell("A4").Value = filterNgay;
 
-                Worksheet.Range("A4:R4").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                Worksheet.Range("A4:R4").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                Worksheet.Range("A4:R4").Style.Font.Italic = true;
-                Worksheet.Range("A4:R4").Style.Font.SetFontSize(11);
+                Worksheet.Range("A4:T4").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                Worksheet.Range("A4:T4").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                Worksheet.Range("A4:T4").Style.Font.Italic = true;
+                Worksheet.Range("A4:T4").Style.Font.SetFontSize(11);
 
                 if (!System.IO.File.Exists(fileNamemau))
                 {
@@ -1349,8 +1380,22 @@ namespace Data_Product.Controllers
                     // KL xỉ
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Giao ?? 0, XLAlignmentHorizontalValues.Right);
 
+                    string xuongGiao = "";
+                    string boPhanGiao = "";
+
+                    if (phieu?.ID_NguoiGiao.HasValue == true &&
+                        nhanSuDict.TryGetValue(phieu.ID_NguoiGiao.Value, out var nsGiao))
+                    {
+                        xuongGiao = nsGiao.TenXuong ?? "";
+                        boPhanGiao = nsGiao.TenPhongBan ?? "";
+                    }
+
+                    // Xưởng giao
+                    SetCellValue(Worksheet.Cell(currentRow, col++), xuongGiao);
+
                     // Bộ phận giao
-                    SetCellValue(Worksheet.Cell(currentRow, col++), "");
+                    SetCellValue(Worksheet.Cell(currentRow, col++), boPhanGiao);
+
 
                     // === KL bên nhận ===
                     // KL gang
@@ -1359,8 +1404,21 @@ namespace Data_Product.Controllers
                     // KL Xi
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
 
+                    string xuongNhan = "";
+                    string boPhanNhan = "";
+
+                    if (phieu?.ID_NguoiNhan.HasValue == true &&
+                        nhanSuDict.TryGetValue(phieu.ID_NguoiNhan.Value, out var nsNhan))
+                    {
+                        xuongNhan = nsNhan.TenXuong ?? "";
+                        boPhanNhan = nsNhan.TenPhongBan ?? "";
+                    }
+
+                    // Xưởng nhận
+                    SetCellValue(Worksheet.Cell(currentRow, col++), xuongNhan);
+
                     // Bộ phận nhận
-                    SetCellValue(Worksheet.Cell(currentRow, col++), "");
+                    SetCellValue(Worksheet.Cell(currentRow, col++), boPhanNhan);
 
                     // Ghi chú
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.GhiChu ?? "");
@@ -1390,7 +1448,7 @@ namespace Data_Product.Controllers
                 int lastRow = currentRow - 1;
                 if (lastRow >= 8)
                 {
-                    var dataRange = Worksheet.Range($"A7:R{lastRow}");
+                    var dataRange = Worksheet.Range($"A7:T{lastRow}");
                     dataRange.Style.Font.SetFontName("Times New Roman");
                     dataRange.Style.Font.SetFontSize(11);
                     dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
@@ -1408,7 +1466,8 @@ namespace Data_Product.Controllers
             }
             catch (Exception ex)
             {
-                TempData["msgError"] = $"<script>alert('Có lỗi khi xuất Excel: {ex.Message}');</script>";
+                _logger.LogError(ex, "Lỗi xuất Excel danh sách xỉ hạt");
+                TempData["msgError"] = "<script>alert('Có lỗi khi xuất file.  Vui lòng thử lại!');</script>";
                 return RedirectToAction("Index_All_PKH");
             }
             finally
