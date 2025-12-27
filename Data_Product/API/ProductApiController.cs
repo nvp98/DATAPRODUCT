@@ -303,6 +303,112 @@ namespace Data_Product.API
                     return "";
             }
         }
+        [HttpGet("GetKLGangLongDetailsTongHop")]
+        public async Task<IActionResult> GetTongHopKLGangLong(
+                [FromQuery] DateTime? ngayBatDau = null,
+                [FromQuery] DateTime? ngayKetThuc = null,
+                [FromQuery] int? idLocao = null,
+                [FromQuery] int? idKip = null)
+        {
+            try
+            {
+                if (!BasicAuth.IsAuthorized(HttpContext, "apilg", "123456a@"))
+                {
+                    Response.Headers["WWW-Authenticate"] = "Basic";
+                    return Unauthorized("Bạn không có quyền truy cập.");
+                }
+
+                var result = new List<TongHopKLGangLongDto>();
+
+                // Lấy connection string từ DbContext
+                var connection = _context.Database.GetDbConnection();
+
+                // Tạo command
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "sp_GetKLGangLongDetails_TongHop";
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    // Thêm parameters
+                    command.Parameters.Add(new SqlParameter("@NgayBatDau", SqlDbType.Date)
+                    {
+                        Value = ngayBatDau.HasValue ? (object)ngayBatDau.Value : DBNull.Value
+                    });
+                    command.Parameters.Add(new SqlParameter("@NgayKetThuc", SqlDbType.Date)
+                    {
+                        Value = ngayKetThuc.HasValue ? (object)ngayKetThuc.Value : DBNull.Value
+                    });
+                    command.Parameters.Add(new SqlParameter("@ID_Locao", SqlDbType.Int)
+                    {
+                        Value = idLocao.HasValue ? (object)idLocao.Value : DBNull.Value
+                    });
+                    command.Parameters.Add(new SqlParameter("@ID_Kip", SqlDbType.Int)
+                    {
+                        Value = idKip.HasValue ? (object)idKip.Value : DBNull.Value
+                    });
+
+                    // Mở connection nếu chưa mở
+                    if (connection.State != ConnectionState.Open)
+                    {
+                        await connection.OpenAsync();
+                    }
+
+                    // Thực thi và đọc dữ liệu
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var dto = new TongHopKLGangLongDto
+                            {
+                                Ngay = reader.GetDateTime(reader.GetOrdinal("Ngay")),
+                                TenLoCao = reader.IsDBNull(reader.GetOrdinal("TenLoCao"))
+                                    ? null
+                                    : reader.GetString(reader.GetOrdinal("TenLoCao")),
+                                ID_Locao = reader.GetInt32(reader.GetOrdinal("ID_Locao")),
+                                TenKip = reader.IsDBNull(reader.GetOrdinal("TenKip"))
+                                    ? null
+                                    : reader.GetString(reader.GetOrdinal("TenKip")),
+                                TenCa = reader.IsDBNull(reader.GetOrdinal("TenCa"))
+                                    ? null
+                                    : reader.GetString(reader.GetOrdinal("TenCa")),
+                                ID_Kip = reader.GetInt32(reader.GetOrdinal("ID_Kip")),
+                                SoLuongPhieu = reader.GetInt32(reader.GetOrdinal("SoLuongPhieu")),
+                                SoLuongMe = reader.GetInt32(reader.GetOrdinal("SoLuongMe")),
+                                SoLuongThung = reader.GetInt32(reader.GetOrdinal("SoLuongThung")),
+                                Tong_KL_GangLong_CanRay = reader.GetDecimal(reader.GetOrdinal("Tong_KL_GangLong_CanRay")),
+                                Tong_TongKL_TheoMe = reader.GetDecimal(reader.GetOrdinal("Tong_TongKL_TheoMe")),
+                                Tong_KLDuc = reader.GetDecimal(reader.GetOrdinal("Tong_KLDuc"))
+                            };
+
+                            result.Add(dto);
+                        }
+                    }
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    data = result,
+                    total = result.Count,
+                    filters = new
+                    {
+                        ngayBatDau,
+                        ngayKetThuc,
+                        idLocao,
+                        idKip
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Lỗi khi lấy dữ liệu tổng hợp",
+                    error = ex.Message
+                });
+            }
+        }
     }
     
     public static class DataReaderExtensions
