@@ -591,6 +591,15 @@ namespace Data_Product.Controllers
                 baseQuery = baseQuery.Where(x => x.ID_TTG.HasValue && idTTGList.Contains(x.ID_TTG.Value));
             }
 
+            if (!string.IsNullOrEmpty(dto.SoThungTG))
+            {
+                var idTTGList = await _context.Tbl_BM_16_ThungTrungGian
+                    .Where(x => x.SoThungTG.Contains(dto.SoThungTG))
+                    .Select(x => x.ID)
+                    .ToListAsync();
+                baseQuery = baseQuery.Where(x => x.ID_TTG.HasValue && idTTGList.Contains(x.ID_TTG.Value));
+            }
+
             if (dto.IsChiaGang.HasValue)
                 baseQuery = dto.IsChiaGang == true
                     ? baseQuery.Where(x => x.KLGangChia.HasValue)
@@ -646,7 +655,7 @@ namespace Data_Product.Controllers
                     .SumAsync(x => (decimal?)((x.KLGangChia ?? x.T_KLGangLong) ?? 0m)) ?? 0m;
                 sumKLXiKR = await totalScope.SumAsync(x => (decimal?)(x.KLXiKR ?? 0m)) ?? 0m;
                 sumKLChiaXiKR = await totalScope.SumAsync(x => (decimal?)(x.KLChiaXiKR ?? 0m)) ?? 0m;
-                sumKLGangCCTVaXi = await totalScope.SumAsync(x => (decimal?)(x.KLGangCCTVaXi ?? 0m)) ?? 0m;
+                sumKLGangCCTVaXi = await totalScope.SumAsync(x => (decimal?)(x.KLGangCCTVaXi ?? x.KLGangChia ?? x.T_KLGangLong)) ?? 0m;
 
                 var maThungTGListForSum = await (
                     from a in totalScope
@@ -1295,7 +1304,17 @@ namespace Data_Product.Controllers
                                 }
 
                                 worksheet.Cell(row, colIndex++).Value = item.KLChiaXiKR;
-                                worksheet.Cell(row, colIndex++).Value = item.KLGangCCTVaXi;
+
+                                var cellKLGangCCTVaXi = worksheet.Cell(row, colIndex++);
+                                var displayedKLGangCCTVaXi = item.KLGangCCTVaXi.HasValue ? item.KLGangCCTVaXi : item.KLGangChia.HasValue ? item.KLGangChia : item.T_KLGangLong.HasValue ? item.T_KLGangLong : 0;
+                                cellKLGangCCTVaXi.Value = displayedKLGangCCTVaXi;
+                                cellKLGangCCTVaXi.Style.NumberFormat.Format = "0.00";
+                                cellKLGangCCTVaXi.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                cellKLGangCCTVaXi.Style.Font.Bold = true;
+                                if (item.KLGangCCTVaXi.HasValue)
+                                {
+                                    cellKLGangCCTVaXi.Style.Font.FontColor = XLColor.Red;
+                                }
 
                                 var tinhTrangT_cell = worksheet.Cell(row, colIndex++);
                                 RenderTrangThaiCell(tinhTrangT_cell, item.TrangThaiLT, item.T_ID_TrangThai);

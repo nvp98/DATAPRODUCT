@@ -61,7 +61,7 @@
 
     .status-card {
         height: 35px;
-        width: 110px;
+        width: 100px;
         border-radius: 5px;
         display: flex;
         justify-content: center;
@@ -464,7 +464,7 @@
                                     <input type="text" class="form-control form-control-sm" id="MaMeThoi" />
                                 </div>
                                 <div class="col-12 d-flex gap-2">
-                                    <div class="col-sm-6 col-md-4 mb-2">
+                                    <div class="col-sm-2 col-md-2 mb-2">
                                         <label class="form-label">Tình trạng chia:</label>
                                         <select class="form-select form-select-sm" id="IsChiaGang" name="IsChiaGang">
                                             <option value="">-- Tình trạng --</option>
@@ -472,8 +472,12 @@
                                             <option value="true">Đã được chia</option>
                                         </select>
                                     </div>
+                                    <div class="col-sm-2 col-md-2 mb-2">
+                                        <label class="form-label">Số thùng TG:</label>
+                                        <input type="text" class="form-control form-control-sm" id="SoThungTG" />
+                                    </div>
                                     <div class="col-7" style="display: flex;justify-content: flex-end;align-items: center;">
-                                        <div class="d-flex justify-content-end w-100 gap-2">
+                                        <div class="d-flex justify-content-center w-100 gap-2">
                                             <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
                                             <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
                                             <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
@@ -1360,6 +1364,7 @@
                     const showButton = hasKlGangChia ? 'inline-block' : 'none';
                     const showButtonCR = hasKlGangChiaCR && !isSaiChuyenDen ? 'inline-block' : 'none';
                     const isCorrectKR = item.klXiKR != null && item.klXiKR <= 0 ? false : true;
+                    const displayedKLGangCCTVaXi = item.klGangCCTVaXi != null && item.klGangCCTVaXi > 0 ? item.klGangCCTVaXi : displayedValue;
 
                     const klDuc = (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') && item.t_copy === false ? KhoiLuongDuc(item.maThungGang) : null;
 
@@ -1445,7 +1450,7 @@
                                 background-color: ${isCorrectKR ? 'transparent' : 'yellow'};
                                 color: ${item.klGangCCTVaXi != null && item.klGangCCTVaXi > 0 ? 'red' : 'black'};
                             ">
-                            ${item.klGangCCTVaXi ?? 0}
+                            ${displayedKLGangCCTVaXi}
                         </td>
                         `);
                     row.append(`<td>${tinhTrangLTHTML}</td>`);
@@ -1593,6 +1598,7 @@
             const TinhTrangChot = $("#TinhTrangChot").val() || null;
             const MaMeThoi = $("#MaMeThoi").val() || null;
             const chiagangVal = $("#IsChiaGang").val(); 
+            const SoThungTG = $("#SoThungTG").val() || null;
             // Ép về true | false | null
             const IsChiaGang = chiagangVal === null || chiagangVal === "" ? null
                                : chiagangVal === "true"           ? true
@@ -1620,7 +1626,8 @@
                 MaThungThep: MaThungThep || null,
                 MaMeThoi: MaMeThoi || null,
                 IsChiaGang: IsChiaGang,
-                ID_HRC : ID_HRC || null
+                ID_HRC : ID_HRC || null,
+                SoThungTG: SoThungTG || null
             };
         }
 
@@ -1850,7 +1857,7 @@
         })
 
         $("#btnReset").click(function() {
-            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi', 'ID_HRC']);
+            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi', 'ID_HRC', 'SoThungTG']);
             currentPage = 1;
             Search();
         })
@@ -2075,7 +2082,7 @@
             $('.space-2').attr('colspan', isHidden ? 5 : 11);
 
             $('.space-3').attr('colspan', isHidden ? 4 : 10);
-            $('.space-4').attr('colspan', isHidden ? 12 : 12);
+            $('.space-4').attr('colspan', isHidden ? 7 : 7);
 
             if(!isHidden){
                 $(".sticky-col-5").css("left", "299px");

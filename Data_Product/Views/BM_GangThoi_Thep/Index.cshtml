@@ -515,6 +515,7 @@
                                     <th>KL vào lò thổi </th>
                                     <th>Mẻ thổi</th>
                                     <th>Thời điểm bắt đầu rót</th>
+                                    <th>KL Xỉ KR</th>
                                     <th style="min-width: 150px;">Ghi chú</th>
                                 </tr>
                             </thead>
@@ -534,7 +535,7 @@
                                     <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                                         0.00
                                     </td>
-                                    <td colspan="3"></td>
+                                    <td colspan="4"></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -799,6 +800,10 @@
                   <input ${disabled} class="table_tbx GioChonMe" type="time" name="GioChonMe" min="00:00" max="23:59"
                          value="${tg.gioChonMe ?? ''}" style="max-width: 100px;">
                 </td>
+                <td class="col-klxikr">
+                    <input readonly class="table_tbx KLXIKR" type="number" min="0" name="klxikr" style="color: ${thung.klXiKR < 0 ? 'red':''}"
+                             value="${thung.klXiKR ?? ''}"/>
+                </td>
                 <td class="col-ghichu">
                   <textarea style="min-width: 130px; height: 40px;" ${disabled} class="table_tbx IDGhiChu" name="ghiChu" id="IDGhiChu">${tg.ghiChu ?? ''}</textarea>
                 </td>
@@ -812,7 +817,7 @@
 
         // ========== MERGE SAU KHI RENDER ==========
         const TTG_COLS = ['td.hrc2','td.col-gangnhan','td.col-sothungtg','td.col-thungvagangthoi','td.col-thungthoi', 'td.col-ganglongtruockr',
-          'td.col-phe','td.col-gangthoi','td.col-methoi','td.col-giochonme','td.col-ghichu'
+          'td.col-phe','td.col-gangthoi','td.col-methoi','td.col-giochonme','td.col-ghichu', 'td.col-klxikr'
         ];
         const MACHIA_COLS = ['td.col-nhietDo','td.col-vagang','td.col-thung','td.col-ganglong'];
 
