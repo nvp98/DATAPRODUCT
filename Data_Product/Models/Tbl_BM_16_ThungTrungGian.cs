@@ -28,5 +28,8 @@ namespace Data_Product.Models
         public int? ID_NguoiNhan { get; set; }
 
         public decimal? KLThungVaGangTruocKR { get; set; }
+
+        public bool? IsNhap { get; set; }
+        public string? NoiNhan { get; set; }
     }
 }

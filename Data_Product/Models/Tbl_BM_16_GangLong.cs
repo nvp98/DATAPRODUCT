@@ -206,5 +206,11 @@ namespace Data_Product.Models
 
         [NotMapped]
         public int? TrangThaiTinh{ get; set; }
+
+        public decimal? KLXiKR { get; set; }
+
+        public decimal? KLChiaXiKR { get; set; }
+
+        public decimal? KLGangCCTVaXi { get; set; }
     }
 }

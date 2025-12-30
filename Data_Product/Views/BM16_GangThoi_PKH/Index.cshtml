@@ -559,6 +559,9 @@
                         <th>KL vào lò thổi (T)</th>
                         <th>Mẻ</th>
                         <th>Giờ bắt đầu thổi</th>
+                        <th><button type="button" style="border: none;" id="btn-ruleKR" data-bs-toggle="modal" data-bs-target="#modalNguyenTacKR"><i class="bi bi-info-circle-fill"></i></button>KL xỉ KR (T)</th>
+                        <th>KL chia xỉ KR (T)</th>
+                        <th>KL gang CCT + Xỉ (T)</th>
                         <th>Tình trạng LT</th>
                         <th>BP Nhận</th>
                         <th style="min-width: 150px;">Người nhận</th>
@@ -597,7 +600,11 @@
                         <td id="IDTongKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="9" class="space-4"></td>
+                        <td colspan="2"></td>
+                        <td id="IDTongKLXiKR"></td>
+                        <td id="IDTongKLChiaXiKR"></td>
+                        <td id="IDTongKLGangCCTVaXi"></td>
+                        <td colspan="4" class="space-4"></td>
                         <td class="hide-col" id="IDTongKLChenhLech" style="font-weight: 600">
                             0.00
                         </td>
@@ -628,7 +635,11 @@
                         <td id="IDTongAllKLVaoLoThoi" style="font-weight: 600">
                             0.00
                         </td>
-                        <td colspan="9" class="space-4"></td>
+                        <td colspan="2"></td>
+                        <td id="IDTongAllKLXiKR"></td>
+                        <td id="IDTongAllKLChiaXiKR"></td>
+                        <td id="IDTongAllKLGangCCTVaXi"></td>
+                        <td colspan="4" class="space-4"></td>
                         <td class="hide-col" id="IDTongAllKLChenhLech" style="font-weight: 600">
                             0.0
                         </td>
@@ -752,7 +763,56 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="modalNguyenTacKR" tabindex="-1" aria-labelledby="modalNguyenTacKRLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
 
+            <!-- Header -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalNguyenTacKRLabel">
+                    Nguyên tắc Chia xỉ KR
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <ol class="mb-0">
+                    <li>
+                        Chỉ điền <strong>KL trước KR</strong> vào <strong>01 thùng duy nhất</strong>
+                        <span class="text-muted">
+                            (trường hợp nhận thùng nhiều lần, rót vào nhiều mẻ)
+                        </span>
+                    </li>
+                    <li>
+                        <strong>KL xỉ KR</strong> tính cho <strong>mã thùng điền KL trước KR</strong>,
+                        mã thùng không điền KL thì <strong>không tính công xỉ</strong>
+                    </li>
+                    <li>
+                        <strong>KL xỉ KR = KL trước KR − KL thùng & gang</strong>;
+                        trường hợp nhận nhiều lần thì <strong>KL thùng & gang trừ là KL ở lần nhận lớn nhất</strong>
+                    </li>
+                    <li>
+                        <strong>Thùng trung gian copy</strong> <span class="text-danger">không điền KL trước KR</span>
+                    </li>
+                    <li>
+                        <strong>HRC2</strong>: xác định thùng trung gian trùng theo
+                        <strong>tổ hợp Mã thùng gang + Số thùng trung gian</strong>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Đóng
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script>
      let isHidden = true;
@@ -899,6 +959,43 @@
                }
            });
              $("#IDTongKLGangNhan").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
+       }
+
+       function TongKLXiKR(){
+           let total = 0;
+           $("#tblDuLieu .KLXiKR").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+             $("#IDTongKLXiKR").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
+       }
+       function TongKLChiaXiKR(){
+           let total = 0;
+           $("#tblDuLieu .KLChiaXiKR").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+             $("#IDTongKLChiaXiKR").text(
+              total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            );
+       }
+       function TongKLGangCCTVaXi(){
+           let total = 0;
+           $("#tblDuLieu .KLGangCCTVaXi").each(function () {
+               const value = parseFloat($(this).text());
+               if (!isNaN(value)) {
+                   total += value;
+               }
+           });
+             $("#IDTongKLGangCCTVaXi").text(
               total.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
             );
        }
@@ -1224,6 +1321,10 @@
             $("#IDTongKLGangNhan").text('0.00');
             $("#IDTongKLPhe").text('0.00');
             $("#IDTongKLVaoLoThoi").text('0.00');
+
+            $("#IDTongKLXiKR").text('0.00');
+            $("#IDTongKLChiaXiKR").text('0.00');
+            $("#IDTongKLGangCCTVaXi").text('0.00');
             
             data.forEach((group, groupIndex) => {
                 const rowspan = group.length;
@@ -1258,6 +1359,7 @@
 
                     const showButton = hasKlGangChia ? 'inline-block' : 'none';
                     const showButtonCR = hasKlGangChiaCR && !isSaiChuyenDen ? 'inline-block' : 'none';
+                    const isCorrectKR = item.klXiKR != null && item.klXiKR <= 0 ? false : true;
 
                     const klDuc = (item.chuyenDen === 'DUC1' || item.chuyenDen === 'DUC2') && item.t_copy === false ? KhoiLuongDuc(item.maThungGang) : null;
 
@@ -1333,9 +1435,19 @@
                         row.append(`<td rowspan="${rowspan}" class="KL_GangVaoLoThoi">${item.klGang_Thoi?.toFixed(2) || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.maMeThoi || ''}</td>`);
                         row.append(`<td rowspan="${rowspan}">${item.gioChonMe || ''}</td>`);
+                        row.append(`<td rowspan="${rowspan}" class="KLXiKR" style="background-color: ${isCorrectKR ? '': 'yellow'} ">${item.klXiKR ?? ''}</td>`);
                         
                     }
-
+                    row.append(`<td class="KLChiaXiKR" style="background-color: ${isCorrectKR ? '': 'yellow'} ">${item.klChiaXiKR ?? ''}</td>`);
+                    row.append(`
+                        <td class="KLGangCCTVaXi"
+                            style="
+                                background-color: ${isCorrectKR ? 'transparent' : 'yellow'};
+                                color: ${item.klGangCCTVaXi != null && item.klGangCCTVaXi > 0 ? 'red' : 'black'};
+                            ">
+                            ${item.klGangCCTVaXi ?? 0}
+                        </td>
+                        `);
                     row.append(`<td>${tinhTrangLTHTML}</td>`);
                     row.append(`<td>${item.tenPhongBan ?? ''}</td>`);
                     row.append(`<td>${item.hoVaTen ?? ''}</td>`);
@@ -1362,6 +1474,10 @@
                 TongKLGangChia();
                 TongKLGangChiaCR();
                 TongKLGangNhan();
+
+                TongKLXiKR();
+                TongKLChiaXiKR();
+                TongKLGangCCTVaXi();
                 renderTongKLChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongKLChenhLech');
                 renderTongPhanTramChenhLech('IDTongKLGangLong','IDTongKLGangLongThep','IDTongPhanTramChenhLech');
                 applyColumnVisibility();
@@ -1373,6 +1489,10 @@
              $("#IDTongAllKLGangNhan").text(res.sumKLGangNhan !== 0 ? res.sumKLGangNhan.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangNhan").text().trim());
              $("#IDTongAllKLPhe").text(res.sumKLPhe !== 0 ? res.sumKLPhe.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLPhe").text().trim());
              $("#IDTongAllKLVaoLoThoi").text(res.sumKLVaoLoThoi !== 0 ? res.sumKLVaoLoThoi.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLVaoLoThoi").text().trim());
+             
+             $("#IDTongAllKLXiKR").text(res.sumKLXiKR !== 0 ? res.sumKLXiKR.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLXiKR").text().trim());
+             $("#IDTongAllKLChiaXiKR").text(res.sumKLChiaXiKR !== 0 ? res.sumKLChiaXiKR.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLChiaXiKR").text().trim());
+             $("#IDTongAllKLGangCCTVaXi").text(res.sumKLGangCCTVaXi !== 0 ? res.sumKLGangCCTVaXi.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangCCTVaXi").text().trim());
              renderTongKLChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllKLChenhLech');
              renderTongPhanTramChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllPhanTramChenhLech');
         }
@@ -1876,6 +1996,7 @@
                   }
               });
         })
+
         
         function fmt(v, d=2){
           if (v == null || isNaN(v)) return '';
@@ -1954,7 +2075,7 @@
             $('.space-2').attr('colspan', isHidden ? 5 : 11);
 
             $('.space-3').attr('colspan', isHidden ? 4 : 10);
-            $('.space-4').attr('colspan', isHidden ? 9 : 9);
+            $('.space-4').attr('colspan', isHidden ? 12 : 12);
 
             if(!isHidden){
                 $(".sticky-col-5").css("left", "299px");

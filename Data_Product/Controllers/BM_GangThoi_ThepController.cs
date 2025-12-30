@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using Data_Product.Common;
 using Data_Product.Common.Enums;
+using Data_Product.DTO;
 using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Models.ModelView;
@@ -18,7 +19,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -620,6 +623,7 @@ namespace Data_Product.Controllers
                         MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
                         NgayTaoTTG = ttg.NgayTaoTTG,
                         GioChonMe = ttg.GioChonMe,
+                        IsNhap = ttg.IsNhap,
                         SumKL_GangChiaCR = 0m
                     }
                 ).AsNoTracking().ToListAsync();
@@ -801,40 +805,6 @@ namespace Data_Product.Controllers
                 // ===== 9) Sắp trong phạm vi mỗi TTG (anchor-first theo MaChiaGang) =====
                 static string? Norm(string? s) => string.IsNullOrWhiteSpace(s) ? null : s.Trim().ToUpperInvariant();
 
-                //static List<GangLongItemViewModel> OrderInsideTtgAnchorFirst(IEnumerable<GangLongItemViewModel> items)
-                //{
-                //    var list = items?.ToList() ?? new();
-                //    if (list.Count <= 1) return list;
-
-                //    list = list.OrderBy(x => x.T_ReceiveSeq ?? int.MaxValue)
-                //               .ThenBy(x => x.ID)
-                //               .ToList();
-
-                //    var group = list.Where(x => !string.IsNullOrWhiteSpace(x.MaChiaGang))
-                //                    .GroupBy(x => Norm(x.MaChiaGang))
-                //                    .ToDictionary(g => g.Key!, g => g.OrderBy(y => y.T_ReceiveSeq ?? int.MaxValue).ThenBy(y => y.ID).ToList());
-
-                //    var used = new HashSet<int>();
-                //    var seenKey = new HashSet<string>(StringComparer.Ordinal);
-                //    var result = new List<GangLongItemViewModel>(list.Count);
-
-                //    foreach (var row in list)
-                //    {
-                //        if (!used.Add(row.ID)) continue;
-                //        var k = Norm(row.MaChiaGang);
-                //        if (k == null || !group.TryGetValue(k, out var block) || !seenKey.Add(k))
-                //        {
-                //            result.Add(row);
-                //        }
-                //        else
-                //        {
-                //            foreach (var m in block)
-                //                if (used.Add(m.ID)) result.Add(m);
-                //        }
-                //    }
-                //    var test25 = result;
-                //    return result;
-                //}
                 static List<GangLongItemViewModel> OrderInsideTtgAnchorFirst(IEnumerable<GangLongItemViewModel> items)
                 {
                     var list = items.OrderBy(x => x.T_ReceiveSeq ?? int.MaxValue).ThenBy(x => x.ID).ToList();
@@ -967,9 +937,6 @@ namespace Data_Product.Controllers
                     if (emittedFamily.Add(i)) finalFamiliesIdx.Add(i);
                 var finalBlocks = new List<ThungTrungGianGroupViewModel>(thungList.Count);
                 foreach (var fi in finalFamiliesIdx) finalBlocks.AddRange(famBase[fi].Items);
-
-                // (Tuỳ business) có thể ẩn TTG rỗng:
-                // finalBlocks = finalBlocks.Where(x => (x.DanhSachThungGang?.Count ?? 0) > 0).ToList();
 
                 return finalBlocks;
             }
@@ -1353,9 +1320,10 @@ namespace Data_Product.Controllers
         }
 
 
-        private async Task<int> TaoThungTrungGian(DateTime ngayNhan, int idCa, int idLoThoi, string SoThungTG, int ID_NguoiNhan)
+        private async Task<int> TaoThungTrungGian(DateTime ngayNhan, int idCa, int idLoThoi, string SoThungTG, int ID_NguoiNhan, string NoiNhan)
         {
             string maTTG = "T" + TaoMa.GenerateSafeCode(8);
+
             var thungTrungGian = new Tbl_BM_16_ThungTrungGian
             {
                 MaThungTG = maTTG,
@@ -1365,7 +1333,8 @@ namespace Data_Product.Controllers
                 ID_LoThoi = idLoThoi,
                 IsCopy = false,
                 ID_NguoiNhan = ID_NguoiNhan,
-                NgayTaoTTG = DateTime.Now
+                NgayTaoTTG = DateTime.Now,
+                NoiNhan = NoiNhan
             };
             _context.Tbl_BM_16_ThungTrungGian.Add(thungTrungGian);
             await _context.SaveChangesAsync();
@@ -1446,7 +1415,7 @@ namespace Data_Product.Controllers
                 {
                     idThungTG_Common = await TaoThungTrungGian(
                         payload.ngayNhan, payload.idCa, payload.idLoThoi,
-                        payload.thungTrungGian, payload.idNguoiNhan);
+                        payload.thungTrungGian, payload.idNguoiNhan, payload.NoiNhan);
                 }
 
                 // Cache các bản gốc theo mã để giảm query
@@ -1458,7 +1427,7 @@ namespace Data_Product.Controllers
                 var baseByMa = baseThungs
                     .GroupBy(t => t.MaThungGang)
                     .ToDictionary(g => g.Key, g => g.First());
-
+                var ttgEntitiesCanTinh = new HashSet<int>();
                 foreach (var sel in orderedSelected)
                 {
                     var ma = sel.maThungGang.Trim();
@@ -1507,8 +1476,8 @@ namespace Data_Product.Controllers
 
                     int idThungTG = idThungTG_Common
                                     ?? await TaoThungTrungGian(payload.ngayNhan, payload.idCa, payload.idLoThoi,
-                                                               t.BKMIS_ThungSo, payload.idNguoiNhan);
-
+                                                               t.BKMIS_ThungSo, payload.idNguoiNhan, payload.NoiNhan);
+                    ttgEntitiesCanTinh.Add(idThungTG);
                     // Ghi nhận người nhận
                     _context.Tbl_BM_16_TaiKhoan_Thung.Add(new Tbl_BM_16_TaiKhoan_Thung
                     {
@@ -1617,6 +1586,24 @@ namespace Data_Product.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                var table = new DataTable();
+                table.Columns.Add("ID_TTG", typeof(int));
+
+                foreach (var ID in ttgEntitiesCanTinh.Where(x => x > 0))
+                {
+                    table.Rows.Add(ID);
+                }
+
+                var param = new SqlParameter("@ListID_TTG", table)
+                {
+                    TypeName = "dbo.TVP_ID_TTG",
+                    SqlDbType = SqlDbType.Structured
+                };
+
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC dbo.SP_BM16_Calc_KLXiKR @ListID_TTG",
+                    param
+                );
                 await tran.CommitAsync();
 
                 return Ok(new { Message = "Đã xử lý nhận thùng.", Soluong = orderedSelected.Count });
@@ -1850,6 +1837,37 @@ namespace Data_Product.Controllers
                     .Distinct()
                     .ToList();
 
+                var snapshotToHops = await _context.Tbl_BM_16_ThungTrungGian
+                        .Where(t => ID_TTGList.Contains(t.ID))
+                        .Select(t => new
+                        {
+                            t.NoiNhan,
+                            t.SoThungTG,
+                            GangSet = _context.Tbl_BM_16_GangLong
+                                .Where(gl => gl.ID_TTG == t.ID && gl.MaThungGang != null)
+                                .Select(gl => gl.MaThungGang)
+                                .Distinct()
+                                .ToList()
+                        })
+                        .ToListAsync();
+
+                var deletedTTGSnapshots = await _context.Tbl_BM_16_ThungTrungGian
+                    .Where(t => ID_TTGList.Contains(t.ID))
+                    .Select(t => new
+                    {
+                        t.ID,
+                        t.NoiNhan,
+                        t.SoThungTG,
+                        MaThungGangList = _context.Tbl_BM_16_GangLong
+                            .Where(gl => gl.ID_TTG == t.ID)
+                            .Select(gl => gl.MaThungGang)
+                            .Distinct()
+                            .ToList()
+                    })
+                    .ToListAsync();
+
+                var deletedTTGIds = new List<int>();
+                var changedTTGIds = new HashSet<int>();
                 // Xử lý thùng trung gian
                 foreach (var idTTG in ID_TTGList)
                 {
@@ -1865,7 +1883,12 @@ namespace Data_Product.Controllers
                             var copies = await _context.Tbl_BM_16_ThungTrungGian
                                 .Where(x => x.MaThungTG == thungTG.MaThungTG && x.IsCopy)
                                 .ToListAsync();
+                            deletedTTGIds.Add(thungTG.ID);
 
+                            foreach (var c in copies)
+                            {
+                                deletedTTGIds.Add(c.ID);
+                            }
                             _context.Tbl_BM_16_ThungTrungGian.RemoveRange(copies);
                             _context.Tbl_BM_16_ThungTrungGian.Remove(thungTG);
                         }
@@ -1877,7 +1900,7 @@ namespace Data_Product.Controllers
                         if (thungTG != null)
                         {
                             int count = 0;
-
+                            changedTTGIds.Add(idTTG);
                             foreach (var item in otherThungGang)
                             {
                                 var KLSoSanh = item.T_KLThungVaGang - item.T_KLThungChua - thungTG.KL_phe;
@@ -1937,19 +1960,25 @@ namespace Data_Product.Controllers
                         thung.T_ID_NguoiNhan = null;
                         thung.KLGangChia = null;
                         thung.T_ReceiveSeq = null;
+                        thung.KR = null;
+                        thung.NhietDo = null;
+                        thung.KLChiaXiKR = null;
+                        thung.KLXiKR = null;
+                        thung.KLGangCCTVaXi = null;
                     }
                     else
                     {
                         // Còn người khác đang giữ -> nâng 1 bản ghi copy lên thành gốc
+                        var listThungThepCanXoa = thungCopyCanXoa.Select(x => x.MaThungThep).ToList();
                         var thungCopy = await _context.Tbl_BM_16_GangLong
-                            .Where(x => x.MaThungGang == thung.MaThungGang && x.T_copy == true)
-                            .OrderBy(x => x.NgayLuyenThep) // hoặc theo thứ tự nào bạn chọn
+                            .Where(x => x.MaThungGang == thung.MaThungGang && x.T_copy == true && !listThungThepCanXoa.Contains(x.MaThungThep))
+                            .OrderBy(x => x.NgayLuyenThep) 
                             .FirstOrDefaultAsync();
 
                         if (thungCopy != null)
                         {
                             thungCopy.T_copy = false;
-                            // Xoá thùng gốc hiện tại (nếu muốn)
+                            // Xoá thùng gốc hiện tại 
                             _context.Tbl_BM_16_GangLong.Remove(thung);
                         }
                     }
@@ -1959,13 +1988,56 @@ namespace Data_Product.Controllers
                 _context.Tbl_BM_16_GangLong.RemoveRange(thungCopyCanXoa);
 
                 await _context.SaveChangesAsync();
+
+                var affectedTTGIds = new HashSet<int>();
+
+                foreach (var snap in snapshotToHops)
+                {
+                    if (snap.GangSet == null || snap.GangSet.Count == 0)
+                        continue;
+
+                    var ids = await _context.Tbl_BM_16_ThungTrungGian
+                        .Where(t =>
+                            t.NoiNhan == snap.NoiNhan &&
+                            t.SoThungTG == snap.SoThungTG &&
+                            _context.Tbl_BM_16_GangLong.Any(gl =>
+                                gl.ID_TTG == t.ID &&
+                                snap.GangSet.Contains(gl.MaThungGang)
+                            )
+                        )
+                        .Select(t => t.ID)
+                        .ToListAsync();
+
+                    foreach (var id in ids)
+                        affectedTTGIds.Add(id);
+                }
+
+                if (affectedTTGIds.Any())
+                {
+                    var table = new DataTable();
+                    table.Columns.Add("ID_TTG", typeof(int));
+
+                    foreach (var id in affectedTTGIds)
+                        table.Rows.Add(id);
+
+                    var param = new SqlParameter("@ListID_TTG", table)
+                    {
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "dbo.TVP_ID_TTG"
+                    };
+
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "EXEC dbo.SP_BM16_Calc_KLXiKR @ListID_TTG",
+                        param
+                    );
+                }
                 await tran.CommitAsync();
 
                 return Ok(new { success = true });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+                return StatusCode(500,ex.Message);
             }
         }
 
@@ -2067,397 +2139,281 @@ namespace Data_Product.Controllers
             }
         }
 
-
+        [HttpPost]
         public async Task<IActionResult> Luu([FromBody] List<ThungTrungGianDto> dsThungTG)
         {
-            if (dsThungTG == null || !dsThungTG.Any())
-                return BadRequest("Không có dữ liệu.");
+            var maThungThepCanTinhToan = new HashSet<string>();
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
 
-            try
+            var taiKhoan = await _context.Tbl_TaiKhoan
+                .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+            if (taiKhoan == null)
+                return BadRequest("Không tìm thấy tài khoản.");
+
+
+
+
+            var danhSachBiBoQua = new List<string>();
+            /* =====================================================
+               PHASE 1 – LƯU AN TOÀN (KHÔNG ĐỘC QUYỀN)
+               ===================================================== */
+
+            // Xác định loại nghiệp vụ
+            bool isHRC1 = dsThungTG.Any(x => x.PhongBan == "HRC1");
+            bool isHRC2 = !isHRC1;
+            var ttgSaved = new List<Tbl_BM_16_ThungTrungGian>();
+            // ===========================================
+            // 1) ÁP DỤNG QUY TẮC NHIỆT ĐỘ TRƯỚC
+            // ===========================================
+            if (isHRC1)
+                await XuLyNhietDo_HRC1(dsThungTG);
+            else
+                await XuLyNhietDo_HRC2(dsThungTG);
+
+            // ===========================================
+            // 2) LƯU THÔNG TIN THÙNG TRUNG GIAN
+            // ===========================================
+            //var ttgEntitiesCanTinh = new HashSet<Tbl_BM_16_ThungTrungGian>();
+
+            foreach (var tgDto in dsThungTG)
             {
-                var maThungThepCanTinhToan = new HashSet<string>();
-                var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                Tbl_BM_16_ThungTrungGian ttg = null;
 
-                var taiKhoan = await _context.Tbl_TaiKhoan
-                    .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+                // ============================
+                // Xử lý thùng COPY
+                // ============================
+                if (tgDto.IsCopy && !string.IsNullOrEmpty(tgDto.MaThungTG_Copy))
+                {
+                    ttg = await _context.Tbl_BM_16_ThungTrungGian
+                        .FirstOrDefaultAsync(x => x.IsCopy && x.MaThungTG_Copy == tgDto.MaThungTG_Copy);
 
-                if (taiKhoan == null)
-                    return BadRequest("Không tìm thấy tài khoản.");
-
-                var danhSachBiBoQua = new List<string>();
-
-                // Xác định loại nghiệp vụ
-                bool isHRC1 = dsThungTG.Any(x => x.PhongBan == "HRC1");
-                bool isHRC2 = !isHRC1;
-
-                // ===========================================
-                // 1) ÁP DỤNG QUY TẮC NHIỆT ĐỘ TRƯỚC
-                // ===========================================
-                if (isHRC1)
-                    await XuLyNhietDo_HRC1(dsThungTG);
+                    if (ttg == null)
+                    {
+                        ttg = new Tbl_BM_16_ThungTrungGian
+                        {
+                            MaThungTG = tgDto.MaThungTG,
+                            SoThungTG = tgDto.SoThungTG,
+                            MaThungTG_Copy = tgDto.MaThungTG_Copy,
+                            NgayNhan = tgDto.NgayNhan,
+                            CaNhan = tgDto.CaNhan,
+                            ID_LoThoi = tgDto.ID_LoThoi,
+                            GioChonMe = tgDto.GioChonMe,
+                            ID_NguoiNhan = taiKhoan.ID_TaiKhoan,
+                            NgayTaoTTG = DateTime.Now,
+                            Tong_KLGangNhan = null,
+                            IsCopy = true
+                        };
+                        _context.Add(ttg);
+                    }
+                }
                 else
-                    await XuLyNhietDo_HRC2(dsThungTG);
-
-                // ===========================================
-                // 2) LƯU THÔNG TIN THÙNG TRUNG GIAN
-                // ===========================================
-                foreach (var tgDto in dsThungTG)
                 {
-                    Tbl_BM_16_ThungTrungGian ttg = null;
-
                     // ============================
-                    // Xử lý thùng COPY
+                    // Xử lý thùng GỐC
                     // ============================
-                    if (tgDto.IsCopy && !string.IsNullOrEmpty(tgDto.MaThungTG_Copy))
-                    {
-                        ttg = await _context.Tbl_BM_16_ThungTrungGian
-                            .FirstOrDefaultAsync(x => x.IsCopy && x.MaThungTG_Copy == tgDto.MaThungTG_Copy);
+                    ttg = await _context.Tbl_BM_16_ThungTrungGian
+                        .FirstOrDefaultAsync(x => !x.IsCopy && x.MaThungTG == tgDto.MaThungTG);
 
-                        if (ttg == null)
-                        {
-                            ttg = new Tbl_BM_16_ThungTrungGian
-                            {
-                                MaThungTG = tgDto.MaThungTG,
-                                SoThungTG = tgDto.SoThungTG,
-                                MaThungTG_Copy = tgDto.MaThungTG_Copy,
-                                NgayNhan = tgDto.NgayNhan,
-                                CaNhan = tgDto.CaNhan,
-                                ID_LoThoi = tgDto.ID_LoThoi,
-                                GioChonMe = tgDto.GioChonMe,
-                                ID_NguoiNhan = taiKhoan.ID_TaiKhoan,
-                                NgayTaoTTG = DateTime.Now,
-                                Tong_KLGangNhan = null,
-                                IsCopy = true
-                            };
-                            _context.Add(ttg);
-                        }
-                    }
-                    else
-                    {
-                        // ============================
-                        // Xử lý thùng GỐC
-                        // ============================
-                        ttg = await _context.Tbl_BM_16_ThungTrungGian
-                            .FirstOrDefaultAsync(x => !x.IsCopy && x.MaThungTG == tgDto.MaThungTG);
-
-                        if (ttg == null)
-                            continue;
-                    }
-
-                    // Kiểm tra thùng gang đã chốt
-                    bool coGangDaChot = await _context.Tbl_BM_16_GangLong
-                        .AnyAsync(x => x.ID_TTG == ttg.ID && x.ID_TrangThai == (int)TinhTrang.DaChot);
-
-                    if (coGangDaChot)
-                    {
-                        danhSachBiBoQua.Add(tgDto.IsCopy ? tgDto.MaThungTG_Copy : tgDto.MaThungTG);
+                    if (ttg == null)
                         continue;
-                    }
+                }
+                // Kiểm tra thùng gang đã chốt
+                bool coGangDaChot = await _context.Tbl_BM_16_GangLong
+                    .AnyAsync(x => x.ID_TTG == ttg.ID && x.ID_TrangThai == (int)TinhTrang.DaChot);
 
-                    // Cập nhật dữ liệu chung
-                    ttg.KLThungVaGang_Thoi = tgDto.KLThungVaGang_Thoi;
-                    ttg.KLThung_Thoi = tgDto.KLThung_Thoi;
-                    ttg.KL_phe = tgDto.KLPhe;
-                    ttg.KLGang_Thoi = tgDto.KLGang_Thoi;
-                    ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
-                    ttg.GhiChu = tgDto.GhiChu;
-                    ttg.ID_MeThoi = tgDto.ID_MeThoi;
-                    ttg.GioChonMe = tgDto.GioChonMe;
-                    ttg.KLThungVaGangTruocKR = tgDto.KLThungVaGangTruocKR;
-
-                    // ===========================================
-                    // 3) CẬP NHẬT THÙNG GANG (HRC1 & HRC2 đã xử lý NhietDo từ trước)
-                    // ===========================================
-                    if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
-                    {
-                        var maThungList = tgDto.DanhSachThungGang.Select(x => x.MaThungThep).ToList();
-
-                        var gangList = await _context.Tbl_BM_16_GangLong
-                            .Where(x => maThungList.Contains(x.MaThungThep) &&
-                                        x.ID_TrangThai != (int)TinhTrang.DaChot)
-                            .ToListAsync();
-
-                        foreach (var thungGang in tgDto.DanhSachThungGang)
-                        {
-                            var entity = gangList.FirstOrDefault(x => x.MaThungThep == thungGang.MaThungThep);
-                            if (entity == null) continue;
-
-                            entity.T_KLGangLong = thungGang.T_KLGangLong;
-                            entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
-                            entity.T_KLThungChua = thungGang.T_KLThungChua;
-
-                            // Nhiệt độ đã được xử lý ở bước trên
-                            entity.NhietDo = thungGang.NhietDo;
-
-                            maThungThepCanTinhToan.Add(thungGang.MaThungGang);
-                        }
-                    }
+                if (coGangDaChot)
+                {
+                    danhSachBiBoQua.Add(tgDto.IsCopy ? tgDto.MaThungTG_Copy : tgDto.MaThungTG);
+                    continue;
                 }
 
-                // Lưu thay đổi
-                await _context.SaveChangesAsync();
-
-                // Sau cùng tính toán lại các thùng gang
-                foreach (var ma in maThungThepCanTinhToan)
+                //ttgEntitiesCanTinh.Add(ttg);
+                // Cập nhật dữ liệu chung
+                ttg.KLThungVaGang_Thoi = tgDto.KLThungVaGang_Thoi;
+                ttg.KLThung_Thoi = tgDto.KLThung_Thoi;
+                ttg.KL_phe = tgDto.KLPhe;
+                ttg.KLGang_Thoi = tgDto.KLGang_Thoi;
+                ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
+                ttg.GhiChu = tgDto.GhiChu;
+                ttg.ID_MeThoi = tgDto.ID_MeThoi;
+                ttg.GioChonMe = tgDto.GioChonMe;
+                ttg.NoiNhan = isHRC1 ? "HRC1" : "HRC2";
+                //ttg.KLThungVaGangTruocKR = tgDto.KLThungVaGangTruocKR;
+                ttgSaved.Add(ttg);
+                // ===========================================
+                // 3) CẬP NHẬT THÙNG GANG (HRC1 & HRC2 đã xử lý NhietDo từ trước)
+                // ===========================================
+                if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
                 {
-                    try
+                    var maThungList = tgDto.DanhSachThungGang.Select(x => x.MaThungThep).ToList();
+
+                    var gangList = await _context.Tbl_BM_16_GangLong
+                        .Where(x => maThungList.Contains(x.MaThungThep) &&
+                                    x.ID_TrangThai != (int)TinhTrang.DaChot)
+                        .ToListAsync();
+                    foreach (var thungGang in tgDto.DanhSachThungGang)
                     {
-                        await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(ma);
-                    }
-                    catch { }
-                }
+                        var entity = gangList.FirstOrDefault(x => x.MaThungThep == thungGang.MaThungThep);
+                        if (entity == null) continue;
 
-                return Ok(new
-                {
-                    success = true,
-                    message = "Lưu thành công.",
-                    maThungThepCanTinhToan
-                });
+                        entity.T_KLGangLong = thungGang.T_KLGangLong;
+                        entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
+                        entity.T_KLThungChua = thungGang.T_KLThungChua;
+                        entity.NhietDo = thungGang.NhietDo;
+
+                        maThungThepCanTinhToan.Add(thungGang.MaThungGang);
+                    }
+                }
             }
-            catch (Exception ex)
+            // Lưu thay đổi
+            await _context.SaveChangesAsync();
+
+            // Sau cùng tính toán lại các thùng gang
+            foreach (var ma in maThungThepCanTinhToan)
             {
-                return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
+                try
+                {
+                    await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(ma);
+                }
+                catch { }
             }
+
+
+
+            /* ========= PHASE 1 – SAVE SAFE ========= */
+
+            //await _context.SaveChangesAsync();
+            var successIds = new List<int>();
+            var errors = new List<string>();
+            /* ========= PHASE 2 – LOAD TỔ HỢP DB ========= */
+
+            var toHopDbRaw = await _context.Tbl_BM_16_ThungTrungGian
+                .Where(x => !x.IsCopy && x.KLThungVaGangTruocKR != null)
+                .Join(
+                    _context.Tbl_BM_16_GangLong.Where(g => g.MaThungGang != null),
+                    ttg => ttg.ID,
+                    g => g.ID_TTG,
+                    (ttg, g) => new
+                    {
+                        ttg.ID,
+                        ttg.NoiNhan,
+                        ttg.SoThungTG,
+                        g.MaThungGang
+                    })
+                .ToListAsync();
+
+            var toHopDb = toHopDbRaw
+                .GroupBy(x => new { x.ID, x.NoiNhan, x.SoThungTG })
+                .Select(g => new ToHopGang
+                {
+                    TtgId = g.Key.ID,
+                    NoiNhan = g.Key.NoiNhan,
+                    SoThungTG = g.Key.SoThungTG,
+                    GangSet = g.Select(x => x.MaThungGang).ToHashSet()
+                })
+                .ToList();
+
+            /* ========= PHASE 3 – LOAD GANG BATCH ========= */
+
+            var ttgGoc = ttgSaved.Where(x => !x.IsCopy).ToList();
+            var ttgIds = ttgGoc.Select(x => x.ID).ToList();
+
+            var gangRows = await _context.Tbl_BM_16_GangLong
+                .Where(x =>
+                    x.ID_TTG.HasValue &&
+                    ttgIds.Contains(x.ID_TTG.Value) &&
+                    x.MaThungGang != null)
+                .Select(x => new
+                {
+                    ID_TTG = x.ID_TTG.Value,
+                    x.MaThungGang
+                })
+                .ToListAsync();
+
+            var gangByTtg = gangRows
+                .GroupBy(x => x.ID_TTG)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.MaThungGang).ToHashSet()
+                );
+
+            /* ========= PHASE 4 – CHECK TRÙNG ========= */
+
+            var accepted = new List<(Tbl_BM_16_ThungTrungGian ttg, HashSet<string> gang)>();
+            var affectedIds = new HashSet<int>();
+
+            foreach (var dto in dsThungTG.Where(x => !x.IsCopy))
+            {
+                var ttg = ttgGoc.FirstOrDefault(x => x.MaThungTG == dto.MaThungTG);
+                if (ttg == null) continue;
+
+                /* ===============================
+                   CASE 1: USER XÓA INPUT
+                   =============================== */
+                affectedIds.Add(ttg.ID);
+                if (!dto.KLThungVaGangTruocKR.HasValue)
+                {
+                    // 🔥 QUAN TRỌNG: phải ghi NULL xuống DB
+                    ttg.KLThungVaGangTruocKR = null;
+                    continue;
+                }
+
+                if (!gangByTtg.TryGetValue(ttg.ID, out var gang) || gang.Count == 0)
+                {
+                    errors.Add($"TTG {ttg.SoThungTG}: chưa có danh sách gang");
+                    continue;
+                }
+
+                bool trung =
+                    accepted.Any(x =>
+                        x.ttg.NoiNhan == ttg.NoiNhan &&
+                        x.ttg.SoThungTG == ttg.SoThungTG &&
+                        x.gang.SetEquals(gang))
+                    ||
+                    toHopDb.Any(x =>
+                        x.TtgId != ttg.ID &&
+                        x.NoiNhan == ttg.NoiNhan &&
+                        x.SoThungTG == ttg.SoThungTG &&
+                        x.GangSet.SetEquals(gang));
+
+                if (trung)
+                {
+                    errors.Add($"TTG {ttg.SoThungTG}: trùng tổ hợp – không cho nhập KL trước KR");
+                    continue;
+                }
+
+                ttg.KLThungVaGangTruocKR = dto.KLThungVaGangTruocKR;
+                accepted.Add((ttg, gang));
+                successIds.Add(ttg.ID);
+            }
+
+            await _context.SaveChangesAsync();
+
+            /* ========= PHASE 5 – CALL STORE ========= */
+
+            if (affectedIds.Any())
+            {
+                var tvp = new DataTable();
+                tvp.Columns.Add("ID_TTG", typeof(int));
+                foreach (var id in affectedIds)
+                    tvp.Rows.Add(id);
+
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC dbo.SP_BM16_Calc_KLXiKR @ListID_TTG",
+                    new SqlParameter("@ListID_TTG", tvp)
+                    {
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "dbo.TVP_ID_TTG"
+                    });
+            }
+
+            return Ok(new { success = true, saved = successIds, errors });
         }
 
 
-        //[HttpPost]
-        //public async Task<IActionResult> Luu([FromBody] List<ThungTrungGianDto> dsThungTG)
-        //{
-        //    if (dsThungTG == null || !dsThungTG.Any())
-        //        return BadRequest("Không có dữ liệu.");
-        //    try
-        //    {
-        //        var maThungThepCanTinhToan = new HashSet<string>();
-        //        var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-        //        var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
-        //        if (TaiKhoan == null) return BadRequest("Không tìm thấy tài khoản.");
-
-        //        var danhSachBiBoQua = new List<string>();
-
-        //        foreach (var tgDto in dsThungTG)
-        //        {
-        //            Tbl_BM_16_ThungTrungGian ttg = null;
-
-        //            // thung copy
-        //            if (tgDto.IsCopy && !string.IsNullOrEmpty(tgDto.MaThungTG_Copy))
-        //            {
-        //                // Là thùng copy => tìm theo MaThungTG_Copy
-        //                ttg = await _context.Tbl_BM_16_ThungTrungGian
-        //                            .FirstOrDefaultAsync(x => x.IsCopy && x.MaThungTG_Copy == tgDto.MaThungTG_Copy);
-
-        //                if (ttg == null)
-        //                {
-        //                    // Tạo mới bản sao
-        //                    ttg = new Tbl_BM_16_ThungTrungGian
-        //                    {
-        //                        MaThungTG = tgDto.MaThungTG,
-        //                        SoThungTG = tgDto.SoThungTG,
-        //                        MaThungTG_Copy = tgDto.MaThungTG_Copy,
-        //                        NgayNhan = tgDto.NgayNhan,
-        //                        CaNhan = tgDto.CaNhan,
-        //                        ID_LoThoi = tgDto.ID_LoThoi,
-        //                        GioChonMe = tgDto.GioChonMe,
-        //                        ID_NguoiNhan = TaiKhoan.ID_TaiKhoan,
-        //                        NgayTaoTTG = DateTime.Now,
-        //                        Tong_KLGangNhan = null,
-        //                        IsCopy = true
-        //                    };
-        //                    _context.Tbl_BM_16_ThungTrungGian.Add(ttg);
-        //                }
-        //            }
-        //            else // thung goc
-        //            {
-        //                ttg = await _context.Tbl_BM_16_ThungTrungGian
-        //                        .FirstOrDefaultAsync(x => !x.IsCopy &&
-        //                                                  x.MaThungTG == tgDto.MaThungTG);
-        //                //&& x.ID_NguoiNhan == TaiKhoan.ID_TaiKhoan);
-
-        //                if (ttg == null)
-        //                    continue;
-        //            }
-
-        //            // ===== KIỂM TRA: Nếu có thùng gang đã chốt thì bỏ qua luôn =====
-        //            bool coGangDaChot = await _context.Tbl_BM_16_GangLong
-        //                .AnyAsync(x => x.ID_TTG == ttg.ID && x.ID_TrangThai == (int)TinhTrang.DaChot);
-        //            if (coGangDaChot)
-        //            {
-        //                danhSachBiBoQua.Add(ttg.IsCopy ? ttg.MaThungTG_Copy : ttg.MaThungTG);
-        //                continue;
-        //            }
-
-        //            // Cập nhật dữ liệu chung
-        //            if (ttg != null)
-        //            {
-        //                ttg.KLThungVaGang_Thoi = tgDto.KLThungVaGang_Thoi;
-        //                ttg.KLThung_Thoi = tgDto.KLThung_Thoi;
-        //                ttg.KL_phe = tgDto.KLPhe;
-        //                ttg.KLGang_Thoi = tgDto.KLGang_Thoi;
-        //                ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
-        //                ttg.GhiChu = tgDto.GhiChu;
-        //                ttg.ID_MeThoi = tgDto.ID_MeThoi;
-        //                ttg.GioChonMe = tgDto.GioChonMe;
-        //            }
-
-        //            // Nếu là thùng gốc =>> cập nhật danh sách thùng gang
-        //            //if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
-        //            //{
-
-        //            //    var maThungList = tgDto.DanhSachThungGang.Select(x => x.MaThungThep).ToList();
-
-        //            //    var gangList = await _context.Tbl_BM_16_GangLong
-        //            //        .Where(x => maThungList.Contains(x.MaThungThep) && x.ID_TrangThai != (int)TinhTrang.DaChot)
-        //            //        .ToListAsync();
-        //            //    var maChiaGangList = await _context.Tbl_BM_16_ChiaGang
-        //            //        .Where(x => maThungList.Contains(x.MaThungThep))
-        //            //        .Select(x => x.MaChiaGang)
-        //            //        .Distinct()
-        //            //        .ToListAsync();
-
-        //            //    // 2. Lấy tất cả thùng thuộc các MaChiaGang đó (bao gồm thùng KHÔNG nằm trong tgDto)
-        //            //    var allThungCungNhom = await _context.Tbl_BM_16_ChiaGang
-        //            //        .Where(x => maChiaGangList.Contains(x.MaChiaGang))
-        //            //        .Select(x => new { x.MaChiaGang, x.MaThungThep })
-        //            //        .ToListAsync();
 
 
-        //            //    // 3. Group theo MaChiaGang
-        //            //    var groupData = allThungCungNhom
-        //            //        .GroupBy(x => x.MaChiaGang)
-        //            //        .ToList();
-
-        //            //    foreach (var group in groupData)
-        //            //    {
-        //            //        // Các thùng trong DB thuộc nhóm này
-        //            //        var thungTrongDB = group.Select(x => x.MaThungThep).ToList();
-
-        //            //        // Các thùng trong DTO thuộc nhóm này
-        //            //        var thungTrongDTO = tgDto.DanhSachThungGang
-        //            //            .Where(x => thungTrongDB.Contains(x.MaThungThep))
-        //            //            .ToList();
-
-        //            //        // 4. Lấy nhiệt độ chung từ DTO
-        //            //        var nhietDoChung = thungTrongDTO
-        //            //            .Where(x => x.NhietDo.HasValue)
-        //            //            .Select(x => x.NhietDo.Value)
-        //            //            .FirstOrDefault();
-
-        //            //        if (nhietDoChung > 0)
-        //            //        {
-        //            //            // 5. Cập nhật NHIỆT ĐỘ vào DTO
-        //            //            foreach (var t in thungTrongDTO)
-        //            //            {
-        //            //                t.NhietDo = nhietDoChung;
-        //            //            }
-
-        //            //            // 6. Cập nhật NHIỆT ĐỘ vào DB đối với thùng không có trong DTO
-        //            //            var thungNgoaiDTO = await _context.Tbl_BM_16_GangLong
-        //            //                .Where(x => thungTrongDB.Contains(x.MaThungThep))
-        //            //                .ToListAsync();
-
-        //            //            foreach (var t in thungNgoaiDTO)
-        //            //            {
-        //            //                t.NhietDo = nhietDoChung;
-        //            //            }
-
-        //            //        }
-        //            //    }
-
-
-        //            //    foreach (var thungGang in tgDto.DanhSachThungGang)
-        //            //    {
-        //            //        var entity = gangList.FirstOrDefault(x => x.MaThungThep == thungGang.MaThungThep);
-
-        //            //        if (entity != null)
-        //            //        {
-        //            //            bool isChanged = false;
-
-        //            //            if (entity.T_KLGangLong != thungGang.T_KLGangLong)
-        //            //            {
-        //            //                isChanged = true;
-        //            //                entity.T_KLGangLong = thungGang.T_KLGangLong;
-
-        //            //            }
-
-        //            //            entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
-        //            //            entity.T_KLThungChua = thungGang.T_KLThungChua;
-        //            //            //entity.NhietDo = thungGang.NhietDo;
-        //            //            if (thungGang.NhietDo.HasValue)
-        //            //            {
-        //            //                entity.NhietDo = thungGang.NhietDo.Value;
-        //            //            }
-        //            //            maThungThepCanTinhToan.Add(thungGang.MaThungGang);
-        //            //        }
-        //            //    }
-        //            //}
-        //            // ==========================
-        //            // XỬ LÝ NHIỆT ĐỘ THEO NGHIỆP VỤ HRC1 & HRC2
-        //            // ==========================
-
-        //            if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
-        //            {
-        //                // Danh sách mã thùng trong payload
-        //                var maThungList = tgDto.DanhSachThungGang
-        //                    .Select(x => x.MaThungThep)
-        //                    .ToList();
-
-        //                // Lấy dữ liệu DB của các thùng này
-        //                var gangList = await _context.Tbl_BM_16_GangLong
-        //                    .Where(x => maThungList.Contains(x.MaThungThep)
-        //                                && x.ID_TrangThai != (int)TinhTrang.DaChot)
-        //                    .ToListAsync();
-
-        //                bool isHRC1 = dsThungTG.Any(x => x.PhongBan == "HRC1");
-        //                bool isHRC2 = !isHRC1;
-
-        //                // Gom tất cả thùng ở mọi DTO để xử lý nhóm
-        //                var allItems = dsThungTG.ToList();
-
-        //                if (isHRC1)
-        //                    await XuLyNhietDo_HRC1(dsThungTG);
-        //                else
-        //                    XuLyNhietDo_HRC2(dsThungTG);
-        //                // -------------------------
-        //                // UPDATE CÁC GIÁ TRỊ KHÁC SAU KHI XỬ LÝ NHIỆT ĐỘ
-        //                // -------------------------
-        //                foreach (var thungGang in tgDto.DanhSachThungGang)
-        //                {
-        //                    var entity = gangList.FirstOrDefault(x => x.MaThungThep == thungGang.MaThungThep);
-        //                    if (entity == null) continue;
-
-        //                    entity.T_KLGangLong = thungGang.T_KLGangLong;
-        //                    entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
-        //                    entity.T_KLThungChua = thungGang.T_KLThungChua;
-
-        //                    // Nhiệt độ đã được xử lý chính xác ở trên theo từng HRC1/HRC2
-        //                    entity.NhietDo = thungGang.NhietDo;
-
-        //                    maThungThepCanTinhToan.Add(thungGang.MaThungGang);
-        //                }
-        //            }
-        //        }
-
-        //        await _context.SaveChangesAsync();
-
-        //        foreach (var ma in maThungThepCanTinhToan)
-        //        {
-        //            try
-        //            {
-        //                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(ma);
-
-        //            }
-        //            catch
-        //            {
-        //            }
-        //        }
-        //        return Ok(new { success = true, message = "Lưu thành công.", maThungThepCanTinhToan = maThungThepCanTinhToan });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["msgSuccess"] = "<script>alert('Có lỗi khi truy xuất dữ liệu.');</script>";
-        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
-        //    }
-        //}
 
 
         [HttpPost]
@@ -2547,37 +2503,6 @@ namespace Data_Product.Controllers
         {
             return value.HasValue ? Math.Round(value.Value, 2) : (decimal?)null;
         }
-
-
-        //[HttpGet]
-        //public async Task<IActionResult> UpdateKLGangChia()
-        //{
-        //    try
-        //    {
-        //        var gangLongList = await _context.Tbl_BM_16_ChiaGang
-        //            .Where(x => x.PhanTram == null || x.KLGangChia == null)
-        //            .Select(x => x.MaThungGang)
-        //            .ToListAsync();
-
-        //        foreach (var item in gangLongList)
-        //        {
-        //            try
-        //            {
-        //                await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(item);
-
-        //            }
-        //            catch
-        //            {
-        //            }
-        //        }
-
-        //            return Ok();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
-        //    }
-        //}
 
         [HttpPost]
         public async Task<IActionResult> ExportToExcel([FromBody] SearchThungDaNhanDto payload)

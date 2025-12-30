@@ -59,6 +59,7 @@ namespace Data_Product.Models.ModelView
         public decimal? Tong_KLGangNhan { get; set; }
         public string? GioChonMe { get; set; }
         public decimal? KLThungVaGangTruocKR { get; set; }
+        public bool? IsNhap { get; set; }
 
         public DateTime? NgayTaoTTG { get; set; }
 

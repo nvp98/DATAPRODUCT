@@ -10,6 +10,10 @@
         public decimal SumKLVaoLoThoi { get; set; }
         public decimal SumKLGangChia { get; set; }
         public decimal SumKLGangChiaCR { get; set; }
+        public decimal SumKLXiKR { get; set; }
+        public decimal SumKLChiaXiKR { get; set; }
+        public decimal SumKLGangCCTVaXi { get; set; }
+
         public List<T> Data { get; set; } = new();
     }
 }
