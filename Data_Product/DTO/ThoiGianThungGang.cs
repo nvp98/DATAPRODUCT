@@ -29,5 +29,19 @@
         public int G_ID_TrangThai { get; set; }
         public int T_ID_TrangThai { get; set; }
     }
+    class ToHopGang
+    {
+        public int TtgId { get; set; }
+        public string NoiNhan { get; set; }
+        public string SoThungTG { get; set; }
+        public HashSet<string> GangSet { get; set; }
+    }
 
+    public class TtgKrErrorDto
+    {
+        public int ID_TTG { get; set; }
+        public string NoiNhan { get; set; }
+        public string SoThungTG { get; set; }
+        public string Reason { get; set; }
+    }
 }

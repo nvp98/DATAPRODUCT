@@ -7,6 +7,7 @@ using Data_Product.Models.ModelView;
 using Data_Product.Repositorys;
 using Data_Product.Services;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.VariantTypes;
 using ExcelDataReader;
 using Humanizer;
 using Microsoft.AspNetCore.Mvc;
@@ -625,6 +626,9 @@ namespace Data_Product.Controllers
             decimal sumKLVaoLoThoi = 0m;
             decimal sumKLGangChia = 0m;
             decimal sumKLGangChiaCR = 0m;
+            decimal sumKLXiKR = 0m;
+            decimal sumKLChiaXiKR = 0m;
+            decimal sumKLGangCCTVaXi = 0m;
 
             List<int> scopeTtgIds = new();
 
@@ -640,6 +644,9 @@ namespace Data_Product.Controllers
 
                 sumKLGangChia = await totalScope
                     .SumAsync(x => (decimal?)((x.KLGangChia ?? x.T_KLGangLong) ?? 0m)) ?? 0m;
+                sumKLXiKR = await totalScope.SumAsync(x => (decimal?)(x.KLXiKR ?? 0m)) ?? 0m;
+                sumKLChiaXiKR = await totalScope.SumAsync(x => (decimal?)(x.KLChiaXiKR ?? 0m)) ?? 0m;
+                sumKLGangCCTVaXi = await totalScope.SumAsync(x => (decimal?)(x.KLGangCCTVaXi ?? 0m)) ?? 0m;
 
                 var maThungTGListForSum = await (
                     from a in totalScope
@@ -713,6 +720,9 @@ namespace Data_Product.Controllers
                                  join methoi in _context.Tbl_MeThoi on ttg.ID_MeThoi equals methoi.ID into g_mt
                                  from methoi in g_mt.DefaultIfEmpty()
 
+                                 join chiaCCT in _context.Tbl_BM_16_ChiaGang on a.MaThungThep equals chiaCCT.MaThungThep into chiaGangCCT
+                                 from chiaCCT in chiaGangCCT.DefaultIfEmpty()
+                                 
                                  select new Tbl_BM_16_GangLong
                                  {
                                      ID = a.ID,
@@ -772,7 +782,10 @@ namespace Data_Product.Controllers
                                      KLThungVaGangTruocKR = ttg != null ? ttg.KLThungVaGangTruocKR : null,
                                      KL_phe = ttg != null ? ttg.KL_phe : null,
                                      Tong_KLGangNhan = ttg != null ? ttg.Tong_KLGangNhan : null,
-                                     GioChonMe = ttg != null ? ttg.GioChonMe : null
+                                     GioChonMe = ttg != null ? ttg.GioChonMe : null,
+                                     KLXiKR = a.KLXiKR,
+                                     KLChiaXiKR = a.KLChiaXiKR,
+                                     KLGangCCTVaXi = a.KLGangCCTVaXi
                                  }).ToListAsync();
 
             gocData = FilterByTinhTrang(gocData, dto.ID_TinhTrang);
@@ -929,6 +942,7 @@ namespace Data_Product.Controllers
                 .Select(g => g.ToList())
                 .ToList();
 
+
             // 9) Return (sumKLGangChiaCR đã tính trên totalScope trước paging)
             return new PageResultViewModel<List<Tbl_BM_16_GangLong>>
             {
@@ -940,6 +954,9 @@ namespace Data_Product.Controllers
                 SumKLVaoLoThoi = sumKLVaoLoThoi,
                 SumKLGangChia = sumKLGangChia,
                 SumKLGangChiaCR = sumKLGangChiaCR,
+                SumKLXiKR = sumKLXiKR,
+                SumKLChiaXiKR = sumKLChiaXiKR,
+                SumKLGangCCTVaXi = sumKLGangCCTVaXi,
                 Data = groupedData
             };
         }
@@ -1013,7 +1030,8 @@ namespace Data_Product.Controllers
                 Tong_KLGangNhan = null,
                 GioChonMe = null,
                 TrangThaiTinh = original.TrangThaiTinh,
-                NhietDo = original.NhietDo
+                NhietDo = original.NhietDo,
+
             };
         }
         
@@ -1256,6 +1274,18 @@ namespace Data_Product.Controllers
                                     worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge().Value = item.GioChonMe;
                                     colIndex++; mergedColumnCount++;
 
+                                    var cellKLXiKR = worksheet.Cell(row, colIndex);
+                                    cellKLXiKR.Value = item.KLXiKR;
+                                    if (item.KLXiKR.HasValue && item.KLXiKR <= 0)
+                                    {
+                                        cellKLXiKR.Style.NumberFormat.Format = "0.00";
+                                        cellKLXiKR.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                                        cellKLXiKR.Style.Fill.BackgroundColor = XLColor.FromHtml("#eaed28");
+
+                                    }
+                                    worksheet.Range(row, colIndex, row + rowspan - 1, colIndex).Merge();
+                                    colIndex++; mergedColumnCount++;
+
                                     isFirst = false;
                                 }
                                 else
@@ -1263,6 +1293,9 @@ namespace Data_Product.Controllers
                                     // Bỏ qua cột merge cho các dòng tiếp theo
                                     colIndex += mergedColumnCount;
                                 }
+
+                                worksheet.Cell(row, colIndex++).Value = item.KLChiaXiKR;
+                                worksheet.Cell(row, colIndex++).Value = item.KLGangCCTVaXi;
 
                                 var tinhTrangT_cell = worksheet.Cell(row, colIndex++);
                                 RenderTrangThaiCell(tinhTrangT_cell, item.TrangThaiLT, item.T_ID_TrangThai);
@@ -1333,7 +1366,7 @@ namespace Data_Product.Controllers
                         worksheet.Range(sumAllRow, 18, sumAllRow, 44).Style.Fill.BackgroundColor = XLColor.White;
 
                         // Format toàn bảng
-                        var usedRange = worksheet.Range($"A7:AR{sumAllRow}");
+                        var usedRange = worksheet.Range($"A7:AU{sumAllRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.NumberFormat.SetFormat("General");
                         //usedRange.Style.Font.FontColor = XLColor.Black;
