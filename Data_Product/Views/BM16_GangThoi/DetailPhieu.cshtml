@@ -689,6 +689,9 @@
 				const rawSoMe = x.bkmis_SoMe ?? x.bkmiS_SoMe ?? x.soMe ?? x.SoMe;
 				const someVal = (rawSoMe === 0 || rawSoMe === "0") ? "0" : (rawSoMe ? rawSoMe.toString() : '');
 				const originalSoMe = someVal;
+				
+				const hasGhiChu = x.ghiChu && x.ghiChu.trim() !== '';
+				const numberStyle = hasGhiChu ? 'style="color: red; font-weight: bold;"' : '';
 
 				const tr = `
 					<tr data-row="left"
@@ -702,12 +705,12 @@
 						data-thungso="${escapeHtml(thungSo)}">
 						<td>${escapeHtml(san)}</td>
 						<td>${escapeHtml(thungSo)}</td>
-						<td>${escapeHtml(gioStr)}</td>
-						<td class="kl-bi">${x.kL_Bi ?? ''}</td>
-						<td class="kl-tong">${x.kL_Tong ?? ''}</td>
-						<td class="kl-gang">${x.kL_Gang ?? ''}</td>
+						<td ${numberStyle}>${escapeHtml(gioStr)}</td>
+						<td class="kl-bi" ${numberStyle}>${x.kL_Bi ?? ''}</td>
+						<td class="kl-tong" ${numberStyle}>${x.kL_Tong ?? ''}</td>
+						<td class="kl-gang" ${numberStyle}>${x.kL_Gang ?? ''}</td>
 						<td><select class="form-select form-select-sm ip-some"></select></td>
-						<td><input name="GhiChu" class="form-control form-control-sm" value="${escapeHtml(x.ghiChu || '')}"/></td>
+						<td><input name="GhiChu" class="form-control form-control-sm" value="${escapeHtml(x.ghiChu || '')}" disabled/></td>
 					</tr>
 				`;
 
