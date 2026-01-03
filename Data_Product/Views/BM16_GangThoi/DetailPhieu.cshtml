@@ -1487,4 +1487,43 @@
 		    localStorage.removeItem('filterToTime');
 		}); *@
 
+	// Lưu và load giá trị "Từ giờ", tự động cập nhật "Đến giờ"
+	$(document).ready(function() {
+		// Hàm format datetime-local
+		function formatDateTimeLocal(date) {
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0');
+			const day = String(date.getDate()).padStart(2, '0');
+			const hours = String(date.getHours()).padStart(2, '0');
+			const minutes = String(date.getMinutes()).padStart(2, '0');
+			return `${year}-${month}-${day}T${hours}:${minutes}`;
+		}
+
+		// Load giá trị "Từ giờ" từ localStorage
+		const savedFromTime = localStorage.getItem('filterFromTime');
+		if (savedFromTime) {
+			$('#filterFromTime').val(savedFromTime);
+		}
+
+		// Cập nhật "Đến giờ" theo thời gian thực
+		function updateToTime() {
+			const now = new Date();
+			$('#filterToTime').val(formatDateTimeLocal(now));
+		}
+
+		// Cập nhật ngay lập tức
+		updateToTime();
+
+		// Cập nhật mỗi phút
+		setInterval(updateToTime, 60000);
+
+		// Lưu "Từ giờ" khi người dùng thay đổi
+		$('#filterFromTime').on('change', function() {
+			const fromTime = $(this).val();
+			if (fromTime) {
+				localStorage.setItem('filterFromTime', fromTime);
+			}
+		});
+	});
+
 </script>
