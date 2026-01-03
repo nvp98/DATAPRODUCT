@@ -1,0 +1,461 @@
+﻿@using Data_Product.Common.Enums
+@using Data_Product.Models
+@using Data_Product.DTO.BM_18_DTO
+@model BM18DetailViewModel
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+
+@{
+    ViewData["Title"] = "Chi tiết phiếu BM18";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var phieu = Model.Phieu;
+    bool coQuyenChinhMaLo =
+    phieu.TrangThai == (int)TrangThaiXuLy.DangXuLy
+    && Model.ThongTinBenNhan != null
+    && Model.ThongTinBenNhan.ID_TaiKhoan == phieu.ID_NguoiNhan;
+    var thongTinBG = Model.ThongTinBenGiao;
+    var phongBanBG = Model.PhongBanBenGiao;
+    var phanXuongBG = Model.PhanXuongBenGiao;
+    var viTriBG = Model.ViTriBenGiao;
+
+    var thongTinBN = Model.ThongTinBenNhan;
+    var phongBanBN = Model.PhongBanBenNhan;
+    var phanXuongBN = Model.PhanXuongBenNhan;
+    var viTriBN = Model.ViTriBenNhan;
+}
+
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <!-- Header với các nút chức năng -->
+                    <div class="row" style="width:100%">
+                        <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;width: -webkit-fill-available;z-index: 100;">
+                            <div class="col-4" style="text-align: left;padding: 2%  2%  2% 0%;">
+                                <span class="text-muted small pt-2 ps-1">
+                                    <b style="color:#06428b">
+                                        BM.18 - Biên bản giao nhận xỉ hạt lò cao
+                                    </b>
+                                </span>
+                            </div>
+
+                            <div class="col-8" style="text-align: right;padding: 2%  2%  2% 0%;">
+                                @if (phieu.TrangThai == (int)TrangThaiXuLy.DangXuLy)
+                                {
+                                    <button type="button" class="btn btn-primary" id="btnXacNhan" value="1">
+                                        <i class="bi bi-floppy"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Xác nhận phiếu
+                                        </span>
+                                    </button>
+                                    <button type="button" class="btn btn-danger" id="btnKhongXacNhan" value="2">
+                                        <i class="bi bi-send"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Không xác nhận phiếu
+                                        </span>
+                                    </button>
+                                }
+
+                                @if (phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
+                                {
+                                    <button type="button" class="btn btn-primary" id="btn-Export">
+                                        <i class="bi bi-file-earmark-excel"></i>
+                                        <span class="small pt-2 ps-1" style="color: white;">
+                                            Xuất Excel
+                                        </span>
+                                    </button>
+                                    <button class="btn btn-primary"
+                                            onclick="window.location.href='/BM_18_XiHatLoCao/GeneratePdf?maPhieu=@Model.Phieu.MaPhieu'">
+                                        Xuất PDF
+                                    </button>
+                                }
+
+                                @if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
+                                {
+                                    <button type="button" id="btnResetPhieu" class="btn btn-warning ms-2">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                        <span class="small pt-2 ps-1">Reset Phiếu</span>
+                                    </button>
+                                }
+                            </div>
+
+                            <script type="text/javascript">
+                                $('#btn-Export').click(function () {
+                                    window.location.href = '@Url.Action("ExportDanhSachExcel", "BM_18_XiHatLoCao")?maPhieu=' + '@phieu.MaPhieu';
+                                });
+                            </script>
+                        </div>
+                    </div>
+                    <!-- Header thông tin phiếu -->
+                    <div class="row" style="width:100%;padding-top:7.5%;">
+                        <div class="col-lg-12" style="text-align: left;height: 210px;display: flex;">
+                            <div class="col-xxl-4 col-md-6">
+                                <img src="~/img/logoHP.png" alt="">
+                                <div style="text-align: center; width: 45%; font-size: 14px; padding-top:0.5%;">
+                                    <b>
+                                        CÔNG TY CỔ PHẦN THÉP<br />
+                                        HÒA PHÁT DUNG QUẤT
+                                    </b>
+                                </div>
+                                <div style="text-align: center; width: 45%; font-size: 14px; padding-top:0.5%;">
+                                    @phieu.MaPhieu
+                                </div>
+                            </div>
+
+                            <div class="col-xxl-4 col-md-6" style="text-align:center; padding-top:7%;">
+                                <h4>
+                                    <b>BIÊN BẢN GIAO NHẬN XỈ HẠT LÒ CAO</b>
+                                </h4>
+                                <span class="text-muted small pt-2 ps-1">
+                                    <i style="color:black;">
+                                        Kíp @(Model.ChiTiet.FirstOrDefault()?.CaKip) Ngày
+                                        @phieu.NgaySanXuat.ToString("dd") tháng @phieu.NgaySanXuat.ToString("MM") năm
+                                        @phieu.NgaySanXuat.ToString("yyyy")
+                                    </i>
+                                </span>
+                            </div>
+
+                            <div class="col-xxl-4 col-md-6" style="text-align: right;">
+                                <div style="text-align:right;font-size:14px;">
+                                    <b>BM.18/QT.05.09</b>
+                                </div>
+                                <div style="text-align:right;font-size:14px;">
+                                    <b><i>Ngày hiệu lực:</i> 01/06/2023</b>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin đại diện -->
+                        <div class="col-lg-12" style="padding-bottom: 1%;padding-top:1.5%;">
+                            <div style="text-align: left;padding-left: 1%;padding-bottom:0.5%;">
+                                <span style="color:black; font-size:14px;">Chúng tôi gồm:</span>
+                            </div>
+                            <div style="text-align: left;padding-left: 1%;padding-bottom:0.5%;">
+                                <span style="color:black; font-size:14px;">
+                                    1. Đại diện bên giao: Ông/bà: @thongTinBG?.HoVaTen Chức vụ: @viTriBG?.TenViTri -
+                                    NM.LG
+                                </span>
+                            </div>
+                            <div style="text-align: left;padding-left: 1%;">
+                                <span style="color:black; font-size:14px;">
+                                    2. Đại diện bên nhận: Ông/bà: @thongTinBN?.HoVaTen Chức vụ: @viTriBN?.TenViTri -
+                                    NM.NL
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú thông tin -->
+                    <div class="row" style="width:100%; padding-bottom:1%;padding-left: 12px;">
+                        <div class="col-lg-12"
+                            style="text-align: left;padding: 0.5%;border-radius: 10px;margin-left: 13px;">
+                            <span style="color:black; font-size:14px;">
+                                Cùng nhau thống nhất lập "Biên bản giao nhận xỉ hạt lò cao" như sau:
+                            </span>
+                        </div>
+                    </div>
+                    <!-- Bảng chi tiết -->
+                    <div class="card-body" style="padding-top:1%;">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover" id="table" cellpadding="0">
+                                <thead>
+                                    <tr style="font-size:14px;">
+                                        <th rowspan="3" width="50px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 2px solid #dee2e6;">
+                                            STT</th>
+                                        <th rowspan="3" width="200px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 2px solid #dee2e6;">
+                                            Tên nguyên/ nhiên/ phụ liệu</th>
+                                        <th rowspan="3" width="80px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 2px solid #dee2e6;">
+                                            ĐVT</th>
+                                        <th rowspan="3" width="120px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 2px solid #dee2e6;">
+                                            Lô</th>
+                                        <th rowspan="3" width="120px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 2px solid #dee2e6;">
+                                            Hệ số quy đổi (xuất lượng xỉ)</th>
+                                        <th colspan="4"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 2px solid #dee2e6;">
+                                            Khối lượng vào/ra trong kíp</th>
+                                        <th rowspan="3" width="150px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;">
+                                            Ghi chú</th>
+                                    </tr>
+                                    <tr style="font-size:14px;">
+                                        <th colspan="2"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 1px solid #dee2e6;">
+                                            KL bên giao</th>
+                                        <th colspan="2"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 2px solid #dee2e6;">
+                                            KL bên nhận</th>
+                                    </tr>
+                                    <tr style="font-size:14px;">
+                                        <th width="100px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;">
+                                            KL gang</th>
+                                        <th width="100px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 1px solid #dee2e6;">
+                                            KL xỉ</th>
+                                        <th width="100px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;">
+                                            KL gang</th>
+                                        <th width="100px"
+                                            style="vertical-align:middle;background-color: #f9f9f9;text-align:center;border-right: 2px solid #dee2e6;">
+                                            KL xỉ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int stt = 1;
+                                    }
+                                    @foreach (var item in Model.ChiTiet)
+                                    {
+                                        <tr>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@stt</td>
+                                            <td style="font-size:14px;vertical-align:middle;">@item.Ten_NVL</td>
+                                            <td class="text-center" style="font-size:14px;vertical-align:middle;">@item.DVT
+                                            </td>
+                                            @* <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                @item.TenMaLo</td> *@
+                                            <td class="text-center" style="min-width:140px;vertical-align:middle;">
+                                                @if (coQuyenChinhMaLo)
+                                                {
+                                                    <select class="form-select form-select-sm select-ma-lo"
+                                                            data-id="@item.ID"
+                                                            style="width:100%;">
+                                                        <option value="">-- Chọn lô --</option>
+
+                                                        @foreach (var lo in (List<Tbl_MaLo>)ViewBag.DsMaLo)
+                                                        {
+                                                            if (lo.TenMaLo == item.TenMaLo)
+                                                            {
+                                                                <option value="@lo.ID_MaLo" selected="selected">
+                                                                    @lo.TenMaLo
+                                                                </option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@lo.ID_MaLo">
+                                                                    @lo.TenMaLo
+                                                                </option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                }
+                                                else
+                                                {
+                                                    <span>@item.TenMaLo</span>
+                                                }
+                                            </td>
+
+                                            <td class="text-end" style="font-size:14px;vertical-align:middle;">@item.HeSo
+                                            </td>
+                                            <td class="text-end" style="font-size:14px;vertical-align:middle;">
+                                                @item.KL_Gang_Giao</td>
+                                            <td class="text-end" style="font-size:14px;vertical-align:middle;">
+                                                @item.KL_Xi_Giao</td>
+                                            <td class="text-end" style="font-size:14px;vertical-align:middle;">
+                                                @(item.KL_Gang_Nhan > 0 ? item.KL_Gang_Nhan : "")
+                                            </td>
+                                            <td class="text-end" style="font-size:14px;vertical-align:middle;">
+                                                @(item.KL_Xi_Nhan > 0 ? item.KL_Xi_Nhan : "")
+                                            </td>
+                                            <td style="font-size:14px;vertical-align:middle;">@item.GhiChu</td>
+                                        </tr>
+                                        stt++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú bổ sung -->
+                    <!-- Ghi chú bổ sung -->
+                    <div class="row" style="width:100%; padding-top:1%;">
+                        <div class="col-lg-12" style="text-align: left; padding-left: 2%;">
+                            <span style="color:black; font-size:14px;">
+                                <i>
+                                    <b><u>Ghi chú:</u></b> - Khối lượng giao nhận được xác định thông qua hệ số quy đổi
+                                    (P.CV, NM.LG và NM.NL đã thống nhất).
+                                </i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Chữ ký -->
+                    <div class="col-lg-12" style="text-align: left;height: 210px;display: flex;padding-top:2%;">
+                        <div class="col-xxl-6 col-md-6">
+                            <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
+                                <b>NM.NL</b>
+                            </div>
+                            <div style="text-align: center; font-size: 14px; padding:2%;">
+                                @if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.HoanThanh)
+                                {
+                                    if (!string.IsNullOrEmpty(thongTinBN?.ChuKy))
+                                    {
+                                        <img src="@thongTinBN.ChuKy" alt="" height="50px">
+                                    }
+                                    else
+                                    {
+                                        <div style="height:50px" class="text-danger">
+                                            Đã xác nhận<br />(Chưa có chữ ký)
+                                        </div>
+                                    }
+                                }
+                                else if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.ChuaXuLy)
+                                {
+                                    <div style="height:50px" class="text-danger">Chưa xử lý</div>
+                                }
+                                else if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.DangXuLy)
+                                {
+                                    <div style="height:50px" class="text-warning">Đang xử lý</div>
+                                }
+                                else if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.TuChoi)
+                                {
+                                    <div style="height:50px" class="text-danger">Không xác nhận</div>
+                                }
+                            </div>
+
+                            <div style="text-align: center; font-size: 14px;">
+                                <b>@thongTinBN?.HoVaTen</b>
+                            </div>
+                        </div>
+
+                        <div class="col-xxl-6 col-md-6">
+                            <div style="text-align: center; font-size: 14px; padding-top:0.5%;">
+                                <b>NM.LG</b>
+                            </div>
+                            <div style="text-align: center; font-size: 14px; padding:2%;">
+                                @if (!string.IsNullOrEmpty(thongTinBG?.ChuKy))
+                                {
+                                    <img src="@thongTinBG.ChuKy" alt="" height="50px">
+                                }
+                                else
+                                {
+                                    <div style="height:50px" class="text-danger">Đã xác nhận<br />(Chưa có chữ ký)</div>
+                                }
+                            </div>
+                            <div style="text-align: center; font-size: 14px;">
+                                <b>@thongTinBG?.HoVaTen</b>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const savedValue = localStorage.getItem("IsShowBT");
+        if (savedValue === "1") {
+            document.getElementById("showFunc").style.display = "none";
+        } else {
+            document.getElementById("showFunc").style.display = "";
+        }
+    });
+
+    $(document).ready(function () {
+        // Xác nhận phiếu
+        $('#btnXacNhan').click(function (e) {
+            e.preventDefault();
+            updateTrangThai(2);
+        });
+
+        // Không xác nhận phiếu
+        $('#btnKhongXacNhan').click(function (e) {
+            e.preventDefault();
+            updateTrangThai(3);
+        });
+
+        // --- 5. Sự kiện Reset Phiếu ---
+        $('#btnResetPhieu').click(function () {
+            if (!confirm("Bạn có chắc chắn muốn reset phiếu? Toàn bộ dữ liệu chi tiết sẽ bị xóa!")) return;
+            const maPhieu = '@Model.Phieu.MaPhieu'; 
+            $.ajax({
+                url: '/BM_18_XiHatLoCao/ResetPhieu',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ MaPhieu: maPhieu }),
+                success: function (res) {
+                    alert("Phiếu đã được reset!");
+                    const tbody = $('#dataTable tbody');
+                    tbody.empty();
+                    tbody.append('<tr><td colspan="10" class="text-center text-muted p-3">Không có dữ liệu chi tiết cho phiếu ' + maPhieu + '.</td></tr>');
+                    location.reload();
+                },
+                error: function (xhr) {
+                    alert("Lỗi khi reset phiếu: " + (xhr.responseText || "Không xác định"));
+                }
+            });
+        });
+
+        function updateTrangThai(status) {
+            $.ajax({
+                url: '/BM_18_XiHatLoCao/XacNhanPhieuBN',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    MaPhieu: '@Model.Phieu.MaPhieu',  // Ensure this is valid
+                    TrangThai: status
+                }),
+                success: function (res) {
+                    alert(res.message);
+                    location.reload();
+                },
+                error: function (xhr) {
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        alert(xhr.responseJSON.message);
+                    } else {
+                        alert('Có lỗi xảy ra!');
+                    }
+                }
+            });
+        }
+
+        $(document).on('change', '.select-ma-lo', function () {
+            const idMaLo = $(this).val();
+            const MaPhieu = '@Model.Phieu.MaPhieu';
+
+            if (!idMaLo) return;
+
+             const isConfirm = confirm("Bạn có chắc chắn muốn cập nhật mã lô không?");
+            if (!isConfirm) {
+                // reset lại select nếu người dùng hủy
+                $(this).val($(this).data('old-value'));
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("CapNhatMaLo", "BM_18_XiHatLoCao")',  // Ensure correct action URL
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    MaPhieu: MaPhieu,
+                    ID_MaLo: idMaLo
+                }),
+                success: function (res) {
+                    alert(res.message || "Đã cập nhật mã lô");
+                },
+                error: function (xhr) {
+                    alert(xhr.responseText || "Lỗi cập nhật mã lô");
+                }
+            });
+        });
+    });
+</script>
