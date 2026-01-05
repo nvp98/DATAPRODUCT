@@ -2,6 +2,7 @@
 using Data_Product.Repositorys;
 using Data_Product.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Quartz;
@@ -28,7 +29,9 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+//builder.Services.AddControllersWithViews();
+builder.Services.AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
 builder.Services.AddSession();
@@ -98,9 +101,19 @@ app.UseStaticFiles();
 app.UseSession();
 app.UseRouting();
 app.UseCors("AllowAll");
+// ❗❗❗ PHẢI ĐẶT TRƯỚC AUTH & MVC
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto
+});
 app.UseAuthentication();
 app.UseAuthorization();
 
+// 🔑 ROUTING ORDER – RẤT QUAN TRỌNG
+app.MapReverseProxy();     // ⬅️ PHẢI ĐẶT ĐẦU TIÊN
+app.MapControllers();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
