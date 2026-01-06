@@ -1471,6 +1471,7 @@ namespace Data_Product.Controllers
                         .Where(t => ID_TTGList.Contains(t.ID))
                         .Select(t => new
                         {
+                            t.ID,
                             t.NoiNhan,
                             t.SoThungTG,
                             GangSet = _context.Tbl_BM_16_GangLong
@@ -1635,12 +1636,33 @@ namespace Data_Product.Controllers
                                 snap.GangSet.Contains(gl.MaThungGang)
                             )
                         )
-                        .Select(t => t.ID)
+                        .Select(t => new
+                        {
+                            t.ID,
+                            GangSet = _context.Tbl_BM_16_GangLong
+                        .Where(gl => gl.ID_TTG == t.ID && gl.MaThungGang != null)
+                        .Select(gl => gl.MaThungGang)
+                        .Distinct()
+                        .ToList()
+                        })
                         .ToListAsync();
 
-                    foreach (var id in ids)
-                        affectedTTGIds.Add(id);
+                    //foreach (var id in ids)
+                    //    affectedTTGIds.Add(id);
+                    foreach (var x in ids)
+                    {
+                        if (x.GangSet.Count == snap.GangSet.Count &&
+                            !x.GangSet.Except(snap.GangSet).Any())
+                        {
+                            affectedTTGIds.Add(x.ID);
+                        }
+                    }
                 }
+                foreach (var id in changedTTGIds)
+                {
+                    affectedTTGIds.Add(id);
+                }
+
 
                 if (affectedTTGIds.Any())
                 {
@@ -1781,30 +1803,18 @@ namespace Data_Product.Controllers
             if (taiKhoan == null)
                 return BadRequest("Không tìm thấy tài khoản.");
 
-
-
-
             var danhSachBiBoQua = new List<string>();
-            /* =====================================================
-               PHASE 1 – LƯU AN TOÀN (KHÔNG ĐỘC QUYỀN)
-               ===================================================== */
 
             // Xác định loại nghiệp vụ
             bool isHRC1 = dsThungTG.Any(x => x.PhongBan == "HRC1");
             bool isHRC2 = !isHRC1;
             var ttgSaved = new List<Tbl_BM_16_ThungTrungGian>();
-            // ===========================================
-            // 1) ÁP DỤNG QUY TẮC NHIỆT ĐỘ TRƯỚC
-            // ===========================================
+  
             if (isHRC1)
                 await XuLyNhietDo_HRC1(dsThungTG);
             else
                 await XuLyNhietDo_HRC2(dsThungTG);
 
-            // ===========================================
-            // 2) LƯU THÔNG TIN THÙNG TRUNG GIAN
-            // ===========================================
-            //var ttgEntitiesCanTinh = new HashSet<Tbl_BM_16_ThungTrungGian>();
 
             foreach (var tgDto in dsThungTG)
             {
@@ -1871,9 +1881,7 @@ namespace Data_Product.Controllers
                 ttg.NoiNhan = isHRC1 ? "HRC1" : "HRC2";
                 //ttg.KLThungVaGangTruocKR = tgDto.KLThungVaGangTruocKR;
                 ttgSaved.Add(ttg);
-                // ===========================================
-                // 3) CẬP NHẬT THÙNG GANG (HRC1 & HRC2 đã xử lý NhietDo từ trước)
-                // ===========================================
+
                 if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
                 {
                     var maThungList = tgDto.DanhSachThungGang.Select(x => x.MaThungThep).ToList();
@@ -1916,60 +1924,149 @@ namespace Data_Product.Controllers
             //await _context.SaveChangesAsync();
             var successIds = new List<int>();
             var errors = new List<string>();
-            /* ========= PHASE 2 – LOAD TỔ HỢP DB ========= */
+            ///* ========= PHASE 2 – LOAD TỔ HỢP DB ========= */
 
-            var toHopDbRaw = await _context.Tbl_BM_16_ThungTrungGian
-                .Where(x => !x.IsCopy && x.KLThungVaGangTruocKR != null)
-                .Join(
-                    _context.Tbl_BM_16_GangLong.Where(g => g.MaThungGang != null),
-                    ttg => ttg.ID,
-                    g => g.ID_TTG,
-                    (ttg, g) => new
-                    {
-                        ttg.ID,
-                        ttg.NoiNhan,
-                        ttg.SoThungTG,
-                        g.MaThungGang
-                    })
-                .ToListAsync();
+            //var toHopDbRaw = await _context.Tbl_BM_16_ThungTrungGian
+            //    .Where(x => !x.IsCopy && x.KLThungVaGangTruocKR != null)
+            //    .Join(
+            //        _context.Tbl_BM_16_GangLong.Where(g => g.MaThungGang != null),
+            //        ttg => ttg.ID,
+            //        g => g.ID_TTG,
+            //        (ttg, g) => new
+            //        {
+            //            ttg.ID,
+            //            ttg.NoiNhan,
+            //            ttg.SoThungTG,
+            //            g.MaThungGang
+            //        })
+            //    .ToListAsync();
 
-            var toHopDb = toHopDbRaw
-                .GroupBy(x => new { x.ID, x.NoiNhan, x.SoThungTG })
-                .Select(g => new ToHopGang
-                {
-                    TtgId = g.Key.ID,
-                    NoiNhan = g.Key.NoiNhan,
-                    SoThungTG = g.Key.SoThungTG,
-                    GangSet = g.Select(x => x.MaThungGang).ToHashSet()
-                })
-                .ToList();
+            //var toHopDb = toHopDbRaw
+            //    .GroupBy(x => new { x.ID, x.NoiNhan, x.SoThungTG })
+            //    .Select(g => new ToHopGang
+            //    {
+            //        TtgId = g.Key.ID,
+            //        NoiNhan = g.Key.NoiNhan,
+            //        SoThungTG = g.Key.SoThungTG,
+            //        GangSet = g.Select(x => x.MaThungGang).ToHashSet()
+            //    })
+            //    .ToList();
 
-            /* ========= PHASE 3 – LOAD GANG BATCH ========= */
+            ///* ========= PHASE 3 – LOAD GANG BATCH ========= */
 
+            //var ttgGoc = ttgSaved.Where(x => !x.IsCopy).ToList();
+            //var ttgIds = ttgGoc.Select(x => x.ID).ToList();
+
+            //var gangRows = await _context.Tbl_BM_16_GangLong
+            //    .Where(x =>
+            //        x.ID_TTG.HasValue &&
+            //        ttgIds.Contains(x.ID_TTG.Value) &&
+            //        x.MaThungGang != null)
+            //    .Select(x => new
+            //    {
+            //        ID_TTG = x.ID_TTG.Value,
+            //        x.MaThungGang
+            //    })
+            //    .ToListAsync();
+
+            //var gangByTtg = gangRows
+            //    .GroupBy(x => x.ID_TTG)
+            //    .ToDictionary(
+            //        g => g.Key,
+            //        g => g.Select(x => x.MaThungGang).ToHashSet()
+            //    );
+
+            ///* ========= PHASE 4 – CHECK TRÙNG ========= */
+
+            //var accepted = new List<(Tbl_BM_16_ThungTrungGian ttg, HashSet<string> gang)>();
+            //var affectedIds = new HashSet<int>();
+
+            //foreach (var dto in dsThungTG.Where(x => !x.IsCopy))
+            //{
+            //    var ttg = ttgGoc.FirstOrDefault(x => x.MaThungTG == dto.MaThungTG);
+            //    if (ttg == null) continue;
+
+            //    /* ===============================
+            //       CASE 1: USER XÓA INPUT
+            //       =============================== */
+            //    affectedIds.Add(ttg.ID);
+
+            //    // ===== NULL hoặc 0 => ghi NULL xuống DB =====
+            //    if (!dto.KLThungVaGangTruocKR.HasValue || dto.KLThungVaGangTruocKR.Value == 0)
+            //    {
+            //        ttg.KLThungVaGangTruocKR = null;
+            //        continue;
+            //    }
+            //    // ===============================
+            //    // Có giá trị hợp lệ (!= 0)
+            //    // ===============================
+
+            //    if (!gangByTtg.TryGetValue(ttg.ID, out var gang) || gang.Count == 0)
+            //    {
+            //        errors.Add($"TTG {ttg.SoThungTG}: chưa có danh sách gang");
+            //        continue;
+            //    }
+
+            //    bool trung =
+            //        accepted.Any(x =>
+            //            x.ttg.NoiNhan == ttg.NoiNhan &&
+            //            x.ttg.SoThungTG == ttg.SoThungTG &&
+            //            x.gang.SetEquals(gang))
+            //        ||
+            //        toHopDb.Any(x =>
+            //            x.TtgId != ttg.ID &&
+            //            x.NoiNhan == ttg.NoiNhan &&
+            //            x.SoThungTG == ttg.SoThungTG &&
+            //            x.GangSet.SetEquals(gang));
+
+            //    if (trung)
+            //    {
+            //        errors.Add($"TTG {ttg.SoThungTG}: trùng tổ hợp – không cho nhập KL trước KR");
+            //        continue;
+            //    }
+
+            //    ttg.KLThungVaGangTruocKR = dto.KLThungVaGangTruocKR;
+            //    accepted.Add((ttg, gang));
+            //    successIds.Add(ttg.ID);
+            //}
+
+            //await _context.SaveChangesAsync();
+
+            ///* ========= PHASE 5 – CALL STORE ========= */
+
+            //if (affectedIds.Any())
+            //{
+            //    var tvp = new DataTable();
+            //    tvp.Columns.Add("ID_TTG", typeof(int));
+            //    foreach (var id in affectedIds)
+            //        tvp.Rows.Add(id);
+
+            //    await _context.Database.ExecuteSqlRawAsync(
+            //        "EXEC dbo.SP_BM16_Calc_KLXiKR @ListID_TTG",
+            //        new SqlParameter("@ListID_TTG", tvp)
+            //        {
+            //            SqlDbType = SqlDbType.Structured,
+            //            TypeName = "dbo.TVP_ID_TTG"
+            //        });
+            //}
             var ttgGoc = ttgSaved.Where(x => !x.IsCopy).ToList();
             var ttgIds = ttgGoc.Select(x => x.ID).ToList();
 
-            var gangRows = await _context.Tbl_BM_16_GangLong
-                .Where(x =>
-                    x.ID_TTG.HasValue &&
-                    ttgIds.Contains(x.ID_TTG.Value) &&
-                    x.MaThungGang != null)
-                .Select(x => new
+            var gangByTtg = await LoadGangByTtgAsync(ttgIds);
+
+            // 4️⃣ Build input tổ hợp
+            var inputKeys = new List<(string NoiNhan, string SoThungTG, string GroupKey)>();
+            foreach (var ttg in ttgGoc)
+            {
+                if (gangByTtg.TryGetValue(ttg.ID, out var gang))
                 {
-                    ID_TTG = x.ID_TTG.Value,
-                    x.MaThungGang
-                })
-                .ToListAsync();
+                    inputKeys.Add((ttg.NoiNhan, ttg.SoThungTG, BuildGroupKey(gang)));
+                }
+            }
 
-            var gangByTtg = gangRows
-                .GroupBy(x => x.ID_TTG)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(x => x.MaThungGang).ToHashSet()
-                );
+            var toHopDb = await LoadToHopDbByInputAsync(inputKeys);
 
-            /* ========= PHASE 4 – CHECK TRÙNG ========= */
-
+            // 5️⃣ Check trùng + set KL trước KR
             var accepted = new List<(Tbl_BM_16_ThungTrungGian ttg, HashSet<string> gang)>();
             var affectedIds = new HashSet<int>();
 
@@ -1978,20 +2075,13 @@ namespace Data_Product.Controllers
                 var ttg = ttgGoc.FirstOrDefault(x => x.MaThungTG == dto.MaThungTG);
                 if (ttg == null) continue;
 
-                /* ===============================
-                   CASE 1: USER XÓA INPUT
-                   =============================== */
                 affectedIds.Add(ttg.ID);
 
-                // ===== NULL hoặc 0 => ghi NULL xuống DB =====
                 if (!dto.KLThungVaGangTruocKR.HasValue || dto.KLThungVaGangTruocKR.Value == 0)
                 {
                     ttg.KLThungVaGangTruocKR = null;
                     continue;
                 }
-                // ===============================
-                // Có giá trị hợp lệ (!= 0)
-                // ===============================
 
                 if (!gangByTtg.TryGetValue(ttg.ID, out var gang) || gang.Count == 0)
                 {
@@ -1999,19 +2089,7 @@ namespace Data_Product.Controllers
                     continue;
                 }
 
-                bool trung =
-                    accepted.Any(x =>
-                        x.ttg.NoiNhan == ttg.NoiNhan &&
-                        x.ttg.SoThungTG == ttg.SoThungTG &&
-                        x.gang.SetEquals(gang))
-                    ||
-                    toHopDb.Any(x =>
-                        x.TtgId != ttg.ID &&
-                        x.NoiNhan == ttg.NoiNhan &&
-                        x.SoThungTG == ttg.SoThungTG &&
-                        x.GangSet.SetEquals(gang));
-
-                if (trung)
+                if (CheckTrungToHop(ttg, gang, accepted, toHopDb))
                 {
                     errors.Add($"TTG {ttg.SoThungTG}: trùng tổ hợp – không cho nhập KL trước KR");
                     continue;
@@ -2024,8 +2102,7 @@ namespace Data_Product.Controllers
 
             await _context.SaveChangesAsync();
 
-            /* ========= PHASE 5 – CALL STORE ========= */
-
+            // 6️⃣ Call store
             if (affectedIds.Any())
             {
                 var tvp = new DataTable();
@@ -2045,9 +2122,91 @@ namespace Data_Product.Controllers
             return Ok(new { success = true, saved = successIds, errors });
         }
 
+        private static string BuildGroupKey(IEnumerable<string> gangs)
+        {
+            return string.Join(",", gangs.OrderBy(x => x));
+        }
+        private async Task<Dictionary<int, HashSet<string>>> LoadGangByTtgAsync(List<int> ttgIds)
+        {
+            var gangRows = await _context.Tbl_BM_16_GangLong
+                .Where(x =>
+                    x.ID_TTG.HasValue &&
+                    ttgIds.Contains(x.ID_TTG.Value) &&
+                    x.MaThungGang != null)
+                .Select(x => new
+                {
+                    ID_TTG = x.ID_TTG.Value,
+                    x.MaThungGang
+                })
+                .ToListAsync();
 
+            return gangRows
+                .GroupBy(x => x.ID_TTG)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.MaThungGang).ToHashSet()
+                );
+        }
+        private async Task<List<(int TtgId, string NoiNhan, string SoThungTG, string GroupKey)>>
+        LoadToHopDbByInputAsync(
+        IEnumerable<(string NoiNhan, string SoThungTG, string GroupKey)> inputKeys)
+        {
+            var noiNhanList = inputKeys.Select(x => x.NoiNhan).Distinct().ToList();
+            var soThungList = inputKeys.Select(x => x.SoThungTG).Distinct().ToList();
 
+            var raw = await (
+                from ttg in _context.Tbl_BM_16_ThungTrungGian
+                join g in _context.Tbl_BM_16_GangLong on ttg.ID equals g.ID_TTG
+                where
+                    !ttg.IsCopy &&
+                    ttg.KLThungVaGangTruocKR != null &&
+                    noiNhanList.Contains(ttg.NoiNhan) &&
+                    soThungList.Contains(ttg.SoThungTG) &&
+                    g.MaThungGang != null
+                select new
+                {
+                    ttg.ID,
+                    ttg.NoiNhan,
+                    ttg.SoThungTG,
+                    g.MaThungGang
+                }
+            ).ToListAsync();
 
+            return raw
+                .GroupBy(x => new { x.ID, x.NoiNhan, x.SoThungTG })
+                .Select(g => (
+                    g.Key.ID,
+                    g.Key.NoiNhan,
+                    g.Key.SoThungTG,
+                    BuildGroupKey(g.Select(x => x.MaThungGang))
+                ))
+                .ToList();
+        }
+        private bool CheckTrungToHop(
+            Tbl_BM_16_ThungTrungGian ttg,
+            HashSet<string> gang,
+            List<(Tbl_BM_16_ThungTrungGian ttg, HashSet<string> gang)> accepted,
+            List<(int TtgId, string NoiNhan, string SoThungTG, string GroupKey)> toHopDb)
+        {
+            var inputKey = BuildGroupKey(gang);
+
+            // Trùng trong batch hiện tại
+            if (accepted.Any(x =>
+                x.ttg.NoiNhan == ttg.NoiNhan &&
+                x.ttg.SoThungTG == ttg.SoThungTG &&
+                BuildGroupKey(x.gang) == inputKey))
+                return true;
+
+            // Trùng với DB
+            if (toHopDb.Any(x =>
+                x.TtgId != ttg.ID &&
+                x.NoiNhan == ttg.NoiNhan &&
+                x.SoThungTG == ttg.SoThungTG &&
+                x.GroupKey == inputKey))
+                return true;
+
+            return false;
+        }
 
 
         [HttpPost]
