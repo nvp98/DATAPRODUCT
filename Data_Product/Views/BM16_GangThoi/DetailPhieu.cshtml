@@ -519,35 +519,35 @@
 				});
 		};
 
-		const checkAndPrefillSoMe = ($select, someVal) => {
-			if (!someVal) return;
+		// const checkAndPrefillSoMe = ($select, someVal) => {
+		// 	if (!someVal) return;
 
-			const params = {
-				...getFormParams(),
-				term: '',
-				take: 500,
-				select2: true
-			};
+		// 	const params = {
+		// 		...getFormParams(),
+		// 		term: '',
+		// 		take: 500,
+		// 		select2: true
+		// 	};
 
-			$.ajax({
-				url: '/BM16_GangThoi/GetAllSoMe',
-				method: 'GET',
-				data: params,
-				success: data => {
-					if (!Array.isArray(data)) return;
+		// 	$.ajax({
+		// 		url: '/BM16_GangThoi/GetAllSoMe',
+		// 		method: 'GET',
+		// 		data: params,
+		// 		success: data => {
+		// 			if (!Array.isArray(data)) return;
 
-					const found = data.find(d => (d.id || '') === someVal);
-					if (found) {
-						const hasOpt = $select.find(`option[value="${found.id}"]`).length > 0;
-						if (!hasOpt) {
-							const opt = new Option(found.text || found.id, found.id, true, true);
-							$select.append(opt);
-						}
-						$select.val(found.id).trigger('change');
-					}
-				}
-			});
-		};
+		// 			const found = data.find(d => (d.id || '') === someVal);
+		// 			if (found) {
+		// 				const hasOpt = $select.find(`option[value="${found.id}"]`).length > 0;
+		// 				if (!hasOpt) {
+		// 					const opt = new Option(found.text || found.id, found.id, true, true);
+		// 					$select.append(opt);
+		// 				}
+		// 				$select.val(found.id).trigger('change');
+		// 			}
+		// 		}
+		// 	});
+		// };
 
 		const initSoMeSelectAjax = ($select) => {
 			if ($select.data('init') === 'true') return;
@@ -663,9 +663,8 @@
 				$row.find('td').removeClass('cell-changed');
 			}
 		});
-
 		const renderLeft = (list) => {
-			const $tbody = $("#tableLeft tbody");
+		const $tbody = $("#tableLeft tbody");
 			$tbody.empty();
 
 			if (!list || !list.length) {
@@ -689,7 +688,7 @@
 				const rawSoMe = x.bkmis_SoMe ?? x.bkmiS_SoMe ?? x.soMe ?? x.SoMe;
 				const someVal = (rawSoMe === 0 || rawSoMe === "0") ? "0" : (rawSoMe ? rawSoMe.toString() : '');
 				const originalSoMe = someVal;
-				
+
 				const hasGhiChu = x.ghiChu && x.ghiChu.trim() !== '';
 				const numberStyle = hasGhiChu ? 'style="color: red; font-weight: bold;"' : '';
 
@@ -716,18 +715,41 @@
 
 				$tbody.append(tr);
 				const $select = $tbody.find('tr:last .ip-some');
+				let isLocked = false;
+				if (someVal !== '') 
+				{
 
-				if (someVal !== '') {
 					if (someVal === "0") {
+						// Số mẻ = "0" (Khác) -> luôn cho phép chỉnh sửa
 						$select.append(new Option("Khác", "0", true, true));
-					} else if (bm16SoMeSet && bm16SoMeSet.has(someVal)) {
-						$select.append(new Option(someVal, someVal, true, true));
-					} else if (!bm16SoMeSet) {
-						checkAndPrefillSoMe($select, someVal);
+					} else {
+						// ✅ Kiểm tra số mẻ có trong danh sách GetAllSoMe không
+						if (bm16SoMeSet && !bm16SoMeSet.has(someVal)) {
+							// ❌ Số mẻ KHÔNG còn trong danh sách -> ĐÃ CHỐT
+							isLocked = true;
+						}
+
+						// Tạo option cho số mẻ (dù đã chốt hay chưa)
+						const optionText = isLocked ? `${someVal} (Đã chốt)` : someVal;
+						$select.append(new Option(optionText, someVal, true, true));
 					}
 				}
 
-				initSoMeSelectAjax($select);
+				// ✅ Khởi tạo Select2 hoặc Disable
+				if (isLocked) {
+					// Số mẻ đã chốt -> DISABLE select
+					$select.prop('disabled', true);
+					$select.css({
+						'background-color': '#e9ecef',
+						'cursor': 'not-allowed',
+						'color': '#6c757d'
+					});
+					$select.attr('title', 'Số mẻ này đã được chốt, không thể thay đổi');
+				} else 
+				{
+					// Số mẻ chưa chốt -> Khởi tạo Select2 bình thường
+					initSoMeSelectAjax($select);
+				}
 			});
 
 			$("#leftCount").text(`${list.length} dòng`);

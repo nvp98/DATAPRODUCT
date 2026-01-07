@@ -2104,6 +2104,17 @@ namespace Data_Product.Controllers
                                     .FirstOrDefault();
                                 if (gioChot != default(DateTime))
                                     thung.Gio_NM = gioChot.ToString("HH:mm");
+
+                                // Kiểm tra đủ dữ liệu để cập nhật trạng thái "Đã xử lý"
+                                bool duDuLieu = thung.KL_XeGoong != null &&
+                                                thung.G_KLThungChua != null &&
+                                                thung.G_KLThungVaGang != null &&
+                                                thung.G_KLGangLong != null &&
+                                                !string.IsNullOrEmpty(thung.ChuyenDen) &&
+                                                thung.Gio_NM != null;
+
+                                // Cập nhật trạng thái: 3 = Đã xử lý, 1 = Chưa xử lý
+                                thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
                             }
                         }
 
