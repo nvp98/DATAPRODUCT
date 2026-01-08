@@ -1835,7 +1835,7 @@ namespace Data_Product.Controllers
                 query = query.Where(d => d.ID_LoCao == idLoCao && d.Gio >= fromTime && d.Gio <= toTime);
 
                 var rawData = await query
-                    .OrderBy(d => d.Gio)
+                    .OrderByDescending(d => d.Gio)
                     .Take(1000)
                     .Select(d => new
                     {
@@ -1902,7 +1902,7 @@ namespace Data_Product.Controllers
 
                 // 2.3. Sắp xếp và Giới hạn TOP (1000)
                 var rawData = await query
-                    .OrderBy(d => d.BF_Timestap)
+                    .OrderByDescending(d => d.BF_Timestap)
                     .Take(1000)
                     .Select(d => new
                     {
