@@ -24,6 +24,13 @@
     {
         public string MaPhieu { get; set; }
     }
+
+    public class CapNhatLoaiCanRequest
+    {
+        public string MaPhieu { get; set; }
+        public int LoaiCan { get; set; } // 1, 2, hoặc 3
+    }
+
     public class KLGangChiaTheoMe
     {
         public string SoMe { get; set; }        // Số mẻ

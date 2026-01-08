@@ -98,6 +98,88 @@
 	@Html.Raw(TempData["msgError"])
 }
 
+<!-- Modal Chọn Loại Cân Sau Khi Reset -->
+<div class="modal fade" id="modalChonLoaiCan" tabindex="-1" aria-labelledby="modalChonLoaiCanLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+	<div class="modal-dialog modal-lg modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header bg-primary text-white">
+				<h5 class="modal-title" id="modalChonLoaiCanLabel">
+					<i class="bi bi-sliders"></i> Chọn Loại Cân Cho Phiếu
+				</h5>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div class="alert alert-info">
+					<i class="bi bi-info-circle"></i> 
+					Phiếu đã được reset thành công. Vui lòng chọn loại cân để cập nhật khối lượng gang cho phiếu.
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label fw-bold">Chọn Loại Cân <span class="text-danger">*</span></label>
+					<small class="text-muted d-block mb-2">Chọn 1 trong 3 loại cân để tính khối lượng gang</small>
+				</div>
+
+				<!-- Loading State -->
+				<div id="loadingLoaiCan" class="text-center py-4">
+					<div class="spinner-border text-primary" role="status">
+						<span class="visually-hidden">Loading...</span>
+					</div>
+					<p class="mt-2 text-muted">Đang tải dữ liệu...</p>
+				</div>
+
+				<!-- Options Container -->
+				<div id="loaiCanOptions" class="row g-3" style="display: none;">
+					<div class="col-12 col-md-4">
+						<div class="form-check p-3 border rounded" style="cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#0d6efd'; this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.borderColor='#dee2e6'; this.style.backgroundColor='white'">
+							<input class="form-check-input" type="radio" name="loaiCanModal" id="loaiCanModal1" value="1" checked>
+							<label class="form-check-label w-100" for="loaiCanModal1" style="cursor: pointer;">
+								<strong>Loại 1: KL Gang Lỏng Theo Phiếu</strong>
+								<small class="text-muted d-block">Tính từ KLGangChia hoặc T_KLGangLong</small>
+								<span class="badge bg-info mt-2" id="badgeModalLoai1">Chờ...</span>
+							</label>
+						</div>
+					</div>
+					<div class="col-12 col-md-4">
+						<div class="form-check p-3 border rounded" style="cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#0d6efd'; this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.borderColor='#dee2e6'; this.style.backgroundColor='white'">
+							<input class="form-check-input" type="radio" name="loaiCanModal" id="loaiCanModal2" value="2">
+							<label class="form-check-label w-100" for="loaiCanModal2" style="cursor: pointer;">
+								<strong>Loại 2: Cân Cẩu Trục + Xỉ</strong>
+								<small class="text-muted d-block">Tính từ KLGangCCTVaXi (kiểm tra cột KR)</small>
+								<span class="badge bg-info mt-2" id="badgeModalLoai2">Chờ...</span>
+							</label>
+						</div>
+					</div>
+					<div class="col-12 col-md-4">
+						<div class="form-check p-3 border rounded" style="cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='#0d6efd'; this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.borderColor='#dee2e6'; this.style.backgroundColor='white'">
+							<input class="form-check-input" type="radio" name="loaiCanModal" id="loaiCanModal3" value="3">
+							<label class="form-check-label w-100" for="loaiCanModal3" style="cursor: pointer;">
+								<strong>Loại 3: KL Gang Cân Cẩu Trục</strong>
+								<small class="text-muted d-block">Tính từ G_KLGangLong (gang ròng)</small>
+								<span class="badge bg-info mt-2" id="badgeModalLoai3">Chờ...</span>
+							</label>
+						</div>
+					</div>
+				</div>
+
+				<!-- Error State -->
+				<div id="errorLoaiCan" class="alert alert-danger" style="display: none;">
+					<i class="bi bi-exclamation-triangle"></i> 
+					<span id="errorLoaiCanMessage">Không thể tải dữ liệu. Vui lòng thử lại.</span>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+					<i class="bi bi-x-lg"></i> Bỏ qua
+				</button>
+				<button type="button" class="btn btn-primary" id="btnXacNhanLoaiCan" disabled>
+					<span class="spinner-border spinner-border-sm me-2 d-none" id="spinnerXacNhan"></span>
+					<i class="bi bi-check-lg"></i> Xác nhận
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
 @{
 	ViewData["Title"] = "Chi tiết phiếu BM18";
 	Layout = "~/Views/Shared/_Layout.cshtml";
@@ -475,32 +557,37 @@
 		const ngaySanXuat = $('#ID_Day').val();
 		const idLoCao = parseInt($('#ID_Locao').val()) || 0;
 		const maPhieu = $('#PhieuID').val();
+		const loaiCan = @(Model.Phieu.LoaiCan ?? 0); // Lấy loại cân từ phiếu
 
 		// --- 1. Lấy dữ liệu KL Gang từ API (để điền tự động) ---
-		if (ca && idKip && ngaySanXuat && idLoCao) {
+		if (ca && idKip && ngaySanXuat && idLoCao && loaiCan > 0) {
 			$.ajax({
-				url: '/BM_18_XiHatLoCao/KLGangTrongCaJson',
+				url: '/BM_18_XiHatLoCao/LayBaGiaTriGang',
 				type: 'GET',
 				data: {
 					ca: ca,
 					idKip: idKip,
 					ngaySanXuat: ngaySanXuat,
 					idLoCao: idLoCao,
-					maPhieu: maPhieu
+					loaiCan: loaiCan
 				},
 				success: function (result) {
-					tongKLGangTrongCa = result.tongKLGang || 0;
-					$("#dataTable tbody tr:first-child input[name='KL_Gang_Giao']").val(tongKLGangTrongCa.toFixed(3));
-					$("#dataTable tbody tr:first-child input[name='KL_Gang_Nhan']").val(tongKLGangTrongCa.toFixed(3));
-					$("#dataTable tbody tr:first-child input[name='KL_Gang_Giao']").trigger('input');
-					$("#dataTable tbody tr:first-child input[name='KL_Gang_Nhan']").trigger('input');
+					if (result.success && result.giaTriGang) {
+						tongKLGangTrongCa = result.giaTriGang || 0;
+						$("#dataTable tbody tr:first-child input[name='KL_Gang_Giao']").val(tongKLGangTrongCa.toFixed(3));
+						$("#dataTable tbody tr:first-child input[name='KL_Gang_Nhan']").val(tongKLGangTrongCa.toFixed(3));
+						$("#dataTable tbody tr:first-child input[name='KL_Gang_Giao']").trigger('input');
+						$("#dataTable tbody tr:first-child input[name='KL_Gang_Nhan']").trigger('input');
+					} else {
+						console.warn("Không có dữ liệu KL Gang:", result);
+					}
 				},
 				error: function (xhr) {
 					console.error("Không lấy được dữ liệu KL Gang:", xhr.responseText);
 				}
 			});
 		} else {
-			console.warn("Thiếu thông tin Ca/Kíp/Ngày/Lò cao!");
+			console.warn("Thiếu thông tin Ca/Kíp/Ngày/Lò cao hoặc chưa chọn loại cân!");
 		}
 
 		// --- 2. Sự kiện Thêm hàng (Mới) ---
@@ -593,14 +680,122 @@
 				contentType: 'application/json',
 				data: JSON.stringify({ MaPhieu: maPhieu }),
 				success: function (res) {
-					alert("Phiếu đã được reset!");
-					const tbody = $('#dataTable tbody');
-					tbody.empty();
-					tbody.append('<tr><td colspan="10" class="text-center text-muted p-3">Không có dữ liệu chi tiết cho phiếu ' + maPhieu + '.</td></tr>');
-					location.reload();
+					if (res.success) {
+						// Reset thành công -> Mở modal chọn loại cân
+						openModalChonLoaiCan(maPhieu);
+					} else {
+						alert(res.message || "Lỗi khi reset phiếu");
+					}
 				},
 				error: function (xhr) {
-					alert("Lỗi khi reset phiếu: " + (xhr.responseText || "Không xác định"));
+					const errMsg = xhr.responseJSON?.message || xhr.responseText || "Không xác định";
+					alert("Lỗi khi reset phiếu: " + errMsg);
+				}
+			});
+		});
+
+		// --- Hàm mở modal chọn loại cân ---
+		function openModalChonLoaiCan(maPhieu) {
+			const modal = new bootstrap.Modal(document.getElementById('modalChonLoaiCan'));
+			modal.show();
+
+			// Lưu mã phiếu vào data attribute
+			$('#modalChonLoaiCan').data('maPhieu', maPhieu);
+
+			// Reset UI
+			$('#loadingLoaiCan').show();
+			$('#loaiCanOptions').hide();
+			$('#errorLoaiCan').hide();
+			$('#btnXacNhanLoaiCan').prop('disabled', true);
+
+			// Lấy thông tin phiếu từ ViewBag/Model
+			const ngaySanXuat = '@Model.Phieu.NgaySanXuat.ToString("yyyy-MM-dd")';
+			const idKip = @Model.Phieu.ID_Kip;
+			const idLoCao = @Model.Phieu.ID_Locao;
+			const tenCa = '@ViewBag.TenCa'; // "1" hoặc "2"
+			const ca = tenCa === "1" ? 1 : 2;
+
+			// Gọi API lấy 3 giá trị cân
+			$.ajax({
+				url: '/BM_18_XiHatLoCao/LayBaGiaTriGang',
+				method: 'GET',
+				data: {
+					ca: ca,
+					idKip: idKip,
+					ngaySanXuat: ngaySanXuat,
+					idLoCao: idLoCao
+				},
+				success: function(res) {
+					if (res.success && res.data) {
+						const data = res.data;
+						
+						// Cập nhật badge
+						$('#badgeModalLoai1').text(data.tongKLGangLongCanCauTruc + ' tấn').removeClass('bg-info').addClass('bg-success');
+						$('#badgeModalLoai2').text(data.tongCanCauTrucVaXi + ' tấn').removeClass('bg-info').addClass('bg-success');
+						$('#badgeModalLoai3').text(data.tongKLGangTheoCanRay + ' tấn').removeClass('bg-info').addClass('bg-success');
+
+						// Hiển thị options
+						$('#loadingLoaiCan').hide();
+						$('#loaiCanOptions').show();
+						$('#btnXacNhanLoaiCan').prop('disabled', false);
+					} else {
+						showErrorLoaiCan('Không có dữ liệu khối lượng.');
+					}
+				},
+				error: function(xhr) {
+					const errMsg = xhr.responseJSON?.message || 'Không thể tải dữ liệu.';
+					showErrorLoaiCan(errMsg);
+				}
+			});
+		}
+
+		function showErrorLoaiCan(message) {
+			$('#loadingLoaiCan').hide();
+			$('#loaiCanOptions').hide();
+			$('#errorLoaiCanMessage').text(message);
+			$('#errorLoaiCan').show();
+			$('#btnXacNhanLoaiCan').prop('disabled', true);
+		}
+
+		// --- Xác nhận loại cân ---
+		$('#btnXacNhanLoaiCan').click(function() {
+			const loaiCan = parseInt($('input[name="loaiCanModal"]:checked').val());
+			const maPhieu = $('#modalChonLoaiCan').data('maPhieu');
+
+			if (!loaiCan || !maPhieu) {
+				alert('Vui lòng chọn loại cân!');
+				return;
+			}
+
+			// Disable button và hiển thị spinner
+			$('#btnXacNhanLoaiCan').prop('disabled', true);
+			$('#spinnerXacNhan').removeClass('d-none');
+
+			$.ajax({
+				url: '/BM_18_XiHatLoCao/CapNhatLoaiCan',
+				method: 'POST',
+				contentType: 'application/json',
+				data: JSON.stringify({
+					MaPhieu: maPhieu,
+					LoaiCan: loaiCan
+				}),
+				success: function(res) {
+					if (res.success) {
+						alert(res.message || 'Đã cập nhật loại cân thành công!');
+						// Đóng modal và reload trang
+						$('#modalChonLoaiCan').modal('hide');
+						location.reload();
+					} else {
+						alert(res.message || 'Lỗi khi cập nhật loại cân');
+						$('#btnXacNhanLoaiCan').prop('disabled', false);
+						$('#spinnerXacNhan').addClass('d-none');
+					}
+				},
+				error: function(xhr) {
+					const errMsg = xhr.responseJSON?.message || xhr.responseText || 'Lỗi không xác định';
+					alert('Lỗi: ' + errMsg);
+					$('#btnXacNhanLoaiCan').prop('disabled', false);
+					$('#spinnerXacNhan').addClass('d-none');
 				}
 			});
 		});
