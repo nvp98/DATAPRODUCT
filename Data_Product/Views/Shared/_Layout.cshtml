@@ -328,7 +328,7 @@
                                     </a>
                                 </li>
                             }
-                            @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 12 && PhongBan?.TenNgan == "NM.LG" || QuyenTaoYC.Any(value => value != "4" && ListQuyen.Contains(value) && PhongBan?.TenNgan == "NM.LG"))
+                            @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 14 && PhongBan?.TenNgan == "NM.LG" || QuyenTaoYC.Any(value => value != "4" && ListQuyen.Contains(value) && PhongBan?.TenNgan == "NM.LG"))
                             {
                                 <li>
                                     <a class="nav-link collapsed" href="@Url.Action("Danhsachphieu", "BM_18_XiHatLoCao")">
@@ -374,12 +374,17 @@
                                 </a>
                             </li>
                         }
-                        <li>
-                            <a class="nav-link collapsed" href="@Url.Action("Index_All","BM_18_XiHatLoCao")">
-                                <i class="bi bi-circle"></i>
-                                <span>BM.18/QT.05 - BBGN Xỉ hạt lò cao </span>
-                            </a>
-                        </li>
+                        @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 13 && PhongBan?.TenNgan == "NM.LG" || QuyenTaoYC.Any(value => value != "4" && ListQuyen.Contains(value) && PhongBan?.TenNgan == "NM.LG"))
+                        {
+                            <li>
+                                <a class="nav-link collapsed" href="@Url.Action("Index_All", "BM_18_XiHatLoCao")">
+                                    <i class="bi bi-circle"></i>
+                                    <span>BM.18/QT.05 - BBGN Xỉ hạt lò cao </span>
+                                </a>
+                            </li>
+                            
+                        }
+                       
                     </ul>
                 </li>
 
