@@ -61,8 +61,8 @@ namespace Data_Product.Controllers
                 return new SelectList(Enumerable.Empty<object>());
             }
 
-            var quyenLo = await (from map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan
-                                 join lo in _context.Tbl_BM_16_LoSanXuat on map.ID_LoSanXuat equals lo.ID
+            var quyenLo = await (from map in _context.Tbl_BM_18_PhanQuyenXiHat_TaiKhoan
+                                 join lo in _context.Tbl_BM_18_PhanQuyenXiHat on map.ID_LoSanXuat equals lo.ID
                                  where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && lo.IsActived == true
                                  select new
                                  {
@@ -204,7 +204,7 @@ namespace Data_Product.Controllers
             const int pageSize = 10;
             if (page < 1) page = 1;
             var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
-            var loCaoList = await GetLoCaoList();
+            var loCaoList = await GetLoCaoWithAuth();
             ViewBag.LoCaoList = loCaoList;
             var data = new List<DanhSachPhieuDto>();
             var pager = new Pager();
