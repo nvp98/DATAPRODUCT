@@ -1,4 +1,5 @@
 ﻿using Data_Product.DTO;
+using Data_Product.Models;
 using Data_Product.Repositorys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -20,9 +21,9 @@ namespace Data_Product.API
             this._context = _context;
         }
         [HttpGet("GetBBGN")]
-        public async Task<IActionResult> Get(DateTime? tuNgay, DateTime? denNgay,int? IDPhongBan,int? IDXuong,int? IDPhongBan_BG,int? IDXuong_BG,int? IDPhongBan_BN,int? IDXuongBN,int? IDTinhTrangPhieu)
+        public async Task<IActionResult> Get(DateTime? tuNgay, DateTime? denNgay, int? IDPhongBan, int? IDXuong, int? IDPhongBan_BG, int? IDXuong_BG, int? IDPhongBan_BN, int? IDXuongBN, int? IDTinhTrangPhieu)
         {
-           
+
             try
             {
                 if (!BasicAuth.IsAuthorized(HttpContext, "api", "123456a@"))
@@ -94,7 +95,7 @@ namespace Data_Product.API
                 {
                     Success = true,
                     Data = result,
-                    Total = result != null? result.Count():0,
+                    Total = result != null ? result.Count() : 0,
                     Message = "Thành công!"
                 });
             }
@@ -103,7 +104,7 @@ namespace Data_Product.API
                 return StatusCode(500, new
                 {
                     message = "Đã xảy ra lỗi trong quá trình xử lý.",
-                    error = ex.Message 
+                    error = ex.Message
                 });
             }
         }
@@ -140,7 +141,7 @@ namespace Data_Product.API
                     {
                         ID_LOCAO = reader.GetInt32(reader.GetOrdinal("ID_LOCAO")),
                         NGAY_TAO = reader.GetDateTime(reader.GetOrdinal("NGAY_TAO")),
-                        G_KLGANGLONG = reader.IsDBNull(reader.GetOrdinal("G_KLGANGLONG"))? 0 : reader.GetDecimal(reader.GetOrdinal("G_KLGANGLONG")),
+                        G_KLGANGLONG = reader.IsDBNull(reader.GetOrdinal("G_KLGANGLONG")) ? 0 : reader.GetDecimal(reader.GetOrdinal("G_KLGANGLONG")),
                         SO_ME = reader["SO_ME"]?.ToString(),
                     };
 
@@ -289,7 +290,7 @@ namespace Data_Product.API
                 case "0":
                     return "Chưa xử lý";
                 case "1":
-                    return  "Đã xử lý";
+                    return "Đã xử lý";
                 case "2":
                     return "BN Hủy Phiếu";
                 case "3":
@@ -301,6 +302,23 @@ namespace Data_Product.API
 
                 default:
                     return "";
+            }
+        }
+
+        public string GetTinhTrangNhatKySX(int tinhTrang)
+        {
+            switch (tinhTrang)
+            {
+                case 0:
+                    return "Chưa xác nhận";
+                case 1:
+                    return "Đã xác nhận";
+                case 2:
+                    return "Đã duyệt";
+                case 3:
+                    return "Hủy";
+                default:
+                    return "Không xác định";
             }
         }
         [HttpGet("GetKLGangLongDetailsTongHop")]
@@ -409,8 +427,141 @@ namespace Data_Product.API
                 });
             }
         }
+
+        [HttpGet("GetNhatKySanXuat")]
+        public async Task<IActionResult> GetNhatKySanXuat(
+            [FromQuery] DateTime? tuNgay = null,
+            [FromQuery] DateTime? denNgay = null,
+            [FromQuery] int? tinhTrang = null)
+        {
+            try
+            {
+                if (!BasicAuth.IsAuthorized(HttpContext, "api", "123456a@"))
+                {
+                    Response.Headers["WWW-Authenticate"] = "Basic";
+                    return Unauthorized("Bạn không có quyền truy cập.");
+                }
+
+                // Lấy dữ liệu Nhật ký sản xuất theo điều kiện lọc với join bảng Xuong và PhongBan
+                var query = from nk in _context.Tbl_NhatKy_SanXuat
+                            join xuong in _context.Tbl_Xuong on nk.ID_Xuong_SX equals xuong.ID_Xuong into xuongJoin
+                            from xuong in xuongJoin.DefaultIfEmpty()
+                            join phongban in _context.Tbl_PhongBan on nk.ID_PhongBan_SX equals phongban.ID_PhongBan into phongbanJoin
+                            from phongban in phongbanJoin.DefaultIfEmpty()
+                            where nk.IsDelete == false
+                            select new
+                            {
+                                Phieu = nk,
+                                TenXuong = xuong != null ? xuong.TenXuong : null,
+                                TenPhongBan = phongban != null ? phongban.TenPhongBan : null
+                            };
+
+                if (tuNgay.HasValue)
+                {
+                    query = query.Where(x => x.Phieu.NgayDungSX >= tuNgay.Value);
+                }
+
+                if (denNgay.HasValue)
+                {
+                    var endDate = denNgay.Value.AddDays(1);
+                    query = query.Where(x => x.Phieu.NgayDungSX < endDate);
+                }
+
+                if (tinhTrang.HasValue)
+                {
+                    query = query.Where(x => x.Phieu.TinhTrang == tinhTrang.Value);
+                }
+
+                var phieus = await query
+                    .OrderByDescending(x => x.Phieu.NgayDungSX)
+                    .ToListAsync();
+
+                // Lấy ID của các phiếu
+                var phieuIds = phieus.Select(x => x.Phieu.ID).ToList();
+
+                // Lấy chi tiết cho tất cả các phiếu
+                var chiTiets = await _context.Tbl_NhatKy_SanXuat_ChiTiet
+                    .Where(x => phieuIds.Contains(x.ID_NhatKy))
+                    .ToListAsync();
+
+                // Nhóm chi tiết theo ID phiếu
+                var chiTietGrouped = chiTiets.GroupBy(x => x.ID_NhatKy).ToDictionary(x => x.Key, x => x.ToList());
+
+                // Tạo kết quả trả về
+                var result = new List<dynamic>();
+
+                foreach (var item in phieus)
+                {
+                    var phieu = item.Phieu;
+                    var chiTietPhieu = chiTietGrouped.ContainsKey(phieu.ID)
+                        ? chiTietGrouped[phieu.ID]
+                        : new List<Tbl_NhatKy_SanXuat_ChiTiet>();
+
+                    result.Add(new
+                    {
+                        phieu = new
+                        {
+                            id = phieu.ID,
+                            soPhieu = phieu.SoPhieu,
+                            ngayTao = phieu.NgayTao,
+                            ngayDungSX = phieu.NgayDungSX,
+                            ca = phieu.Ca,
+                            kip = phieu.Kip,
+                            //idKip = phieu.ID_Kip,
+                            //idPhongBanSX = phieu.ID_PhongBan_SX,
+                            tenPhongBanSX = item.TenPhongBan,
+                            //idXuongSX = phieu.ID_Xuong_SX,
+                            tenXuongSX = item.TenXuong,
+                            tinhTrang = GetTinhTrangNhatKySX(phieu.TinhTrang),
+                            //tinhTrangText = GetTinhTrangNhatKySX(phieu.TinhTrang),
+                            //idNhanVienSX = phieu.ID_NhanVien_SX,
+                            //idNhanVienBTBD = phieu.ID_NhanVien_BTBD,
+                            //hoTenNhanVienBTBD = phieu.HoTen_NhanVien_BTBD,
+                            //fileBB = phieu.FileBB,
+                            ghiChu = phieu.GhiChu,
+                            //isLock = phieu.IsLock
+                        },
+                        chiTiets = chiTietPhieu.Select(ct => new
+                        {
+                            //idct = ct.IDCT,
+                            //idNhatKy = ct.ID_NhatKy,
+                            //idXuong = ct.ID_Xuong,
+                            thoiDiemDung = ct.ThoiDiemDung.ToString(@"hh\:mm\:ss"),
+                            thoiDiemChay = ct.ThoiDiemChay.ToString(@"hh\:mm\:ss"),
+                            lyDoDungThietBi = ct.LyDo_DungThietBi,
+                            ghiChu = ct.GhiChu,
+                            noiDungDung = ct.NoiDungDung,
+                            thoiGianDung = ct.ThoiGianDung,
+                            idCumTB = ct.ID_CumTB,
+                            coDienSoLan = ct.CoDien_SoLan,
+                            coDienChoXL = ct.CoDien_ChoXL,
+                            coDienTGianXL = ct.CoDien_TGianXL,
+                            coDienTGianSC = ct.CoDien_TGianSC,
+                            dungDayChuyen = ct.DungDayChuyen,
+                            tGianKHBTBD = ct.TGian_KH_BTBD
+                        }).ToList()
+                    });
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Data = result,
+                    Total = result.Count,
+                    Message = "Thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Đã xảy ra lỗi trong quá trình xử lý.",
+                    error = ex.Message
+                });
+            }
+        }
     }
-    
+
     public static class DataReaderExtensions
     {
         public static T? SafeGet<T>(this DbDataReader reader, string columnName)
