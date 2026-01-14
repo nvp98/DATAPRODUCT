@@ -54,5 +54,11 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_CanRayLG1> Tbl_CanRayLG1 { get; set; }
         public DbSet<Tbl_BM_18_PhieuXiHat> Tbl_BM_18_PhieuXiHat { get; set; }
         public DbSet<Tbl_BM_18_XiHatLoCao> Tbl_BM_18_XiHatLoCao { get; set; }
+        public DbSet<Tbl_KLGangVaoBOF1> Tbl_KLGangVaoBOF1 { get; set; }
+        public DbSet<Tbl_KLGangVaoBOF2> Tbl_KLGangVaoBOF2 { get; set; }
+        public DbSet<Tbl_KLGangVaoBOF3> Tbl_KLGangVaoBOF3 { get; set; }
+        public DbSet<Tbl_KLGangVaoBOF4> Tbl_KLGangVaoBOF4 { get; set; }
+        public DbSet<Tbl_KLGangVaoBOF5> Tbl_KLGangVaoBOF5 { get; set; }
+        public DbSet<Tbl_MocNoiThungGangAT> Tbl_MocNoiThungGangAT { get; set; }
     }
 }

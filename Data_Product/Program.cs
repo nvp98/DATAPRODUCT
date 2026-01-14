@@ -35,11 +35,13 @@ builder.Services.AddSession();
 
 //builder.Services.AddScoped<BM_11Controller>();
 builder.Services.AddScoped<IChiaGangService, ChiaGangService>();
+
 builder.Services.AddScoped<GetBkmisService>();
 
 builder.Services.AddDbContext<DataContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString") ?? throw new InvalidOperationException("Connection string 'ConnectionString' not found.")));
 
+builder.Services.AddScoped<IHRC1LuyenThepService, HRC1LuyenThepService>();
 
 ////Đăng ký BackgroundService tự động tạo phiếu
 //builder.Services.AddHostedService<TaoPhieuTuDongBackgroundService>();

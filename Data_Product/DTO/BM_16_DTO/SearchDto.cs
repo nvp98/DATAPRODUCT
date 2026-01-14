@@ -59,4 +59,13 @@
     {
         public int id { get; set; }
     }
+
+    public class LoadDanhSachThungThepHRC1ATDto
+    {
+        public int IdLoThoi { get; set; }
+
+        public DateTime NgaySanXuat { get; set; }
+
+        public int Ca { get; set; }
+    }
 }

@@ -17,11 +17,21 @@ namespace Data_Product.Controllers
     {
         private readonly DataContext _context;
         private readonly ICompositeViewEngine _viewEngine;
+        //private readonly Dictionary<int, Func<IQueryable<Tbl_KLGangVaoBOFBase>>> _nmQueryMap;
 
         public MeThoiController(DataContext _context, ICompositeViewEngine viewEngine)
         {
             this._context = _context;
             _viewEngine = viewEngine;
+
+            //_nmQueryMap = new Dictionary<int, Func<IQueryable<Tbl_KLGangVaoBOFBase>>>
+            //{
+            //    { 1, () => _context.Tbl_KLGangVaoBOF1 },
+            //    { 2, () => _context.Tbl_KLGangVaoBOF2 },
+            //    { 3, () => _context.Tbl_KLGangVaoBOF3 },
+            //    { 4, () => _context.Tbl_KLGangVaoBOF4 },
+            //    { 5, () => _context.Tbl_KLGangVaoBOF5 }
+            //};
         }
         public async Task<IActionResult> Index()
         {
@@ -116,6 +126,65 @@ namespace Data_Product.Controllers
             return Ok(result);
         }
 
+        //[HttpPost]
+        //public async Task<IActionResult> FilterMeThoi([FromBody] MeThoiSearchDto dto)
+        //{
+        //    // 1️⃣ Query mẻ thổi
+        //    var meThoiQuery = _context.Tbl_MeThoi
+        //        .Where(x =>
+        //            x.ID_LoThoi == dto.id_LoThoi &&
+        //            x.ID_TrangThai == (int)TinhTrang.ChoXuLy &&
+        //            x.Is_Delete == false);
+
+        //    if (!string.IsNullOrWhiteSpace(dto.searchText))
+        //    {
+        //        meThoiQuery = meThoiQuery
+        //            .Where(x => x.MaMeThoi.Contains(dto.searchText));
+        //    }
+
+        //    var meThoiList = await meThoiQuery
+        //        .OrderBy(x => x.MaMeThoi)
+        //        .Take(250)
+        //        .Select(x => new
+        //        {
+        //            x.ID,
+        //            x.MaMeThoi
+        //        })
+        //        .ToListAsync();
+        //    // 2️⃣ Lấy dữ liệu NM mới nhất tương ứng với MeThoi trong meThoiList
+        //    List<Tbl_KLGangVaoBOFBase> nmLatest = new List<Tbl_KLGangVaoBOFBase>();
+
+        //    if (_nmQueryMap.TryGetValue(dto.id_LoThoi, out var nmQueryFactory))
+        //    {
+        //        var nmQuery = nmQueryFactory();
+
+        //        var meThoiCodes = meThoiList.Select(x => x.MaMeThoi).ToList();
+
+        //        // Lấy NM về memory và group
+        //        nmLatest = await nmQuery
+        //            .Where(x => meThoiCodes.Contains(x.MeThoi))
+        //            .GroupBy(x => x.MeThoi)
+        //            .Select(g => g.OrderByDescending(x => x.NgayTao).First())
+        //            .ToListAsync(); // trả về List<Tbl_KLGangVaoBOFBase>
+        //    }
+
+        //    // 3️⃣ Merge trực tiếp bằng left join LINQ (không cần Dictionary)
+        //    var result = (from mt in meThoiList
+        //                  join nm in nmLatest
+        //                      on mt.MaMeThoi equals nm.MeThoi into nmGroup
+        //                  from nmItem in nmGroup.DefaultIfEmpty()
+        //                  select new MeThoiFilterResponse
+        //                  {
+        //                      Id = mt.ID,
+        //                      MaMeThoi = mt.MaMeThoi,
+        //                      KLThungVaGang = nmItem?.KLThungVaGang,
+        //                      KLThung = nmItem?.KLThung,
+        //                      KLGang = nmItem?.KLGang,
+        //                      IsExistInNM = nmItem != null
+        //                  }).ToList();
+
+        //    return Ok(result);
+        //}
 
         [HttpGet]
         public async Task<IActionResult> TaoMeThoi()

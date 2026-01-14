@@ -44,4 +44,16 @@
         public string MaPhieu { get; set; }
         public List<ThungGangDto> DsMaThung { get; set; }
     }
+
+    public class MocNoiThung
+    {
+        public List<selectedThungsDto> selectedThungs { get; set; }
+        public DateTime ngayNhan { get; set; }
+        public int idCa { get; set; }
+        public int idLoThoi { get; set; }
+        public int idNguoiNhan { get; set; }
+        public string NoiNhan { get; set; }
+        public string thungTrungGian { get; set; }
+        public int idThungAT { get; set; }
+    }
 }
