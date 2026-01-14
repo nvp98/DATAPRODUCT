@@ -653,7 +653,17 @@ namespace Data_Product.Controllers
 
                 sumKLGangChia = await totalScope
                     .SumAsync(x => (decimal?)((x.KLGangChia ?? x.T_KLGangLong) ?? 0m)) ?? 0m;
-                sumKLXiKR = await totalScope.SumAsync(x => (decimal?)(x.KLXiKR ?? 0m)) ?? 0m;
+
+                //sumKLXiKR = await totalScope.SumAsync(x => (decimal?)(x.KLXiKR ?? 0m)) ?? 0m;
+                sumKLXiKR = await (
+                        from g in totalScope
+                        where g.ID_TTG.HasValue
+                        group g by g.ID_TTG into grp
+                        select grp
+                            .Select(x => x.KLXiKR)
+                            .FirstOrDefault()
+                    ).SumAsync(x => (decimal?)(x ?? 0m)) ?? 0m;
+
                 sumKLChiaXiKR = await totalScope.SumAsync(x => (decimal?)(x.KLChiaXiKR ?? 0m)) ?? 0m;
                 sumKLGangCCTVaXi = await totalScope.SumAsync(x => (decimal?)(x.KLGangCCTVaXi ?? x.KLGangChia ?? x.T_KLGangLong)) ?? 0m;
 
