@@ -451,6 +451,9 @@
 												<option value="">-- Chọn lô --</option>
 												@foreach (var lo in ViewBag.MLList as SelectList)
 												{
+												var loText = lo.Text?.ToString().ToLower() ?? "";
+												if (loText.StartsWith("xi"))
+												{
 													var idLoStr = item.ID_Lo?.ToString() ?? "";
 													if (lo.Value == idLoStr)
 													{
@@ -459,6 +462,7 @@
 													else
 													{
 														<option value="@lo.Value">@lo.Text</option>
+													}
 													}
 												}
 											</select>
@@ -543,12 +547,16 @@
 			});
 		}
 
-		// Lấy danh sách lô từ ViewBag
+		// Lấy danh sách lô từ ViewBag (chỉ lấy lô có tiền tố "xi")
 	@foreach (var lo in ViewBag.MLList as SelectList)
 	{
-		<text>
-					cacLoHienCo.push({value: '@lo.Value', text: '@lo.Text'});
-		</text>
+		var loText = lo.Text?.ToString().ToLower() ?? "";
+		if (loText.StartsWith("xi"))
+		{
+			<text>
+				cacLoHienCo.push({value: '@lo.Value', text: '@lo.Text'});
+			</text>
+		}
 	}
 
 		// Lấy dữ liệu Header
