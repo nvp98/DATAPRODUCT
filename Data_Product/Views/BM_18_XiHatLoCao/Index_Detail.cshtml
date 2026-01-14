@@ -83,7 +83,7 @@
                                     </button>
                                 }
 
-                                @if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
+                                @if (ViewBag.ID_Quyen == 13)
                                 {
                                     <button type="button" id="btnResetPhieu" class="btn btn-warning ms-2">
                                         <i class="bi bi-arrow-counterclockwise"></i>
@@ -241,17 +241,21 @@
 
                                                         @foreach (var lo in (List<Tbl_MaLo>)ViewBag.DsMaLo)
                                                         {
-                                                            if (lo.TenMaLo == item.TenMaLo)
+                                                            var loText = lo.TenMaLo?.ToLower() ?? "";
+                                                            if (loText.StartsWith("xi"))
                                                             {
-                                                                <option value="@lo.ID_MaLo" selected="selected">
-                                                                    @lo.TenMaLo
-                                                                </option>
-                                                            }
-                                                            else
-                                                            {
-                                                                <option value="@lo.ID_MaLo">
-                                                                    @lo.TenMaLo
-                                                                </option>
+                                                                if (lo.TenMaLo == item.TenMaLo)
+                                                                {
+                                                                    <option value="@lo.ID_MaLo" selected="selected">
+                                                                        @lo.TenMaLo
+                                                                    </option>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <option value="@lo.ID_MaLo">
+                                                                        @lo.TenMaLo
+                                                                    </option>
+                                                                }
                                                             }
                                                         }
                                                     </select>
