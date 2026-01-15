@@ -1,0 +1,294 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>HPDQ – Data Product</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* ================= GLOBAL ================= */
+        body {
+            min-height: 100vh;
+            background: url("./img/background_product.jpg") center center / cover no-repeat fixed;
+            color: #1f2937;
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        /* ================= HEADER ================= */
+        .navbar {
+            backdrop-filter: blur(6px);
+        }
+
+        /* ================= CENTER ================= */
+        .main-wrapper {
+            min-height: calc(100vh - 72px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ================= MAIN CARDS ================= */
+        .main-card {
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+            .main-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 18px 45px rgba(0,0,0,0.12), 0 6px 14px rgba(0,0,0,0.06);
+            }
+
+        /* ================= TITLES ================= */
+        .main-title {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #0d6efd;
+            text-align: center;
+            margin-bottom: 1rem;
+            padding-bottom: .75rem;
+            border-bottom: 2px solid #e5e7eb;
+            letter-spacing: .5px;
+        }
+
+        /* ================= KPI / CONTENT CARD ================= */
+        .kpi-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 1.25rem 1.5rem;
+        }
+
+            /* text inside */
+            .kpi-card h4 {
+                font-size: .95rem;
+                font-weight: 500;
+                margin-bottom: .75rem;
+                padding-left: .75rem;
+                border-left: 3px solid #0d6efd;
+                color: #374151;
+            }
+
+                /* last item spacing */
+                .kpi-card h4:last-child {
+                    margin-bottom: 0;
+                }
+
+        /* ================= DROPDOWN PROFILE ================= */
+        .dropdown-menu {
+            border-radius: 14px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+        }
+
+
+        /* ================= CLICKABLE CARD ================= */
+        .clickable-card {
+            cursor: pointer;
+        }
+
+            .clickable-card::after {
+                content: "→";
+                position: absolute;
+                right: 20px;
+                bottom: 16px;
+                font-size: 1.4rem;
+                color: #0d6efd;
+                opacity: 0;
+                transition: opacity .2s ease, transform .2s ease;
+            }
+
+            .clickable-card:hover::after {
+                opacity: 1;
+                transform: translateX(4px);
+            }
+
+        /* ================= CLICKABLE CARD HOVER ================= */
+        .clickable-card {
+            cursor: pointer;
+            position: relative;
+            transition: background-color .25s ease, box-shadow .25s ease, transform .25s ease, border-color .25s ease;
+        }
+
+            /* Hover toàn card */
+            .clickable-card:hover {
+                background-color: #f0f6ff; /* xanh rất nhạt */
+                border-color: #0d6efd; /* xanh primary */
+                transform: translateY(-4px);
+                box-shadow: 0 18px 45px rgba(13,110,253,0.20), 0 6px 14px rgba(0,0,0,0.08);
+            }
+
+                /* Title đổi màu */
+                .clickable-card:hover .main-title {
+                    color: #084298;
+                }
+
+                /* Khối nội dung bên trong */
+                .clickable-card:hover .kpi-card {
+                    background-color: #ffffff;
+                    border-color: #cfe2ff;
+                }
+
+                    /* Text bên trong */
+                    .clickable-card:hover .kpi-card h4 {
+                        color: #0d6efd;
+                    }
+
+            /* Icon mũi tên (nếu đang dùng) */
+            .clickable-card::after {
+                content: "→";
+                position: absolute;
+                right: 20px;
+                bottom: 16px;
+                font-size: 1.4rem;
+                color: #0d6efd;
+                opacity: 0;
+                transition: opacity .2s ease, transform .2s ease;
+            }
+
+            .clickable-card:hover::after {
+                opacity: 1;
+                transform: translateX(6px);
+            }
+
+      
+    </style>
+</head>
+
+<body>
+    @if (!User.Identity.IsAuthenticated)
+    {
+        Context.Response.Redirect(Url.Action("Index", "DangNhap"));
+    }
+
+    <!-- HEADER -->
+    <nav class="navbar bg-white border-bottom px-4 py-3">
+        <div class="d-flex align-items-center justify-content-between">
+            <a href="@Url.Action("Index", "Dashboard")" class="logo d-flex align-items-center">
+                <img src="~/img/logoHP.png" alt="">
+                <!--<span class="d-none d-lg-block">NiceAdmin</span>-->
+            </a>
+            <i class="bi bi-list toggle-sidebar-btn"></i>
+        </div>
+        <nav class="header-nav ms-auto">
+            <ul class="nav d-flex align-items-center">
+                <!-- Profile -->
+                <li class="nav-item dropdown pe-3">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center"
+                       href="#"
+                       role="button"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="false">
+                       Thông tin
+                        <i class="bi bi-person-circle fs-4 text-primary"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                               href="@Url.Action("ThongTinTaiKhoan", "DangNhap")">
+                                <i class="bi bi-person text-primary"></i>
+                                <span>Tài khoản</span>
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                               href="@Url.Action("DoiMatKhau", "DangNhap")">
+                                <i class="bi bi-gear text-primary"></i>
+                                <span>Đổi mật khẩu</span>
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 text-danger"
+                               href="@Url.Action("Index", "DangNhap")">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Đăng xuất</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+            </ul>
+        </nav>
+
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="container main-wrapper">
+        <div class="row g-4 w-100 justify-content-center">
+
+            <!-- ====== VÙNG 1 ====== -->
+            <div class="col-12 col-md-6 col-lg-5">
+                <a href="@Url.Action("Index", "Home")"
+                   class="text-decoration-none text-reset" target="_blank">
+
+                    <div class="card main-card h-100 clickable-card">
+                        <div class="card-body">
+                            <div class="main-title">
+                                QUY TRÌNH GIAO NHẬN
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="kpi-card">
+                                        <h4>- Biên bản giao nhận nguyên/nhiên/vật tư</h4>
+                                        <h4>- Nhật ký dừng sản xuất</h4>
+                                        <h4>- Quy trình giao nhận gang lỏng</h4>
+                                        <h4>- Biên bản xỉ hạt lò cao</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </a>
+            </div>
+
+            <!-- ====== VÙNG 2 ====== -->
+            <div class="col-12 col-md-6 col-lg-5">
+                <a href="/sanxuat"
+                   class="text-decoration-none text-reset" target="_blank">
+
+                    <div class="card main-card h-100 clickable-card">
+                        <div class="card-body">
+                            <div class="main-title">
+                                SỐ LIỆU SẢN XUẤT
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="kpi-card">
+                                        <h4>
+                                            Các BM sản lượng, tiêu hao của các nhà máy:
+                                            NM.NL, NM.LC, NM.LG, NM.HRC1, NM.HRC2, NM.CTD...
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </a>
+            </div>
+           
+            
+            <main id="main" class="main" style="height:80%; padding: 0% 1% 0% 1%;">
+                @RenderBody()
+            </main><!-- End #main -->
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

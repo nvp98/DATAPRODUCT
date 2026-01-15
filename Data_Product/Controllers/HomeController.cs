@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Data_Product.Controllers
 {
@@ -57,6 +58,21 @@ namespace Data_Product.Controllers
             //var TGDung = await _context.Tbl_NhatKy_SanXuat_ChiTiet
             //                       .Where(ct => ct.Tbl_NhatKy_SanXuat.TinhTrang == 1)
             //                       .SumAsync(p => (int?)p.ThoiGianDung) ?? 0;
+            var user = new
+            {
+                id = TaiKhoan.ID_TaiKhoan,
+                name = TaiKhoan.HoVaTen,
+                role = "admin",
+                username = TaiKhoan.TenTaiKhoan
+            };
+            var userinfo = TaiKhoan;
+
+            var token = "token";
+
+            ViewBag.Token = token;
+            ViewBag.User = JsonSerializer.Serialize(user);
+            ViewBag.Userinfo = JsonSerializer.Serialize(userinfo);
+            ViewBag.UserName = JsonSerializer.Serialize(user.name);
 
             ViewBag.TongPhieuNhatKy = new Dictionary<string, int>
             {
