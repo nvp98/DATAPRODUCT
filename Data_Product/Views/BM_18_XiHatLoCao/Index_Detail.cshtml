@@ -83,7 +83,7 @@
                                     </button>
                                 }
 
-                                @if (ViewBag.ID_Quyen == 13)
+                                @if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
                                 {
                                     <button type="button" id="btnResetPhieu" class="btn btn-warning ms-2">
                                         <i class="bi bi-arrow-counterclockwise"></i>
@@ -344,6 +344,8 @@
                                 <b>NM.LG</b>
                             </div>
                             <div style="text-align: center; font-size: 14px; padding:2%;">
+                                @if (phieu.ID_TrangThaiBG == (int)Data_Product.Common.Enums.TrangThaiXuLy.HoanThanh)
+                                {
                                 @if (!string.IsNullOrEmpty(thongTinBG?.ChuKy))
                                 {
                                     <img src="@thongTinBG.ChuKy" alt="" height="50px">
@@ -351,6 +353,12 @@
                                 else
                                 {
                                     <div style="height:50px" class="text-danger">Đã xác nhận<br />(Chưa có chữ ký)</div>
+                                }
+
+                                }
+                                else if (phieu.ID_TrangThaiBN == (int)Data_Product.Common.Enums.TrangThaiXuLy.ChuaXuLy)
+                                {
+                                    <div style="height:50px" class="text-danger">Chưa xử lý</div>
                                 }
                             </div>
                             <div style="text-align: center; font-size: 14px;">

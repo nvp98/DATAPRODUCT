@@ -714,7 +714,7 @@ namespace Data_Product.Controllers
                     
                     phieu.ID_NguoiGiao = req.ID_NguoiGiao;
                     phieu.ID_NguoiNhan = req.ID_NguoiNhan;
-                    phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.DangXuLy;
+                    phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.HoanThanh;
                     phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.DangXuLy;
                     phieu.TrangThai = (int)TrangThaiXuLy.DangXuLy; ;
                     await _context.SaveChangesAsync();
@@ -921,13 +921,13 @@ namespace Data_Product.Controllers
             if (taiKhoan == null)
                 return Unauthorized(new { success = false, message = "Không xác định được tài khoản!" });
 
-            // Kiểm tra: phải là người tạo mới được reset
-            if (phieu.ID_NguoiTao != taiKhoan.ID_TaiKhoan)
-                return Forbid();
+            //// Kiểm tra: phải là người tạo mới được reset
+            //if (phieu.ID_NguoiTao != taiKhoan.ID_TaiKhoan)
+            //    return Forbid();
 
             // Kiểm tra trạng thái (không cho reset phiếu đã hoàn thành)
-            if (phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
-                return BadRequest(new { success = false, message = "Không thể reset phiếu đã hoàn thành!" });
+            //if (phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
+            //    return BadRequest(new { success = false, message = "Không thể reset phiếu đã hoàn thành!" });
 
             // Reset phiếu header
             phieu.ID_NguoiGiao = null;
@@ -1050,93 +1050,6 @@ namespace Data_Product.Controllers
                 khoiLuongGang = giaTriGang
             });
         }
-        // [HttpGet]
-        // public async Task<IActionResult> KLGangTrongCa(int ca, int idKip, DateTime ngayLuyenGang, int idLoCao)
-        // {
-
-        //     var dsThung = await _context.Tbl_BM_16_GangLong
-        //         .Where(t =>
-        //             t.G_Ca == ca &&
-        //             t.G_ID_Kip == idKip &&
-        //             t.NgayTao == ngayLuyenGang.Date &&
-        //             t.ID_Locao == idLoCao &&
-        //             t.T_copy == false
-        //         )
-        //         .ToListAsync();
-
-        //     if (!dsThung.Any())
-        //         return NotFound("Không tìm thấy dữ liệu theo điều kiện lọc.");
-
-
-        //     decimal ptDuc = await _context.Tbl_BM_16_PhanTramDuc
-        //         .Where(x => x.ID == 1)
-        //         .Select(x => x.PhanTram)
-        //         .FirstOrDefaultAsync();
-
-
-        //     var tongTheoMe = await _context.Tbl_BM_16_GangLong
-        //         .Where(t =>
-        //             t.G_Ca == ca &&
-        //             t.G_ID_Kip == idKip &&
-        //             t.NgayTao == ngayLuyenGang.Date &&
-        //             t.ID_Locao == idLoCao &&
-        //             !string.IsNullOrEmpty(t.BKMIS_SoMe)
-        //         )
-        //         .GroupBy(t => t.BKMIS_SoMe)
-        //         .Select(g => new
-        //         {
-        //             SoMe = g.Key,
-        //             TongKL = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0)) ?? 0m
-        //         })
-        //         .ToDictionaryAsync(x => x.SoMe, x => x.TongKL);
-
-        //     decimal tongKL_TheoMe = tongTheoMe.Values.Sum();
-
-        //     var klDucTheoMeRaw = await _context.Tbl_BM_16_GangLong
-        //         .Where(t =>
-        //             t.G_Ca == ca &&
-        //             t.G_ID_Kip == idKip &&
-        //             t.NgayTao == ngayLuyenGang.Date &&
-        //             t.ID_Locao == idLoCao &&
-        //             !string.IsNullOrEmpty(t.BKMIS_SoMe) &&
-        //             t.ChuyenDen != "HRC1" &&
-        //             t.ChuyenDen != "HRC2"
-        //         )
-        //         .GroupBy(t => t.BKMIS_SoMe)
-        //         .Select(g => new
-        //         {
-        //             SoMe = g.Key,
-
-        //             SumG = g.Where(x => x.T_copy == false)
-        //                     .Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
-
-        //             SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m,
-
-        //             SumChiaRaw = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
-
-        //             HasChia = g.Any(x => x.KLGangChia != null && x.KLGangChia > 0)
-        //         })
-        //         .ToListAsync();
-
-        //     var klDucTheoMe = klDucTheoMeRaw.ToDictionary(
-        //         x => x.SoMe,
-        //         x =>
-        //         {
-        //             var baseValue = x.HasChia ? x.SumChiaRaw : x.SumT;
-        //             var kld = (x.SumG - baseValue) * (ptDuc / 100m);
-        //             return Math.Round(kld, 2);
-        //         }
-        //     );
-
-        //     decimal tongKLDuc = klDucTheoMe.Values.Sum();
-
-        //     decimal tongKLGang = tongKLDuc + tongKL_TheoMe;
-
-        //     ViewBag.TongKL_TheoMe = tongTheoMe;
-        //     ViewBag.KLDuc_TheoMe = klDucTheoMe;
-        //     ViewBag.TongKLGang = tongKLGang;
-        //     return View();
-        // }
 
         [HttpGet]
         public async Task<IActionResult> KLGangTrongCaJson(int ca, int idKip, DateTime ngaySanXuat, int idLoCao, string maPhieu = null)
