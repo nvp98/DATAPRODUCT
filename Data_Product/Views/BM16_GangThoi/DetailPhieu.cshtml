@@ -309,7 +309,7 @@
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC2" @(item.DenDuc2 ? "checked" : "") @disabledAttr /></td>
-												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM" @disabledAttr></td>
+												<td><input type="time" name="GioNM" class="form-control" value="@item.GioNM" disabled @* @disabledAttr *@></td>
 												<td> @item.GioChonMe</td>
 												<td><textarea name="GhiChu" class="form-control" rows="2" style="width: 100px; resize: none; padding: 4px;" @disabledAttr>@item.GhiChu</textarea></td>
 												@if (PhongBan?.TenNgan == "P.QLCL")
@@ -448,6 +448,7 @@
 							<table class="table table-sm table-bordered table-hover align-middle" id="tableLeft">
 								<thead class="table-light">
 									<tr>
+										<th>Ngày chốt gang</th>
 										<th style="width:100px">Sàn ra gang</th>
 										<th style="width:100px">Số thùng</th>
 										<th style="width:200px">Giờ chốt gang</th>
@@ -460,7 +461,7 @@
 								</thead>
 								<tbody>
 									<tr class="table-secondary text-center">
-										<td colspan="8" class="small">Chưa có dữ liệu.</td>
+										<td colspan="9" class="small">Chưa có dữ liệu.</td>
 									</tr>
 								</tbody>
 							</table>
@@ -670,7 +671,7 @@
 			if (!list || !list.length) {
 				$tbody.append(
 					'<tr class="table-secondary text-center">' +
-					'<td colspan="8" class="small">Không có dữ liệu cân ray.</td></tr>'
+					'<td colspan="9" class="small">Không có dữ liệu cân ray.</td></tr>'
 				);
 				$("#leftCount").text("0 dòng");
 				return;
@@ -691,6 +692,16 @@
 
 				const hasGhiChu = x.ghiChu && x.ghiChu.trim() !== '';
 				const numberStyle = hasGhiChu ? 'style="color: red; font-weight: bold;"' : '';
+				const gioChotGangStr = x.gioChotGang
+				? (() => {
+					const d = new Date(x.gioChotGang);
+					const day = String(d.getDate()).padStart(2, '0');
+					const month = String(d.getMonth() + 1).padStart(2, '0');
+					const year = d.getFullYear();
+					return `${day}-${month}-${year}`;
+				})()
+				: '';
+
 
 				const tr = `
 					<tr data-row="left"
@@ -702,6 +713,8 @@
 						data-san="${escapeHtml(san)}"
 						data-gioiso="${escapeHtml(gioIso)}"
 						data-thungso="${escapeHtml(thungSo)}">
+
+						<td ${numberStyle}>${escapeHtml(gioChotGangStr)}</td>
 						<td>${escapeHtml(san)}</td>
 						<td>${escapeHtml(thungSo)}</td>
 						<td ${numberStyle}>${escapeHtml(gioStr)}</td>
@@ -766,7 +779,7 @@
 			}
 
 			$("#tableLeft tbody").html(
-				'<tr><td colspan="8" class="text-center text-muted">Đang tải...</td></tr>'
+				'<tr><td colspan="9" class="text-center text-muted">Đang tải...</td></tr>'
 			);
 
 			$.ajax({
@@ -837,6 +850,7 @@
 
 			const newRow = `
 				<tr data-row="new">
+					<td></td>
 					<td><input class="form-control form-control-sm ip-san" type="number"/></td>
 					<td><input class="form-control form-control-sm ip-thungso" type="number"/></td>
 					<td><input class="form-control form-control-sm ip-gio" type="datetime-local"/></td>
