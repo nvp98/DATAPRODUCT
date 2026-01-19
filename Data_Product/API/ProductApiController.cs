@@ -1,4 +1,5 @@
-﻿using Data_Product.DTO;
+﻿using Data_Product.Common.Enums;
+using Data_Product.DTO;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using Microsoft.AspNetCore.Mvc;
@@ -428,6 +429,7 @@ namespace Data_Product.API
             }
         }
 
+
         [HttpGet("GetNhatKySanXuat")]
         public async Task<IActionResult> GetNhatKySanXuat(
             [FromQuery] DateTime? tuNgay = null,
@@ -483,10 +485,11 @@ namespace Data_Product.API
                 var chiTiets = await _context.Tbl_NhatKy_SanXuat_ChiTiet
                     .Where(x => phieuIds.Contains(x.ID_NhatKy))
                     .ToListAsync();
+                var CumTBs = await _context.Tbl_NhatKy_CumTB.ToListAsync();
 
                 // Nhóm chi tiết theo ID phiếu
                 var chiTietGrouped = chiTiets.GroupBy(x => x.ID_NhatKy).ToDictionary(x => x.Key, x => x.ToList());
-
+            
                 // Tạo kết quả trả về
                 var result = new List<dynamic>();
 
@@ -528,11 +531,11 @@ namespace Data_Product.API
                             //idXuong = ct.ID_Xuong,
                             thoiDiemDung = ct.ThoiDiemDung.ToString(@"hh\:mm\:ss"),
                             thoiDiemChay = ct.ThoiDiemChay.ToString(@"hh\:mm\:ss"),
-                            lyDoDungThietBi = ct.LyDo_DungThietBi,
+                            lyDoDungThietBi = LyDoDungTB.GetLyDoDungThietBi(ct.LyDo_DungThietBi),
                             ghiChu = ct.GhiChu,
                             noiDungDung = ct.NoiDungDung,
                             thoiGianDung = ct.ThoiGianDung,
-                            idCumTB = ct.ID_CumTB,
+                            TenCumTB = CumTBs.FirstOrDefault(x=>x.ID ==ct.ID_CumTB)?.TenCumTB,
                             coDienSoLan = ct.CoDien_SoLan,
                             coDienChoXL = ct.CoDien_ChoXL,
                             coDienTGianXL = ct.CoDien_TGianXL,
@@ -561,6 +564,7 @@ namespace Data_Product.API
             }
         }
     }
+
 
     public static class DataReaderExtensions
     {
