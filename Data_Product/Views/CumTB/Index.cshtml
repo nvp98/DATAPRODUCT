@@ -65,16 +65,27 @@
                             </div> *@
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col d-flex gap-2">
+                            <button id="btn-add" type="button" class="btn btn-primary">
+                                <i class="bi bi-plus-lg"></i> Thêm mới
+                            </button>
+
+                            <button id="btn-Export" class="btn btn-success">
+                                <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Nút thêm -->
-                    <div class="row">
+                  @*   <div class="row">
                         <button id="btn-add" type="button" class="btn btn-primary w-auto float-right">
                             <i class="bi bi-plus-lg"></i> Thêm mới
                         </button>
-                       @*  <button id="btn-Import" type="button" class="btn btn-success btn-sm">
-                            <i class="bi bi-upload"></i> Import Excel
-                        </button> *@
-                    </div>
+                        <button id="btn-Export" class="btn btn-success btn-sm">
+                            <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+                        </button>
+                    </div> *@
                     <!-- Modal container -->
                     <div id="CumTBModalContainer"></div>
 
@@ -246,37 +257,33 @@
 
 @section Scripts {
     <script>
-        // Khi click nút Import Excel → mở modal
-        $('#btn-Import').click(function () {
-            $('#importModal').modal('show');
+        $('#btn-Export').click(function () {
+            exportExcelAjax();
         });
 
-        // Khi bấm nút "Import" trong modal
-        $('#btnSubmitImport').click(function () {
-            var fileInput = $('#excelFile')[0];
-            if (fileInput.files.length === 0) {
-                alert("Vui lòng chọn file Excel!");
-                return;
-            }
-
-            var formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
+        function exportExcelAjax() {
             $.ajax({
-                url: '/YourControllerName/ImportExcel',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    alert(response.message || "Import thành công!");
-                    location.reload();
+                url: '/CumTB/ExportToExcel',
+                type: 'GET',
+                xhrFields: {
+                    responseType: 'blob'
                 },
-                error: function (xhr) {
-                    alert(xhr.responseText || "Đã xảy ra lỗi khi import!");
+                success: function (blob) {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'DanhSachCumThietBi.xlsx'; // ✅ FIX CỨNG
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                },
+                error: function () {
+                    alert("Xuất Excel thất bại!");
                 }
             });
-        });
+        }
+
     </script>
 }
 

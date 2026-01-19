@@ -82,13 +82,13 @@ namespace Data_Product.Controllers
 
             // Danh sách xưởng chọn
             List<Tbl_Xuong> xuong = await (from a in _context.Tbl_Xuong
-                                     join b in _context.Tbl_PhongBan on a.ID_PhongBan equals b.ID_PhongBan
-                                     select new Tbl_Xuong
-                                     {
-                                         ID_Xuong = a.ID_Xuong,
-                                         ID_PhongBan = b.ID_PhongBan,
-                                         TenXuong = b.TenPhongBan + "-" + a.TenXuong
-                                     }
+                                           join b in _context.Tbl_PhongBan on a.ID_PhongBan equals b.ID_PhongBan
+                                           select new Tbl_Xuong
+                                           {
+                                               ID_Xuong = a.ID_Xuong,
+                                               ID_PhongBan = b.ID_PhongBan,
+                                               TenXuong = b.TenPhongBan + "-" + a.TenXuong
+                                           }
                                 ).ToListAsync();
             ViewBag.XuongList = new MultiSelectList(xuong, "ID_Xuong", "TenXuong", ViewBag.SelectedXuong);
 
@@ -143,7 +143,7 @@ namespace Data_Product.Controllers
 
                         TempData["msgSuccess"] = "<script>alert('Đã thêm mới nhiều cụm thiết bị thành công');</script>";
                     }
-                    if(model.TenCumTB != "")
+                    if (model.TenCumTB != "")
                     {
                         // ➕ Thêm mới 1 cụm như logic cũ
                         model.IsLock = false;
@@ -205,7 +205,7 @@ namespace Data_Product.Controllers
 
             return RedirectToAction("Index");
         }
-    
+
 
 
         // 🟢 Form thêm mới cụm thiết bị
@@ -416,31 +416,97 @@ namespace Data_Product.Controllers
         }
 
         // 📤 Export Excel
-        public IActionResult ExportToExcel()
+        public async Task<IActionResult> ExportToExcel()
         {
-            var data = _context.Tbl_NhatKy_CumTB.Where(x => !x.IsDelete).ToList();
+            var data = await (
+                from ctb in _context.Tbl_NhatKy_CumTB.AsNoTracking()
+                join ctbx in _context.Tbl_NhatKy_CumTB_Xuong.AsNoTracking()
+                    on ctb.ID equals ctbx.CumTB_ID
+                join x in _context.Tbl_Xuong.AsNoTracking()
+                    on ctbx.Xuong_ID equals x.ID_Xuong
+                where !ctb.IsDelete
+                select new
+                {
+                    TenCumTB = ctb.TenCumTB,
+                    TenXuong = x.TenXuong,
+                    TrangThai = ctb.IsLock ? "Đã khóa" : "Hoạt động"
+                }
+            ).ToListAsync();
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("CumThietBi");
 
-            worksheet.Cell(1, 1).Value = "STT";
-            worksheet.Cell(1, 2).Value = "Tên Cụm Thiết Bị";
-            worksheet.Cell(1, 3).Value = "Trạng Thái";
+            /* ===============================
+             * 1️⃣ TIÊU ĐỀ LỚN
+             * =============================== */
+            worksheet.Cell(1, 1).Value = "DANH SÁCH CỤM THIẾT BỊ";
+            worksheet.Range(1, 1, 1, 4).Merge();
 
-            int row = 2, stt = 1;
+            var titleCell = worksheet.Cell(1, 1);
+            titleCell.Style.Font.Bold = true;
+            titleCell.Style.Font.FontSize = 16;
+            titleCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            titleCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            titleCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#4472C4");
+            titleCell.Style.Font.FontColor = XLColor.White;
+
+            worksheet.Row(1).Height = 35;
+
+            /* ===============================
+             * 2️⃣ HEADER CỘT
+             * =============================== */
+            worksheet.Cell(2, 1).Value = "STT";
+            worksheet.Cell(2, 2).Value = "Tên Cụm Thiết Bị";
+            worksheet.Cell(2, 3).Value = "Xưởng";
+            worksheet.Cell(2, 4).Value = "Trạng Thái";
+
+            var headerRange = worksheet.Range(2, 1, 2, 4);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#5B9BD5");
+            headerRange.Style.Font.FontColor = XLColor.White;
+            headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+            worksheet.Row(2).Height = 25;
+
+            /* ===============================
+             * 3️⃣ DATA
+             * =============================== */
+            int row = 3, stt = 1;
             foreach (var item in data)
             {
                 worksheet.Cell(row, 1).Value = stt++;
                 worksheet.Cell(row, 2).Value = item.TenCumTB;
-                worksheet.Cell(row, 3).Value = item.IsLock ? "Khóa" : "Mở";
+                worksheet.Cell(row, 3).Value = item.TenXuong;
+                worksheet.Cell(row, 4).Value = item.TrangThai;
+
+                worksheet.Range(row, 1, row, 4)
+                    .Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+
                 row++;
             }
 
-            var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
+            /* ===============================
+             * 4️⃣ FORMAT CHUNG
+             * =============================== */
+            worksheet.Columns().AdjustToContents();
+            worksheet.SheetView.FreezeRows(2);
 
-            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "DanhSachCumThietBi.xlsx");
+            /* ===============================
+             * 5️⃣ EXPORT
+             * =============================== */
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+
+            return File(
+                stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "DanhSachCumThietBi.xlsx"
+            );
+
         }
     }
+       
 }
