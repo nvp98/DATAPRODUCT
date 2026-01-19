@@ -19,8 +19,8 @@ Hệ thống quản lý dữ liệu sản xuất là một ứng dụng web đư
 
 - Tạo, sửa, xóa biên bản giao nhận
 - Quy trình phê duyệt đa cấp
-- Xuất PDF, tạo barcode
-- Giao việc giữa các phòng ban/cá nhân
+- Xuất PDF, tạo excel
+- Giao nhận giữa các BP/NM
 
 ### 2. Quản lý sản xuất gang thép
 
