@@ -16,10 +16,12 @@
 
     public class ThoiGianThungGangThoiDiem
     {
+        public int ID { get; set; }
         public string BKMIS_SoMe { get; set; }
         public string BKMIS_ThungSo { get; set; }
         public string BKMIS_Gio { get; set; }
         public int G_Ca { get; set; }
+        public int G_ID_Kip {  get; set; }
         public string Gio_NM { get; set; }
         public DateTime NgayTao { get; set; }
         public int ID_LoCao { get; set; }
@@ -28,6 +30,8 @@
         public string GioChonMe { get; set; }
         public int G_ID_TrangThai { get; set; }
         public int T_ID_TrangThai { get; set; }
+        public decimal NhietDo { get; set; }
+        public decimal KL_XeGoong { get; set; }
     }
     class ToHopGang
     {

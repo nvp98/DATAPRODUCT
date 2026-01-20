@@ -171,7 +171,7 @@ namespace Data_Product.API
         [HttpGet("GetDuLieuThungGang")]
         public async Task<IActionResult> GetDuLieuThungGang(DateTime? tuNgay, DateTime? denNgay, int? ca)
         {
-            var result = new List<ThoiGianThungGang>();
+            var result = new List<ThoiGianThungGangThoiDiem>();
 
             try
             {
@@ -189,18 +189,31 @@ namespace Data_Product.API
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var dto = new ThoiGianThungGang
+                    var dto = new ThoiGianThungGangThoiDiem
                     {
+                        ID = reader.GetInt32(reader.GetOrdinal("ID")),
                         BKMIS_SoMe = reader["BKMIS_SoMe"]?.ToString(),
                         BKMIS_ThungSo = reader["BKMIS_ThungSo"]?.ToString(),
                         BKMIS_Gio = reader["BKMIS_Gio"]?.ToString(),
-                        G_Ca = reader.IsDBNull(reader.GetOrdinal("G_Ca")) ? 0 : reader.GetInt32(reader.GetOrdinal("G_Ca")),
+                        G_Ca = reader.GetInt32(reader.GetOrdinal("G_Ca")),
+                        G_ID_Kip = reader.GetInt32(reader.GetOrdinal("G_ID_Kip")),
                         Gio_NM = reader["Gio_NM"]?.ToString(),
                         NgayTao = reader.GetDateTime(reader.GetOrdinal("NgayTao")),
-                        ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_Locao")),
+                        ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_LoCao")),
                         ChuyenDen = reader["ChuyenDen"]?.ToString(),
-                        G_KLGangLong = reader.IsDBNull(reader.GetOrdinal("G_KLGangLong")) ? 0 : reader.GetDecimal(reader.GetOrdinal("G_KLGangLong")),
-                        GioChonMe = reader["GioChonMe"]?.ToString()
+                        G_KLGangLong = reader.IsDBNull(reader.GetOrdinal("G_KLGangLong"))
+                ? 0
+                : reader.GetDecimal(reader.GetOrdinal("G_KLGangLong")),
+                        GioChonMe = reader["GioChonMe"]?.ToString(),
+                        G_ID_TrangThai = reader.GetInt32(reader.GetOrdinal("G_ID_TrangThai")),
+                        T_ID_TrangThai = reader.GetInt32(reader.GetOrdinal("T_ID_TrangThai")),
+                        NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo"))
+                ? 0
+                : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
+                        KL_XeGoong = reader.IsDBNull(reader.GetOrdinal("KL_XeGoong"))
+                ? 0
+                : reader.GetDecimal(reader.GetOrdinal("KL_XeGoong"))
+
                     };
 
                     result.Add(dto);
@@ -247,20 +260,29 @@ namespace Data_Product.API
                 {
                     var dto = new ThoiGianThungGangThoiDiem
                     {
+                        ID = reader.GetInt32(reader.GetOrdinal("ID")),
                         BKMIS_SoMe = reader["BKMIS_SoMe"]?.ToString(),
                         BKMIS_ThungSo = reader["BKMIS_ThungSo"]?.ToString(),
                         BKMIS_Gio = reader["BKMIS_Gio"]?.ToString(),
                         G_Ca = reader.GetInt32(reader.GetOrdinal("G_Ca")),
+                        G_ID_Kip = reader.GetInt32(reader.GetOrdinal("G_ID_Kip")),
                         Gio_NM = reader["Gio_NM"]?.ToString(),
                         NgayTao = reader.GetDateTime(reader.GetOrdinal("NgayTao")),
                         ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_LoCao")),
                         ChuyenDen = reader["ChuyenDen"]?.ToString(),
                         G_KLGangLong = reader.IsDBNull(reader.GetOrdinal("G_KLGangLong"))
-                                        ? 0
-                                        : reader.GetDecimal(reader.GetOrdinal("G_KLGangLong")),
+                ? 0
+                : reader.GetDecimal(reader.GetOrdinal("G_KLGangLong")),
                         GioChonMe = reader["GioChonMe"]?.ToString(),
                         G_ID_TrangThai = reader.GetInt32(reader.GetOrdinal("G_ID_TrangThai")),
-                        T_ID_TrangThai = reader.GetInt32(reader.GetOrdinal("T_ID_TrangThai"))
+                        T_ID_TrangThai = reader.GetInt32(reader.GetOrdinal("T_ID_TrangThai")),
+                        NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo"))
+                ? 0
+                : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
+                        KL_XeGoong = reader.IsDBNull(reader.GetOrdinal("KL_XeGoong"))
+                ? 0
+                : reader.GetDecimal(reader.GetOrdinal("KL_XeGoong"))
+
                     };
                     result.Add(dto);
                 }
