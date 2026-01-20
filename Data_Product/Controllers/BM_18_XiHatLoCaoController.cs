@@ -1190,7 +1190,7 @@ namespace Data_Product.Controllers
                 .FirstOrDefaultAsync();
 
             // ===== 1) TÍNH TỔNG KL GANG LỎNG THEO PHIẾU (từ G_KL_GangLong) =====
-            var tongTheoMe = await _context.Tbl_BM_16_GangLong
+            var tongKLTheoMe = await _context.Tbl_BM_16_GangLong
                 .Where(t =>
                     t.G_Ca == ca &&
                     t.G_ID_Kip == idKip &&
@@ -1202,39 +1202,67 @@ namespace Data_Product.Controllers
                 .Select(g => new
                 {
                     SoMe = g.Key!,
-                    TongKL = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0)) ?? 0m
-                })
-                .ToDictionaryAsync(x => x.SoMe, x => x.TongKL);
-
-            decimal tongKLGangLongCanCauTruc = tongTheoMe.Values.Sum();
-
-            // ===== 2) TÍNH TỔNG CÂN CẨU TRỤC + XỈ (KLGangCCTVaXi) =====
-            var canCauTrucVaXiRaw = await _context.Tbl_BM_16_GangLong
-                .Where(t =>
-                    t.G_Ca == ca &&
-                    t.G_ID_Kip == idKip && 
-                    t.NgayTao == ngaySanXuat.Date &&
-                    t.ID_Locao == idLoCao &&
-                    t.T_copy == false &&
-                    !string.IsNullOrEmpty(t.BKMIS_SoMe)
-                )
-                .GroupBy(t => t.BKMIS_SoMe)
-                .Select(g => new
-                {
-                    SoMe = g.Key!,
-                    HasKR = g.Any(x => x.KR == true),
-                    TongKLGangCCTVaXi = g.Sum(x => (decimal?)(x.KLGangCCTVaXi ?? 0)) ?? 0m
+                    SumG = g.Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
+                    SumChia = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
+                    SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m
                 })
                 .ToListAsync();
 
-            var canCauTrucVaXiTheoMe = canCauTrucVaXiRaw.ToDictionary(
-                x => x.SoMe,
-                x => x.HasKR 
-                    ? x.TongKLGangCCTVaXi 
-                    : (tongTheoMe.ContainsKey(x.SoMe) ? tongTheoMe[x.SoMe] : 0m)
+            var tongTheoMe = tongKLTheoMe.ToDictionary(
+                x => x.SoMe, 
+                x => x.SumChia > 0m ? x.SumChia : x.SumT
             );
 
-            decimal tongCanCauTrucVaXi = canCauTrucVaXiTheoMe.Values.Sum();
+            decimal tongKLGangLongCanCauTruc = tongTheoMe.Values.Sum();
+
+            // ===== TÍNH KHỐI LƯỢNG ĐÚC (ChuyenDen = DUC1 hoặc DUC2) =====
+            var meChuyenDuc = await _context.Tbl_BM_16_GangLong
+                .Where(t =>
+                    t.G_Ca == ca &&
+                    t.G_ID_Kip == idKip &&
+                    t.NgayTao == ngaySanXuat.Date &&
+                    t.ID_Locao == idLoCao &&
+                    !string.IsNullOrEmpty(t.BKMIS_SoMe) &&
+                    (t.ChuyenDen == "DUC1" || t.ChuyenDen == "DUC2")
+                )
+                .Select(x => x.BKMIS_SoMe)
+                .Distinct()
+                .ToListAsync();
+
+            var klDucByMe = tongKLTheoMe
+                .Where(x => meChuyenDuc.Contains(x.SoMe))
+                .ToDictionary(
+                    x => x.SoMe,
+                    x =>
+                    {
+                        var baseValue = x.SumChia > 0m ? x.SumChia : x.SumT;
+                        var value = (x.SumG - baseValue) * (ptDuc / 100m);
+                        return Math.Round(value, 2);
+                    }
+                );
+
+            decimal tongKLDuc = klDucByMe.Values.Sum();
+
+            // ===== 2) TÍNH TỔNG CÂN CẨU TRỤC + XỈ (KLGangCCTVaXi) =====
+            var canCauTrucVaXiRaw = await _context.Tbl_BM_16_GangLong
+                    .Where(t =>
+                        t.G_Ca == ca &&
+                        t.G_ID_Kip == idKip &&
+                        t.NgayTao == ngaySanXuat.Date &&
+                        t.ID_Locao == idLoCao &&
+                        !string.IsNullOrEmpty(t.BKMIS_SoMe)
+                    )
+                    .GroupBy(t => t.BKMIS_SoMe)
+                    .Select(g => new
+                    {
+                        SoMe = g.Key!,
+                        TongKL = g.Sum(x => (decimal?)(x.KLGangCCTVaXi ?? x.KLGangChia ?? x.T_KLGangLong)) ?? 0m
+                    })
+                    .ToListAsync();
+
+            var canCauTrucVaXiTheoMe = canCauTrucVaXiRaw.ToDictionary(x => x.SoMe, x => x.TongKL);
+
+            decimal tongCanCauTrucVaXi = canCauTrucVaXiTheoMe.Values.Sum() + tongKLDuc;
 
             // ===== 3) TÍNH TỔNG KL GANG THEO CÂN CẨU TRỤC (chỉ sum G_KLGangLong) =====
             var tongKLGangTheoCanRay = await _context.Tbl_BM_16_GangLong
@@ -1282,6 +1310,9 @@ namespace Data_Product.Controllers
 
                     // Giá trị 3: Tổng KL Gang theo Cân cẩu trục (từ G_KLGangLong)
                     tongKLGangTheoCanRay = Math.Round(tongKLGangTheoCanRay, 2),
+
+                    // Giá trị 4: Tổng KL Đúc (ChuyenDen = DUC1 hoặc DUC2)
+                    tongKLDuc = Math.Round(tongKLDuc, 2),
                     
                     // Chi tiết bổ sung
                     chiTiet = new
@@ -1289,7 +1320,10 @@ namespace Data_Product.Controllers
                         phanTramDuc = ptDuc,
                         soLuongMe = tongTheoMe.Count,
                         danhSachMeVaKL = tongTheoMe,
-                        canCauTrucVaXiTheoMe = canCauTrucVaXiTheoMe
+                        canCauTrucVaXiTheoMe = canCauTrucVaXiTheoMe,
+                        klDucTheoMe = klDucByMe,
+                        soLuongMeDuc = klDucByMe.Count,
+                        tongKLDuc = tongKLDuc
                     }
                 }
             });
