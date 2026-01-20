@@ -1274,7 +1274,8 @@
               (isNum(sum_t_KLGangLong) && sum_t_KLGangLong !== 0) ? sum_t_KLGangLong :
               0;
 
-            return (sum_g_KLGangLong - base) * (percent / 100);
+            const result = (sum_g_KLGangLong - base) * (percent / 100);
+            return result.toFixed(2);
         }
 
         $("#btn-percent").click(function() {
