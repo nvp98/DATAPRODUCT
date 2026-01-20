@@ -18,6 +18,7 @@ namespace Data_Product.Models
         public string? DVT { get; set; }
         public int? ID_Lo  { get; set; }
 
+        [Column(TypeName = "decimal(10,4)")]
         public decimal? HeSo { get; set; }
 
         public decimal? KL_Gang_Giao { get; set; }
