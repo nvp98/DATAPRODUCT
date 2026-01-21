@@ -335,7 +335,8 @@
                                     </a>
                                 </li>
                             }
-                            @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 14 && PhongBan?.TenNgan == "NM.LG")
+                            @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 14 && PhongBan?.TenNgan == "NM.LG"
+                           || (ListQuyen.Contains("14") && PhongBan?.TenNgan == "NM.LG") || (ListQuyen.Contains("13") && PhongBan?.TenNgan == "NM.LG"))
                             {
                                 <li>
                                     <a class="nav-link collapsed" href="@Url.Action("Danhsachphieu", "BM_18_XiHatLoCao")">
@@ -381,7 +382,8 @@
                                 </a>
                             </li>
                         }
-                        @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 14 && PhongBan?.TenNgan == "NM.NL")
+                        @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 14 && PhongBan?.TenNgan == "NM.NL"
+                       || (ListQuyen.Contains("14") && PhongBan?.TenNgan == "NM.NL") || (ListQuyen.Contains("13") && PhongBan?.TenNgan == "NM.NL"))
                         {
                             <li>
                                 <a class="nav-link collapsed" href="@Url.Action("Index_All", "BM_18_XiHatLoCao")">
@@ -490,7 +492,7 @@
                                 </a>
                             </li>
                         }
-                        @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 13)
+                        @if (TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 13 || ListQuyen.Contains("13"))
                         {
                             <li>
                                 <a class="nav-link collapsed" href="@Url.Action("Index_All_PKH","BM_18_XiHatLoCao")">
