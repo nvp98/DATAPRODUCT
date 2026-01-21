@@ -976,20 +976,20 @@ namespace Data_Product.Controllers
             if (phieu == null)
                 return NotFound(new { success = false, message = "Không tìm thấy phiếu!" });
 
-            // Kiểm tra quyền
-            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-            var taiKhoan = await _context.Tbl_TaiKhoan
-                .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+            //// Kiểm tra quyền
+            //var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            //var taiKhoan = await _context.Tbl_TaiKhoan
+            //    .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
             
-            if (taiKhoan == null)
-                return Unauthorized(new { success = false, message = "Không xác định được tài khoản!" });
+            //if (taiKhoan == null)
+            //    return Unauthorized(new { success = false, message = "Không xác định được tài khoản!" });
 
-            if (phieu.ID_NguoiTao != taiKhoan.ID_TaiKhoan)
-                return Forbid();
+            //if (phieu.ID_NguoiTao != taiKhoan.ID_TaiKhoan)
+            //    return Forbid();
 
             // Chỉ cho phép cập nhật khi phiếu ở trạng thái "Chưa xử lý"
-            if (phieu.TrangThai != (int)TrangThaiXuLy.ChuaXuLy)
-                return BadRequest(new { success = false, message = "Chỉ có thể cập nhật loại cân cho phiếu chưa xử lý!" });
+            //if (phieu.TrangThai != (int)TrangThaiXuLy.ChuaXuLy)
+            //    return BadRequest(new { success = false, message = "Chỉ có thể cập nhật loại cân cho phiếu chưa xử lý!" });
 
             // Lấy thông tin Ca từ Kíp
             var kipInfo = await _context.Tbl_Kip

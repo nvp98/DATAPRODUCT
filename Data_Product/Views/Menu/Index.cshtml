@@ -119,7 +119,7 @@
                             </div>
                         </div>
                     }
-                  
+
                     @if (QuyenQLy.Any(value => ListQuyen.Contains(value)) || QuyenGangThep.Any(value => ListQuyen.Contains(value)) && (PhongBan.TenNgan == "NM.HRC1" || PhongBan.TenNgan == "NM.HRC2") || TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3 || TaiKhoan.ID_Quyen == 11 && (PhongBan.TenNgan == "NM.HRC1" || PhongBan.TenNgan == "NM.HRC2"))
                     {
                         <div class="col-xxl-3 col-md-6">
@@ -146,8 +146,10 @@
                             </div>
                         </div>
                     }
-                    <div class="col-xxl-3 col-md-6">
-                        <div class="card info-card sales-card">
+                    @if ((PhongBan.TenNgan == "P.KH") || TaiKhoan.ID_Quyen == 1 || TaiKhoan.ID_Quyen == 2 || TaiKhoan.ID_Quyen == 3)
+                    {
+                        <div class="col-xxl-3 col-md-6">
+                            <div class="card info-card sales-card">
                             <div class="card-body" style="padding: 5px;">
 
                                 <div class="d-flex align-items-center">
@@ -170,6 +172,7 @@
 
                         </div>
                     </div>
+                    }
                     <!-- End Sales Card -->
                    @*  } *@
                 </div>
