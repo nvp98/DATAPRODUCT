@@ -109,7 +109,7 @@ namespace Data_Product.Controllers
             {
                 //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
                 var query = _context.Tbl_BM_18_PhieuXiHat
-                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+                    .OrderByDescending(p => p.NgaySanXuat.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
                 {
                     MaPhieu = p.MaPhieu,
@@ -212,7 +212,7 @@ namespace Data_Product.Controllers
             {
                 //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
                 var query = _context.Tbl_BM_18_PhieuXiHat
-                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+                    .OrderByDescending(p => p.NgaySanXuat.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
             {
                 MaPhieu = p.MaPhieu,
@@ -306,7 +306,7 @@ namespace Data_Product.Controllers
             {
                 //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
                 var query = _context.Tbl_BM_18_PhieuXiHat
-                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+                    .OrderByDescending(p => p.NgaySanXuat.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
                 {
                     MaPhieu = p.MaPhieu,
@@ -1459,7 +1459,7 @@ namespace Data_Product.Controllers
                     join pb in _context.Tbl_PhongBan
                         on nv.ID_PhongBan equals pb.ID_PhongBan
                     join x in _context.Tbl_Xuong
-                        on pb.ID_PhongBan equals x.ID_PhongBan
+                        on nv.ID_PhanXuong equals x.ID_Xuong
                     where nguoiIds.Contains(nv.ID_TaiKhoan)
                     select new
                     {
@@ -1605,10 +1605,20 @@ namespace Data_Product.Controllers
 
                     // === KL bên giao ===
                     // KL gang
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellGang = Worksheet.Cell(currentRow, col++);
+                    cellGang.Value = item.KL_Gang_Giao ?? 0;
+                    cellGang.Style.NumberFormat.Format = "0.000";
+                    cellGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellGang.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                     // KL xỉ
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+                    // SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellXi = Worksheet.Cell(currentRow, col++);
+                    cellXi.Value = item.KL_Xi_Giao ?? 0;
+                    cellXi.Style.NumberFormat.Format = "0.000";
+                    cellXi.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellXi.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                     string xuongGiao = "";
                     string boPhanGiao = "";
@@ -1629,10 +1639,19 @@ namespace Data_Product.Controllers
 
                     // === KL bên nhận ===
                     // KL gang
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
-
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellGangNhan = Worksheet.Cell(currentRow, col++);
+                    cellGangNhan.Value = item.KL_Gang_Nhan ?? 0;
+                    cellGangNhan.Style.NumberFormat.Format = "0.000";
+                    cellGangNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellGangNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     // KL Xi
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+                    // SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellXiNhan = Worksheet.Cell(currentRow, col++);
+                    cellXiNhan.Value = item.KL_Xi_Nhan ?? 0;
+                    cellXiNhan.Style.NumberFormat.Format = "0.000";
+                    cellXiNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellXiNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                     string xuongNhan = "";
                     string boPhanNhan = "";
