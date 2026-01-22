@@ -188,8 +188,8 @@ namespace Data_Product.Controllers
             // Truyền lại giá trị tìm kiếm cho view
             ViewBag.MaPhieu = maPhieu;
             ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
-            ViewBag.TuNgaySX = tuNgaySX?.ToString("dd-MM-yyyy") ?? "";
-            ViewBag.DenNgaySX = denNgaySX?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.TuNgaySX = tuNgaySX?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.DenNgaySX = denNgaySX?.ToString("yyyy-MM-dd") ?? "";
             ViewBag.Ca = ca;
             ViewBag.TenLoCao = locao;
 
@@ -1566,13 +1566,13 @@ namespace Data_Product.Controllers
                         SetCellValue(Worksheet.Cell(currentRow, col++), "", XLAlignmentHorizontalValues.Center);
                     }
 
-                    // Lò cao
-                    string tenLoCao = "";
-                    if (loCaos.ContainsKey(item.ID_LoCao))
-                    {
-                        tenLoCao = loCaos[item.ID_LoCao].TenLoCao ?? "";
-                    }
-                    SetCellValue(Worksheet.Cell(currentRow, col++), tenLoCao, XLAlignmentHorizontalValues.Center);
+                    //// Lò cao
+                    //string tenLoCao = "";
+                    //if (loCaos.ContainsKey(item.ID_LoCao))
+                    //{
+                    //    tenLoCao = loCaos[item.ID_LoCao].TenLoCao ?? "";
+                    //}
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), tenLoCao, XLAlignmentHorizontalValues.Center);
 
                     // Kíp
                     string tenKip = "";
@@ -1589,7 +1589,7 @@ namespace Data_Product.Controllers
                     // Tên N/VL
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.Ten_NVL ?? "");
 
-                    // Tên lò
+                    // Tên lô
                     string tenLo = "";
                     if (item.ID_Lo.HasValue && los.ContainsKey(item.ID_Lo.Value))
                     {
@@ -1597,11 +1597,51 @@ namespace Data_Product.Controllers
                     }
                     SetCellValue(Worksheet.Cell(currentRow, col++), tenLo);
 
-                    // Hệ số quy đổi
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.HeSo ?? 0, XLAlignmentHorizontalValues.Center);
+                    //// Hệ số quy đổi
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), item.HeSo ?? 0, XLAlignmentHorizontalValues.Center);
 
                     // ĐVT
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.DVT ?? "", XLAlignmentHorizontalValues.Center);
+                    // === KL bên nhận ===
+                    // KL gang
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellGangNhan = Worksheet.Cell(currentRow, col++);
+                    cellGangNhan.Value = item.KL_Gang_Nhan ?? 0;
+                    cellGangNhan.Style.NumberFormat.Format = "0.000";
+                    cellGangNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellGangNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                    //// Hệ số quy đổi
+                    var cellHeSoNhan = Worksheet.Cell(currentRow, col++);
+                    cellHeSoNhan.Value = item.HeSo ?? 0;
+                    cellHeSoNhan.Style.NumberFormat.Format = "0.000";
+                    cellHeSoNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellHeSoNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    // KL Xi
+
+                    // SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellXiNhan = Worksheet.Cell(currentRow, col++);
+                    cellXiNhan.Value = item.KL_Xi_Nhan ?? 0;
+                    cellXiNhan.Style.NumberFormat.Format = "0.000";
+                    cellXiNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellXiNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+
+                    string xuongNhan = "";
+                    string boPhanNhan = "";
+
+                    if (phieu?.ID_NguoiNhan.HasValue == true &&
+                        nhanSuDict.TryGetValue(phieu.ID_NguoiNhan.Value, out var nsNhan))
+                    {
+                        xuongNhan = nsNhan.TenXuong ?? "";
+                        boPhanNhan = nsNhan.TenPhongBan ?? "";
+                    }
+
+                    // Xưởng nhận
+                    SetCellValue(Worksheet.Cell(currentRow, col++), xuongNhan);
+
+                    // Bộ phận nhận
+                    SetCellValue(Worksheet.Cell(currentRow, col++), boPhanNhan);
 
                     // === KL bên giao ===
                     // KL gang
@@ -1611,6 +1651,13 @@ namespace Data_Product.Controllers
                     cellGang.Style.NumberFormat.Format = "0.000";
                     cellGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                     cellGang.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                    //// Hệ số quy đổi
+                    var cellHeSoGiao = Worksheet.Cell(currentRow, col++);
+                    cellHeSoGiao.Value = item.HeSo ?? 0;
+                    cellHeSoGiao.Style.NumberFormat.Format = "0.000";
+                    cellHeSoGiao.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellHeSoGiao.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                     // KL xỉ
                     // SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Giao ?? 0, XLAlignmentHorizontalValues.Right);
@@ -1636,38 +1683,6 @@ namespace Data_Product.Controllers
                     // Bộ phận giao
                     SetCellValue(Worksheet.Cell(currentRow, col++), boPhanGiao);
 
-
-                    // === KL bên nhận ===
-                    // KL gang
-                    //SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
-                    var cellGangNhan = Worksheet.Cell(currentRow, col++);
-                    cellGangNhan.Value = item.KL_Gang_Nhan ?? 0;
-                    cellGangNhan.Style.NumberFormat.Format = "0.000";
-                    cellGangNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                    cellGangNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                    // KL Xi
-                    // SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
-                    var cellXiNhan = Worksheet.Cell(currentRow, col++);
-                    cellXiNhan.Value = item.KL_Xi_Nhan ?? 0;
-                    cellXiNhan.Style.NumberFormat.Format = "0.000";
-                    cellXiNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-                    cellXiNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-
-                    string xuongNhan = "";
-                    string boPhanNhan = "";
-
-                    if (phieu?.ID_NguoiNhan.HasValue == true &&
-                        nhanSuDict.TryGetValue(phieu.ID_NguoiNhan.Value, out var nsNhan))
-                    {
-                        xuongNhan = nsNhan.TenXuong ?? "";
-                        boPhanNhan = nsNhan.TenPhongBan ?? "";
-                    }
-
-                    // Xưởng nhận
-                    SetCellValue(Worksheet.Cell(currentRow, col++), xuongNhan);
-
-                    // Bộ phận nhận
-                    SetCellValue(Worksheet.Cell(currentRow, col++), boPhanNhan);
 
                     // Ghi chú
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.GhiChu ?? "");
