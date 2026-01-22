@@ -263,7 +263,11 @@
                                                asp-action="Index_All_PKH"
                                                asp-controller="BM_18_XiHatLoCao"
                                                asp-route-page="@pge"
-                                               asp-route-search="@search"
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-tuNgaySX="@ViewBag.TuNgaySX"
+                                               asp-route-denNgaySX="@ViewBag.DenNgaySX"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao"
                                                asp-route-trangThai="@ViewBag.TrangThai">
                                                 @pge
                                             </a>
@@ -276,20 +280,30 @@
                                                asp-action="Index_All_PKH"
                                                asp-controller="BM_18_XiHatLoCao"
                                                asp-route-page="@(pager.CurrentPage + 1)"
-                                               asp-route-search="@search"
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-tuNgaySX="@ViewBag.TuNgaySX"
+                                               asp-route-denNgaySX="@ViewBag.DenNgaySX"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao"
                                                asp-route-trangThai="@ViewBag.TrangThai">
                                                 Next
                                             </a>
+
                                         </li>
                                         <li class="page-item">
                                             <a class="page-link"
                                                asp-action="Index_All_PKH"
                                                asp-controller="BM_18_XiHatLoCao"
                                                asp-route-page="@(pager.TotalPages)"
-                                               asp-route-search="@search"
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-tuNgaySX="@ViewBag.TuNgaySX"
+                                               asp-route-denNgaySX="@ViewBag.DenNgaySX"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao"
                                                asp-route-trangThai="@ViewBag.TrangThai">
                                                 Last
                                             </a>
+
                                         </li>
                                     }
                                 </ul>

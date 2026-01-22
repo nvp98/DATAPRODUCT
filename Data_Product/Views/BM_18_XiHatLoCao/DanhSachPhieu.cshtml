@@ -247,7 +247,11 @@
                                                asp-action="Danhsachphieu"
                                                asp-controller="BM_18_XiHatLoCao"
                                                asp-route-page="@pge"
-                                               asp-route-search="@search">
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-tuNgaySX="@ViewBag.TuNgaySX"
+                                               asp-route-denNgaySX="@ViewBag.DenNgaySX"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao">
                                                 @pge
                                             </a>
                                         </li>
@@ -259,7 +263,11 @@
                                                asp-action="Danhsachphieu"
                                                asp-controller="BM_18_XiHatLoCao"
                                                asp-route-page="@(pager.CurrentPage + 1)"
-                                               asp-route-search="@search">
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-tuNgaySX="@ViewBag.TuNgaySX"
+                                               asp-route-denNgaySX="@ViewBag.DenNgaySX"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao">
                                                 Next
                                             </a>
                                         </li>
@@ -268,7 +276,11 @@
                                                asp-action="Danhsachphieu"
                                                asp-controller="BM_18_XiHatLoCao"
                                                asp-route-page="@(pager.TotalPages)"
-                                               asp-route-search="@search">
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-tuNgaySX="@ViewBag.TuNgaySX"
+                                               asp-route-denNgaySX="@ViewBag.DenNgaySX"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao">
                                                 Last
                                             </a>
                                         </li>
