@@ -243,6 +243,10 @@
         cursor: pointer;
     }
 
+    .btn-view-tphh{
+        border: none;
+        background: none;
+    }
     
 </style>
  <div class="isolated-layout d-flex flex-column vh-100">
@@ -464,6 +468,7 @@
                         <table class="table table-bordered text-center align-middle table-hover" id="IDtbKhuVucNhanThung">
                             <thead class ="table-light sticky-top bg-white" style="z-index: 2">
                                 <tr>
+                                    <th>Xem TPHH</th>
                                     <th>Giờ BKMis</th>
                                     <th>Giờ NM</th>
                                     <th class="hide-col">Mã thùng gang</th>
@@ -620,6 +625,50 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 <button type="button" class="btn btn-danger" id="btnConfirmHuyNhan">Hủy nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalShowTPHHGang" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow">
+
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-bar-chart-fill me-2"></i>
+                    Chi tiết Thành phần mẻ gang
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- Thông tin mẻ -->
+                <div id="cr-current" class="row g-2 mb-3">
+                    <!-- render bằng JS -->
+                </div>
+
+                <!-- Bảng TPHH -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm text-center align-middle"
+                           id="tblTPHH">
+                        <thead class="table-light">
+                            <tr>
+                                <th>C</th>
+                                <th>Si</th>
+                                <th>Mn</th>
+                                <th>S</th>
+                                <th>P</th>
+                                <th>Ti</th>
+                                <th>Nhiệt độ (°C)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
             </div>
         </div>
     </div>
@@ -909,7 +958,8 @@
                     : '';
                 const tenTaiKhoan = $('#IDTenTaiKhoan').val().trim();
                 const html = `
-                    <tr data-id="${item.id}" data-mathung="${item.maThungGang}">
+                    <tr data-id="${item.id}" data-mathung="${item.maThungGang}" data-bkmis-some="${item.bkmiS_SoMe}">
+                        <td><button class="btn-view-tphh"><i class="bi bi-eye-fill"></i></button></td>
                         <td>${item.bkmiS_Gio}</td>
                         <td>${item.gio_NM ?? ''}</td>
                         <td class="hide-col">${item.maThungGang ?? ''}</td>
@@ -2454,4 +2504,69 @@
             }
         });
     }
+
+    $('#IDtbKhuVucNhanThung').on('click', '.btn-view-tphh', function() {
+        const row = $(this).closest('tr');
+        const bkmis_SoMe = row.data('bkmis-some');
+        if(!bkmis_SoMe ){
+            alert('lỗi không lấy được ID');
+            return;
+        }
+  
+        $.ajax({
+                url: `https://report.hoaphatdungquat.vn/api/ProductApi/GetDuLieuThungGang?soMe=${bkmis_SoMe}`,
+                type: "GET",
+                contentType: "application/json",
+                processData: false,
+                success: function (res) {
+                    if (!res || !res.data || res.data.length === 0) {
+                        alert('Không có dữ liệu TPHH');
+                        return;
+                    }
+
+                    renderMoDalTPHHMeGang(res.data[0]);
+                },
+                error: function () {
+                    alert("Lỗi khi nhận dữ liệu!");
+                }
+            });
+    })
+
+    function renderMoDalTPHHMeGang(data) {
+
+        const modal = new bootstrap.Modal(
+            document.getElementById('modalShowTPHHGang')
+        );
+        modal.show();
+
+        const $tb = $('#tblTPHH tbody').empty();
+        const $cur = $('#cr-current').empty();
+
+        if (!data || !data.tphh) return;
+
+
+        $cur.html(`
+            <div class="col-md-3"><b>Số mẻ:</b> ${data.bkmiS_SoMe}</div>
+            <div class="col-md-3"><b>Thùng số:</b> ${data.bkmiS_ThungSo}</div>
+            <div class="col-md-3"><b>Ca:</b> ${data.g_Ca}</div>
+            <div class="col-md-3"><b>Giờ NM:</b> ${data.gio_NM}</div>
+        `);
+
+
+
+        const t = data.tphh;
+
+        const tr = $('<tr class="fw-semibold">');
+        tr.append(`<td>${t.c?.toFixed(3) ?? ''}</td>`);
+        tr.append(`<td>${t.si?.toFixed(3) ?? ''}</td>`);
+        tr.append(`<td>${t.mn?.toFixed(3) ?? ''}</td>`);
+        tr.append(`<td>${t.s?.toFixed(3) ?? ''}</td>`);
+        tr.append(`<td>${t.p?.toFixed(3) ?? ''}</td>`);
+        tr.append(`<td>${t.ti?.toFixed(3) ?? ''}</td>`);
+        tr.append(`<td class="text-danger">${t.temp ?? ''}</td>`);
+
+        $tb.append(tr);
+
+    }
+
 </script>
