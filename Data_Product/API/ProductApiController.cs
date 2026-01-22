@@ -169,7 +169,7 @@ namespace Data_Product.API
 
 
         [HttpGet("GetDuLieuThungGang")]
-        public async Task<IActionResult> GetDuLieuThungGang(DateTime? tuNgay, DateTime? denNgay, int? ca)
+        public async Task<IActionResult> GetDuLieuThungGang(DateTime? tuNgay, DateTime? denNgay, int? ca, string? soMe)
         {
             var result = new List<ThoiGianThungGangThoiDiem>();
 
@@ -185,8 +185,10 @@ namespace Data_Product.API
                 cmd.Parameters.Add(new SqlParameter("@TuNgay", tuNgay ?? (object)DBNull.Value));
                 cmd.Parameters.Add(new SqlParameter("@DenNgay", denNgay ?? (object)DBNull.Value));
                 cmd.Parameters.Add(new SqlParameter("@Ca", ca ?? (object)DBNull.Value));
+                cmd.Parameters.Add(new SqlParameter("@SoMe", soMe ?? (object)DBNull.Value));
 
                 using var reader = await cmd.ExecuteReaderAsync();
+
                 while (await reader.ReadAsync())
                 {
                     var dto = new ThoiGianThungGangThoiDiem
@@ -199,7 +201,7 @@ namespace Data_Product.API
                         G_ID_Kip = reader.GetInt32(reader.GetOrdinal("G_ID_Kip")),
                         Gio_NM = reader["Gio_NM"]?.ToString(),
                         NgayTao = reader.GetDateTime(reader.GetOrdinal("NgayTao")),
-                        ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_LoCao")),
+                        ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_Locao")),
                         ChuyenDen = reader["ChuyenDen"]?.ToString(),
                         G_KLGangLong = reader.IsDBNull(reader.GetOrdinal("G_KLGangLong"))
                 ? 0
@@ -212,7 +214,18 @@ namespace Data_Product.API
                 : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
                         KL_XeGoong = reader.IsDBNull(reader.GetOrdinal("KL_XeGoong"))
                 ? 0
-                : reader.GetDecimal(reader.GetOrdinal("KL_XeGoong"))
+                : reader.GetDecimal(reader.GetOrdinal("KL_XeGoong")),
+                // 🔹 Map TPHH
+                    TPHH = new TPHHDto
+                    {
+                        C = reader.IsDBNull(reader.GetOrdinal("C")) ? 0 : reader.GetDecimal(reader.GetOrdinal("C")),
+                        Si = reader.IsDBNull(reader.GetOrdinal("Si")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Si")),
+                        Mn = reader.IsDBNull(reader.GetOrdinal("Mn")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Mn")),
+                        S = reader.IsDBNull(reader.GetOrdinal("S")) ? 0 : reader.GetDecimal(reader.GetOrdinal("S")),
+                        P = reader.IsDBNull(reader.GetOrdinal("P")) ? 0 : reader.GetDecimal(reader.GetOrdinal("P")),
+                        Ti = reader.IsDBNull(reader.GetOrdinal("Ti")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Ti")),
+                        Temp = reader.IsDBNull(reader.GetOrdinal("Temp")) ? 0 : reader.GetInt32(reader.GetOrdinal("Temp"))
+                    }
 
                     };
 
@@ -268,7 +281,7 @@ namespace Data_Product.API
                         G_ID_Kip = reader.GetInt32(reader.GetOrdinal("G_ID_Kip")),
                         Gio_NM = reader["Gio_NM"]?.ToString(),
                         NgayTao = reader.GetDateTime(reader.GetOrdinal("NgayTao")),
-                        ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_LoCao")),
+                        ID_LoCao = reader.GetInt32(reader.GetOrdinal("ID_Locao")),
                         ChuyenDen = reader["ChuyenDen"]?.ToString(),
                         G_KLGangLong = reader.IsDBNull(reader.GetOrdinal("G_KLGangLong"))
                 ? 0
@@ -281,7 +294,18 @@ namespace Data_Product.API
                 : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
                         KL_XeGoong = reader.IsDBNull(reader.GetOrdinal("KL_XeGoong"))
                 ? 0
-                : reader.GetDecimal(reader.GetOrdinal("KL_XeGoong"))
+                : reader.GetDecimal(reader.GetOrdinal("KL_XeGoong")),
+                        // 🔹 Map TPHH
+                        TPHH = new TPHHDto
+                        {
+                            C = reader.IsDBNull(reader.GetOrdinal("C")) ? 0 : reader.GetDecimal(reader.GetOrdinal("C")),
+                            Si = reader.IsDBNull(reader.GetOrdinal("Si")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Si")),
+                            Mn = reader.IsDBNull(reader.GetOrdinal("Mn")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Mn")),
+                            S = reader.IsDBNull(reader.GetOrdinal("S")) ? 0 : reader.GetDecimal(reader.GetOrdinal("S")),
+                            P = reader.IsDBNull(reader.GetOrdinal("P")) ? 0 : reader.GetDecimal(reader.GetOrdinal("P")),
+                            Ti = reader.IsDBNull(reader.GetOrdinal("Ti")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Ti")),
+                            Temp = reader.IsDBNull(reader.GetOrdinal("Temp")) ? 0 : reader.GetInt32(reader.GetOrdinal("Temp"))
+                        }
 
                     };
                     result.Add(dto);

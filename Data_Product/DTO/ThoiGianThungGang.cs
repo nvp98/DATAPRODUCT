@@ -32,7 +32,19 @@
         public int T_ID_TrangThai { get; set; }
         public decimal NhietDo { get; set; }
         public decimal KL_XeGoong { get; set; }
+        public TPHHDto TPHH { get; set; }
     }
+    public class TPHHDto
+    {
+        public decimal C { get; set; }
+        public decimal Si { get; set; }
+        public decimal Mn { get; set; }
+        public decimal S { get; set; }
+        public decimal P { get; set; }
+        public decimal Ti { get; set; }
+        public decimal Temp { get; set; }
+    }
+
     class ToHopGang
     {
         public int TtgId { get; set; }
