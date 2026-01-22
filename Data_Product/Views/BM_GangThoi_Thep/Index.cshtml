@@ -2532,6 +2532,15 @@
             });
     })
 
+    function formatDateDMY(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}-${mm}-${yyyy}`;
+    }
+
     function renderMoDalTPHHMeGang(data) {
 
         const modal = new bootstrap.Modal(
@@ -2546,10 +2555,16 @@
 
 
         $cur.html(`
-            <div class="col-md-3"><b>Số mẻ:</b> ${data.bkmiS_SoMe}</div>
-            <div class="col-md-3"><b>Thùng số:</b> ${data.bkmiS_ThungSo}</div>
-            <div class="col-md-3"><b>Ca:</b> ${data.g_Ca}</div>
-            <div class="col-md-3"><b>Giờ NM:</b> ${data.gio_NM}</div>
+            <div class="row">
+                <div class="col-md-4"><b>Lò cao:</b> ${data.iD_LoCao}</div>
+                <div class="col-md-4"><b>Ngày:</b> ${formatDateDMY(data.ngayTao)}</div>
+                <div class="col-md-4"><b>Ca:</b> ${data.g_Ca}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-4"><b>Số mẻ:</b> ${data.bkmiS_SoMe}</div>
+                <div class="col-md-4"><b>Thùng số:</b> ${data.bkmiS_ThungSo}</div>
+                <div class="col-md-4"><b>Giờ NM:</b> ${data.gio_NM}</div>
+            </div>
         `);
 
 
