@@ -1831,6 +1831,8 @@ namespace Data_Product.Controllers
         {
             try
             {
+                var maPhieu = HttpContext.Request.Query["maPhieu"].ToString();
+
                 var query = _context.Tbl_CanRayLG1.AsQueryable();
                 query = query.Where(d => d.ID_LoCao == idLoCao && d.Gio >= fromTime && d.Gio <= toTime);
 
@@ -1853,11 +1855,24 @@ namespace Data_Product.Controllers
                         SoMe_Cleared = d.SoMe_Cleared
                     })
                     .ToListAsync();
-
+                // Lấy danh sách số mẻ đã chốt (G_ID_TrangThai = 3)
+                var lockedSoMeList = new HashSet<string>();
+                if (!string.IsNullOrWhiteSpace(maPhieu))
+                {
+                    lockedSoMeList = (await _context.Tbl_BM_16_GangLong
+                        .Where(x => x.MaPhieu == maPhieu && x.ID_TrangThai == 5 && !string.IsNullOrEmpty(x.BKMIS_SoMe))
+                        .Select(x => x.BKMIS_SoMe.Trim())
+                        .Distinct()
+                        .ToListAsync())
+                        .ToHashSet();
+                }
                 int rowId = 0;
                 var list = rawData.Select(d =>
                 {
                     rowId++;
+                    var soMe = d.BKMIS_SoMe?.Trim() ?? "";
+                    var isLocked = !string.IsNullOrEmpty(soMe) && soMe != "0" && lockedSoMeList.Contains(soMe);
+
                     return new MappingCanRayDto
                     {
                         RowId = rowId,
@@ -1872,7 +1887,8 @@ namespace Data_Product.Controllers
                         SanRaGang = d.SanRaGang,
                         BKMIS_SoMe = d.BKMIS_SoMe,
                         GhiChu = d.GhiChu,
-                        SoMe_Cleared = d.SoMe_Cleared
+                        SoMe_Cleared = d.SoMe_Cleared,
+                        IsLocked = isLocked
                     };
                 }).ToList();
 
@@ -1892,7 +1908,7 @@ namespace Data_Product.Controllers
                 // 1. KIỂM TRA ĐẦU VÀO
                 if (idLoCao != 5 && idLoCao != 6)
                     return BadRequest("idLoCao phải là 5 hoặc 6.");
-
+                var maPhieu = HttpContext.Request.Query["maPhieu"].ToString();
                 var query = _context.Tbl_CanRayLG2.AsQueryable();
 
                 // 2.2. Lọc theo ID Lò Cao và Khoảng thời gian
@@ -1924,12 +1940,24 @@ namespace Data_Product.Controllers
                     })
                     .ToListAsync(); // Thực thi truy vấn và tải dữ liệu
 
+                // Lấy danh sách số mẻ đã chốt
+                var lockedSoMeList = new HashSet<string>();
+                if (!string.IsNullOrWhiteSpace(maPhieu))
+                {
+                    lockedSoMeList = (await _context.Tbl_BM_16_GangLong
+                        .Where(x => x.MaPhieu == maPhieu && x.ID_TrangThai == 5 && !string.IsNullOrEmpty(x.BKMIS_SoMe))
+                        .Select(x => x.BKMIS_SoMe.Trim())
+                        .Distinct()
+                        .ToListAsync())
+                        .ToHashSet();
+                }
 
                 int rowId = 0;
                 var list = rawData.Select(d =>
                 {
                     rowId++;
-
+                    var soMe = d.BKMIS_SoMe?.Trim() ?? "";
+                    var isLocked = !string.IsNullOrEmpty(soMe) && soMe != "0" && lockedSoMeList.Contains(soMe);
                     return new MappingCanRayDto
                     {
                         RowId = rowId,
@@ -1949,7 +1977,8 @@ namespace Data_Product.Controllers
                         SanRaGang = d.Casthouse,
                         BKMIS_SoMe = d.BKMIS_SoMe,
                         GhiChu = d.GhiChu,
-                        SoMe_Cleared = d.SoMe_Cleared
+                        SoMe_Cleared = d.SoMe_Cleared,
+                        IsLocked = isLocked
                     };
                 }).ToList();
 

@@ -72,6 +72,7 @@ namespace Data_Product.DTO.BM_16_DTO
         public string? GhiChu { get; set; }
         // Trạng thái đánh dấu Số mẻ đã bị xóa/clear
         public bool? SoMe_Cleared { get; set; }
+        public bool? IsLocked { get; set; }
     }
     public class AutoMappingItemDto
     {
