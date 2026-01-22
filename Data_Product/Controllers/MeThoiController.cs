@@ -17,21 +17,11 @@ namespace Data_Product.Controllers
     {
         private readonly DataContext _context;
         private readonly ICompositeViewEngine _viewEngine;
-        //private readonly Dictionary<int, Func<IQueryable<Tbl_KLGangVaoBOFBase>>> _nmQueryMap;
 
         public MeThoiController(DataContext _context, ICompositeViewEngine viewEngine)
         {
             this._context = _context;
             _viewEngine = viewEngine;
-
-            //_nmQueryMap = new Dictionary<int, Func<IQueryable<Tbl_KLGangVaoBOFBase>>>
-            //{
-            //    { 1, () => _context.Tbl_KLGangVaoBOF1 },
-            //    { 2, () => _context.Tbl_KLGangVaoBOF2 },
-            //    { 3, () => _context.Tbl_KLGangVaoBOF3 },
-            //    { 4, () => _context.Tbl_KLGangVaoBOF4 },
-            //    { 5, () => _context.Tbl_KLGangVaoBOF5 }
-            //};
         }
         public async Task<IActionResult> Index()
         {

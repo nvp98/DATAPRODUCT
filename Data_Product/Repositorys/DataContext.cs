@@ -60,5 +60,7 @@ namespace Data_Product.Repositorys
         public DbSet<Tbl_KLGangVaoBOF4> Tbl_KLGangVaoBOF4 { get; set; }
         public DbSet<Tbl_KLGangVaoBOF5> Tbl_KLGangVaoBOF5 { get; set; }
         public DbSet<Tbl_MocNoiThungGangAT> Tbl_MocNoiThungGangAT { get; set; }
+        public DbSet<Tbl_LyDoXuLyMe> Tbl_LyDoXuLyMe { get; set; }
+        public DbSet<Tbl_BOF_ChuyenMe> Tbl_BOF_ChuyenMe { get; set; }
     }
 }

@@ -106,14 +106,29 @@
         position: relative;
     }
 
+    /* container scroll */
     .table-container-3 {
-        overflow: auto;
-        /* height: 40%; */
-        width: 100%;
-        border: 1px solid #dee2e6;
         position: relative;
+        overflow: auto;
     }
 
+    /* filter dính trên cùng */
+    .table-container-3 .filter-row {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #fff;
+        padding: 2px 0px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    /* header table dính dưới filter */
+    #IDtbThungThepHRC1AT thead {
+        position: sticky;
+        top: 37px; /* = chiều cao filter-row */
+        z-index: 5;
+        background: #fff;
+    }
     .table{
         margin-bottom: 20px;
     }
@@ -282,10 +297,43 @@
 
     #IDtbXuLySoLieu th,
     #IDtbXuLySoLieu td {
-        padding: 7px 7px !important;
+        padding: 6px 6px !important;
+        line-height: 1.2;
+    }
+
+    #IDtbThungThepHRC1AT th,
+    #IDtbThungThepHRC1AT td {
+        padding: 5px 5px !important;
         line-height: 1.2;
     }
     
+    .filter-row {
+        display: flex;
+        align-items: center;
+        gap: 8px; /* khoảng cách giữa input và button */
+    }
+
+    .filter-row .time-input {
+        max-width: 200px;
+        width: 100%;
+    }
+
+    tr.text-nm-false td {
+        color: #dc3545 !important;
+    }
+
+    .modal-img-origin {
+        max-width: 80vw;
+        max-height: 100vh;
+    }
+
+    .img-origin {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+    }
+
 </style>
  <div class="isolated-layout d-flex flex-column vh-100">
     <div class="header-fixed p-2" style="font-size: 13px; margin-bottom: 5px;">
@@ -294,7 +342,7 @@
             <input type="text" style="display: none" id="IDTenTaiKhoan" value="@TaiKhoan.TenTaiKhoan" />
             <input type="text" style="display: none" id="IDPhongBan" value="@PhongBan" />
             <div class="row">
-                <div class="col-5">
+                <div class="col-4">
                     <h5 style="margin-bottom: 15px"><strong>KHU VỰC NHẬN THÙNG</strong></h5>
                     <div class="row g-3">
                         <div class="col-12">
@@ -467,7 +515,7 @@
                         </div>
                     </div> *@
                 </div>
-                <div class="col-7">
+                <div class="col-8" style="border-left: 1px solid black;">
                     <h5 style="margin-bottom: 15px"><strong>KHU VỰC XỬ LÝ SỐ LIỆU</strong></h5>
                     <div class="row g-3">
                         <div class="col-12">
@@ -520,8 +568,21 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row g-3" style="position: absolute;bottom: 10px;right: 12px;">
-                        <div class="col-12 d-flex justify-content-end">
+                    <div class="row g-3" style="margin-top: 20px;">
+                        <div class="col-3 d-flex justify-content-start">
+                            <button type="button"
+                                    style="border:none; background:none"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#mocNoiHintModal">
+
+                                <i class="bi bi-exclamation-circle-fill"
+                                   data-bs-toggle="tooltip"
+                                   data-bs-placement="top"
+                                   title="Quy tắc móc nối thùng">
+                                </i>
+                            </button>
+                        </div>
+                        <div class="col-9 d-flex justify-content-end">
                             <button class="btn btn-warning btn-sm px-4" id="BtnChiaGang" >Gộp Thùng</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnLuu">Lưu</button>
@@ -537,7 +598,7 @@
     <div class="content flex-grow-1 px-2" style="min-height: 0; padding-bottom: 50px; margin-bottom: 15px;">
         <div class="container-fluid h-100 table-content">
             <div class="row" style="height: 100%; padding-bottom: 10px;">
-                <div class="col-5" style="height: 100%">
+                <div class="col-4" style="height: 100%">
                     <div class="table-container table-container-cm" role="region" aria-label="Scrollable Table 1">
                         <table class="table table-bordered text-center align-middle table-hover" id="IDtbKhuVucNhanThung">
                             <thead class ="table-light sticky-top bg-white" style="z-index: 2">
@@ -561,7 +622,7 @@
                         </table>
                     </div>
                 </div>
-                <div class="col-7" style="height: 100%">
+                <div class="col-8" style="height: 100%">
                     <div class="tables-wrapper @(PhongBan == "HRC1" ? "hrc1-mode" : "normal-mode")">
 
                         <div class="table-container-2 table-container-cm" role="region" aria-label="Scrollable Table 2">
@@ -595,7 +656,7 @@
                                         <th>KL vào lò thổi </th>
                                         <th>Mẻ thổi</th>
                                         <th>Thời điểm bắt đầu rót</th>
-                                        <th>KL Xỉ KR</th>
+                                        <th class="hide-col">KL Xỉ KR</th>
                                         <th style="min-width: 150px;">Ghi chú</th>
                                     </tr>
                                 </thead>
@@ -624,15 +685,25 @@
                         @if (PhongBan == "HRC1")
                         {
                             <div class="table-container-3 table-container-cm">
+                                <div class="filter-row">
+                                    <input id="GioLocAT" type="datetime-local" class="time-input" />
+                                    <button class="btn btn-primary" id="btnLocDuLieuThungAt">
+                                        Lọc
+                                    </button>
+                                    <button class="btn btn-outline-primary btn-sm me-2" style="display: none" id="btn-ThemMoiHRC1" type="button">Thêm mới</button>
+                                </div>
                                 <table class="table table-bordered text-center align-middle table-hover" id="IDtbThungThepHRC1AT">
                                     <thead class="table-light sticky-top bg-white" style="z-index: 2">
                                         <tr>
-                                            <th style="width:10%">Chọn thùng</th>
-                                            <th style="width:30%">Mẻ thổi</th>
-                                            <th style="width:15%">Thùng số</th>
-                                            <th style="width:15%">KL Thùng & Gang</th>
-                                            <th style="width:15%">KL Thùng </th>
-                                            <th style="width:15%">KL Gang</th>
+                                            <th style="width:7%">Chọn thùng</th>
+                                            <th style="width:15%">Mẻ thổi</th>
+                                            <th style="width:8%">Thời điểm rót</th>
+                                            <th style="width:10%">Thùng số</th>
+                                            <th style="width:10%">KL Thùng & Gang</th>
+                                            <th style="width:10%">KL Thùng </th>
+                                            <th style="width:10%">KL Gang</th>
+                                            <th style="width:15%">Lý do</th>
+                                            <th style="width:15%">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -727,12 +798,66 @@
     </div>
 </div>
 
+<div class="modal fade" id="mocNoiHintModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-img-origin">
+        <div class="modal-content p-0 border-0">
+            <img src="~/img/truonghopmocnoithung.png"
+                 alt="mocNoiHintModal"
+                 class="img-origin" />
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="chuyenMeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Chuyển mẻ</h5>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="chuyenMe_FromID" />
+
+                <div class="mb-2">
+                    <label>Lò đến</label>
+                    <select id="chuyenMe_ToLo" class="form-select">
+                        <option value="1">Lò 1</option>
+                        <option value="2">Lò 2</option>
+                        <option value="3">Lò 3</option>
+                        <option value="4">Lò 4</option>
+                        <option value="5">Lò 5</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label>Ngày sản xuất</label>
+                    <input type="date" id="chuyenMe_Ngay" class="form-control" />
+                </div>
+
+                <div class="mb-2">
+                    <label>Ca</label>
+                    <select id="chuyenMe_Ca" class="form-select">
+                        <option value="1">Ca 1</option>
+                        <option value="2">Ca 2</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button class="btn btn-primary" id="btnConfirmChuyenMe">Chuyển mẻ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
     $(".selectChuyenDen").chosen({
         width: "100%"
     });
     
+    // biến toàn cục phòng ban
+    const phongBanGlobal = $("#IDPhongBan").val();
 </script>
     <script type="text/javascript">
         let pendingPayload = null;
@@ -788,6 +913,7 @@
           let stt = 1;
           const normKey = s => (s == null ? '' : String(s).trim().toUpperCase());
 
+          const disabledHRC1 = phongBan === "HRC1" ? 'disabled' : '';
           // ========== RENDER THEO THỨ TỰ SERVER ==========
           data.forEach(tg => {
             const isCopyTTG  = tg.isCopy === true || tg.isCopy === 'true';
@@ -823,7 +949,7 @@
               row += `
                 <td class="hide-col">
                   <input type="checkbox" class="cbx-chiaGang" style="display:${isCopyTTG ? 'none' : 'inline-block'}"
-                         name="ChonThung" ${thung.iD_TrangThai == 5 || (thung.klGangChia !== null && thung.klGangChia > 0) || maChiaNorm ? "disabled readonly" : ""}/>
+                         name="ChonThung" ${disabledHRC1} ${thung.iD_TrangThai == 5 || (thung.klGangChia !== null && thung.klGangChia > 0) || maChiaNorm ? "disabled readonly" : ""}/>
                 </td>
                 <td class="hide-col maThungThep" data-mathungganggoc="${thung.maThungGang || ''}">${thung.maThungThep ?? ''}</td>
                 <td>${thung.iD_LoCao ?? ''}</td>
@@ -847,11 +973,11 @@
                   </td>
                   <td class="col-vagang">
                     <input class="table_tbx KhoiLuongThungVaGangLong" type="number" min="0"
-                           name="t_KLThungVaGang" ${disabled} value="${thung.t_KLThungVaGang ?? ''}"/>
+                           name="t_KLThungVaGang" ${disabled || disabledHRC1} value="${thung.t_KLThungVaGang ?? ''}"/>
                   </td>
                   <td class="col-thung">
                     <input class="table_tbx KhoiLuongThung" type="number" min="0"
-                           name="t_KLThungChua" ${disabled} value="${thung.t_KLThungChua ?? ''}"/>
+                           name="t_KLThungChua" ${disabled || disabledHRC1} value="${thung.t_KLThungChua ?? ''}"/>
                   </td>
                   <td class="col-ganglong KLGangLong">${thung.t_KLGangLong ?? '0'}</td>
                 `;
@@ -880,11 +1006,11 @@
                 <td class="col-sothungtg">${tg.soThungTG ?? ''}</td>
 
                 <td class="col-thungvagangthoi">
-                  <input ${disabledInputKL} class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" min="0"
+                  <input ${disabledInputKL || disabledHRC1} class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" min="0"
                          name="klThungVaGang_Thoi" value="${tg.klThungVaGang_Thoi ?? ''}"/>
                 </td>
                 <td class="col-thungthoi">
-                  <input ${disabledInputKL} class="table_tbx KLThungVaoLoThoi" type="number" min="0"
+                  <input ${disabledInputKL || disabledHRC1} class="table_tbx KLThungVaoLoThoi" type="number" min="0"
                          name="klThung_Thoi" value="${tg.klThung_Thoi ?? ''}"/>
                 </td>
                 <td class="col-phe">
@@ -894,15 +1020,15 @@
                 <td id="IDKLVaoLoThoi" class="col-gangthoi KLVaoLoThoi">${tg.klGang_Thoi ?? '0.00'}</td>
 
                 <td class="col-methoi">
-                  <select ${disabled} class="form-select selectMeThoi" data-selected-id="${tg.iD_MeThoi || ''}" data-selected-ma="${tg.maMeThoi || ''}">
+                  <select ${disabled || disabledHRC1} class="form-select selectMeThoi" data-selected-id="${tg.iD_MeThoi || ''}" data-selected-ma="${tg.maMeThoi || ''}">
                     <option value="">-- Mẻ thổi --</option>
                   </select>
                 </td>
                 <td class="col-giochonme">
-                  <input ${disabled} class="table_tbx GioChonMe" type="time" name="GioChonMe" min="00:00" max="23:59"
+                  <input ${disabled || disabledHRC1} class="table_tbx GioChonMe" type="time" name="GioChonMe" min="00:00" max="23:59"
                          value="${tg.gioChonMe ?? ''}" style="max-width: 100px;">
                 </td>
-                <td class="col-klxikr">
+                <td class="col-klxikr hide-col">
                     <input readonly class="table_tbx KLXIKR" type="number" min="0" name="klxikr" style="color: ${thung.klXiKR < 0 ? 'red':''}"
                              value="${thung.klXiKR ?? ''}"/>
                 </td>
@@ -1337,9 +1463,7 @@
                         },
                         processResults: function (data) {
                             // return dữ liệu cho select2
-                            // const results = data.map(x => ({ id: x.id, text: x.maMeThoi, klThungVaGang: x.klThungVaGang, klThung: x.klThung, klGang: x.klGang, isExistInNM: x.isExistInNM  }));
                             const results = data.map(x => ({ id: x.id, text: x.maMeThoi }));
-                            // setTimeout(() => filterSelectMeThoi(), 0); gọi sau khi load
                             return { results };
                         },
                         cache: true
@@ -1347,35 +1471,6 @@
                     width: '100%'
                 });
 
-                // $select.on('select2:select', function (e) {
-                //     const data = e.params.data;
-                //     const $row = $(this).closest('tr'); 
-
-                //     if (data.isExistInNM) {
-                //            $row.find('.KhoiLuongThungVaGangLong')
-                //             .val(data.klThungVaGang ?? '')
-                //             .trigger('input')  
-                //             .trigger('change');
-
-                //         $row.find('.KhoiLuongThung')
-                //             .val(data.klThung ?? '')
-                //             .trigger('input')
-                //             .trigger('change');
-                        
-                //     } else {
-                       
-                //         $row.find('.KhoiLuongThungVaGangLong')
-                //             .val('')
-                //             .trigger('input')  
-                //             .trigger('change');
-
-                //         $row.find('.KhoiLuongThung')
-                //             .val('')
-                //             .trigger('input')
-                //             .trigger('change');
-                //     }
-                // });
-                // Nếu muốn close, phải gọi sau khi chắc chắn đã init
                 try {
                     $select.select2('close');
                 } catch (e) {
@@ -1603,7 +1698,9 @@
                     success: function (data) {
                         alert("Đã xóa thành công");
                         SearchThungDaNhanTheoUser();
-                        LoadDanhSachThungThepHRC1AT();
+                        if(phongBanGlobal == "HRC1"){
+                            LoadDanhSachThungThepHRC1AT();
+                        }
                     },
                     error: function () {
                         alert("Lỗi khi tìm kiếm dữ liệu");
@@ -1633,9 +1730,12 @@
             
             if(NgayNhan && IDCaNhan && IDLoThoi){
                 SearchThungDaNhanTheoUser();
-                LoadDanhSachThungThepHRC1AT();
-            }
+                if(phongBanGlobal == "HRC1"){
+                    LoadDanhSachThungThepHRC1AT();
 
+                }
+            }
+           
         });
 
         function UpdateCounter(){
@@ -1678,7 +1778,9 @@
 
             if(NgayNhan && IDCaNhan && IDLoThoi){
                 SearchThungDaNhanTheoUser();
-                LoadDanhSachThungThepHRC1AT();
+                if(phongBanGlobal == "HRC1"){
+                    LoadDanhSachThungThepHRC1AT();
+                }
             }
         });
 
@@ -1686,10 +1788,16 @@
             const NgayNhan = $('#IDNgayNhan').val() || null;
             const IDCaNhan = $('#IDCaNhan').val() || null;
             const IDLoThoi = $('#IDLoThoi').val() || null;
-
+            if (!NgayNhan) {
+                console.log('không ổn')
+                $("#btn-ThemMoiHRC1").hide();
+                return;
+            }
             if(NgayNhan && IDCaNhan && IDLoThoi){
                 SearchThungDaNhanTheoUser();
-                LoadDanhSachThungThepHRC1AT();
+                if(phongBanGlobal == "HRC1"){
+                    LoadDanhSachThungThepHRC1AT();
+                }
             }
         });
 
@@ -1788,7 +1896,7 @@
         function tinhKLGangLong($row) {
             const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
             const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
-
+            
             const maThungTG = $row.data('mathungtg');
             const $rowGroupHead = $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).first();
             const isFirstRow = $row.is($rowGroupHead); 
@@ -1863,7 +1971,9 @@
         // Btn search Thung Da Nhan
         $('#btnSeachThungDaNhan').click(function () {
             SearchThungDaNhanTheoUser();
-            LoadDanhSachThungThepHRC1AT();
+            if(phongBanGlobal == "HRC1"){
+                LoadDanhSachThungThepHRC1AT();
+            }
         });
 
             // Luu KR
@@ -2029,7 +2139,9 @@
 
             if(NgayNhan && IDCaNhan && IDLoThoi){
                 SearchThungDaNhanTheoUser();
-                LoadDanhSachThungThepHRC1AT();
+                if(phongBanGlobal == "HRC1"){
+                    LoadDanhSachThungThepHRC1AT();
+                }
             }
         }
 
@@ -2343,7 +2455,9 @@
 
                     if(NgayNhan && IDCaNhan && IDLoThoi){
                         SearchThungDaNhanTheoUser();
-                        LoadDanhSachThungThepHRC1AT();
+                        if(phongBanGlobal == "HRC1"){
+                            LoadDanhSachThungThepHRC1AT();
+                        }
                     }
                 },
                 error: function (xhr) {
@@ -2415,6 +2529,7 @@
                 // Nếu ngày nhận nằm ngoài khoảng [minDate, maxDate], thì reset
                 if (currentDate < minDate || currentDate > maxDate) {
                     ngayNhanInput.val('');
+                    $("#btn-ThemMoiHRC1").hide();
                 }
             }
         }
@@ -2583,7 +2698,9 @@
                 const IDLoThoi = $('#IDLoThoi').val() || null;
                 if(NgayNhan && IDCaNhan && IDLoThoi){
                     SearchThungDaNhanTheoUser();
-                    LoadDanhSachThungThepHRC1AT();
+                    if(phongBanGlobal == "HRC1"){
+                        LoadDanhSachThungThepHRC1AT();
+                    }
                 }
                 UpdateCounter();
             },
@@ -2596,21 +2713,13 @@
 
 <script>
     var selectedThungMocNoiGlobal = null;
-    $(document).ready(function () {
-        const NgayNhan = $('#IDNgayNhan').val() || null;
-        const IDCaNhan = $('#IDCaNhan').val() || null;
-        const IDLoThoi = $('#IDLoThoi').val() || null;
-
-        if(NgayNhan && IDCaNhan && IDLoThoi){
-            LoadDanhSachThungThepHRC1AT();
-        }
-        
-    })
 
     function LoadDanhSachThungThepHRC1AT(){
+        $("#btn-ThemMoiHRC1").show();
         const NgayNhan = $('#IDNgayNhan').val() || null;
         const IDCaNhan = $('#IDCaNhan').val() || null;
         const IDLoThoi = $('#IDLoThoi').val() || null;
+        const GioLocAT = $('#GioLocAT').val() || null;
 
         if(!NgayNhan){
             alert("Vui lòng chọn Ngày Nhận"); return;
@@ -2621,11 +2730,15 @@
         if(!IDLoThoi){
             alert("Vui lòng chọn Lò thổi"); return;
         }
+
         const payload = {
             NgaySanXuat: NgayNhan,
             IdLoThoi: IDLoThoi,
             Ca: IDCaNhan
         };
+        if(GioLocAT){
+            payload.GioLocAT = GioLocAT;
+        }
         $.ajax({
             url: '/BM_GangThoi_Thep/LoadDanhSachThungThepHRC1AT',
             method: 'POST',
@@ -2639,6 +2752,7 @@
             }
         });
     }
+
     function RenderTableThungThepHRC1AT(data){
         const $tbody = $('#IDtbThungThepHRC1AT tbody');
         if (!$tbody.length) return;
@@ -2647,27 +2761,180 @@
         $tbody.empty();
 
         if (!Array.isArray(data) || data.length === 0) {
-            $tbody.append(`<tr><td colspan="5" class="text-center text-muted" style="padding:20px;font-size:20px;font-weight:600;">Không tìm thấy dữ liệu</td></tr>`);
-            safe(sumKLGangNhan); safe(sumKLGangThoi);
+            $tbody.append(`<tr><td colspan="7" class="text-center text-muted" style="padding:20px;font-size:20px;font-weight:600;">Không tìm thấy dữ liệu</td></tr>`);
+            return;
+        }
+
+        if (!Array.isArray(data) || data.length === 0) {
+            $tbody.append(`
+                <tr>
+                    <td colspan="9" class="text-center text-muted"
+                        style="padding:20px;font-size:20px;font-weight:600;">
+                        Không tìm thấy dữ liệu
+                    </td>
+                </tr>
+            `);
             return;
         }
 
         data.forEach(item => {
+            const textClass = item.isNM === false ? 'text-danger' : '';
+
+            const canEdit = !item.isNM && !item.isUsed;
+            // data-id-lydo="${item.iD_LyDo ?? ''}"
             const html = `
-                <tr data-id="${item.id}" data-some="${item.meThoi}">
-                    <td>
-                        <input type="checkbox" class="cbx-mapping" name="MappingThung" value=""/>
-                    </td>
-                    <td style="font-weight: 600;">${item.meThoi ?? ''}</td>
-                    <td>${item.soThung !== "0" ? item.soThung : '-'}</td>
-                    <td>${item.klThungVaGang ?? ''}</td>
-                    <td>${item.klThung ?? ''}</td>
-                    <td>${item.klGang ?? ''}</td>
-                </tr>
-                `;
+            <tr data-id="${item.id}" data-selected-id="${item.iD_MeThoi}"
+                                    data-selected-ma="${item.meThoi}"
+                                    data-lydo="${item.lyDo ?? ''}"
+                                   >
+                <td>
+                    <input type="checkbox" class="cbx-mapping"/>
+                </td>
+
+                <td class="${textClass}" style="font-weight:600">
+                    ${item.meThoi ?? ''}
+                </td>
+
+                <td>
+                    <input type="time"
+                           class="form-control form-control-sm txt-thoiDiemRot ${textClass}"
+                           value="${item.thoiDiemRot ?? ''}"
+                           disabled>
+                </td>
+
+                <td>
+                    <input type="number"
+                           class="form-control form-control-sm txt-soThung ${textClass}"
+                           value="${item.soThung && item.soThung !== '0' ? item.soThung : ''}"
+                           disabled>
+                </td>
+
+                <td>
+                    <input type="number"
+                           class="form-control form-control-sm txt-klThungVaGang ${textClass}"
+                           value="${item.klThungVaGang ?? ''}"
+                           disabled>
+                </td>
+
+                <td>
+                    <input type="number"
+                           class="form-control form-control-sm txt-klThung ${textClass}"
+                           value="${item.klThung ?? ''}"
+                           disabled>
+                </td>
+
+                <td>
+                    <input type="number"
+                           class="form-control form-control-sm txt-klGang ${textClass}"
+                           value="${item.klGang ?? ''}"
+                           disabled>
+                </td>
+
+                <td>
+                    <input type="text"
+                           class="form-control form-control-sm txt-lyDo ${textClass}"
+                           value="${item.lyDo ?? ''}"
+                           disabled>
+                </td>
+
+                <td>
+                    <button class="btn btn-sm btn-info btn-split-row" title="Tách mẻ">
+                        <i class="bi bi-diagram-3"></i>
+                    </button>
+
+                    ${item.isChuyenMe !== true ? `
+                        <button class="btn btn-sm btn-primary btn-chuyen-me" title="Chuyển mẻ">
+                            <i class="bi bi-arrow-right-circle"></i>
+                        </button>
+                    ` : ''}
+
+                    ${item.isChuyenMe === true ? `
+                        <button class="btn btn-sm btn-danger btn-thu-hoi-me" title="Thu hồi mẻ">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-sm btn-warning btn-edit-row"
+                            style="display:${canEdit ? 'inline-block' : 'none'}">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-success btn-save-row d-none"
+                    style="display:${canEdit ? 'inline-block' : 'none'}">
+                        <i class="bi bi-check2"></i>
+                    </button>
+
+                    <button class="btn btn-sm btn-secondary btn-cancel-row d-none"
+                    style="display:${canEdit ? 'inline-block' : 'none'}">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </td>
+            </tr>
+            `;
+
             $tbody.append(html);
         });
     }
+
+    $('#IDtbThungThepHRC1AT').on('click', '.btn-chuyen-me', function () {
+        const $row = $(this).closest('tr');
+
+        $('#chuyenMe_FromID').val($row.data('id'));
+        $('#chuyenMeModal').modal('show');
+    });
+    $('#btnConfirmChuyenMe').on('click', function () {
+
+        const payload = {
+            fromLo: CURRENT_LO_ID,
+            fromID: $('#chuyenMe_FromID').val(),
+            toLo: $('#chuyenMe_ToLo').val(),
+            ngaySanXuatTo: $('#chuyenMe_Ngay').val(),
+            caTo: $('#chuyenMe_Ca').val()
+        };
+
+        $.ajax({
+            url: '/BM_16_LuyenThepHRC1/ChuyenMe',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function () {
+                $('#chuyenMeModal').modal('hide');
+                loadDanhSach(); // reload table
+            },
+            error: function (err) {
+                alert(err.responseText || 'Lỗi chuyển mẻ');
+            }
+        });
+    });
+
+    $('#IDtbThungThepHRC1AT').on('click', '.btn-thu-hoi-me', function () {
+
+        if (!confirm('Bạn có chắc muốn thu hồi mẻ này?')) return;
+
+        const $row = $(this).closest('tr');
+
+        const payload = {
+            tuLoID: CURRENT_LO_ID,
+            tuMeID: $row.data('id')
+        };
+
+        $.ajax({
+            url: '/BM_16_LuyenThepHRC1/ThuHoiMe',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function () {
+                loadDanhSach();
+            },
+            error: function (err) {
+                alert(err.responseText || 'Lỗi thu hồi mẻ');
+            }
+        });
+    });
+
+
+    $('#btnLocDuLieuThungAt').on('click', function(){
+        LoadDanhSachThungThepHRC1AT();
+    });
 
     function toggleMocNoiButton() {
         const hasCheckedArea1 = $('.cbx-mapping:checked').length > 0;
@@ -2675,6 +2942,7 @@
 
         $('#IDbtnMocNoiThung').toggle(hasCheckedArea1 && hasCheckedArea2);
     }
+
     $(document).on('change', '.cbx-mapping', function () {
         $('.cbx-mapping').not(this)
             .prop('checked', false)
@@ -2786,4 +3054,384 @@
             }
         });
     }
+
+
+    $('#IDtbThungThepHRC1AT').on('input', '.txt-klThungVaGang, .txt-klThung', function () {
+        const $row = $(this).closest('tr');
+        const KLThungVaGangLong = parseFloat($row.find('.txt-klThungVaGang').val());
+        const KLThung = parseFloat($row.find('.txt-klThung').val());
+            
+        if (!isNaN(KLThungVaGangLong) && !isNaN(KLThung)) {
+            KLGangLong = KLThungVaGangLong - KLThung;
+            $row.find('.txt-klGang').val(KLGangLong);
+        }
+    });
+
+    $('#IDtbThungThepHRC1AT').on('click', '.btn-split-row', function () {
+
+        const $parentRow = $(this).closest('tr');
+        const parentID = $parentRow.data('id');
+        // 1️⃣ Lấy số thùng từ mẻ bị tách
+        const soThung = $parentRow.find('.txt-soThung').val() || '';
+
+        // 2️⃣ Reset KL của mẻ bị tách
+        $parentRow.find('.txt-klThung').val('');
+        $parentRow.find('.txt-klGang').val('');
+        // ⚠️ KHÔNG đụng klThungVaGang
+
+        // 3️⃣ Tạo dòng mới – chỉ kế thừa soThung
+        $('.selectMeThoi').each(function () { if ($(this).data('select2')) $(this).select2('destroy'); });
+        const $newRow = $(`
+            <tr data-row="new" data-type="split" data-parent-id="${parentID}">
+                <td></td>
+
+                <td>
+                    <select class="form-select selectMeThoi">
+                            <option value="">-- Mẻ thổi --</option>
+                          </select>
+                </td>
+
+                <td>
+                    <input class="form-control form-control-sm txt-thoiDiemRot" type="time" />
+                </td>
+
+                <td>
+                    <input class="form-control form-control-sm txt-soThung"
+                           type="number"
+                           value="${soThung}" />
+                </td>
+
+                <td>
+                    <input class="form-control form-control-sm txt-klThungVaGang" type="number" />
+                </td>
+
+                <td>
+                    <input class="form-control form-control-sm txt-klThung" type="number" />
+                </td>
+
+                <td>
+                    <input class="form-control form-control-sm txt-klGang" type="number" />
+                </td>
+
+                <td>
+                    <select class="form-select selectLyDo"></select>
+                </td>
+
+                <td>
+                    <button class="btn btn-sm btn-success btn-save-row">
+                        <i class="bi bi-check2"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger btn-delete-row">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
+
+        // 4️⃣ Chèn ngay dưới dòng đang bấm
+        $parentRow.after($newRow);
+        initSelectMeThoiInTable();
+        // 5️⃣ Init dropdown cần thiết
+        initSelectLyDo($newRow);
+    });
+
+
+    $("#btn-ThemMoiHRC1").on('click', function(){
+        $('.selectMeThoi').each(function () { if ($(this).data('select2')) $(this).select2('destroy'); });
+        const newRow = `
+                <tr data-row="new">
+                    <td>
+                    </td>
+                    <td>
+                        <select class="form-select selectMeThoi">
+                            <option value="">-- Mẻ thổi --</option>
+                          </select>
+                    </td>
+                    <td><input class="form-control form-control-sm txt-thoiDiemRot" type="time"/></td>
+                    <td><input class="form-control form-control-sm txt-soThung" type="number"/></td>
+                    <td><input class="form-control form-control-sm txt-klThungVaGang" type="number"/></td>
+                    <td><input class="form-control form-control-sm txt-klThung" type="number"/></td>
+                    <td><input class="form-control form-control-sm txt-klGang" type="number" readonly/></td>
+                    <td>
+                        <select class="form-select selectLyDo">
+                          </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-success btn-save-row" title="Lưu">
+                            <i class="bi bi-check2"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-delete-row" title="Xóa">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        const $row = $(newRow);
+        $("#IDtbThungThepHRC1AT tbody").prepend($row);
+
+        $("#IDtbThungThepHRC1AT")
+            .closest('.table-container-3')
+            .scrollTop(0);
+
+        initSelectMeThoiInTable();
+        initSelectLyDo($row);
+
+    })
+
+    $(document).on('click', '.btn-save-row', function () {
+
+        const $row = $(this).closest('tr');
+
+        const ID = $row.data('id') || null;
+        const ID_MeThoi = $row.find('.selectMeThoi').val();
+        const ThoiDiemRot = $row.find('.txt-thoiDiemRot').val()?.trim();
+        const SoThung = $row.find('.txt-soThung').val();
+        const KLThungVaGang = $row.find('.txt-klThungVaGang').val();
+        const KLThung = $row.find('.txt-klThung').val();
+        const KLGang = $row.find('.txt-klGang').val();
+        const parentID = $row.data('parent-id') || null;
+
+        const IdLoThoi = $('#IDLoThoi').val();
+        const Ca = $('#IDCaNhan').val();
+        const NgayNhan = $('#IDNgayNhan').val();
+
+        if (!ID_MeThoi) return alert('Vui lòng chọn Mẻ thổi.');
+        if (!ThoiDiemRot) return alert('Vui lòng nhập Thời điểm rót.');
+        if (!SoThung) return alert('Vui lòng nhập Số thùng.');
+        if (!KLThungVaGang) return alert('Vui lòng nhập KL Thùng + Gang.');
+        if (!KLThung) return alert('Vui lòng nhập KL Thùng.');
+        if (!KLGang) return alert('Vui lòng nhập KL Gang.');
+        if (!NgayNhan || !Ca || !IdLoThoi)
+            return alert('Vui lòng chọn Ngày sản xuất, Ca và Lò thổi.');
+
+        const lyDoData = $row.find('.selectLyDo').select2('data');
+
+        let LyDo = null;
+
+        if (lyDoData && lyDoData.length > 0) {
+            LyDo = lyDoData[0].text?.trim();
+        }
+
+        if (!LyDo) {
+            alert('Vui lòng chọn hoặc nhập Lý do.');
+            return;
+        }
+
+        const payload = {
+            ID: ID,
+            ID_MeThoi: parseInt(ID_MeThoi),
+            KLThungVaGang: getNumberValue(KLThungVaGang),
+            KLThung: getNumberValue(KLThung),
+            KLGang: getNumberValue(KLGang),
+            SoThung: SoThung,
+            ThoiDiemRot: ThoiDiemRot,
+            LyDo: LyDo,                         
+            IdLoThoi: parseInt(IdLoThoi),
+            Ca: parseInt(Ca),
+            NgaySanXuat: new Date(NgayNhan).toISOString(),
+            ParentID: parentID
+        };
+
+        $.ajax({
+            url: '/BM_16_LuyenThepHRC1/UpsertMeGangVaoLo',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function (res) {
+                alert(res?.message || 'Đã lưu.');
+                // disable input lại
+                $row.find('input:not([type=checkbox])').prop('disabled', true);
+
+                // toggle button
+                $row.find('.btn-save-row, .btn-cancel-row').addClass('d-none');
+                $row.find('.btn-edit-row').removeClass('d-none');
+
+                LoadDanhSachThungThepHRC1AT();
+            },
+            error: function (xhr) {
+                alert('Lỗi lưu: ' + (xhr.responseText || 'Không rõ'));
+            }
+        });
+    });
+
+    
+
+
+    function buildEditRowHtml(item) {
+        return `
+        <tr data-id="${item.id}">
+
+            <td></td>
+
+            <td>
+                <select class="form-select selectMeThoi"
+                        data-selected-id="${item.iD_MeThoi}"
+                        data-selected-ma="${item.meThoi}">
+                    <option value="">-- Mẻ thổi --</option>
+                </select>
+            </td>
+
+            <td>
+                <input class="form-control form-control-sm txt-thoiDiemRot"
+                       type="time"
+                       value="${item.thoiDiemRot ?? ''}">
+            </td>
+
+            <td>
+                <input class="form-control form-control-sm txt-soThung"
+                       type="number"
+                       value="${item.soThung ?? ''}">
+            </td>
+
+            <td>
+                <input class="form-control form-control-sm txt-klThungVaGang"
+                       type="number"
+                       value="${item.klThungVaGang ?? ''}">
+            </td>
+
+            <td>
+                <input class="form-control form-control-sm txt-klThung"
+                       type="number"
+                       value="${item.klThung ?? ''}">
+            </td>
+
+            <td>
+                <input class="form-control form-control-sm txt-klGang"
+                       type="number"
+                       value="${item.klGang ?? ''}"
+                       readonly>
+            </td>
+
+            <td>
+                <select class="form-select selectLyDo"
+                        data-lydo="${item.lyDo}">
+                </select>
+            </td>
+
+            <td>
+                <button class="btn btn-sm btn-success btn-save-row" title="Lưu">
+                    <i class="bi bi-check2"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary btn-cancel-row" title="Hủy">
+                    <i class="bi bi-x"></i>
+                </button>
+            </td>
+        </tr>
+        `;
+    }
+
+
+    $(document).on('click', '.btn-edit-row', function () {
+        const $row = $(this).closest('tr');
+
+        const item = {
+            id: $row.data('id'),
+            iD_MeThoi: $row.data('selected-id'),
+            meThoi: $row.data('selected-ma'),
+            lyDo: $row.data('lydo'),
+            thoiDiemRot: $row.find('.txt-thoiDiemRot').val(),
+            soThung: $row.find('.txt-soThung').val(),
+            klThungVaGang: $row.find('.txt-klThungVaGang').val(),
+            klThung: $row.find('.txt-klThung').val(),
+            klGang: $row.find('.txt-klGang').val()
+        };
+        const $editRow = $(buildEditRowHtml(item));
+        $row.replaceWith($editRow);
+
+        initSelectMeThoiInTable();   // đọc selected-id + selected-ma
+        initSelectLyDo($editRow);    // đọc selected-id + selected-text
+    });
+
+
+
+
+    $(document).on('click', '.btn-cancel-row', function () {
+        LoadDanhSachThungThepHRC1AT();
+    });
+
+    $(document).on('click', '.btn-delete-row', function () {
+        $(this).closest('tr').remove();
+    });
+
+    function initSelectLyDo($row) {
+        const $select = $row.find('.selectLyDo');
+
+        if (!$select.length) return;
+
+        // destroy nếu đã init
+        if ($select.hasClass('select2-hidden-accessible')) {
+            $select.select2('destroy');
+        }
+
+        const selectedText = $select.data('lydo');   // TEXT lý do
+        // ============================
+        // 🔑 APPEND OPTION ĐÃ CHỌN (EDIT)
+        // ============================
+        if (selectedText) {
+            let exists = false;
+
+            $select.find('option').each(function () {
+                if ($(this).text() === selectedText) {
+                    exists = true;
+                    $(this).prop('selected', true);
+                }
+            });
+
+            if (!exists) {
+                const value =  selectedText; 
+                const option = new Option(selectedText, value, true, true);
+                $select.append(option);
+            }
+        }
+        $select.select2({
+            placeholder: 'Chọn hoặc nhập lý do',
+            width: '100%',
+            tags: true,                  // 🔴 cho nhập tay
+            minimumInputLength: 0,       // 🔴 CLICK LÀ LOAD
+            allowClear: true,
+
+            ajax: {
+                url: '/LyDoXuLyMe/SearchAutoComplete',
+                type: 'POST',
+                contentType: 'application/json',
+                delay: 300,
+
+                data: function (params) {
+                    return JSON.stringify({
+                        PageNumber: 1,
+                        PageSize: 20,
+                        SearchText: params.term || "", 
+                        TrangThai: true
+                    });
+                },
+
+                processResults: function (res) {
+                    return {
+                        results: (res.data || []).map(x => ({
+                            id: x.id,
+                            text: x.lyDo
+                        }))
+                    };
+                },
+
+                cache: true
+            },
+
+            createTag: function (params) {
+                const term = params.term?.trim();
+                if (!term) return null;
+
+                return {
+                    id: term,        
+                    text: term,
+                    newTag: true
+                };
+            }
+        });
+
+        $select.on('click', function () {
+            $(this).select2('open');
+        });
+    }
+
 </script>

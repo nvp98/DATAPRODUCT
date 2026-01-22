@@ -66,6 +66,7 @@ namespace Data_Product.Models.ModelView
 
         public int? ID_MeThoi { get; set; }
         public string MaMeThoi { get; set; }
+        public string? MeThoi { get; set; }
         [JsonIgnore] public int __Sort_HasMeThoi { get; set; }
         [JsonIgnore] public int __Sort_MinReceiveSeq { get; set; }
 
