@@ -1801,7 +1801,7 @@ namespace Data_Product.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAutoSourceData(string fromDateStr, string toDateStr, int idLoCao)
+        public async Task<IActionResult> GetAutoSourceData(string fromDateStr, string toDateStr, int idLoCao, string maPhieu = null)
         {
             if (!DateTime.TryParse(fromDateStr, out var fromTime))
                 return BadRequest("Từ ngày/giờ không hợp lệ.");
@@ -1815,11 +1815,11 @@ namespace Data_Product.Controllers
             // Dispatch: lò 1..4 => RailScale; lò 5/6 => lấy từ DbContext (LogDataBf5/6)
             if (idLoCao >= 1 && idLoCao <= 4)
             {
-                return await GetAutoSourceDataRail_Internal(fromTime, toTime, idLoCao);
+                return await GetAutoSourceDataRail_Internal(fromTime, toTime, idLoCao, maPhieu);
             }
             else if (idLoCao == 5 || idLoCao == 6)
             {
-                return await GetAutoSourceDataBF_Internal(fromTime, toTime, idLoCao);
+                return await GetAutoSourceDataBF_Internal(fromTime, toTime, idLoCao, maPhieu);
             }
             else
             {
@@ -1827,11 +1827,11 @@ namespace Data_Product.Controllers
             }
         }
 
-        private async Task<IActionResult> GetAutoSourceDataRail_Internal(DateTime fromTime, DateTime toTime, int idLoCao)
+        private async Task<IActionResult> GetAutoSourceDataRail_Internal(DateTime fromTime, DateTime toTime, int idLoCao, string maPhieu = null)
         {
             try
             {
-                var maPhieu = HttpContext.Request.Query["maPhieu"].ToString();
+                //var maPhieu = HttpContext.Request.Query["maPhieu"].ToString();
 
                 var query = _context.Tbl_CanRayLG1.AsQueryable();
                 query = query.Where(d => d.ID_LoCao == idLoCao && d.Gio >= fromTime && d.Gio <= toTime);
@@ -1899,7 +1899,7 @@ namespace Data_Product.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Lỗi không xác định khi lấy dữ liệu RailScale.");
             }
         }
-        private async Task<IActionResult> GetAutoSourceDataBF_Internal(DateTime fromTime, DateTime toTime, int idLoCao)
+        private async Task<IActionResult> GetAutoSourceDataBF_Internal(DateTime fromTime, DateTime toTime, int idLoCao, string maPhieu = null)
         {
 
 
@@ -1908,7 +1908,8 @@ namespace Data_Product.Controllers
                 // 1. KIỂM TRA ĐẦU VÀO
                 if (idLoCao != 5 && idLoCao != 6)
                     return BadRequest("idLoCao phải là 5 hoặc 6.");
-                var maPhieu = HttpContext.Request.Query["maPhieu"].ToString();
+              ///  var maPhieu = HttpContext.Request.Query["maPhieu"].ToString();
+              ///  
                 var query = _context.Tbl_CanRayLG2.AsQueryable();
 
                 // 2.2. Lọc theo ID Lò Cao và Khoảng thời gian
