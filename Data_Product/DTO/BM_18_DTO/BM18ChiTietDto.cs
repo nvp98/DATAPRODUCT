@@ -36,5 +36,34 @@
         public string MaPhieu { get; set; }
         public int ID_MaLo { get; set; }
     }
+    public class CreateHeSoXiDto
+    {
+        public int ID_LoCao { get; set; }
+        public DateTime NgaySanXuat { get; set; }
+
+        public int? Ca { get; set; }
+        public int? ID_Kip { get; set; }
+
+        public decimal HeSoXi { get; set; }
+        public int ID_NguoiXacNhan { get; set; }
+    }
+    public class DanhSachHeSoXiDto
+    {
+        public int ID { get; set; }
+
+        public int ID_LoCao { get; set; }
+        public string TenLoCao { get; set; }
+
+        public DateTime NgaySanXuat { get; set; }
+        public int? Ca { get; set; }
+        public int? Kip { get; set; }
+
+        public decimal HeSoXi { get; set; }
+
+        public string NguoiXacNhan { get; set; }
+        public DateTime ThoiGianXacNhan { get; set; }
+
+        public int TrangThai { get; set; }
+    }
 
 }

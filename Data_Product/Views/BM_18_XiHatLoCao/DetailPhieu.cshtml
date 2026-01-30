@@ -218,25 +218,23 @@
 			</div>
 			<div class="row g-3 mb-3" style="padding-top:1%;">
 				@{
-					var phieu = Model.Phieu;
 					Data_Product.Models.Tbl_TaiKhoan TaiKhoan = null;
 					Data_Product.Models.Tbl_PhongBan PhongBan = null;
 					Data_Product.Models.Tbl_Xuong PhanXuong = null;
 					Data_Product.Models.Tbl_ViTri ViTri = null;
-					if (phieu != null && phieu.ID_NguoiGiao != null && phieu.ID_NguoiGiao > 0)
+					
+					// Lấy ID_NguoiGiao từ ViewBag (đã được set từ Controller)
+					int? idNguoiGiao = ViewBag.ID_NguoiGiao;
+					
+					if (idNguoiGiao.HasValue && idNguoiGiao.Value > 0)
 					{
-						TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == phieu.ID_NguoiGiao);
-					}
-					else
-					{
-						var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-						TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
-					}
-					if (TaiKhoan != null)
-					{
-						PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
-						PhanXuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong);
-						ViTri = _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == TaiKhoan.ID_ChucVu);
+						TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == idNguoiGiao.Value);
+						if (TaiKhoan != null)
+						{
+							PhongBan = _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan);
+							PhanXuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == TaiKhoan.ID_PhanXuong);
+							ViTri = _context.Tbl_ViTri.FirstOrDefault(x => x.ID_ViTri == TaiKhoan.ID_ChucVu);
+						}
 					}
 				}
 				<div class="col-12 col-md-4">
@@ -244,7 +242,7 @@
 						<div class="card-body p-3">
 							<div class="mb-1 text-muted" style="font-size:14px;">Đại diện bên giao:</div>
 							<div style="font-size:15px; color:#222; font-weight:500;">
-								@(TaiKhoan != null ? (TaiKhoan.TenTaiKhoan + " - " + TaiKhoan.HoVaTen) : "")
+								@(TaiKhoan != null ? (TaiKhoan.TenTaiKhoan + " - " + TaiKhoan.HoVaTen) : "Chưa xác định")
 							</div>
 							<input type="hidden" id="IDNguoiGiao" value="@(TaiKhoan?.ID_TaiKhoan ?? 0)" />
 						</div>
@@ -255,7 +253,7 @@
 						<div class="card-body p-3">
 							<div class="mb-1 text-muted" style="font-size:14px;">Chức vụ:</div>
 							<div style="font-size:15px; color:#222; font-weight:500;">
-								@ViTri.TenViTri
+								@(ViTri != null ? ViTri.TenViTri : "")
 							</div>
 						</div>
 					</div>
@@ -265,7 +263,7 @@
 						<div class="card-body p-3">
 							<div class="mb-1 text-muted" style="font-size:14px;">BP/NM:</div>
 							<div style="font-size:15px; color:#222; font-weight:500;">
-								@PhongBan.TenPhongBan - @PhanXuong.TenXuong
+								@(PhongBan != null && PhanXuong != null ? (PhongBan.TenPhongBan + " - " + PhanXuong.TenXuong) : "")
 							</div>
 						</div>
 					</div>

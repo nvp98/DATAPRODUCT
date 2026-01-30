@@ -35,6 +35,7 @@ namespace Data_Product.Models
         /// 2 = Tổng Cân Cẩu Trục + Xỉ
         /// 3 = Tổng KL Gang Theo Cân Cẩu Trục
         /// </summary>
+        //public int? ID_HeSoXi { get; set; }
         public int? LoaiCan { get; set; }
 
     }

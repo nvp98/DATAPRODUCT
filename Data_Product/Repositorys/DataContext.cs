@@ -57,5 +57,6 @@ namespace Data_Product.Repositorys
 
         public DbSet<Tbl_BM_18_PhanQuyenXiHat_TaiKhoan> Tbl_BM_18_PhanQuyenXiHat_TaiKhoan { get; set; }
         public DbSet<Tbl_BM_18_PhanQuyenXiHat> Tbl_BM_18_PhanQuyenXiHat { get; set; }
+        public DbSet<Tbl_BM_18_HeSoXi> Tbl_BM_18_HeSoXi { get; set; }
     }
 }

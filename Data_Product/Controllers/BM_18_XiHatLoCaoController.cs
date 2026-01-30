@@ -508,6 +508,13 @@ namespace Data_Product.Controllers
                     _context.Tbl_BM_18_PhieuXiHat.Add(header);
                     await _context.SaveChangesAsync();
 
+                    int ca = int.TryParse(kipInfo.TenCa, out var tmp) ? tmp : 0;
+                    decimal? heSoXi = await LayHeSoXi(loId,model.NgaySanXuat, ca, model.ID_Kip);
+
+                    if (heSoXi == null)
+                    {
+                        throw new Exception($"Chưa xác nhận hệ số xỉ cho lò {loId} - ngày {model.NgaySanXuat:dd/MM/yyyy}");
+                    }
                     // Thêm dòng chi tiết mặc định vào Tbl_BM_18_XiHatLoCao
                     var xiHat = new Tbl_BM_18_XiHatLoCao
                     {
@@ -519,8 +526,8 @@ namespace Data_Product.Controllers
                         Ten_NVL = "Xỉ hạt lò cao",
                         DVT = "Tấn",
                         ID_Lo = null,
-                        HeSo = null,
-                        KL_Gang_Giao = giaTriGang // Gán KL Gang theo loại cân đã chọn
+                        HeSo = heSoXi.Value,
+                        KL_Gang_Giao = giaTriGang
                     };
                     _context.Tbl_BM_18_XiHatLoCao.Add(xiHat);
                     await _context.SaveChangesAsync();
@@ -598,9 +605,35 @@ namespace Data_Product.Controllers
             if (phieu == null)
                 return NotFound($"Không tìm thấy phiếu với mã: {maPhieu}");
 
+            // Lấy ID_NguoiGiao: Ưu tiên từ phiếu, nếu chưa có thì lấy từ HeSoXi
+            int? idNguoiGiao = null;
+            
+            if (phieu.ID_NguoiGiao.HasValue && phieu.ID_NguoiGiao.Value > 0)
+            {
+                // Đã có ID_NguoiGiao trong phiếu, dùng luôn
+                idNguoiGiao = phieu.ID_NguoiGiao;
+            }
+            else
+            {
+                // Chưa có, lấy từ bảng HeSoXi theo ngày, ca, kíp
+                var kipInfo = await _context.Tbl_Kip.FirstOrDefaultAsync(k => k.ID_Kip == phieu.ID_Kip);
+                int? caValue = kipInfo?.TenCa != null && int.TryParse(kipInfo.TenCa, out int ca) ? ca : (int?)null;
+
+                var heSoXi = await _context.Tbl_BM_18_HeSoXi
+                    .Where(x => x.ID_LoCao == phieu.ID_Locao
+                             && x.NgaySanXuat.Date == phieu.NgaySanXuat.Date
+                             && x.Ca == caValue
+                             && x.Kip == phieu.ID_Kip)
+                    .OrderByDescending(x => x.ThoiGianXacNhan)
+                    .FirstOrDefaultAsync();
+
+                idNguoiGiao = heSoXi?.ID_NguoiXacNhan;
+            }
+
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen", phieu.ID_NguoiNhan);
             ViewBag.HasNguoiNhan = phieu.ID_NguoiNhan.HasValue;
             ViewBag.ID_NguoiNhan = phieu.ID_NguoiNhan;
+            ViewBag.ID_NguoiGiao = idNguoiGiao;
 
             var kip = await _context.Tbl_Kip.FirstOrDefaultAsync(k => k.ID_Kip == phieu.ID_Kip);
 
@@ -650,6 +683,32 @@ namespace Data_Product.Controllers
             // Kiểm tra hợp lệ người nhận
             if (req.ID_NguoiNhan == null || req.ID_NguoiNhan <= 0)
                 return BadRequest("Vui lòng chọn người nhận!");
+            // ===== LẤY THÔNG TIN CHUNG (LẤY DÒNG ĐẦU) =====
+            var firstItem = req.ChiTiet.First();
+
+            if (!firstItem.NgaySanXuat.HasValue)
+                return BadRequest("Thiếu ngày sản xuất!");
+
+            if (firstItem.ID_Ca <= 0)
+                return BadRequest("Thiếu Ca!");
+
+            if (firstItem.ID_Kip <= 0)
+                return BadRequest("Thiếu Kíp!");
+
+            // ===== LẤY NGƯỜI GIAO TỪ BẢNG HỆ SỐ XỈ =====
+            var idNguoiGiao = await _context.Tbl_BM_18_HeSoXi
+                .Where(x =>
+                    x.NgaySanXuat.Date == firstItem.NgaySanXuat.Value.Date &&
+                    x.Ca == firstItem.ID_Ca &&
+                    x.Kip == firstItem.ID_Kip
+                 && x.ID_LoCao == firstItem.ID_LoCao 
+                )
+                .OrderByDescending(x => x.ThoiGianXacNhan) 
+                .Select(x => x.ID_NguoiXacNhan)
+                .FirstOrDefaultAsync();
+
+            if (idNguoiGiao <= 0)
+                return BadRequest("Chưa có hệ số xỉ được xác nhận cho Ngày / Ca / Kíp này!");
 
             foreach (var item in req.ChiTiet)
             {
@@ -706,13 +765,13 @@ namespace Data_Product.Controllers
             }
 
             // Cập nhật ID_NguoiGiao và ID_NguoiNhan vào phiếu
-            if (!string.IsNullOrEmpty(req.MaPhieu) && req.ID_NguoiGiao > 0 && req.ID_NguoiNhan > 0)
+            if (!string.IsNullOrEmpty(req.MaPhieu) && req.ID_NguoiNhan > 0)
             {
                 var phieu = await _context.Tbl_BM_18_PhieuXiHat.FirstOrDefaultAsync(x => x.MaPhieu == req.MaPhieu);
                 if (phieu != null)
                 {
                     
-                    phieu.ID_NguoiGiao = req.ID_NguoiGiao;
+                    phieu.ID_NguoiGiao = idNguoiGiao;
                     phieu.ID_NguoiNhan = req.ID_NguoiNhan;
                     phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.HoanThanh;
                     phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.DangXuLy;
@@ -937,6 +996,27 @@ namespace Data_Product.Controllers
             phieu.TrangThai = (int)TrangThaiXuLy.ChuaXuLy;
             phieu.LoaiCan = null; // Reset loại cân về null để có thể chọn lại
 
+            // Lấy hệ số xỉ mới nhất từ bảng Tbl_BM_18_HeSoXi
+            var kipInfo = await _context.Tbl_Kip.FirstOrDefaultAsync(k => k.ID_Kip == phieu.ID_Kip);
+            int? caValue = kipInfo?.TenCa != null && int.TryParse(kipInfo.TenCa, out int ca) ? ca : (int?)null;
+
+            var heSoXi = await _context.Tbl_BM_18_HeSoXi
+                .Where(x => x.ID_LoCao == phieu.ID_Locao
+                         && x.NgaySanXuat.Date == phieu.NgaySanXuat.Date
+                         && x.Ca == caValue
+                         && x.Kip == phieu.ID_Kip)
+                .OrderByDescending(x => x.ThoiGianXacNhan)
+                .FirstOrDefaultAsync();
+            if(heSoXi == null || heSoXi.HeSoXi <= 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Chưa có hệ số xỉ cho Ngày / Ca / Kíp / Lò cao này"
+                });
+            }
+            decimal? heSoXiMoi = heSoXi?.HeSoXi;
+
             // Reset chi tiết phiếu
             var chiTietList = await _context.Tbl_BM_18_XiHatLoCao
                 .Where(x => x.MaPhieu == request.MaPhieu)
@@ -944,7 +1024,16 @@ namespace Data_Product.Controllers
                 
             foreach (var ct in chiTietList)
             {
-                ct.HeSo = null;
+                // Cập nhật lại hệ số xỉ từ bảng HeSoXi nếu có
+                if (heSoXiMoi.HasValue)
+                {
+                    ct.HeSo = heSoXiMoi.Value;
+                }
+                else
+                {
+                    ct.HeSo = null;
+                }
+                
                 ct.ID_Lo = null;
                 ct.KL_Gang_Giao = null; // Reset KL Gang để có thể set lại theo loại cân mới
                 ct.KL_Xi_Giao = null;
@@ -1924,5 +2013,193 @@ namespace Data_Product.Controllers
                 MaLoMoi = maLoMoi.TenMaLo
             });
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> CreateXiHat([FromBody] CreateHeSoXiDto model)
+        {
+            if(model == null)
+            {
+                return BadRequest("Dữ liệu không hợp lệ.");
+            }
+            if (model.HeSoXi <= 0) 
+            {
+                return BadRequest("Hệ số xỉ phải lớn hơn 0.");
+            }
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var user = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+            if (user == null)
+            {
+                return Unauthorized("Không xác định người xác nhận.");
+            }
+            var isDaCo = await _context.Tbl_BM_18_HeSoXi
+                .AnyAsync(x => x.ID_LoCao == model.ID_LoCao
+                        && x.NgaySanXuat.Date == model.NgaySanXuat.Date
+                        && x.Ca == model.Ca
+                        && x.Kip == model.ID_Kip
+                );
+            if (isDaCo)
+            {
+                return BadRequest(new { message = "Đã tồn tại dữ liệu" });
+            }
+            var newHeSoXi = new Tbl_BM_18_HeSoXi
+            {
+                ID_LoCao = model.ID_LoCao,
+                NgaySanXuat = model.NgaySanXuat,
+                Ca = model.Ca,
+                Kip = model.ID_Kip,
+                HeSoXi = model.HeSoXi,
+
+                ID_NguoiXacNhan = user.ID_TaiKhoan,
+                ThoiGianXacNhan = DateTime.Now,
+
+                TrangThai = 1,
+                CreatedAt = DateTime.Now
+            };
+            _context.Tbl_BM_18_HeSoXi.Add(newHeSoXi);
+            await _context.SaveChangesAsync();
+            return Ok(new
+            {
+                success = true,
+                message = "Đã xác nhận hệ số xỉ thành công.",
+                data = new
+                {
+                    newHeSoXi.ID,
+                    newHeSoXi.ID_LoCao,
+                    newHeSoXi.NgaySanXuat,
+                    newHeSoXi.HeSoXi,
+                    newHeSoXi.Ca,
+                    newHeSoXi.Kip
+                }
+            }
+            );
+        }
+        [HttpPost]
+        public async Task<IActionResult> DeleteXiHat(int id)
+        {
+            var hsx = await _context.Tbl_BM_18_HeSoXi.FirstOrDefaultAsync(x => x.ID == id);
+            if(hsx == null)
+            {
+                return BadRequest("Không tìm được hệ số sỉ");
+            }
+            //bool daSuDung = await _context.Tbl_BM_18_XiHatLoCao.AnyAsync(x =>
+            //    x.NgaySanXuat == hsx.NgaySanXuat.Date &&
+            //    x.Ca == hsx.Ca &&
+            //    x.Kip == hsx.Kip &&
+            //    x.ID_LoCao == hsx.ID_LoCao 
+            //);
+            //if (daSuDung)
+            //{
+            //    return Ok(new
+            //    {
+            //        success = false,
+            //        message = "Không thể xóa. Hệ số xỉ đã được sử dụng trong phiếu BM18."
+            //    });
+            //}
+            _context.Tbl_BM_18_HeSoXi.Remove(hsx);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
+        public async Task<IActionResult> Index_HeSoXi(DateTime? tuNgay,DateTime? denNgay,string locao, int? ca,int page = 1)
+        {
+            const int pageSize = 10;
+            if (page < 1) page = 1;
+
+            // ===== LẤY THÔNG TIN PHÒNG BAN =====
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+            var PhongBan = TaiKhoan != null ? _context.Tbl_PhongBan.FirstOrDefault(x => x.ID_PhongBan == TaiKhoan.ID_PhongBan) : null;
+            ViewBag.PhongBan = PhongBan?.TenNgan;
+
+            // ===== LẤY LÒ CAO THEO QUYỀN =====
+            var loCaoList = await GetLoCaoWithAuth();
+            ViewBag.LoCaoList = loCaoList;
+
+            var loCaoIds = loCaoList.Items
+                .Cast<Tbl_LoCao>()
+                .Select(x => x.ID)
+                .ToList();
+
+            var data = new List<DanhSachHeSoXiDto>();
+            var pager = new Pager();
+
+            if (loCaoIds.Any())
+            {
+                var query =
+                    from hsx in _context.Tbl_BM_18_HeSoXi
+                    join lc in _context.Tbl_LoCao
+                        on hsx.ID_LoCao equals lc.ID
+                    join tk in _context.Tbl_TaiKhoan
+                        on hsx.ID_NguoiXacNhan equals tk.ID_TaiKhoan
+                    where loCaoIds.Contains(hsx.ID_LoCao)
+                    select new DanhSachHeSoXiDto
+                    {
+                        ID = hsx.ID,
+                        ID_LoCao = hsx.ID_LoCao,
+                        TenLoCao = lc.TenLoCao,
+
+                        NgaySanXuat = hsx.NgaySanXuat,
+                        Ca = hsx.Ca,
+
+                        HeSoXi = hsx.HeSoXi,
+                        NguoiXacNhan = tk.TenTaiKhoan + " - " + tk.HoVaTen,
+                        ThoiGianXacNhan = hsx.ThoiGianXacNhan
+                    };
+
+                // ===== FILTER =====
+                if (tuNgay.HasValue)
+                    query = query.Where(x => x.NgaySanXuat >= tuNgay.Value.Date);
+
+                if (denNgay.HasValue)
+                    query = query.Where(x => x.NgaySanXuat <= denNgay.Value.Date);
+
+                if (!string.IsNullOrEmpty(locao) && int.TryParse(locao, out int loCaoId))
+                    query = query.Where(x => x.ID_LoCao == loCaoId);
+
+                if (ca.HasValue)
+                    query = query.Where(x => x.Ca == ca.Value);
+
+                int resCount = await query.CountAsync();
+
+                data = await query
+                    .OrderByDescending(x => x.NgaySanXuat)
+                    .ThenByDescending(x => x.ThoiGianXacNhan)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                pager = new Pager(resCount, page, pageSize);
+            }
+
+            ViewBag.Pager = pager;
+
+            // ===== GIỮ FILTER =====
+            ViewBag.TuNgay = tuNgay?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.DenNgay = denNgay?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.TenLoCao = locao;
+            ViewBag.Ca = ca;
+
+            return View(data);
+        }
+
+        private async Task<decimal?> LayHeSoXi(int idLoCao, DateTime ngaySanXuat,int ca, int? idKip)
+        {
+           
+            var heSo = await _context.Tbl_BM_18_HeSoXi
+                .Where(x =>
+                    x.ID_LoCao == idLoCao &&
+                    x.NgaySanXuat.Date == ngaySanXuat.Date &&
+                    x.Ca == ca &&
+                    x.Kip == idKip &&
+                    x.TrangThai == 1
+                )
+                .OrderByDescending(x => x.ThoiGianXacNhan)
+                .Select(x => x.HeSoXi)
+                .FirstOrDefaultAsync();
+            return heSo; 
+        }
+
     }
 }

@@ -1,0 +1,361 @@
+﻿@model List<Data_Product.DTO.BM_18_DTO.DanhSachHeSoXiDto>
+@using System.Security.Claims
+@inject Data_Product.Repositorys.DataContext _context
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@{
+    ViewData["Title"] = "Danh sách hệ số xỉ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Pager pager = ViewBag.Pager ?? new Pager();
+}
+
+<style>
+    .table-responsive {
+    max-height: 600px;
+    }
+
+    .modal {
+    z-index: 1055 !important;
+    }
+
+    .modal-backdrop {
+    z-index: 1050 !important;
+    }
+</style>
+
+<div class="app-main__outer">
+    <div class="app-main__inner">
+        <div class="card">
+
+            <!-- ================= HEADER ================= -->
+            <div class="card-header bg-light">
+                <b style="color:#06428b;font-size:15px">
+                    DANH SÁCH HỆ SỐ XỈ LÒ CAO
+                </b>
+            </div>
+
+            <!-- ================= FILTER ================= -->
+            <div class="card-body pb-2">
+                <form method="get"
+                asp-action="Index_HeSoXi"
+                asp-controller="BM_18_XiHatLoCao"
+                class="row g-2 align-items-end">
+
+                    <div class="col-md-2">
+                        <label>Từ ngày</label>
+                        <input type="date" name="tuNgay"
+                        value="@ViewBag.TuNgay"
+                        class="form-control form-control-sm" />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label>Đến ngày</label>
+                        <input type="date" name="denNgay"
+                        value="@ViewBag.DenNgay"
+                        class="form-control form-control-sm" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label>Lò cao</label>
+                        <select name="locao" class="form-select form-select-sm">
+                            <option value="">-- Tất cả --</option>
+                            @foreach (var item in (SelectList)ViewBag.LoCaoList)
+                            {
+                                <option value="@item.Value"
+                                selected="@(ViewBag.TenLoCao == item.Value)">
+                                    @item.Text
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100">Tìm kiếm</button>
+                    </div>
+                </form>
+
+                <!-- ================= BUTTON CREATE ================= -->
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="button"
+                    class="btn btn-success"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalCreateHeSoXi">
+                        + Tạo hệ số xỉ
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================= TABLE ================= -->
+            <div class="table-responsive px-3 pb-3">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-light text-center">
+                        <tr>
+                            <th>STT</th>
+                            <th>Lò cao</th>
+                            <th>Ngày SX</th>
+                            <th>Ca</th>
+                            <th>Hệ số xỉ</th>
+                            <th>Người xác nhận</th>
+                            <th>Thời gian</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model == null || !Model.Any())
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">
+                                    Không có dữ liệu
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            int stt = (pager.CurrentPage - 1) * pager.PageSize;
+                            foreach (var item in Model)
+                            {
+                                stt++;
+                                <tr>
+                                    <td class="text-center">@stt</td>
+                                    <td>@item.TenLoCao</td>
+                                    <td class="text-center">@item.NgaySanXuat.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
+                                        @(item.Ca == 1 ? "Ngày" : item.Ca == 2 ? "Đêm" : "")
+                                    </td>
+                                    <td class="text-end">@item.HeSoXi.ToString("0.0000")</td>
+                                    <td>@item.NguoiXacNhan</td>
+                                    <td class="text-center">@item.ThoiGianXacNhan.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-center">
+                                        @if ((ViewBag.PhongBan as string)?.Trim().ToUpper() == "P.KH")
+                                        {
+                                            <button class="btn btn-sm btn-danger"
+                                            onclick="deleteHeSoXi(@item.ID)">
+                                            <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ================= PAGER ================= -->
+            <div class="px-3 pb-3">
+                @if (pager.TotalPages > 1)
+                {
+                    <ul class="pagination">
+                        @for (int p = pager.StartPages; p <= pager.EndPages; p++)
+                        {
+                            <li class="page-item @(p == pager.CurrentPage ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="Index_HeSoXi"
+                                   asp-route-page="@p"
+                                   asp-route-tuNgay="@ViewBag.TuNgay"
+                                   asp-route-denNgay="@ViewBag.DenNgay"
+                                   asp-route-locao="@ViewBag.TenLoCao">
+                                    @p
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL CREATE ================= -->
+<div class="modal fade" id="modalCreateHeSoXi" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo hệ số xỉ lò cao</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <label>Lò cao <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-sm" id="ID_LoCao">
+                            <option value="">-- Chọn lò cao --</option>
+                            @foreach (var item in (SelectList)ViewBag.LoCaoList)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Ngày sản xuất <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control form-control-sm" id="NgaySanXuat" />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Ca <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-sm" id="Ca">
+                            <option value="">-- Chọn ca --</option>
+                            <option value="1">Ngày</option>
+                            <option value="2">Đêm</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Kíp <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-sm" id="Kip" disabled>
+                            <option value="">-- Chọn kíp --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Hệ số xỉ <span class="text-danger">*</span></label>
+                        <input type="number" step="0.0001"
+                               class="form-control form-control-sm" id="HeSoXi" />
+                    </div>
+                </div>
+
+                <div id="hsx-error" class="text-danger small d-none mt-2"></div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button class="btn btn-primary" onclick="submitCreateHeSoXi()">Lưu</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script>
+    // ================= LOAD KÍP THEO NGÀY + CA =================
+    function loadKipByNgayCa() {
+        const ngay = $('#NgaySanXuat').val();
+        const ca = $('#Ca').val();
+        const $kip = $('#Kip');
+
+        // Reset dropdown Kíp
+        $kip.empty()
+            .append('<option value="">-- Chọn kíp --</option>')
+            .prop('disabled', true);
+
+        // Nếu chưa chọn Ca hoặc Ngày -> dừng lại
+        if (!ngay || !ca) {
+            return;
+        }
+
+        // Gọi API để lấy danh sách Kíp
+        $.get('@Url.Action("GetKipFromCa", "BM_18_XiHatLoCao")',
+            { Ngay: ngay, Ca: ca }
+        )
+        .done(function (res) {
+            $kip.empty();
+
+            if (res && res.length > 0) {
+                // Populate options nếu có dữ liệu
+                res.forEach(item => {
+                    $kip.append(
+                        `<option value="${item.iD_Kip}">${item.tenKip}</option>`
+                    );
+                });
+                $kip.prop('disabled', false);
+
+                // Nếu chỉ có 1 kíp → tự động chọn
+                if (res.length === 1) {
+                    $kip.val(res[0].iD_Kip);
+                }
+            } else {
+                // Không có dữ liệu
+                $kip.append('<option value="" disabled selected>-- Không có dữ liệu --</option>')
+                    .prop('disabled', true);
+            }
+        })
+        .fail(function () {
+            // Xử lý lỗi
+            $kip.empty()
+                .append('<option value="" disabled selected>-- Lỗi tải dữ liệu --</option>')
+                .prop('disabled', true);
+        });
+    }
+
+    // ================= EVENT HANDLERS =================
+    $('#Ca').on('change', function() {
+        loadKipByNgayCa();
+    });
+
+    $('#NgaySanXuat').on('change', function() {
+        // Chỉ load Kíp nếu đã chọn Ca
+        if ($('#Ca').val()) {
+            loadKipByNgayCa();
+        }
+    });
+
+    // ================= SUBMIT =================
+    function submitCreateHeSoXi() {
+        const model = {
+            ID_LoCao: parseInt($('#ID_LoCao').val()),
+            NgaySanXuat: $('#NgaySanXuat').val(),
+            Ca: parseInt($('#Ca').val()),
+            ID_Kip: $('#Kip').val() ? parseInt($('#Kip').val()) : null,
+            HeSoXi: parseFloat($('#HeSoXi').val())
+        };
+
+        if (!model.ID_LoCao || !model.NgaySanXuat || !model.Ca || !model.ID_Kip || !model.HeSoXi) {
+            showHsxError("Vui lòng điền đầy đủ: Lò cao, Ngày, Ca, Kíp và Hệ số xỉ.");
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("CreateXiHat", "BM_18_XiHatLoCao")',
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify(model),
+            success: function (res) {
+                if (!res || res.success === false) {
+                    showHsxError(res.message || "Có lỗi xảy ra");
+                    return;
+                }
+                location.reload();
+            },
+            error: function (xhr) {
+                showHsxError(xhr.responseJSON?.message || "Lỗi server");
+            }
+        });
+    }
+
+    function showHsxError(msg) {
+        $('#hsx-error').text(msg).removeClass('d-none');
+    }
+
+    // ================= RESET ERROR KHI ĐÓNG MODAL =================
+    $('#modalCreateHeSoXi').on('hidden.bs.modal', function () {
+        $('#hsx-error').addClass('d-none').text('');
+        $('#Kip').empty().append('<option value="">-- Chọn kíp --</option>').prop('disabled', true);
+    });
+        function deleteHeSoXi(id) {
+        if (!confirm("Bạn có chắc chắn muốn xóa hệ số xỉ này?"))
+            return;
+
+        $.ajax({
+            url: '@Url.Action("DeleteXiHat", "BM_18_XiHatLoCao")',
+            type: 'POST',
+            data: { id: id },
+            success: function (res) {
+                if (!res || res.success === false) {
+                    alert(res?.message || "Xóa không thành công.");
+                    return;
+                }
+                location.reload();
+            },
+            error: function (xhr) {
+                alert(xhr.responseJSON?.message || "Lỗi server khi xóa.");
+            }
+        });
+    }
+</script>
