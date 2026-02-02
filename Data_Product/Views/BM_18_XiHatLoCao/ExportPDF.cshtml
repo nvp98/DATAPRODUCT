@@ -11,7 +11,7 @@
 
     var phieu = Model.Phieu;
     var chiTietList = Model.ChiTiet;
-
+    int LoCao = Model.Phieu.ID_Locao;
     // Lấy thông tin Đại diện giao/nhận (nếu có trong phiếu)
     Tbl_TaiKhoan giao = phieu.ID_NguoiGiao.HasValue ? _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == phieu.ID_NguoiGiao.Value) : null;
     Tbl_TaiKhoan nhan = phieu.ID_NguoiNhan.HasValue ? _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == phieu.ID_NguoiNhan.Value) : null;
@@ -54,7 +54,7 @@
         <div style="width:37%">1. Đại diện bên giao: Ông/bà: @giao?.HoVaTen</div>
         <div style="width:38%">Chức vụ: @viTriGiao?.TenViTri</div>
        @*  <div style="width:25%">@phongBanGiao?.TenPhongBan</div> *@
-        <div style="width:25%">NM.LG</div>
+        <div style="width:25%">NM.LG - Lò cao @LoCao</div>
     </div>
     <div class="col-md-12 float-left" style="margin:8px 0; display:flex; width:100%">
         <div style="width:37%">2. Đại diện bên nhận: Ông/bà: @nhan?.HoVaTen</div>

@@ -29,5 +29,13 @@ namespace Data_Product.Models
 
         public int? TrangThai { get; set; }
 
+        /// <summary>
+        /// Loại cân được chọn khi tạo phiếu:
+        /// 1 = Tổng KL Gang Lỏng Theo Phiếu
+        /// 2 = Tổng Cân Cẩu Trục + Xỉ
+        /// 3 = Tổng KL Gang Theo Cân Cẩu Trục
+        /// </summary>
+        public int? LoaiCan { get; set; }
+
     }
 }

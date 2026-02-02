@@ -533,6 +533,21 @@
                 //});
             </script>
 
+            <script>
+                const token = '@ViewBag.Token';
+
+                const user = @Html.Raw(ViewBag.User);
+                const userinfo = @Html.Raw(ViewBag.Userinfo);
+                const username = '@ViewBag.UserName';
+
+                localStorage.setItem("token", token);
+                localStorage.setItem("user", JSON.stringify(user));
+                localStorage.setItem("username", username);
+                localStorage.setItem("userinfo", JSON.stringify(userinfo));
+
+                console.log("Login success:", user);
+            </script>
+
         </div>
     </section>
 </div>

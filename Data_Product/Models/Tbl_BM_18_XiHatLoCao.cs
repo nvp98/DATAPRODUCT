@@ -18,11 +18,15 @@ namespace Data_Product.Models
         public string? DVT { get; set; }
         public int? ID_Lo  { get; set; }
 
+        [Column(TypeName = "decimal(10,4)")]
         public decimal? HeSo { get; set; }
-
+        [Column(TypeName = "decimal(10,3)")]
         public decimal? KL_Gang_Giao { get; set; }
+        [Column(TypeName = "decimal(10,3)")]
         public decimal? KL_Xi_Giao { get; set; }
+        [Column(TypeName = "decimal(10,3)")]
         public decimal? KL_Gang_Nhan { get; set; }
+        [Column(TypeName = "decimal(10,3)")]
         public decimal? KL_Xi_Nhan { get; set; }
 
         public string? GhiChu { get; set; }

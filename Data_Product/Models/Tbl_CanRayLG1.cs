@@ -25,5 +25,7 @@ namespace Data_Product.Models
         public string? Ghi_Chu { get; set; }
         // Flag để đánh dấu Số mẻ đã bị xóa/clear bởi UI/backend
         public bool? SoMe_Cleared { get; set; }
+        public string? OriginalSoMe { get; set; }
+
     }
 }

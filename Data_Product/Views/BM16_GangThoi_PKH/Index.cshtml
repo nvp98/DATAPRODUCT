@@ -531,7 +531,7 @@
                         <th class="sticky-col-5" style="min-width: 54px;">Lò cao</th>
                         <th class="sticky-col-6" style="min-width: 116px;">Số mẻ</th>
                         <th class="sticky-col-7" style="min-width: 69px;">Thùng số</th>
-                        <th class="sticky-col-8" style="min-width: 53px;">Giờ</th>
+                        <th class="sticky-col-8" style="min-width: 53px;">Giờ lấy mẫu</th>
                         <th class="hide-col">Tình trạng QLCL</th>
                         <th class="hide-col" style="min-width: 70px;">Phân loại</th>
                         <th>Sàn ra gang</th>
@@ -541,7 +541,7 @@
                         <th>KL gang lỏng</th>
                         <th class="hide-col">Chuyển đến</th>
                         <th class="hide-col">KR</th>
-                        <th>Giờ NM</th>
+                        <th>Giờ đầy thùng</th>
                         <th>Tình trạng LG</th>
                         <th>Ngày LT</th>
                         <th>Ca LT</th>
@@ -562,7 +562,7 @@
                         <th>KL phế (T)</th>
                         <th>KL vào lò thổi (T)</th>
                         <th>Mẻ</th>
-                        <th>Giờ bắt đầu thổi</th>
+                        <th>Thời điểm bắt đầu rót</th>
                         <th><button type="button" style="border: none;" id="btn-ruleKR" data-bs-toggle="modal" data-bs-target="#modalNguyenTacKR"><i class="bi bi-info-circle-fill"></i></button>KL xỉ KR (T)</th>
                         <th>KL chia xỉ KR (T)</th>
                         <th>KL gang CCT + Xỉ (T)</th>
@@ -1274,7 +1274,8 @@
               (isNum(sum_t_KLGangLong) && sum_t_KLGangLong !== 0) ? sum_t_KLGangLong :
               0;
 
-            return (sum_g_KLGangLong - base) * (percent / 100);
+            const result = (sum_g_KLGangLong - base) * (percent / 100);
+            return result.toFixed(2);
         }
 
         $("#btn-percent").click(function() {

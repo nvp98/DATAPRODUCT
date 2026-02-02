@@ -61,8 +61,8 @@ namespace Data_Product.Controllers
                 return new SelectList(Enumerable.Empty<object>());
             }
 
-            var quyenLo = await (from map in _context.Tbl_BM_16_LoSanXuat_TaiKhoan
-                                 join lo in _context.Tbl_BM_16_LoSanXuat on map.ID_LoSanXuat equals lo.ID
+            var quyenLo = await (from map in _context.Tbl_BM_18_PhanQuyenXiHat_TaiKhoan
+                                 join lo in _context.Tbl_BM_18_PhanQuyenXiHat on map.ID_LoSanXuat equals lo.ID
                                  where map.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && lo.IsActived == true
                                  select new
                                  {
@@ -109,7 +109,7 @@ namespace Data_Product.Controllers
             {
                 //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
                 var query = _context.Tbl_BM_18_PhieuXiHat
-                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+                    .OrderByDescending(p => p.NgaySanXuat.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
                 {
                     MaPhieu = p.MaPhieu,
@@ -188,8 +188,8 @@ namespace Data_Product.Controllers
             // Truyền lại giá trị tìm kiếm cho view
             ViewBag.MaPhieu = maPhieu;
             ViewBag.Ngay = ngay?.ToString("dd-MM-yyyy") ?? "";
-            ViewBag.TuNgaySX = tuNgaySX?.ToString("dd-MM-yyyy") ?? "";
-            ViewBag.DenNgaySX = denNgaySX?.ToString("dd-MM-yyyy") ?? "";
+            ViewBag.TuNgaySX = tuNgaySX?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.DenNgaySX = denNgaySX?.ToString("yyyy-MM-dd") ?? "";
             ViewBag.Ca = ca;
             ViewBag.TenLoCao = locao;
 
@@ -204,7 +204,7 @@ namespace Data_Product.Controllers
             const int pageSize = 10;
             if (page < 1) page = 1;
             var loCaos = await _context.Tbl_LoCao.OrderBy(l => l.TenLoCao).ToListAsync();
-            var loCaoList = await GetLoCaoList();
+            var loCaoList = await GetLoCaoWithAuth();
             ViewBag.LoCaoList = loCaoList;
             var data = new List<DanhSachPhieuDto>();
             var pager = new Pager();
@@ -212,7 +212,7 @@ namespace Data_Product.Controllers
             {
                 //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
                 var query = _context.Tbl_BM_18_PhieuXiHat
-                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+                    .OrderByDescending(p => p.NgaySanXuat.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
             {
                 MaPhieu = p.MaPhieu,
@@ -306,7 +306,7 @@ namespace Data_Product.Controllers
             {
                 //var query = _context.Tbl_BM_16_Phieu.OrderByDescending(p => p.NgayPhieuGang)
                 var query = _context.Tbl_BM_18_PhieuXiHat
-                    .OrderByDescending(p => p.NgayTaoPhieu.Date) // Ngày mới trước
+                    .OrderByDescending(p => p.NgaySanXuat.Date) // Ngày mới trước
             .Select(p => new DanhSachPhieuDto
                 {
                     MaPhieu = p.MaPhieu,
@@ -427,6 +427,9 @@ namespace Data_Product.Controllers
             if (model.ID_LoCaos == null || model.ID_LoCaos.Count == 0)
                 return BadRequest(new { success = false, message = "Vui lòng chọn ít nhất 1 lò cao." });
 
+            if (model.LoaiCan < 1 || model.LoaiCan > 3)
+                return BadRequest(new { success = false, message = "Loại cân không hợp lệ (1-3)." });
+
             var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             if (string.IsNullOrEmpty(tenTaiKhoan))
                 return Unauthorized(new { success = false, message = "Phiên đăng nhập không hợp lệ." });
@@ -470,6 +473,22 @@ namespace Data_Product.Controllers
 
                     string maPhieu = GenerateMaPhieuBM18(loId, kipInfo?.TenCa, kipInfo?.TenKip, model.NgaySanXuat);
 
+                    // Lấy khối lượng dựa trên loại cân đã chọn
+                    var giaTriResult = await LayBaGiaTriGang(model.Ca, model.ID_Kip, model.NgaySanXuat, loId, model.LoaiCan);
+                    decimal giaTriGang = 0m;
+                    
+                    if (giaTriResult is OkObjectResult okResult && okResult.Value != null)
+                    {
+                        var resultValue = okResult.Value;
+                        var successProp = resultValue.GetType().GetProperty("success");
+                        var giaTriProp = resultValue.GetType().GetProperty("giaTriGang");
+                        
+                        if (successProp?.GetValue(resultValue) is bool success && success && giaTriProp != null)
+                        {
+                            giaTriGang = Convert.ToDecimal(giaTriProp.GetValue(resultValue));
+                        }
+                    }
+
                     var header = new Tbl_BM_18_PhieuXiHat
                     {
                         MaPhieu = maPhieu,
@@ -482,7 +501,8 @@ namespace Data_Product.Controllers
                         ID_NguoiNhan = 0,
                         ID_TrangThaiBG = (int)TrangThaiXuLy.ChuaXuLy,
                         ID_TrangThaiBN = (int)TrangThaiXuLy.ChuaXuLy,
-                        TrangThai = (int)TrangThaiXuLy.ChuaXuLy
+                        TrangThai = (int)TrangThaiXuLy.ChuaXuLy,
+                        LoaiCan = model.LoaiCan // Lưu loại cân đã chọn
                     };
 
                     _context.Tbl_BM_18_PhieuXiHat.Add(header);
@@ -500,6 +520,7 @@ namespace Data_Product.Controllers
                         DVT = "Tấn",
                         ID_Lo = null,
                         HeSo = null,
+                        KL_Gang_Giao = giaTriGang // Gán KL Gang theo loại cân đã chọn
                     };
                     _context.Tbl_BM_18_XiHatLoCao.Add(xiHat);
                     await _context.SaveChangesAsync();
@@ -543,6 +564,7 @@ namespace Data_Product.Controllers
             string kip = tenKip ?? "";
             return $"XHLC-L{idLoCao}-{ca}{kip}-{ngay:ddMMyy}";
         }
+
         [HttpGet("DetailPhieu")]
         public async Task<IActionResult> DetailPhieu(string maPhieu)
         {
@@ -692,7 +714,7 @@ namespace Data_Product.Controllers
                     
                     phieu.ID_NguoiGiao = req.ID_NguoiGiao;
                     phieu.ID_NguoiNhan = req.ID_NguoiNhan;
-                    phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.DangXuLy;
+                    phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.HoanThanh;
                     phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.DangXuLy;
                     phieu.TrangThai = (int)TrangThaiXuLy.DangXuLy; ;
                     await _context.SaveChangesAsync();
@@ -880,122 +902,154 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
-        public IActionResult ResetPhieu([FromBody] ResetPhieuRequest request)
+        public async Task<IActionResult> ResetPhieu([FromBody] ResetPhieuRequest request)
         {
             if (string.IsNullOrEmpty(request.MaPhieu))
-                return BadRequest("Mã phiếu không hợp lệ");
+                return BadRequest(new { success = false, message = "Mã phiếu không hợp lệ" });
 
-            var phieu = _context.Tbl_BM_18_PhieuXiHat.FirstOrDefault(x => x.MaPhieu == request.MaPhieu);
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == request.MaPhieu);
+            
+            if (phieu == null)
+                return NotFound(new { success = false, message = "Không tìm thấy phiếu!" });
+
+            // Kiểm tra quyền: chỉ người tạo hoặc admin mới được reset
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var taiKhoan = await _context.Tbl_TaiKhoan
+                .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+            
+            if (taiKhoan == null)
+                return Unauthorized(new { success = false, message = "Không xác định được tài khoản!" });
+
+            //// Kiểm tra: phải là người tạo mới được reset
+            //if (phieu.ID_NguoiTao != taiKhoan.ID_TaiKhoan)
+            //    return Forbid();
+
+            // Kiểm tra trạng thái (không cho reset phiếu đã hoàn thành)
+            //if (phieu.TrangThai == (int)TrangThaiXuLy.HoanThanh)
+            //    return BadRequest(new { success = false, message = "Không thể reset phiếu đã hoàn thành!" });
+
+            // Reset phiếu header
             phieu.ID_NguoiGiao = null;
             phieu.ID_TrangThaiBG = (int)TrangThaiXuLy.ChuaXuLy;
             phieu.ID_NguoiNhan = null;
             phieu.ID_TrangThaiBN = (int)TrangThaiXuLy.ChuaXuLy;
             phieu.TrangThai = (int)TrangThaiXuLy.ChuaXuLy;
+            phieu.LoaiCan = null; // Reset loại cân về null để có thể chọn lại
 
-            // Xóa chi tiết phiếu
-            var chiTietList = _context.Tbl_BM_18_XiHatLoCao
-                                  .Where(x => x.MaPhieu == request.MaPhieu).ToList();
+            // Reset chi tiết phiếu
+            var chiTietList = await _context.Tbl_BM_18_XiHatLoCao
+                .Where(x => x.MaPhieu == request.MaPhieu)
+                .ToListAsync();
+                
             foreach (var ct in chiTietList)
             {
-                ct.HeSo = 0;
-                ct.ID_Lo = 0;
-                ct.KL_Gang_Giao = 0;
-                ct.KL_Xi_Giao = 0;
-                ct.KL_Gang_Nhan = 0;
-                ct.KL_Xi_Nhan = 0;
+                ct.HeSo = null;
+                ct.ID_Lo = null;
+                ct.KL_Gang_Giao = null; // Reset KL Gang để có thể set lại theo loại cân mới
+                ct.KL_Xi_Giao = null;
+                ct.KL_Gang_Nhan = null;
+                ct.KL_Xi_Nhan = null;
                 ct.GhiChu = null;
             }
-            _context.SaveChanges();
+            
+            await _context.SaveChangesAsync();
 
-            return Ok(new { success = true });
+            return Ok(new { success = true, message = "Đã reset phiếu thành công! Bạn có thể chọn lại loại cân." });
         }
-        // [HttpGet]
-        // public async Task<IActionResult> KLGangTrongCa(int ca, int idKip, DateTime ngayLuyenGang, int idLoCao)
-        // {
 
-        //     var dsThung = await _context.Tbl_BM_16_GangLong
-        //         .Where(t =>
-        //             t.G_Ca == ca &&
-        //             t.G_ID_Kip == idKip &&
-        //             t.NgayTao == ngayLuyenGang.Date &&
-        //             t.ID_Locao == idLoCao &&
-        //             t.T_copy == false
-        //         )
-        //         .ToListAsync();
+        /// <summary>
+        /// Cập nhật loại cân và khối lượng gang cho phiếu đã tạo
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CapNhatLoaiCan([FromBody] CapNhatLoaiCanRequest request)
+        {
+            if (string.IsNullOrEmpty(request.MaPhieu))
+                return BadRequest(new { success = false, message = "Mã phiếu không hợp lệ" });
 
-        //     if (!dsThung.Any())
-        //         return NotFound("Không tìm thấy dữ liệu theo điều kiện lọc.");
+            if (request.LoaiCan < 1 || request.LoaiCan > 3)
+                return BadRequest(new { success = false, message = "Loại cân không hợp lệ (1-3)" });
 
+            var phieu = await _context.Tbl_BM_18_PhieuXiHat
+                .FirstOrDefaultAsync(x => x.MaPhieu == request.MaPhieu);
+            
+            if (phieu == null)
+                return NotFound(new { success = false, message = "Không tìm thấy phiếu!" });
 
-        //     decimal ptDuc = await _context.Tbl_BM_16_PhanTramDuc
-        //         .Where(x => x.ID == 1)
-        //         .Select(x => x.PhanTram)
-        //         .FirstOrDefaultAsync();
+            //// Kiểm tra quyền
+            //var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            //var taiKhoan = await _context.Tbl_TaiKhoan
+            //    .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+            
+            //if (taiKhoan == null)
+            //    return Unauthorized(new { success = false, message = "Không xác định được tài khoản!" });
 
+            //if (phieu.ID_NguoiTao != taiKhoan.ID_TaiKhoan)
+            //    return Forbid();
 
-        //     var tongTheoMe = await _context.Tbl_BM_16_GangLong
-        //         .Where(t =>
-        //             t.G_Ca == ca &&
-        //             t.G_ID_Kip == idKip &&
-        //             t.NgayTao == ngayLuyenGang.Date &&
-        //             t.ID_Locao == idLoCao &&
-        //             !string.IsNullOrEmpty(t.BKMIS_SoMe)
-        //         )
-        //         .GroupBy(t => t.BKMIS_SoMe)
-        //         .Select(g => new
-        //         {
-        //             SoMe = g.Key,
-        //             TongKL = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0)) ?? 0m
-        //         })
-        //         .ToDictionaryAsync(x => x.SoMe, x => x.TongKL);
+            // Chỉ cho phép cập nhật khi phiếu ở trạng thái "Chưa xử lý"
+            //if (phieu.TrangThai != (int)TrangThaiXuLy.ChuaXuLy)
+            //    return BadRequest(new { success = false, message = "Chỉ có thể cập nhật loại cân cho phiếu chưa xử lý!" });
 
-        //     decimal tongKL_TheoMe = tongTheoMe.Values.Sum();
+            // Lấy thông tin Ca từ Kíp
+            var kipInfo = await _context.Tbl_Kip
+                .Where(x => x.ID_Kip == phieu.ID_Kip)
+                .Select(x => new { x.TenCa, TenCa_Int = x.TenCa == "1" ? 1 : 2 })
+                .FirstOrDefaultAsync();
 
-        //     var klDucTheoMeRaw = await _context.Tbl_BM_16_GangLong
-        //         .Where(t =>
-        //             t.G_Ca == ca &&
-        //             t.G_ID_Kip == idKip &&
-        //             t.NgayTao == ngayLuyenGang.Date &&
-        //             t.ID_Locao == idLoCao &&
-        //             !string.IsNullOrEmpty(t.BKMIS_SoMe) &&
-        //             t.ChuyenDen != "HRC1" &&
-        //             t.ChuyenDen != "HRC2"
-        //         )
-        //         .GroupBy(t => t.BKMIS_SoMe)
-        //         .Select(g => new
-        //         {
-        //             SoMe = g.Key,
+            if (kipInfo == null)
+                return BadRequest(new { success = false, message = "Không tìm thấy thông tin kíp!" });
 
-        //             SumG = g.Where(x => x.T_copy == false)
-        //                     .Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
+            // Gọi API lấy giá trị gang theo loại cân
+            var giaTriResult = await LayBaGiaTriGang(
+                kipInfo.TenCa_Int, 
+                phieu.ID_Kip.Value, 
+                phieu.NgaySanXuat, 
+                phieu.ID_Locao, 
+                request.LoaiCan
+            );
 
-        //             SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m,
+            decimal giaTriGang = 0m;
+            if (giaTriResult is OkObjectResult okResult && okResult.Value != null)
+            {
+                var resultValue = okResult.Value;
+                var successProp = resultValue.GetType().GetProperty("success");
+                var giaTriProp = resultValue.GetType().GetProperty("giaTriGang");
+                
+                if (successProp?.GetValue(resultValue) is bool success && success && giaTriProp != null)
+                {
+                    giaTriGang = Convert.ToDecimal(giaTriProp.GetValue(resultValue));
+                }
+            }
 
-        //             SumChiaRaw = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
+            if (giaTriGang == 0m)
+                return BadRequest(new { success = false, message = "Không tính được khối lượng gang cho loại cân này!" });
 
-        //             HasChia = g.Any(x => x.KLGangChia != null && x.KLGangChia > 0)
-        //         })
-        //         .ToListAsync();
+            // Cập nhật loại cân cho phiếu
+            phieu.LoaiCan = request.LoaiCan;
 
-        //     var klDucTheoMe = klDucTheoMeRaw.ToDictionary(
-        //         x => x.SoMe,
-        //         x =>
-        //         {
-        //             var baseValue = x.HasChia ? x.SumChiaRaw : x.SumT;
-        //             var kld = (x.SumG - baseValue) * (ptDuc / 100m);
-        //             return Math.Round(kld, 2);
-        //         }
-        //     );
+            // Cập nhật KL_Gang_Giao cho dòng đầu tiên của chi tiết
+            var chiTietDauTien = await _context.Tbl_BM_18_XiHatLoCao
+                .Where(x => x.MaPhieu == request.MaPhieu)
+                .OrderBy(x => x.ID)
+                .FirstOrDefaultAsync();
 
-        //     decimal tongKLDuc = klDucTheoMe.Values.Sum();
+            if (chiTietDauTien != null)
+            {
+                chiTietDauTien.KL_Gang_Giao = giaTriGang;
+                chiTietDauTien.KL_Gang_Nhan = giaTriGang;
+            }
 
-        //     decimal tongKLGang = tongKLDuc + tongKL_TheoMe;
+            await _context.SaveChangesAsync();
 
-        //     ViewBag.TongKL_TheoMe = tongTheoMe;
-        //     ViewBag.KLDuc_TheoMe = klDucTheoMe;
-        //     ViewBag.TongKLGang = tongKLGang;
-        //     return View();
-        // }
+            return Ok(new 
+            { 
+                success = true, 
+                message = "Đã cập nhật loại cân thành công!",
+                loaiCan = request.LoaiCan,
+                khoiLuongGang = giaTriGang
+            });
+        }
 
         [HttpGet]
         public async Task<IActionResult> KLGangTrongCaJson(int ca, int idKip, DateTime ngaySanXuat, int idLoCao, string maPhieu = null)
@@ -1096,6 +1150,182 @@ namespace Data_Product.Controllers
                 tongKLGang,
                 tongKL_TheoMe = tongTheoMe,
                 klDuc_TheoMe = klDucTheoMe
+            });
+        }
+
+        /// <summary>
+        /// Lấy 3 giá trị chính hoặc 1 giá trị cụ thể: 
+        /// 1. Tổng KL Gang lỏng theo Phiếu (từ G_KL_GangLong)
+        /// 2. Tổng Cân cẩu trục + xỉ (G_KLGangLong - bao gồm xỉ)
+        /// 3. Tổng KL Gang theo Cân cẩu trục (KL Gang ròng đã trừ xỉ và tính đúc)
+        /// </summary>
+        /// <param name="loaiCan">Nếu có giá trị (1-3), trả về giá trị cụ thể. Nếu null, trả về cả 3 giá trị</param>
+        [HttpGet]
+        public async Task<IActionResult> LayBaGiaTriGang(int ca, int idKip, DateTime ngaySanXuat, int idLoCao, int? loaiCan = null)
+        {
+            // ===== Lấy danh sách thùng theo điều kiện =====
+            var dsThung = await _context.Tbl_BM_16_GangLong
+                .Where(t =>
+                    t.G_Ca == ca &&
+                    t.G_ID_Kip == idKip &&
+                    t.NgayTao == ngaySanXuat.Date &&
+                    t.ID_Locao == idLoCao &&
+                    t.T_copy == false
+                )
+                .ToListAsync();
+
+            if (!dsThung.Any())
+            {
+                return NotFound(new 
+                { 
+                    success = false, 
+                    message = "Không tìm thấy dữ liệu gang lỏng theo điều kiện lọc." 
+                });
+            }
+
+            // ===== Lấy % đúc =====
+            decimal ptDuc = await _context.Tbl_BM_16_PhanTramDuc
+                .Where(x => x.ID == 1)
+                .Select(x => x.PhanTram)
+                .FirstOrDefaultAsync();
+
+            // ===== 1) TÍNH TỔNG KL GANG LỎNG THEO PHIẾU (từ G_KL_GangLong) =====
+            var tongKLTheoMe = await _context.Tbl_BM_16_GangLong
+                .Where(t =>
+                    t.G_Ca == ca &&
+                    t.G_ID_Kip == idKip &&
+                    t.NgayTao == ngaySanXuat.Date &&
+                    t.ID_Locao == idLoCao &&
+                    !string.IsNullOrEmpty(t.BKMIS_SoMe)
+                )
+                .GroupBy(t => t.BKMIS_SoMe)
+                .Select(g => new
+                {
+                    SoMe = g.Key!,
+                    SumG = g.Sum(x => (decimal?)(x.G_KLGangLong ?? 0)) ?? 0m,
+                    SumChia = g.Sum(x => (decimal?)(x.KLGangChia ?? 0)) ?? 0m,
+                    SumT = g.Sum(x => (decimal?)(x.T_KLGangLong ?? 0)) ?? 0m
+                })
+                .ToListAsync();
+
+            var tongTheoMe = tongKLTheoMe.ToDictionary(
+                x => x.SoMe, 
+                x => x.SumChia > 0m ? x.SumChia : x.SumT
+            );
+
+            decimal tongKLGangLongCanCauTruc = tongTheoMe.Values.Sum();
+
+            // ===== TÍNH KHỐI LƯỢNG ĐÚC (ChuyenDen = DUC1 hoặc DUC2) =====
+            var meChuyenDuc = await _context.Tbl_BM_16_GangLong
+                .Where(t =>
+                    t.G_Ca == ca &&
+                    t.G_ID_Kip == idKip &&
+                    t.NgayTao == ngaySanXuat.Date &&
+                    t.ID_Locao == idLoCao &&
+                    !string.IsNullOrEmpty(t.BKMIS_SoMe) &&
+                    (t.ChuyenDen == "DUC1" || t.ChuyenDen == "DUC2")
+                )
+                .Select(x => x.BKMIS_SoMe)
+                .Distinct()
+                .ToListAsync();
+
+            var klDucByMe = tongKLTheoMe
+                .Where(x => meChuyenDuc.Contains(x.SoMe))
+                .ToDictionary(
+                    x => x.SoMe,
+                    x =>
+                    {
+                        var baseValue = x.SumChia > 0m ? x.SumChia : x.SumT;
+                        var value = (x.SumG - baseValue) * (ptDuc / 100m);
+                        return Math.Round(value, 2);
+                    }
+                );
+
+            decimal tongKLDuc = klDucByMe.Values.Sum();
+
+            // ===== 2) TÍNH TỔNG CÂN CẨU TRỤC + XỈ (KLGangCCTVaXi) =====
+            var canCauTrucVaXiRaw = await _context.Tbl_BM_16_GangLong
+                    .Where(t =>
+                        t.G_Ca == ca &&
+                        t.G_ID_Kip == idKip &&
+                        t.NgayTao == ngaySanXuat.Date &&
+                        t.ID_Locao == idLoCao &&
+                        !string.IsNullOrEmpty(t.BKMIS_SoMe)
+                    )
+                    .GroupBy(t => t.BKMIS_SoMe)
+                    .Select(g => new
+                    {
+                        SoMe = g.Key!,
+                        TongKL = g.Sum(x => (decimal?)(x.KLGangCCTVaXi ?? x.KLGangChia ?? x.T_KLGangLong)) ?? 0m
+                    })
+                    .ToListAsync();
+
+            var canCauTrucVaXiTheoMe = canCauTrucVaXiRaw.ToDictionary(x => x.SoMe, x => x.TongKL);
+
+            decimal tongCanCauTrucVaXi = canCauTrucVaXiTheoMe.Values.Sum() + tongKLDuc;
+
+            // ===== 3) TÍNH TỔNG KL GANG THEO CÂN CẨU TRỤC (chỉ sum G_KLGangLong) =====
+            var tongKLGangTheoCanRay = await _context.Tbl_BM_16_GangLong
+                .Where(t =>
+                    t.G_Ca == ca &&
+                    t.G_ID_Kip == idKip &&
+                    t.NgayTao == ngaySanXuat.Date &&
+                    t.ID_Locao == idLoCao &&
+                    t.T_copy == false &&
+                    !string.IsNullOrEmpty(t.BKMIS_SoMe)
+                )
+                .SumAsync(x => (decimal?)(x.G_KLGangLong ?? 0) ?? 0m);
+
+            // ===== TRẢ VỀ GIÁ TRỊ =====
+            // Nếu có chọn loại cân cụ thể, chỉ trả về giá trị đó
+            if (loaiCan.HasValue)
+            {
+                decimal giaTriChon = loaiCan.Value switch
+                {
+                    1 => Math.Round(tongKLGangLongCanCauTruc, 2),
+                    2 => Math.Round(tongCanCauTrucVaXi, 2),
+                    3 => Math.Round(tongKLGangTheoCanRay, 2),
+                    _ => 0m
+                };
+
+                return Ok(new
+                {
+                    success = true,
+                    giaTriGang = giaTriChon,
+                    loaiCan = loaiCan.Value
+                });
+            }
+
+            // Nếu không chọn loại cân, trả về cả 3 giá trị
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    // Giá trị 1: Tổng KL Gang lỏng theo Phiếu
+                    tongKLGangLongCanCauTruc = Math.Round(tongKLGangLongCanCauTruc, 2),
+                    
+                    // Giá trị 2: Tổng Cân cẩu trục + xỉ (từ KLGangCCTVaXi)
+                    tongCanCauTrucVaXi = Math.Round(tongCanCauTrucVaXi, 2),
+
+                    // Giá trị 3: Tổng KL Gang theo Cân cẩu trục (từ G_KLGangLong)
+                    tongKLGangTheoCanRay = Math.Round(tongKLGangTheoCanRay, 2),
+
+                    // Giá trị 4: Tổng KL Đúc (ChuyenDen = DUC1 hoặc DUC2)
+                    tongKLDuc = Math.Round(tongKLDuc, 2),
+                    
+                    // Chi tiết bổ sung
+                    chiTiet = new
+                    {
+                        phanTramDuc = ptDuc,
+                        soLuongMe = tongTheoMe.Count,
+                        danhSachMeVaKL = tongTheoMe,
+                        canCauTrucVaXiTheoMe = canCauTrucVaXiTheoMe,
+                        klDucTheoMe = klDucByMe,
+                        soLuongMeDuc = klDucByMe.Count,
+                        tongKLDuc = tongKLDuc
+                    }
+                }
             });
         }
 
@@ -1229,7 +1459,7 @@ namespace Data_Product.Controllers
                     join pb in _context.Tbl_PhongBan
                         on nv.ID_PhongBan equals pb.ID_PhongBan
                     join x in _context.Tbl_Xuong
-                        on pb.ID_PhongBan equals x.ID_PhongBan
+                        on nv.ID_PhanXuong equals x.ID_Xuong
                     where nguoiIds.Contains(nv.ID_TaiKhoan)
                     select new
                     {
@@ -1336,13 +1566,13 @@ namespace Data_Product.Controllers
                         SetCellValue(Worksheet.Cell(currentRow, col++), "", XLAlignmentHorizontalValues.Center);
                     }
 
-                    // Lò cao
-                    string tenLoCao = "";
-                    if (loCaos.ContainsKey(item.ID_LoCao))
-                    {
-                        tenLoCao = loCaos[item.ID_LoCao].TenLoCao ?? "";
-                    }
-                    SetCellValue(Worksheet.Cell(currentRow, col++), tenLoCao, XLAlignmentHorizontalValues.Center);
+                    //// Lò cao
+                    //string tenLoCao = "";
+                    //if (loCaos.ContainsKey(item.ID_LoCao))
+                    //{
+                    //    tenLoCao = loCaos[item.ID_LoCao].TenLoCao ?? "";
+                    //}
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), tenLoCao, XLAlignmentHorizontalValues.Center);
 
                     // Kíp
                     string tenKip = "";
@@ -1359,7 +1589,7 @@ namespace Data_Product.Controllers
                     // Tên N/VL
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.Ten_NVL ?? "");
 
-                    // Tên lò
+                    // Tên lô
                     string tenLo = "";
                     if (item.ID_Lo.HasValue && los.ContainsKey(item.ID_Lo.Value))
                     {
@@ -1367,18 +1597,75 @@ namespace Data_Product.Controllers
                     }
                     SetCellValue(Worksheet.Cell(currentRow, col++), tenLo);
 
-                    // Hệ số quy đổi
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.HeSo ?? 0, XLAlignmentHorizontalValues.Center);
+                    //// Hệ số quy đổi
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), item.HeSo ?? 0, XLAlignmentHorizontalValues.Center);
 
                     // ĐVT
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.DVT ?? "", XLAlignmentHorizontalValues.Center);
+                    // === KL bên nhận ===
+                    // KL gang
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellGangNhan = Worksheet.Cell(currentRow, col++);
+                    cellGangNhan.Value = item.KL_Gang_Nhan ?? 0;
+                    cellGangNhan.Style.NumberFormat.Format = "0.000";
+                    cellGangNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellGangNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                    //// Hệ số quy đổi
+                    var cellHeSoNhan = Worksheet.Cell(currentRow, col++);
+                    cellHeSoNhan.Value = item.HeSo ?? 0;
+                    cellHeSoNhan.Style.NumberFormat.Format = "0.000";
+                    cellHeSoNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellHeSoNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    // KL Xi
+
+                    // SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellXiNhan = Worksheet.Cell(currentRow, col++);
+                    cellXiNhan.Value = item.KL_Xi_Nhan ?? 0;
+                    cellXiNhan.Style.NumberFormat.Format = "0.000";
+                    cellXiNhan.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellXiNhan.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+
+                    string xuongNhan = "";
+                    string boPhanNhan = "";
+
+                    if (phieu?.ID_NguoiNhan.HasValue == true &&
+                        nhanSuDict.TryGetValue(phieu.ID_NguoiNhan.Value, out var nsNhan))
+                    {
+                        xuongNhan = nsNhan.TenXuong ?? "";
+                        boPhanNhan = nsNhan.TenPhongBan ?? "";
+                    }
+
+                    // Xưởng nhận
+                    SetCellValue(Worksheet.Cell(currentRow, col++), xuongNhan);
+
+                    // Bộ phận nhận
+                    SetCellValue(Worksheet.Cell(currentRow, col++), boPhanNhan);
 
                     // === KL bên giao ===
                     // KL gang
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+                    //SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellGang = Worksheet.Cell(currentRow, col++);
+                    cellGang.Value = item.KL_Gang_Giao ?? 0;
+                    cellGang.Style.NumberFormat.Format = "0.000";
+                    cellGang.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellGang.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                    //// Hệ số quy đổi
+                    var cellHeSoGiao = Worksheet.Cell(currentRow, col++);
+                    cellHeSoGiao.Value = item.HeSo ?? 0;
+                    cellHeSoGiao.Style.NumberFormat.Format = "0.000";
+                    cellHeSoGiao.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellHeSoGiao.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                     // KL xỉ
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+                    // SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Giao ?? 0, XLAlignmentHorizontalValues.Right);
+                    var cellXi = Worksheet.Cell(currentRow, col++);
+                    cellXi.Value = item.KL_Xi_Giao ?? 0;
+                    cellXi.Style.NumberFormat.Format = "0.000";
+                    cellXi.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                    cellXi.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                     string xuongGiao = "";
                     string boPhanGiao = "";
@@ -1396,29 +1683,6 @@ namespace Data_Product.Controllers
                     // Bộ phận giao
                     SetCellValue(Worksheet.Cell(currentRow, col++), boPhanGiao);
 
-
-                    // === KL bên nhận ===
-                    // KL gang
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Gang_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
-
-                    // KL Xi
-                    SetCellValue(Worksheet.Cell(currentRow, col++), item.KL_Xi_Nhan ?? 0, XLAlignmentHorizontalValues.Right);
-
-                    string xuongNhan = "";
-                    string boPhanNhan = "";
-
-                    if (phieu?.ID_NguoiNhan.HasValue == true &&
-                        nhanSuDict.TryGetValue(phieu.ID_NguoiNhan.Value, out var nsNhan))
-                    {
-                        xuongNhan = nsNhan.TenXuong ?? "";
-                        boPhanNhan = nsNhan.TenPhongBan ?? "";
-                    }
-
-                    // Xưởng nhận
-                    SetCellValue(Worksheet.Cell(currentRow, col++), xuongNhan);
-
-                    // Bộ phận nhận
-                    SetCellValue(Worksheet.Cell(currentRow, col++), boPhanNhan);
 
                     // Ghi chú
                     SetCellValue(Worksheet.Cell(currentRow, col++), item.GhiChu ?? "");

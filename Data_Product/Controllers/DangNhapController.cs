@@ -39,7 +39,8 @@ namespace Data_Product.Controllers
 
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                    return RedirectToAction("Index", "Home");
+                    //return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Dashboard");
 
                 }
                 else

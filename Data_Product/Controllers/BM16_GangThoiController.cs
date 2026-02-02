@@ -1801,7 +1801,7 @@ namespace Data_Product.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAutoSourceData(string fromDateStr, string toDateStr, int idLoCao)
+        public async Task<IActionResult> GetAutoSourceData(string fromDateStr, string toDateStr, int idLoCao, string maPhieu = null)
         {
             if (!DateTime.TryParse(fromDateStr, out var fromTime))
                 return BadRequest("Từ ngày/giờ không hợp lệ.");
@@ -1815,11 +1815,11 @@ namespace Data_Product.Controllers
             // Dispatch: lò 1..4 => RailScale; lò 5/6 => lấy từ DbContext (LogDataBf5/6)
             if (idLoCao >= 1 && idLoCao <= 4)
             {
-                return await GetAutoSourceDataRail_Internal(fromTime, toTime, idLoCao);
+                return await GetAutoSourceDataRail_Internal(fromTime, toTime, idLoCao, maPhieu);
             }
             else if (idLoCao == 5 || idLoCao == 6)
             {
-                return await GetAutoSourceDataBF_Internal(fromTime, toTime, idLoCao);
+                return await GetAutoSourceDataBF_Internal(fromTime, toTime, idLoCao, maPhieu);
             }
             else
             {
@@ -1827,15 +1827,17 @@ namespace Data_Product.Controllers
             }
         }
 
-        private async Task<IActionResult> GetAutoSourceDataRail_Internal(DateTime fromTime, DateTime toTime, int idLoCao)
+        private async Task<IActionResult> GetAutoSourceDataRail_Internal(DateTime fromTime, DateTime toTime, int idLoCao, string maPhieu = null)
         {
             try
             {
+                //var maPhieu = HttpContext.Request.Query["maPhieu"].ToString();
+
                 var query = _context.Tbl_CanRayLG1.AsQueryable();
                 query = query.Where(d => d.ID_LoCao == idLoCao && d.Gio >= fromTime && d.Gio <= toTime);
 
                 var rawData = await query
-                    .OrderBy(d => d.Gio)
+                    .OrderByDescending(d => d.Gio)
                     .Take(1000)
                     .Select(d => new
                     {
@@ -1853,11 +1855,24 @@ namespace Data_Product.Controllers
                         SoMe_Cleared = d.SoMe_Cleared
                     })
                     .ToListAsync();
-
+                // Lấy danh sách số mẻ đã chốt (G_ID_TrangThai = 3)
+                var lockedSoMeList = new HashSet<string>();
+                if (!string.IsNullOrWhiteSpace(maPhieu))
+                {
+                    lockedSoMeList = (await _context.Tbl_BM_16_GangLong
+                        .Where(x => x.MaPhieu == maPhieu && x.ID_TrangThai == 5 && !string.IsNullOrEmpty(x.BKMIS_SoMe))
+                        .Select(x => x.BKMIS_SoMe.Trim())
+                        .Distinct()
+                        .ToListAsync())
+                        .ToHashSet();
+                }
                 int rowId = 0;
                 var list = rawData.Select(d =>
                 {
                     rowId++;
+                    var soMe = d.BKMIS_SoMe?.Trim() ?? "";
+                    var isLocked = !string.IsNullOrEmpty(soMe) && soMe != "0" && lockedSoMeList.Contains(soMe);
+
                     return new MappingCanRayDto
                     {
                         RowId = rowId,
@@ -1872,7 +1887,8 @@ namespace Data_Product.Controllers
                         SanRaGang = d.SanRaGang,
                         BKMIS_SoMe = d.BKMIS_SoMe,
                         GhiChu = d.GhiChu,
-                        SoMe_Cleared = d.SoMe_Cleared
+                        SoMe_Cleared = d.SoMe_Cleared,
+                        IsLocked = isLocked
                     };
                 }).ToList();
 
@@ -1883,7 +1899,7 @@ namespace Data_Product.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Lỗi không xác định khi lấy dữ liệu RailScale.");
             }
         }
-        private async Task<IActionResult> GetAutoSourceDataBF_Internal(DateTime fromTime, DateTime toTime, int idLoCao)
+        private async Task<IActionResult> GetAutoSourceDataBF_Internal(DateTime fromTime, DateTime toTime, int idLoCao, string maPhieu = null)
         {
 
 
@@ -1892,7 +1908,8 @@ namespace Data_Product.Controllers
                 // 1. KIỂM TRA ĐẦU VÀO
                 if (idLoCao != 5 && idLoCao != 6)
                     return BadRequest("idLoCao phải là 5 hoặc 6.");
-
+              ///  var maPhieu = HttpContext.Request.Query["maPhieu"].ToString();
+              ///  
                 var query = _context.Tbl_CanRayLG2.AsQueryable();
 
                 // 2.2. Lọc theo ID Lò Cao và Khoảng thời gian
@@ -1902,7 +1919,7 @@ namespace Data_Product.Controllers
 
                 // 2.3. Sắp xếp và Giới hạn TOP (1000)
                 var rawData = await query
-                    .OrderBy(d => d.BF_Timestap)
+                    .OrderByDescending(d => d.BF_Timestap)
                     .Take(1000)
                     .Select(d => new
                     {
@@ -1924,12 +1941,24 @@ namespace Data_Product.Controllers
                     })
                     .ToListAsync(); // Thực thi truy vấn và tải dữ liệu
 
+                // Lấy danh sách số mẻ đã chốt
+                var lockedSoMeList = new HashSet<string>();
+                if (!string.IsNullOrWhiteSpace(maPhieu))
+                {
+                    lockedSoMeList = (await _context.Tbl_BM_16_GangLong
+                        .Where(x => x.MaPhieu == maPhieu && x.ID_TrangThai == 5 && !string.IsNullOrEmpty(x.BKMIS_SoMe))
+                        .Select(x => x.BKMIS_SoMe.Trim())
+                        .Distinct()
+                        .ToListAsync())
+                        .ToHashSet();
+                }
 
                 int rowId = 0;
                 var list = rawData.Select(d =>
                 {
                     rowId++;
-
+                    var soMe = d.BKMIS_SoMe?.Trim() ?? "";
+                    var isLocked = !string.IsNullOrEmpty(soMe) && soMe != "0" && lockedSoMeList.Contains(soMe);
                     return new MappingCanRayDto
                     {
                         RowId = rowId,
@@ -1949,7 +1978,8 @@ namespace Data_Product.Controllers
                         SanRaGang = d.Casthouse,
                         BKMIS_SoMe = d.BKMIS_SoMe,
                         GhiChu = d.GhiChu,
-                        SoMe_Cleared = d.SoMe_Cleared
+                        SoMe_Cleared = d.SoMe_Cleared,
+                        IsLocked = isLocked
                     };
                 }).ToList();
 
@@ -2104,6 +2134,17 @@ namespace Data_Product.Controllers
                                     .FirstOrDefault();
                                 if (gioChot != default(DateTime))
                                     thung.Gio_NM = gioChot.ToString("HH:mm");
+
+                                // Kiểm tra đủ dữ liệu để cập nhật trạng thái "Đã xử lý"
+                                bool duDuLieu = thung.KL_XeGoong != null &&
+                                                thung.G_KLThungChua != null &&
+                                                thung.G_KLThungVaGang != null &&
+                                                thung.G_KLGangLong != null &&
+                                                !string.IsNullOrEmpty(thung.ChuyenDen) &&
+                                                thung.Gio_NM != null;
+
+                                // Cập nhật trạng thái: 3 = Đã xử lý, 1 = Chưa xử lý
+                                thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
                             }
                         }
 
