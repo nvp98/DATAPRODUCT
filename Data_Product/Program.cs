@@ -41,8 +41,8 @@ builder.Services.AddScoped<GetBkmisService>();
 builder.Services.AddDbContext<DataContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString") ?? throw new InvalidOperationException("Connection string 'ConnectionString' not found.")));
 
-builder.Services.AddScoped<IHRC1LuyenThepService, HRC1LuyenThepService>();
-
+builder.Services.AddScoped<IHRC1LuyenThepService, HRC1LuyenThepService>(); 
+builder.Services.AddScoped<INhanGangService, NhanGangService>();
 ////Đăng ký BackgroundService tự động tạo phiếu
 //builder.Services.AddHostedService<TaoPhieuTuDongBackgroundService>();
 //builder.Services.AddQuartz(q =>

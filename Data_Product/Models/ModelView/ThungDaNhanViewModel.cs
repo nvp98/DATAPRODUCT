@@ -143,4 +143,30 @@ namespace Data_Product.Models.ModelView
         public string? MaChiaGang { get; set; }
     }
 
+    public class ThongTinMeGocModel
+    {
+        public int ID { get; set; }
+        public string? MeThoi { get; set; }
+        public int? Ca { get; set; }
+        public DateTime? NgayTao { get; set; }
+    }
+
+    public class ThongTinMeChuyenModel
+    {
+        public int TuMeID { get; set; }
+        public int TuLoID { get; set; }
+        public string MeThoi { get; set; }
+        public int Ca { get; set; }
+        public DateTime NgayTao { get; set; }
+        public bool? IsUsed { get; set; }
+        public bool? IsChuyenDen { get; set; }
+        public ThongTinMeGocModel? MeCha { get; set; }
+    }
+    public class ThongTinMeThoiATModel
+    {
+        public Tbl_KLGangVaoBOFBase ThungGoc { get; set; }
+        public ThongTinMeChuyenModel? ThungChuyen { get; set; }
+        public bool DaTachMe { get; set; }
+        public bool ChaDaChuyen { get; set; }
+    }
 }

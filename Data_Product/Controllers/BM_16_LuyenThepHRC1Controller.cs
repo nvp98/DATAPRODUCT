@@ -40,16 +40,62 @@ namespace Data_Product.Controllers
         [HttpPost]
         public async Task<IActionResult> ChuyenMe([FromBody] ChuyenMeGangDto dto)
         {
-            await this._hrc1LuyenThepService.ChuyenMeGangAsync(dto);
-            return Ok();
+            try
+            {
+                await this._hrc1LuyenThepService.ChuyenMeGangAsync(dto);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            
         }
 
         [HttpPost]
         public async Task<IActionResult> ThuHoiMe([FromBody] ThuHoiMeDto dto)
         {
-            await this._hrc1LuyenThepService.ThuHoiMeGangAsync(dto);
-            return Ok();
+            try
+            {
+                await this._hrc1LuyenThepService.ThuHoiMeGangAsync(dto);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> LayThongTinMeAT([FromBody] ThongTinMeThoiATDto payload)
+        {
+            try
+            {
+               
+                var data = await this._hrc1LuyenThepService.ThongTinMeThoiAT(payload);
+                return Ok(new { data });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+            
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> XoaMeTaoTay([FromBody] XoaMeTaoTayDto payload)
+        {
+            try
+            {
+
+                var kq = await this._hrc1LuyenThepService.XoaMeTaoTayAsync(payload);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+
+        }
     }
 }

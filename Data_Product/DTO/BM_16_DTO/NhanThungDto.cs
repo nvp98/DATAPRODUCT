@@ -1,4 +1,6 @@
-﻿namespace Data_Product.DTO.BM_16_DTO
+﻿using System.Text.Json.Serialization;
+
+namespace Data_Product.DTO.BM_16_DTO
 {
     public class NhanThungDto
     {
@@ -55,5 +57,8 @@
         public string NoiNhan { get; set; }
         public string thungTrungGian { get; set; }
         public int idThungAT { get; set; }
+
+        [JsonIgnore]                 // 🔴 QUAN TRỌNG
+        public bool IsChildRun { get; set; } = false;
     }
 }
