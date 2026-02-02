@@ -1,4 +1,6 @@
-﻿namespace Data_Product.DTO.BM_16_DTO
+﻿using System.Text.Json.Serialization;
+
+namespace Data_Product.DTO.BM_16_DTO
 {
     public class NhanThungDto
     {
@@ -43,5 +45,20 @@
     {
         public string MaPhieu { get; set; }
         public List<ThungGangDto> DsMaThung { get; set; }
+    }
+
+    public class MocNoiThung
+    {
+        public List<selectedThungsDto> selectedThungs { get; set; }
+        public DateTime ngayNhan { get; set; }
+        public int idCa { get; set; }
+        public int idLoThoi { get; set; }
+        public int idNguoiNhan { get; set; }
+        public string NoiNhan { get; set; }
+        public string thungTrungGian { get; set; }
+        public int idThungAT { get; set; }
+
+        [JsonIgnore]                 // 🔴 QUAN TRỌNG
+        public bool IsChildRun { get; set; } = false;
     }
 }

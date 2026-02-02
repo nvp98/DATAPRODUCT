@@ -59,4 +59,28 @@
     {
         public int id { get; set; }
     }
+
+    public class LoadDanhSachThungThepHRC1ATDto
+    {
+        public int IdLoThoi { get; set; }
+
+        public DateTime? NgaySanXuat { get; set; }
+
+        public int? Ca { get; set; }
+        public DateTime? TuNgay { get; set; }
+        public DateTime? DenNgay { get; set; }
+        public string? MeThoi { get; set; }
+        public bool? TrangThaiAT { get; set; }
+    }
+
+    public class ThongTinMeThoiATDto {
+        public int IdLoThoi { get; set; }
+        public string MeThoi { get; set; }
+    }
+
+    public class XoaMeTaoTayDto
+    {
+        public int IdLoThoi { get; set; }
+        public int Id { get; set; }
+    }
 }

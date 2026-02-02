@@ -1,11 +1,14 @@
-﻿using Data_Product.DTO;
+﻿using Data_Product.Common;
+using Data_Product.DTO;
 using Data_Product.DTO.BM_16_DTO;
 using Data_Product.Models;
 using Data_Product.Models.ModelView;
 using Data_Product.Repositorys;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 
 namespace Data_Product.Services
@@ -17,6 +20,7 @@ namespace Data_Product.Services
         Task KiemTraVaTinhLaiTheoMaThungGangAsync(string maThungGang);
         Task<ChiaGangResultModel> GetDetailChiaGangAsync(string maThungThep);
         Task<ChiTietChiaGangResponse> GetDetailChiaGangCRAsync(DetailChiaGangCRDto dto);
+        Task GopThungGangAsync(GopThungGangDto payload, string tenTaiKhoan);
     }
     public class ChiaGangService : IChiaGangService
     {
@@ -953,7 +957,74 @@ namespace Data_Product.Services
             }
         }
 
+        public async Task GopThungGangAsync(GopThungGangDto payload, string tenTaiKhoan)
+        {
+            if (payload.IDs == null || payload.IDs.Count == 0)
+                throw new Exception("Danh sách ID trống.");
 
+            var idSet = payload.IDs.ToHashSet();
 
+            // 1️⃣ Validate danh sách thùng
+            var danhsachThung = await _context.Tbl_BM_16_GangLong
+                .AsNoTracking()
+                .Where(a => idSet.Contains(a.ID))
+                .Select(a => new
+                {
+                    a.MaThungGang,
+                    a.BKMIS_ThungSo,
+                    a.ID,
+                    a.T_KLGangLong,
+                    a.ID_TTG
+                })
+                .ToListAsync();
+
+            if (danhsachThung.Count != idSet.Count)
+                throw new Exception("Một số ID không tồn tại hoặc không hợp lệ.");
+
+            if (danhsachThung.GroupBy(x => x.MaThungGang).Any(g => g.Count() > 1))
+                throw new Exception("Các mã thùng gang phải khác nhau.");
+
+            if (danhsachThung.Select(x => x.BKMIS_ThungSo).Distinct().Count() != 1)
+                throw new Exception("Các thùng gang phải có cùng thùng số.");
+
+            // 2️⃣ Check riêng cho HRC2
+            if (payload.PhongBan == "HRC2")
+            {
+                var listID_TTGs = danhsachThung.Select(a => a.ID_TTG).ToList();
+                var first = listID_TTGs.First();
+                if (!listID_TTGs.All(x => x == first))
+                    throw new Exception("Các thùng phải nằm trong cùng 1 Thùng trung gian.");
+            }
+           
+            // 3️⃣ Lấy tài khoản thao tác
+            var taiKhoan = await _context.Tbl_TaiKhoan
+                .Where(x => x.TenTaiKhoan == tenTaiKhoan)
+                .Select(x => new { x.ID_TaiKhoan })
+                .FirstOrDefaultAsync();
+
+            if (taiKhoan == null)
+                throw new Exception("Không xác định được tài khoản thao tác.");
+
+            // 4️⃣ Sinh mã chia gang
+            string maChiaGang = "CG" + TaoMa.GenerateSafeCode(8);
+
+            // 5️⃣ Lấy danh sách thùng gang gốc
+            var gangLongList = await _context.Tbl_BM_16_GangLong
+                .Where(x => payload.IDs.Contains(x.ID))
+                .ToListAsync();
+
+            var listChiaGang = gangLongList.Select(item => new Tbl_BM_16_ChiaGang
+            {
+                ID_Thung = item.ID,
+                MaChiaGang = maChiaGang,
+                MaThungGang = item.MaThungGang,
+                MaThungThep = item.MaThungThep,
+                ID_NguoiChia = taiKhoan.ID_TaiKhoan
+            }).ToList();
+
+            // 6️⃣ Insert
+            _context.Tbl_BM_16_ChiaGang.AddRange(listChiaGang);
+            await _context.SaveChangesAsync();
+        }
     }
 }

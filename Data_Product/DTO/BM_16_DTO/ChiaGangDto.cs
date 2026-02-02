@@ -11,7 +11,7 @@
 
     }
 
-    public class GopThungGang
+    public class GopThungGangDto
     {
         public List<int> IDs { get; set; }
         public string PhongBan { get; set; }

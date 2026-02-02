@@ -1,0 +1,241 @@
+﻿@{
+    ViewData["Title"] = "Danh sách lý do xử lý mẻ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<style>
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background-color: #28a745;
+        color: #fff;
+    }
+
+    .status-inactive {
+        background-color: #6c757d;
+        color: #fff;
+    }
+</style>
+
+<div class="app-main__outer">
+    <div class="app-main__inner">
+
+        <div class="card">
+            <div class="card-header">
+                <b style="color:#06428b;font-size: 16px;">DANH SÁCH LÝ DO XỬ LÝ MẺ</b>
+            </div>
+
+            <div class="card-body">
+
+                <!-- FILTER -->
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <input type="text" id="txtSearch" class="form-control" placeholder="Tìm kiếm lý do..." />
+                    </div>
+                    <div class="col-md-2">
+                        <select id="ddlTrangThai" class="form-select">
+                            <option value="">-- Trạng thái --</option>
+                            <option value="true">Đang sử dụng</option>
+                            <option value="false">Ngưng sử dụng</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" id="TuNgay" class="form-control" />
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" id="DenNgay" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-primary" id="btn-search">
+                            <i class="bi bi-search"></i> Tìm kiếm
+                        </button>
+                        <button class="btn btn-success" id="btn-add">
+                            <i class="bi bi-plus"></i> Thêm mới
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABLE -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="10%">STT</th>
+                                <th width="40%">Lý do</th>
+                                <th width="15%">Trạng thái</th>
+                                <th width="20%">Ngày tạo</th>
+                                <th width="15%">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- PAGINATION -->
+                <ul id="pagination" class="pagination justify-content-center"></ul>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="modalLyDo" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lý do xử lý mẻ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="hdID" />
+                <div class="mb-3">
+                    <label class="form-label">Lý do</label>
+                    <input type="text" id="txtLyDo" class="form-control" />
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="chkTrangThai" class="form-check-input" />
+                    <label class="form-check-label">Đang sử dụng</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="btn-save">Lưu</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentPage = 1;
+    const pageSize = 20;
+
+    function Search() {
+        const dto = {
+            PageNumber: currentPage,
+            PageSize: pageSize,
+            SearchText: $('#txtSearch').val(),
+            TrangThai: $('#ddlTrangThai').val() === "" ? null : $('#ddlTrangThai').val() === "true",
+            TuNgay: $('#TuNgay').val() || null,
+            DenNgay: $('#DenNgay').val() || null
+        };
+
+        $.ajax({
+            url: '/LyDoXuLyMe/Search',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(dto),
+            success: res => {
+                renderTable(res.data);
+                renderPagination(res.totalRecords);
+            }
+        });
+    }
+
+    function renderTable(data) {
+        const tbody = $('#tblBody');
+        tbody.empty();
+
+        if (!data || data.length === 0) {
+            tbody.append(`<tr><td colspan="5">Không có dữ liệu</td></tr>`);
+            return;
+        }
+
+        let index = (currentPage - 1) * pageSize + 1;
+
+        data.forEach(item => {
+            const statusHtml = item.trangThai
+                ? `<span class="status-badge status-active">Đang dùng</span>`
+                : `<span class="status-badge status-inactive">Ngưng dùng</span>`;
+
+            tbody.append(`
+                <tr data-id="${item.id}">
+                    <td>${index++}</td>
+                    <td class="text-start">${item.lyDo}</td>
+                    <td>${statusHtml}</td>
+                    <td>${item.ngayTao ? item.ngayTao.substring(0,10) : ''}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning btn-edit">Sửa</button>
+                        <button class="btn btn-sm btn-secondary btn-toggle">Bật/Tắt</button>
+                        <button class="btn btn-sm btn-danger btn-delete">Xóa</button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    function renderPagination(total) {
+        const totalPages = Math.ceil(total / pageSize);
+        const ul = $('#pagination');
+        ul.empty();
+
+        for (let i = 1; i <= totalPages; i++) {
+            ul.append(`<li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#">${i}</a>
+            </li>`);
+        }
+
+        $('#pagination .page-link').on('click', function () {
+            currentPage = parseInt($(this).text());
+            Search();
+        });
+    }
+
+    $('#btn-search').click(() => { currentPage = 1; Search(); });
+    $('#btn-add').click(() => {
+        $('#hdID').val('');
+        $('#txtLyDo').val('');
+        $('#chkTrangThai').prop('checked', true);
+        $('#modalLyDo').modal('show');
+    });
+
+    $('#btn-save').click(() => {
+        const payload = {
+            ID: $('#hdID').val() || null,
+            LyDo: $('#txtLyDo').val(),
+            TrangThai: $('#chkTrangThai').is(':checked')
+        };
+
+        $.ajax({
+            url: '/LyDoXuLyMe/UpsertLyDoXuLyMe',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: res => {
+                alert('Lưu thành công');
+                $('#modalLyDo').modal('hide');
+                Search();
+            }
+        });
+    });
+
+    $(document).on('click', '.btn-edit', function () {
+        const row = $(this).closest('tr');
+        $('#hdID').val(row.data('id'));
+        $('#txtLyDo').val(row.find('td:eq(1)').text());
+        $('#chkTrangThai').prop('checked', row.find('.status-active').length > 0);
+        $('#modalLyDo').modal('show');
+    });
+
+    $(document).on('click', '.btn-toggle', function () {
+        const id = $(this).closest('tr').data('id');
+        $.post('/LyDoXuLyMe/ToggleTrangThaiLyDoXuLyMe', { id }, () => Search());
+    });
+
+    $(document).on('click', '.btn-delete', function () {
+        if (!confirm('Xác nhận xóa?')) return;
+        const id = $(this).closest('tr').data('id');
+        $.post('/LyDoXuLyMe/DeleteLyDoXuLyMe', { id }, () => Search());
+    });
+
+    $(document).ready(Search);
+</script>

@@ -551,9 +551,9 @@ namespace Data_Product.Controllers
             }
 
             if (!string.IsNullOrEmpty(dto.ChuyenDen))
-                baseQuery = baseQuery.Where(x => x.ChuyenDen.Contains(dto.ChuyenDen));
+                baseQuery = baseQuery.Where(x => x.ChuyenDen.Contains(dto.ChuyenDen.Trim()));
             if (!string.IsNullOrEmpty(dto.ThungSo))
-                baseQuery = baseQuery.Where(x => x.BKMIS_ThungSo.Contains(dto.ThungSo));
+                baseQuery = baseQuery.Where(x => x.BKMIS_ThungSo.Contains(dto.ThungSo.Trim()));
 
             if (dto.ID_TinhTrang.HasValue)
             {
@@ -573,16 +573,16 @@ namespace Data_Product.Controllers
                 baseQuery = baseQuery.Where(x => x.G_ID_TrangThai == dto.ID_TinhTrang_LG.Value);
 
             if (!string.IsNullOrEmpty(dto.MaThungGang))
-                baseQuery = baseQuery.Where(x => x.MaThungGang.Contains(dto.MaThungGang));
+                baseQuery = baseQuery.Where(x => x.MaThungGang.Contains(dto.MaThungGang.Trim()));
             if (!string.IsNullOrEmpty(dto.MaThungThep))
-                baseQuery = baseQuery.Where(x => x.MaThungThep.Contains(dto.MaThungThep));
+                baseQuery = baseQuery.Where(x => x.MaThungThep.Contains(dto.MaThungThep.Trim()));
 
             if (!string.IsNullOrEmpty(dto.MaMeThoi))
             {
                 var idTTGList = await _context.Tbl_BM_16_ThungTrungGian
                     .Where(x => x.ID_MeThoi.HasValue &&
                                 _context.Tbl_MeThoi
-                                    .Where(m => m.MaMeThoi.Contains(dto.MaMeThoi))
+                                    .Where(m => m.MaMeThoi.Contains(dto.MaMeThoi.Trim()))
                                     .Select(m => m.ID)
                                     .Contains(x.ID_MeThoi.Value))
                     .Select(x => x.ID)
@@ -594,7 +594,7 @@ namespace Data_Product.Controllers
             if (!string.IsNullOrEmpty(dto.SoThungTG))
             {
                 var idTTGList = await _context.Tbl_BM_16_ThungTrungGian
-                    .Where(x => x.SoThungTG.Contains(dto.SoThungTG))
+                    .Where(x => x.SoThungTG.Contains(dto.SoThungTG.Trim()))
                     .Select(x => x.ID)
                     .ToListAsync();
                 baseQuery = baseQuery.Where(x => x.ID_TTG.HasValue && idTTGList.Contains(x.ID_TTG.Value));

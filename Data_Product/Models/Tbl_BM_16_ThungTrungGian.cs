@@ -31,5 +31,6 @@ namespace Data_Product.Models
 
         public bool? IsNhap { get; set; }
         public string? NoiNhan { get; set; }
+        //public string? MeThoi { get; set; }
     }
 }
