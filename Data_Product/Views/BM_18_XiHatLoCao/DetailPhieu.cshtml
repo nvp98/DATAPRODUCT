@@ -527,10 +527,7 @@
 
 	// Lưu trữ danh sách lô để dùng cho dòng mới
 	let cacLoHienCo = [];
-	function round3(num)
-		{
-			return Math.round((num + Number.EPSILON) * 1000) / 1000;
-		}
+
 
 	$(document).ready(function () {
 		// Khởi tạo Select2 cho các dropdown riêng biệt:
@@ -655,7 +652,10 @@
 			tbody.find("tr:last-child input[name='KL_Gang_Giao']").trigger('input');
 			$('.bm18-table-wrapper').scrollTop($('.bm18-table-wrapper')[0].scrollHeight);
 		});
-	
+		function round3(num)
+		{
+			return Math.round((num + 1e-9) * 1000) / 1000;
+		}
 		// --- 3. Sự kiện Tự động Tính KL Xỉ ---
 		$(document).on("input", 'input[name="KL_Gang_Giao"], input[name="KL_Gang_Nhan"], input[name="HeSo"]', function () {
 			const row = $(this).closest("tr");
