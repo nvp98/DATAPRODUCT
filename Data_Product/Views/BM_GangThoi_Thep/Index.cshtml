@@ -3012,7 +3012,7 @@
             const canEdit = !goc.isNM && !goc.isUsed && !item.chaDaChuyen;
             const meTach = !chuyen && !!goc.parentID;
 
-            const hideCheckBox = meTach || goc.isChuyenMe;
+            const hideCheckBox = meTach || goc.isChuyenMe || goc.klGang < 0;
             const tinhTrangHtml = isLocked ? renderStatusCard(6) : '';
             const canDelete = canEdit && !(chuyen?.isChuyenDen === true || goc?.isChuyenMe === true);
 
@@ -3088,7 +3088,7 @@
                             : ''
                     }
                 </td>
-                    ${isLocked ? `<td style="display: flex;align-items: center;justify-content: center;">${tinhTrangHtml}</td>` 
+                    ${isLocked || goc.klGang < 0 ? `<td style="display: flex;align-items: center;justify-content: center;">${tinhTrangHtml}</td>`
                     : `<td>
                         <button class="btn btn-sm btn-warning btn-edit-row"
                                 style="display:${canEdit && !goc.isChuyenMe ? 'inline-block' : 'none'}">

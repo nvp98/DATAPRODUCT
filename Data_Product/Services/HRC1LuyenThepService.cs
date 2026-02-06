@@ -386,13 +386,24 @@ namespace Data_Product.Services
                 if (!listThungGang.Any())
                     throw new Exception("Danh sách thùng gang không hợp lệ.");
 
+                var klThungVaGang_R = Math.Round(
+                    thungGangAt.KLThungVaGang ?? 0m,
+                    2,
+                    MidpointRounding.AwayFromZero
+                );
+
+                var klThung_R = Math.Round(
+                    thungGangAt.KLThung ?? 0m,
+                    2,
+                    MidpointRounding.AwayFromZero
+                );
+
+                var klGang_R = klThungVaGang_R - klThung_R;
                 foreach (var thungGang in listThungGang)
                 {
-                    thungGang.T_KLThungVaGang = thungGangAt.KLThungVaGang;
-                    thungGang.T_KLThungChua = thungGangAt.KLThung;
-                    thungGang.T_KLGangLong =
-                        (thungGangAt.KLThungVaGang ?? 0)
-                        - (thungGangAt.KLThung ?? 0);
+                    thungGang.T_KLThungVaGang = klThungVaGang_R;
+                    thungGang.T_KLThungChua = klThung_R;
+                    thungGang.T_KLGangLong = klGang_R;
 
                     var thungTG = await _context.Tbl_BM_16_ThungTrungGian
                         .FirstOrDefaultAsync(x => x.ID == thungGang.ID_TTG);
@@ -407,13 +418,11 @@ namespace Data_Product.Services
 
                         thungTG.ID_MeThoi = meThoiExist.ID;
                         thungTG.GioChonMe = thungGangAt.ThoiDiemRot;
-                        thungTG.KLThungVaGang_Thoi = thungGangAt.KLThungVaGang;
-                        thungTG.KLThung_Thoi = thungGangAt.KLThung;
-                        thungTG.KLGang_Thoi =
-                            (thungGangAt.KLThungVaGang ?? 0)
-                            - (thungGangAt.KLThung ?? 0);
-                        thungTG.Tong_KLGangNhan = (thungGangAt.KLThungVaGang ?? 0)
-                            - (thungGangAt.KLThung ?? 0);
+
+                        thungTG.KLThungVaGang_Thoi = klThungVaGang_R;
+                        thungTG.KLThung_Thoi = klThung_R;
+                        thungTG.KLGang_Thoi = klGang_R;
+                        thungTG.Tong_KLGangNhan = klGang_R;
                     }
 
                     _context.Tbl_MocNoiThungGangAT.Add(new Tbl_MocNoiThungGangAT
