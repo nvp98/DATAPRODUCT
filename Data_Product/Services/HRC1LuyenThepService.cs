@@ -337,7 +337,7 @@ namespace Data_Product.Services
 
                 // 4️⃣ Lấy các móc nối đã tồn tại của chuỗi
                 var oldMocNoi = await _context.Tbl_MocNoiThungGangAT
-                    .Where(x => meIdsInChain.Contains(x.IdThungGangAT))
+                    .Where(x => x.IdLoThoi == rootLoID && meIdsInChain.Contains(x.IdThungGangAT))
                     .ToListAsync();
 
                 if (oldMocNoi.Any())
