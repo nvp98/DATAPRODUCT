@@ -212,5 +212,11 @@ namespace Data_Product.Models
         public decimal? KLChiaXiKR { get; set; }
 
         public decimal? KLGangCCTVaXi { get; set; }
+
+
+        public int? Temp { get; set; }
+
+        [Column(TypeName = "decimal(10, 3)")]
+        public decimal? Si { get; set; }
     }
 }
