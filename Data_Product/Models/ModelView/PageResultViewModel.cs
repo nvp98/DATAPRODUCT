@@ -13,7 +13,7 @@
         public decimal SumKLXiKR { get; set; }
         public decimal SumKLChiaXiKR { get; set; }
         public decimal SumKLGangCCTVaXi { get; set; }
-
+        public decimal AvgSilic{ get; set; }
         public List<T> Data { get; set; } = new();
     }
 }

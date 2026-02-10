@@ -53,8 +53,171 @@ namespace Data_Product.Services
             if (thongTinMe != null) return thongTinMe;
             return new Tbl_KLGangVaoBOFBase();
         }
-
         public async Task<List<ThongTinMeThoiATModel>> LoadDanhSachThungThepHRC1ATAsync(
+    LoadDanhSachThungThepHRC1ATDto dto)
+        {
+            IQueryable<Tbl_KLGangVaoBOFBase> query = GetBOFQuery(dto.IdLoThoi);
+
+            // ===============================
+            // 1️⃣ FILTER THEO THỜI GIAN
+            // ===============================
+            if (dto.TuNgay.HasValue && dto.DenNgay.HasValue)
+            {
+                var tuNgay = dto.TuNgay.Value;
+                var denNgay = dto.DenNgay.Value;
+
+                query = query.Where(x =>
+                    x.NgayTao.HasValue &&
+                    x.NgayTao.Value >= tuNgay &&
+                    x.NgayTao.Value <= denNgay
+                );
+            }
+            else
+            {
+                if (!dto.NgaySanXuat.HasValue)
+                    return new List<ThongTinMeThoiATModel>();
+
+                var start = dto.NgaySanXuat.Value.Date;
+                var end = start.AddDays(1);
+
+                query = query.Where(x =>
+                    x.NgaySanXuat >= start &&
+                    x.NgaySanXuat < end
+                );
+
+                if (dto.Ca.HasValue)
+                {
+                    query = query.Where(x => x.Ca == dto.Ca.Value);
+                }
+            }
+
+            // ===============================
+            // 2️⃣ FILTER NGHIỆP VỤ
+            // ===============================
+            if (!string.IsNullOrWhiteSpace(dto.MeThoi))
+            {
+                var meThoi = dto.MeThoi.Trim();
+                query = query.Where(x => x.MeThoi.Contains(meThoi));
+            }
+
+            if (dto.TrangThaiAT.HasValue)
+            {
+                query = dto.TrangThaiAT.Value
+                    ? query.Where(x => x.IsUsed == true)
+                    : query.Where(x => x.IsUsed == null);
+            }
+
+            // ===============================
+            // 3️⃣ LOAD + SORT (CHA → CON → NGÀY)
+            // ===============================
+            var mesRaw = await query.ToListAsync();
+
+            if (mesRaw.Count == 0)
+                return new List<ThongTinMeThoiATModel>();
+
+            var mes = mesRaw
+                .OrderByDescending(x => x.ParentID == null)          // 🔴 CHA trước
+                .ThenByDescending(x => x.ParentID ?? x.ID)           // 🔴 Gom theo mẻ gốc
+                .ThenBy(x => x.ParentID.HasValue)                     // 🔴 CHA rồi đến CON
+                .ThenByDescending(x => x.NgayTao)                     // 🔴 Trong cụm theo thời gian
+                .ToList();
+
+            // ===============================
+            // 4️⃣ BUILD LOOKUP CƠ BẢN
+            // ===============================
+            var parentHasChildSet = mes
+                .Where(x => x.ParentID.HasValue)
+                .Select(x => x.ParentID!.Value)
+                .ToHashSet();
+
+            var meByIdLookup = mes.ToDictionary(x => x.ID, x => x);
+
+            // ===============================
+            // 5️⃣ LOAD CHUYỂN MẺ (1 QUERY)
+            // ===============================
+            var ids = mes.Select(x => x.ID).ToList();
+
+            var chuyenMes = await _context.Tbl_BOF_ChuyenMe
+                .Where(cm =>
+                    (cm.TuLoID == dto.IdLoThoi && ids.Contains(cm.TuMeID)) ||
+                    (cm.DenLoID == dto.IdLoThoi && ids.Contains(cm.DenMeID))
+                )
+                .ToListAsync();
+
+            // ===============================
+            // 6️⃣ BUILD LOOKUP CHUYỂN MẺ
+            // ===============================
+            var chuyenDiLookup = chuyenMes
+                .Where(x => x.TuLoID == dto.IdLoThoi)
+                .ToDictionary(x => x.TuMeID, x => x);
+
+            var chuyenDenLookup = chuyenMes
+                .Where(x => x.DenLoID == dto.IdLoThoi)
+                .ToDictionary(x => x.DenMeID, x => x);
+
+            // ===============================
+            // 7️⃣ MAP CHA THẬT (CHUYỂN ĐẾN)
+            // ===============================
+            var meChaLookup = new Dictionary<int, Tbl_KLGangVaoBOFBase>();
+
+            var chuyenDenGroups = chuyenMes
+                .Where(x => x.DenLoID == dto.IdLoThoi)
+                .GroupBy(x => x.TuLoID);
+
+            foreach (var group in chuyenDenGroups)
+            {
+                int tuLoID = group.Key;
+
+                var tuMeIds = group.Select(x => x.TuMeID).Distinct().ToList();
+
+                var conToParent = await GetBOFQuery(tuLoID)
+                    .Where(x => tuMeIds.Contains(x.ID) && x.ParentID.HasValue)
+                    .Select(x => new { ConID = x.ID, ChaID = x.ParentID!.Value })
+                    .ToListAsync();
+
+                if (!conToParent.Any()) continue;
+
+                var chaIds = conToParent.Select(x => x.ChaID).Distinct().ToList();
+
+                var chaEntities = await GetBOFQuery(tuLoID)
+                    .Where(x => chaIds.Contains(x.ID))
+                    .ToListAsync();
+
+                var chaById = chaEntities.ToDictionary(x => x.ID, x => x);
+
+                foreach (var map in conToParent)
+                {
+                    if (chaById.TryGetValue(map.ChaID, out var cha))
+                    {
+                        meChaLookup[map.ConID] = cha;
+                    }
+                }
+            }
+
+            // ===============================
+            // 8️⃣ MAP + RENDER
+            // ===============================
+            var result = new List<ThongTinMeThoiATModel>(mes.Count);
+
+            foreach (var me in mes)
+            {
+                result.Add(
+                    MapMeBestPractice(
+                        me,
+                        dto.IdLoThoi,
+                        chuyenDiLookup,
+                        chuyenDenLookup,
+                        parentHasChildSet,
+                        meChaLookup,
+                        meByIdLookup
+                    )
+                );
+            }
+
+            return result;
+        }
+
+        public async Task<List<ThongTinMeThoiATModel>> LoadDanhSachThungThepHRC1ATAsync2(
     LoadDanhSachThungThepHRC1ATDto dto)
         {
             IQueryable<Tbl_KLGangVaoBOFBase> query = GetBOFQuery(dto.IdLoThoi);
@@ -337,7 +500,7 @@ namespace Data_Product.Services
 
                 // 4️⃣ Lấy các móc nối đã tồn tại của chuỗi
                 var oldMocNoi = await _context.Tbl_MocNoiThungGangAT
-                    .Where(x => meIdsInChain.Contains(x.IdThungGangAT))
+                    .Where(x => x.IdLoThoi == rootLoID && meIdsInChain.Contains(x.IdThungGangAT))
                     .ToListAsync();
 
                 if (oldMocNoi.Any())
@@ -386,13 +549,24 @@ namespace Data_Product.Services
                 if (!listThungGang.Any())
                     throw new Exception("Danh sách thùng gang không hợp lệ.");
 
+                var klThungVaGang_R = Math.Round(
+                    thungGangAt.KLThungVaGang ?? 0m,
+                    2,
+                    MidpointRounding.AwayFromZero
+                );
+
+                var klThung_R = Math.Round(
+                    thungGangAt.KLThung ?? 0m,
+                    2,
+                    MidpointRounding.AwayFromZero
+                );
+
+                var klGang_R = klThungVaGang_R - klThung_R;
                 foreach (var thungGang in listThungGang)
                 {
-                    thungGang.T_KLThungVaGang = thungGangAt.KLThungVaGang;
-                    thungGang.T_KLThungChua = thungGangAt.KLThung;
-                    thungGang.T_KLGangLong =
-                        (thungGangAt.KLThungVaGang ?? 0)
-                        - (thungGangAt.KLThung ?? 0);
+                    thungGang.T_KLThungVaGang = klThungVaGang_R;
+                    thungGang.T_KLThungChua = klThung_R;
+                    thungGang.T_KLGangLong = klGang_R;
 
                     var thungTG = await _context.Tbl_BM_16_ThungTrungGian
                         .FirstOrDefaultAsync(x => x.ID == thungGang.ID_TTG);
@@ -407,13 +581,11 @@ namespace Data_Product.Services
 
                         thungTG.ID_MeThoi = meThoiExist.ID;
                         thungTG.GioChonMe = thungGangAt.ThoiDiemRot;
-                        thungTG.KLThungVaGang_Thoi = thungGangAt.KLThungVaGang;
-                        thungTG.KLThung_Thoi = thungGangAt.KLThung;
-                        thungTG.KLGang_Thoi =
-                            (thungGangAt.KLThungVaGang ?? 0)
-                            - (thungGangAt.KLThung ?? 0);
-                        thungTG.Tong_KLGangNhan = (thungGangAt.KLThungVaGang ?? 0)
-                            - (thungGangAt.KLThung ?? 0);
+
+                        thungTG.KLThungVaGang_Thoi = klThungVaGang_R;
+                        thungTG.KLThung_Thoi = klThung_R;
+                        thungTG.KLGang_Thoi = klGang_R;
+                        thungTG.Tong_KLGangNhan = klGang_R;
                     }
 
                     _context.Tbl_MocNoiThungGangAT.Add(new Tbl_MocNoiThungGangAT
@@ -515,7 +687,7 @@ namespace Data_Product.Services
                 // Lấy danh sách còn móc nối một lần
                 var thungATIds = thungGangATs.Select(x => x.ID).ToList();
                 var conMocNoiDict = await _context.Tbl_MocNoiThungGangAT
-                    .Where(x => thungATIds.Contains(x.IdThungGangAT) &&
+                    .Where(x => x.IdLoThoi == group.IdLoThoi && thungATIds.Contains(x.IdThungGangAT) &&
                                !idThungGangs.Contains(x.IdThungGang))
                     .Select(x => x.IdThungGangAT)
                     .Distinct()
@@ -619,6 +791,28 @@ namespace Data_Product.Services
             }
 
         }
+        private DateTime TinhNgayTaoTheoCa(
+            DateTime ngaySanXuat,
+            int ca,
+            TimeSpan gio
+        )
+        {
+            // Ca ngày: 08:00 - 20:00
+            if (ca == 1)
+            {
+                return ngaySanXuat.Date.Add(gio);
+            }
+
+            // Ca đêm: 20:00 - 08:00
+            // Từ 00:00 -> 08:00 là ngày hôm sau
+            if (ca == 2 && gio < new TimeSpan(8, 0, 0))
+            {
+                return ngaySanXuat.Date.AddDays(1).Add(gio);
+            }
+
+            // Ca đêm nhưng từ 20:00 -> 24:00
+            return ngaySanXuat.Date.Add(gio);
+        }
 
         private async Task MapDtoToEntity(
             Tbl_KLGangVaoBOFBase entity,
@@ -642,7 +836,11 @@ namespace Data_Product.Services
                 timeOfDay = DateTime.Now.TimeOfDay;
             }
 
-            var ngayTaoTheoThoiDiem = dto.NgaySanXuat.Date.Add(timeOfDay);
+            var ngayTaoTheoThoiDiem = TinhNgayTaoTheoCa(
+                dto.NgaySanXuat,
+                dto.Ca,
+                timeOfDay
+            );
 
 
             if (isNew)

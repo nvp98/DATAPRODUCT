@@ -270,6 +270,12 @@
     .tr-copy {
         background: #ffeaea
     }
+
+    .si-missing {
+        background-color: #ffd966 !important; /* vàng đậm, dễ nhìn */
+        font-weight: 600;
+    }
+
 </style>
 
 <div id="main-container" class="d-flex flex-column vh-100" style="position: relative; padding-bottom: 30px;">
@@ -532,6 +538,8 @@
                         <th class="sticky-col-6" style="min-width: 116px;">Số mẻ</th>
                         <th class="sticky-col-7" style="min-width: 69px;">Thùng số</th>
                         <th class="sticky-col-8" style="min-width: 53px;">Giờ lấy mẫu</th>
+                        <th class="hide-col">Nhiệt độ Gang (ºC)</th>
+                        <th class="hide-col">Si</th>
                         <th class="hide-col">Tình trạng QLCL</th>
                         <th class="hide-col" style="min-width: 70px;">Phân loại</th>
                         <th>Sàn ra gang</th>
@@ -618,7 +626,9 @@
                     </tr>
 
                     <tr style="height: 50px;">
-                        <td colspan="11" class="total-space" style="font-weight: 600; text-align: start">Tổng Tất Cả</td>
+                        <td class="total-space-text" style="font-weight: 600; text-align: start">Tổng Tất Cả</td>
+                        <td class="hide-col" style="font-weight: 600" id="IDAvgSi"></td>
+                        <td class="hide-col total-space-all"></td>
                         <td colspan="2" id="IDTongAllKLGangLong" style="font-weight: 600">
                             0.00
                         </td>
@@ -1377,6 +1387,21 @@
                     row.append(`<td class="sticky-col-6" ${item.t_copy || isCopy ? 'style="color: red;"' : ''}>${item.bkmiS_SoMe ?? ''}</td>`);
                     row.append(`<td class="sticky-col-7" style="font-weight: 600; font-size: 16px; background-color: #f9eadc;" ${item.t_copy || isCopy? 'style="color: red;"' : ''}>${item.bkmiS_ThungSo ?? ''}</td>`);
                     row.append(`<td class="sticky-col-8">${item.bkmiS_Gio ?? ''}</td>`);
+                    row.append(`<td class="hide-col">${item.temp ?? ''}</td>`);
+                    row.append(`
+                        <td class="hide-col ${
+                            item.t_copy === true
+                                ? ''
+                                : (item.si == null ? 'si-missing' : '')
+                        }">
+                            ${
+                                item.t_copy === true
+                                    ? ''
+                                    : (item.si ?? '')
+                            }
+                        </td>
+                    `);
+
                     row.append(`<td class="hide-col">${tinhTrangQLCLHTML}</td>`);
                     row.append(`<td class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
 
@@ -1499,6 +1524,11 @@
              $("#IDTongAllKLXiKR").text(res.sumKLXiKR !== 0 ? res.sumKLXiKR.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLXiKR").text().trim());
              $("#IDTongAllKLChiaXiKR").text(res.sumKLChiaXiKR !== 0 ? res.sumKLChiaXiKR.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLChiaXiKR").text().trim());
              $("#IDTongAllKLGangCCTVaXi").text(res.sumKLGangCCTVaXi !== 0 ? res.sumKLGangCCTVaXi.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : $("#IDTongKLGangCCTVaXi").text().trim());
+             $('#IDAvgSi').text(
+                    res.avgSilic != null && !isNaN(res.avgSilic)
+                        ? parseFloat(res.avgSilic).toFixed(3)
+                        : ''
+             );
              renderTongKLChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllKLChenhLech');
              renderTongPhanTramChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllPhanTramChenhLech');
         }
@@ -2079,7 +2109,11 @@
             // Cột cần ẩn/hiện
             $('.hide-col').css('display', display);
 
-            $('.total-space').attr('colspan', isHidden ? 11 : 14);
+            $('.total-space').attr('colspan', isHidden ? 11 : 16);
+
+            $('.total-space-text').attr('colspan', isHidden ? 11 : 9);
+            $('.total-space-all').attr('colspan', isHidden ? 0 : 6);
+
             $('.space-2').attr('colspan', isHidden ? 5 : 11);
 
             $('.space-3').attr('colspan', isHidden ? 4 : 10);
