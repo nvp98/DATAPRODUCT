@@ -638,8 +638,12 @@ namespace Data_Product.Controllers
             decimal sumKLXiKR = 0m;
             decimal sumKLChiaXiKR = 0m;
             decimal sumKLGangCCTVaXi = 0m;
-
+            decimal avgSilic = 0m;
             List<int> scopeTtgIds = new();
+
+            avgSilic = await totalScope
+                .Where(x => x.Si.HasValue)
+                .AverageAsync(x => (decimal?)x.Si) ?? 0m;
 
             if (hasDateFilter)
             {
@@ -784,6 +788,8 @@ namespace Data_Product.Controllers
                                      G_SanRaGang = a.G_SanRaGang,
                                      XacNhan = a.XacNhan,
                                      NhietDo = a.NhietDo,
+                                     Si = a.Si,
+                                     Temp = a.Temp,
 
                                      HoVaTen = user.HoVaTen,
                                      TenPhongBan = phongban.TenNgan,
@@ -961,7 +967,7 @@ namespace Data_Product.Controllers
                 .Select(g => g.ToList())
                 .ToList();
 
-
+            
             // 9) Return (sumKLGangChiaCR đã tính trên totalScope trước paging)
             return new PageResultViewModel<List<Tbl_BM_16_GangLong>>
             {
@@ -976,6 +982,7 @@ namespace Data_Product.Controllers
                 SumKLXiKR = sumKLXiKR,
                 SumKLChiaXiKR = sumKLChiaXiKR,
                 SumKLGangCCTVaXi = sumKLGangCCTVaXi,
+                AvgSilic = avgSilic,
                 Data = groupedData
             };
         }
