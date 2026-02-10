@@ -53,7 +53,7 @@ namespace Data_Product.Services
                     };
 
                     string query = $@" SELECT TestPatternCode, ClassifyName, ProductionDate, ShiftName, 
-                                             InputTime, Patterntime, TestPatternName
+                                             InputTime, Patterntime, TestPatternName, Temp, Si
                                       FROM bkmis_kcshpsdq.{table}
                                       WHERE ProductionDate = @ProductionDate AND ShiftName = @ShiftName
                                      ";
@@ -80,6 +80,8 @@ namespace Data_Product.Services
                                 InputTime = reader["InputTime"]?.ToString(),
                                 Patterntime = reader["Patterntime"]?.ToString(),
                                 TestPatternName = reader["TestPatternName"]?.ToString(),
+                                Si = reader["Si"] != DBNull.Value ? reader.GetDecimal(reader.GetOrdinal("Si")) : 0m,
+                                Temp = reader["Temp"]?.ToString(),
                             });
                         }
                         reader.Close();
