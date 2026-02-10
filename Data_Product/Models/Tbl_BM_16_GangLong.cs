@@ -212,5 +212,7 @@ namespace Data_Product.Models
         public decimal? KLChiaXiKR { get; set; }
 
         public decimal? KLGangCCTVaXi { get; set; }
+        public decimal? Si { get; set; }
+        public int? Temp { get; set; }
     }
 }
