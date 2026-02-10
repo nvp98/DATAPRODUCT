@@ -627,7 +627,7 @@
 
                     <tr style="height: 50px;">
                         <td class="total-space-text" style="font-weight: 600; text-align: start">Tổng Tất Cả</td>
-                        <td class="hide-col" id="IDAvgSi"></td>
+                        <td class="hide-col" style="font-weight: 600" id="IDAvgSi"></td>
                         <td class="hide-col total-space-all"></td>
                         <td colspan="2" id="IDTongAllKLGangLong" style="font-weight: 600">
                             0.00
@@ -1389,10 +1389,19 @@
                     row.append(`<td class="sticky-col-8">${item.bkmiS_Gio ?? ''}</td>`);
                     row.append(`<td class="hide-col">${item.temp ?? ''}</td>`);
                     row.append(`
-                            <td class="hide-col ${item.si == null ? 'si-missing' : ''}">
-                                ${item.si ?? ''}
-                            </td>
+                        <td class="hide-col ${
+                            item.t_copy === true
+                                ? ''
+                                : (item.si == null ? 'si-missing' : '')
+                        }">
+                            ${
+                                item.t_copy === true
+                                    ? ''
+                                    : (item.si ?? '')
+                            }
+                        </td>
                     `);
+
                     row.append(`<td class="hide-col">${tinhTrangQLCLHTML}</td>`);
                     row.append(`<td class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
 
