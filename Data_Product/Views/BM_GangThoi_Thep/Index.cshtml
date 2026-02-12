@@ -1080,7 +1080,7 @@
                            name="nhietDo" ${disabled} value="${thung.nhietDo ?? ''}"/>
                   </td>
                   <td class="col-vagang">
-                    <input class="table_tbx KhoiLuongThungVaGangLong" type="number" min="0"
+                    <input style="max-width: 75px" class="table_tbx KhoiLuongThungVaGangLong" type="number" min="0"
                            name="t_KLThungVaGang" ${disabled || disabledHRC1} value="${thung.t_KLThungVaGang ?? ''}"/>
                   </td>
                   <td class="col-thung">
@@ -1107,14 +1107,14 @@
               row += `
                 <td class="hrc2">${actionHtml}</td>
                 <td class="col-ganglongtruockr">
-                    ${((isNhap ?? true) && !isCopyTTG) ? `<input ${disabled} class="table_tbx KLThungVaGangTruocKR" type="number" min="0"
+                    ${((isNhap ?? true) && !isCopyTTG) ? `<input ${disabled} style="max-width: 75px" class="table_tbx KLThungVaGangTruocKR" type="number" min="0"
                          name="klThungVaGangTruocKR" value="${tg.klThungVaGangTruocKR ?? ''}"/>` : ''}
                 </td>
                 <td class="col-gangnhan tong_KL_GangNhan">${isCopyTTG ? '':tg.tong_KLGangNhan ?? 0}</td>
                 <td class="col-sothungtg">${tg.soThungTG ?? ''}</td>
 
                 <td class="col-thungvagangthoi">
-                  <input ${disabledInputKL || disabledHRC1} class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" min="0"
+                  <input style="max-width: 75px" ${disabledInputKL || disabledHRC1} class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" min="0"
                          name="klThungVaGang_Thoi" value="${tg.klThungVaGang_Thoi ?? ''}"/>
                 </td>
                 <td class="col-thungthoi">
