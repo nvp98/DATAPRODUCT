@@ -48,7 +48,7 @@
     {
         Context.Response.Redirect(Url.Action("Index", "DangNhap"));
     }
-    <header id="header" class="header fixed-top d-flex align-items-center">
+    <header id="header" class="header fixed-top d-flex align-items-center" style="background: linear-gradient(90deg,#b30000,#ff3300,#ffcc00)">
 
         <div class="d-flex align-items-center justify-content-between">
             <a href="@Url.Action("Index", "Home")" class="logo d-flex align-items-center">
@@ -57,7 +57,36 @@
             </a>
             <i class="bi bi-list toggle-sidebar-btn"></i>
         </div>
-
+        <div class="tet-overlay">
+            <div class="fireworks">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="hoa-dao">
+                <span>🌸</span>
+                <span>🌸</span>
+                <span>🌸</span>
+                <span>🌸</span>
+                <span>🌸</span>
+                <span>🌸</span>
+                <span>🌸</span>
+                <span>🌸</span>
+                <span>🌸</span>
+                <span>🌸</span>
+            </div>
+            <div class="tet-run-text tet-run-text-1">
+                <img src="~/img/anhtet.jpg" alt="🎊" style="height: 100%; margin: 0 10px;" />
+                Vạn sự như ý, tỷ sự như mơ, triệu triệu bất ngờ, ngập tràn hạnh phúc!!!
+                <img src="~/img/anhtet.jpg" alt="🎊" style="height: 100%; margin: 0 10px;" />
+            </div>
+            <div class="tet-run-text tet-run-text-2">
+                <span style="font-size: 40px; margin: 0 10px;">🏮</span>
+                🎉 CHÚC MỪNG NĂM MỚI 2026 🎉
+                <span style="font-size: 40px; margin: 0 10px;">🏮</span>
+            </div>
+        </div>
         <nav class="header-nav ms-auto">
             <ul class="d-flex align-items-center">
 
@@ -555,3 +584,315 @@
     @*  @await RenderSectionAsync("Scripts", required: true) *@
 </body>
 </html>
+<style>
+
+@*     /* cho header làm gốc định vị */
+    #header {
+        position: relative;
+    } *@
+
+    /* lớp nền giữa header */
+    .tet-overlay {
+        position: absolute;
+        top: 5px;
+        left: 340px; /* chừa logo */
+        right: 470px; /* chừa menu phải */
+        height: 50px;
+        border-radius: 10px;
+       @*  background: linear-gradient(90deg,#b30000,#ff3300,#ffcc00); *@
+        overflow: hidden;
+        pointer-events: none; /* không chặn click */
+        z-index: 0;
+    }
+
+    /* đảm bảo header nổi trên overlay */
+    #header > *:not(.tet-overlay) {
+        position: relative;
+        z-index: 2;
+    }
+
+    @* /* chữ chạy */
+    .tet-run-text {
+        position: absolute;
+        white-space: nowrap;
+        font-weight: bold;
+        font-size: 30px;
+        color: gold;
+        animation: runTet 15s linear infinite;
+        height:100%;
+    }
+
+    @@keyframes runTet {
+        from {
+            left: 100%;
+        }
+
+        to {
+            left: -100%;
+        }
+    } *@
+    /* chữ chạy đoạn 1 */
+    .tet-run-text-1 {
+        position: absolute;
+        white-space: nowrap;
+        font-weight: bold;
+        font-size: 30px;
+        background: linear-gradient(45deg, #FFD700, #FFC700, #FFED4E, #FFD700);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: runTet1 30s linear infinite, shimmer 3s linear infinite;
+        height: 100%;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    /* chữ chạy đoạn 2 */
+    .tet-run-text-2 {
+        position: absolute;
+        white-space: nowrap;
+        font-weight: bold;
+        font-size: 30px;
+        background: linear-gradient(45deg, #FFD700, #FFC700, #FFED4E, #FFD700);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: runTet2 30s linear infinite, shimmer 3s linear infinite;
+        height: 100%;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+
+    /* Hiệu ứng ánh kim lấp lánh */
+    @@keyframes shimmer {
+        0% {
+            background-position: 0% 50%;
+        }
+        100% {
+            background-position: 200% 50%;
+        }
+    }
+
+    @@keyframes runTet1 {
+        0% {
+            left: 100%;
+            opacity: 1;
+        }
+        49% {
+            left: -100%;
+            opacity: 1;
+        }
+        49.5% {
+            left: -100%;
+            opacity: 0;
+        }
+        50%, 100% {
+            left: 100%;
+            opacity: 0;
+        }
+    }
+
+    @@keyframes runTet2 {
+        0%, 49.5% {
+            left: 100%;
+            opacity: 0;
+        }
+        50% {
+            left: 100%;
+            opacity: 1;
+        }
+        99% {
+            left: -100%;
+            opacity: 1;
+        }
+        99.5% {
+            left: -100%;
+            opacity: 0;
+        }
+        100% {
+            left: 100%;
+            opacity: 0;
+        }
+    }
+    .tet-icon {
+        height: 25px;
+        width: auto;
+        margin: 0 8px;
+        vertical-align: middle;
+        animation: bounce 1s ease-in-out infinite;
+    }
+
+    /* hiệu ứng nhảy cho icon */
+    @@keyframes bounce {
+        0%, 100%
+
+    {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    }
+    /* ===== HOA ĐÀO RƠI ===== */
+    .hoa-dao {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .hoa-dao span {
+        position: absolute;
+        font-size: 20px;
+        opacity: 0.8;
+        animation: roiHoaDao 8s linear infinite;
+        top: -50px;
+    }
+
+    /* Random vị trí và delay cho từng bông hoa */
+    .hoa-dao span:nth-child(1) {
+        left: 10%;
+        animation-delay: 0s;
+        animation-duration: 10s;
+    }
+
+    .hoa-dao span:nth-child(2) {
+        left: 20%;
+        animation-delay: 2s;
+        animation-duration: 12s;
+    }
+
+    .hoa-dao span:nth-child(3) {
+        left: 30%;
+        animation-delay: 4s;
+        animation-duration: 9s;
+    }
+
+    .hoa-dao span:nth-child(4) {
+        left: 40%;
+        animation-delay: 1s;
+        animation-duration: 11s;
+    }
+
+    .hoa-dao span:nth-child(5) {
+        left: 50%;
+        animation-delay: 3s;
+        animation-duration: 10s;
+    }
+
+    .hoa-dao span:nth-child(6) {
+        left: 60%;
+        animation-delay: 5s;
+        animation-duration: 13s;
+    }
+
+    .hoa-dao span:nth-child(7) {
+        left: 70%;
+        animation-delay: 2.5s;
+        animation-duration: 9.5s;
+    }
+
+    .hoa-dao span:nth-child(8) {
+        left: 80%;
+        animation-delay: 4.5s;
+        animation-duration: 11.5s;
+    }
+
+    .hoa-dao span:nth-child(9) {
+        left: 90%;
+        animation-delay: 1.5s;
+        animation-duration: 10.5s;
+    }
+
+    .hoa-dao span:nth-child(10) {
+        left: 15%;
+        animation-delay: 3.5s;
+        animation-duration: 12.5s;
+    }
+
+    @@keyframes roiHoaDao {
+        0% {
+            top: -50px;
+            transform: translateX(0) rotate(0deg);
+            opacity: 0.8;
+        }
+        50% {
+            transform: translateX(20px) rotate(180deg);
+        }
+        100% {
+            top: 100%;
+            transform: translateX(-20px) rotate(360deg);
+            opacity: 0.3;
+        }
+    }
+
+    /* ===== PHÁO HOA ===== */
+
+    .fireworks {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+        .fireworks span {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: gold;
+            border-radius: 50%;
+            box-shadow: 0 -15px gold, 0 15px gold, 15px 0 gold, -15px 0 gold, 10px 10px gold, -10px -10px gold, 10px -10px gold, -10px 10px gold;
+            animation: explode 2s infinite ease-out;
+            opacity: 0;
+        }
+
+            /* random vị trí */
+            .fireworks span:nth-child(1) {
+                top: 30%;
+                left: 20%;
+                animation-delay: 0s;
+            }
+
+            .fireworks span:nth-child(2) {
+                top: 60%;
+                left: 50%;
+                animation-delay: 0.7s;
+            }
+
+            .fireworks span:nth-child(3) {
+                top: 40%;
+                left: 75%;
+                animation-delay: 1.2s;
+            }
+
+            .fireworks span:nth-child(4) {
+                top: 70%;
+                left: 35%;
+                animation-delay: 1.8s;
+            }
+
+    @@keyframes explode {
+        0%
+
+    {
+        transform: scale(0.3);
+        opacity: 1;
+    }
+
+    70% {
+        transform: scale(1.4);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+
+    }
+</style>
