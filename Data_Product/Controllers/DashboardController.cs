@@ -73,12 +73,16 @@ namespace Data_Product.Controllers
                 TaiKhoan.ID_Quyen
             };
             var userinfo = result;
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
 
             var token = "token";
 
             ViewBag.Token = token;
             ViewBag.User = JsonSerializer.Serialize(user);
-            ViewBag.Userinfo = JsonSerializer.Serialize(userinfo);
+            ViewBag.Userinfo = JsonSerializer.Serialize(userinfo, options);
             ViewBag.UserName = JsonSerializer.Serialize(user.name);
             return View();
         }
