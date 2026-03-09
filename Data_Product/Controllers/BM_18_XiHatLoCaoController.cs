@@ -511,7 +511,7 @@ namespace Data_Product.Controllers
                     int ca = int.TryParse(kipInfo.TenCa, out var tmp) ? tmp : 0;
                     decimal? heSoXi = await LayHeSoXi(loId,model.NgaySanXuat, ca, model.ID_Kip);
 
-                    if (heSoXi == null)
+                    if (!heSoXi.HasValue || heSoXi.Value == 0)
                     {
                         throw new Exception($"Chưa xác nhận hệ số xỉ cho lò {loId} - ngày {model.NgaySanXuat:dd/MM/yyyy}");
                     }
