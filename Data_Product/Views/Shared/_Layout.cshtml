@@ -48,7 +48,7 @@
     {
         Context.Response.Redirect(Url.Action("Index", "DangNhap"));
     }
-    <header id="header" class="header fixed-top d-flex align-items-center" style="background: linear-gradient(90deg,#b30000,#ff3300,#ffcc00)">
+    <header id="header" class="header fixed-top d-flex align-items-center" @* style="background: linear-gradient(90deg,#b30000,#ff3300,#ffcc00)" *@>
 
         <div class="d-flex align-items-center justify-content-between">
             <a href="@Url.Action("Index", "Home")" class="logo d-flex align-items-center">
@@ -57,7 +57,7 @@
             </a>
             <i class="bi bi-list toggle-sidebar-btn"></i>
         </div>
-        <div class="tet-overlay">
+      @*   <div class="tet-overlay">
             <div class="fireworks">
                 <span></span>
                 <span></span>
@@ -86,7 +86,7 @@
                 🎉 CHÚC MỪNG NĂM MỚI 2026 🎉
                 <span class="tet-icon-normal">🏮</span>
             </div>
-        </div>
+        </div> *@
         <nav class="header-nav ms-auto">
             <ul class="d-flex align-items-center">
 
@@ -591,13 +591,8 @@
     @*  @await RenderSectionAsync("Scripts", required: true) *@
 </body>
 </html>
+<!--
 <style>
-
-@*     /* cho header làm gốc định vị */
-    #header {
-        position: relative;
-    } *@
-
     /* lớp nền giữa header */
     .tet-overlay {
         position: absolute;
@@ -606,7 +601,6 @@
         right: 470px; /* chừa menu phải */
         height: 50px;
         border-radius: 10px;
-       @*  background: linear-gradient(90deg,#b30000,#ff3300,#ffcc00); *@
         overflow: hidden;
         pointer-events: none; /* không chặn click */
         z-index: 0;
@@ -618,26 +612,6 @@
         z-index: 2;
     }
 
-    @* /* chữ chạy */
-    .tet-run-text {
-        position: absolute;
-        white-space: nowrap;
-        font-weight: bold;
-        font-size: 30px;
-        color: gold;
-        animation: runTet 15s linear infinite;
-        height:100%;
-    }
-
-    @@keyframes runTet {
-        from {
-            left: 100%;
-        }
-
-        to {
-            left: -100%;
-        }
-    } *@
     /* chữ chạy đoạn 1 */
     .tet-run-text-1 {
         position: absolute;
@@ -913,3 +887,4 @@
 
     }
 </style>
+-->
