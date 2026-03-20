@@ -444,6 +444,12 @@ namespace Data_Product.Controllers
                 .Select(x => new { x.TenCa, x.TenKip })
                 .FirstOrDefaultAsync();
 
+            if (kipInfo == null)
+                return BadRequest(new { success = false, message = "Không tìm thấy thông tin kíp." });
+
+            if (!int.TryParse(kipInfo.TenCa, out var caFromKip) || caFromKip <= 0)
+                return BadRequest(new { success = false, message = "Ca của kíp không hợp lệ." });
+
             var results = new List<object>();
             int createdCount = 0;
             int duplicateCount = 0;
@@ -451,6 +457,7 @@ namespace Data_Product.Controllers
 
             foreach (var loId in model.ID_LoCaos.Distinct())
             {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
                     bool existed = await _context.Tbl_BM_18_PhieuXiHat.AnyAsync(p =>
@@ -461,6 +468,7 @@ namespace Data_Product.Controllers
 
                     if (existed)
                     {
+                        await transaction.RollbackAsync();
                         duplicateCount++;
                         results.Add(new
                         {
@@ -473,8 +481,15 @@ namespace Data_Product.Controllers
 
                     string maPhieu = GenerateMaPhieuBM18(loId, kipInfo?.TenCa, kipInfo?.TenKip, model.NgaySanXuat);
 
+                    decimal? heSoXi = await LayHeSoXi(loId, model.NgaySanXuat, caFromKip, model.ID_Kip);
+
+                    if (!heSoXi.HasValue || heSoXi.Value == 0)
+                    {
+                        throw new Exception($"Chưa xác nhận hệ số xỉ cho lò {loId} - ngày {model.NgaySanXuat:dd/MM/yyyy}");
+                    }
+
                     // Lấy khối lượng dựa trên loại cân đã chọn
-                    var giaTriResult = await LayBaGiaTriGang(model.Ca, model.ID_Kip, model.NgaySanXuat, loId, model.LoaiCan);
+                    var giaTriResult = await LayBaGiaTriGang(caFromKip, model.ID_Kip, model.NgaySanXuat, loId, model.LoaiCan);
                     decimal giaTriGang = 0m;
                     
                     if (giaTriResult is OkObjectResult okResult && okResult.Value != null)
@@ -508,13 +523,6 @@ namespace Data_Product.Controllers
                     _context.Tbl_BM_18_PhieuXiHat.Add(header);
                     await _context.SaveChangesAsync();
 
-                    int ca = int.TryParse(kipInfo.TenCa, out var tmp) ? tmp : 0;
-                    decimal? heSoXi = await LayHeSoXi(loId,model.NgaySanXuat, ca, model.ID_Kip);
-
-                    if (!heSoXi.HasValue || heSoXi.Value == 0)
-                    {
-                        throw new Exception($"Chưa xác nhận hệ số xỉ cho lò {loId} - ngày {model.NgaySanXuat:dd/MM/yyyy}");
-                    }
                     // Thêm dòng chi tiết mặc định vào Tbl_BM_18_XiHatLoCao
                     var xiHat = new Tbl_BM_18_XiHatLoCao
                     {
@@ -532,6 +540,8 @@ namespace Data_Product.Controllers
                     _context.Tbl_BM_18_XiHatLoCao.Add(xiHat);
                     await _context.SaveChangesAsync();
 
+                    await transaction.CommitAsync();
+
                     createdCount++;
                     results.Add(new
                     {
@@ -544,6 +554,7 @@ namespace Data_Product.Controllers
                 }
                 catch (Exception ex)
                 {
+                    await transaction.RollbackAsync();
                     errorCount++;
                     _logger.LogError(ex, "Lỗi tạo phiếu BM18 cho lò {LoId}", loId);
                     results.Add(new
