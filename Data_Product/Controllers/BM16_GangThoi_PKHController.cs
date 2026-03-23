@@ -533,6 +533,11 @@ namespace Data_Product.Controllers
             if (dto.ID_LoThoi.HasValue) baseQuery = baseQuery.Where(x => x.ID_LoThoi == dto.ID_LoThoi.Value);
             if (dto.Ca_LT.HasValue) baseQuery = baseQuery.Where(x => x.T_Ca == dto.Ca_LT.Value);
             if (dto.Ca_LG.HasValue) baseQuery = baseQuery.Where(x => x.G_Ca == dto.Ca_LG.Value);
+            
+            if (!string.IsNullOrEmpty(dto.BkmisSoMe))
+            {
+                baseQuery = baseQuery.Where(x => x.BKMIS_SoMe.Contains(dto.BkmisSoMe.Trim()));
+            }
 
             if (!string.IsNullOrEmpty(dto.ID_Kip_LT))
             {

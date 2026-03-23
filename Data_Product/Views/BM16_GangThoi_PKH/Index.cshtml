@@ -393,6 +393,11 @@
                                     <label class="form-label">Thùng số:</label>
                                     <input type="number" class="form-control form-control-sm" id="ThungSo" />
                                 </div>
+                                <!-- Số mẻ BKS -->
+                                <div class="col-12 col-sm-6 col-md-4 mb-2">
+                                    <label class="form-label">Số mẻ BKmis:</label>
+                                    <input type="text" class="form-control form-control-sm" id="bkmisSoMe" />
+                                </div>
                             </div>
                         </div>
                         <div class="col-12 col-md-6 border">
@@ -1637,6 +1642,8 @@
                                : null; // fallback
 
             const ID_HRC = $("#ID_HRC").val() || null;
+            const bkmisSoMe = $("#bkmisSoMe").val() || null;
+
             return dto = {
                 ID_LoCao: ID_LoCao ? parseInt(ID_LoCao) : null,
                 ID_LoThoi: ID_LoThoi ? parseInt(ID_LoThoi) : null,
@@ -1658,7 +1665,8 @@
                 MaMeThoi: MaMeThoi || null,
                 IsChiaGang: IsChiaGang,
                 ID_HRC : ID_HRC || null,
-                SoThungTG: SoThungTG || null
+                SoThungTG: SoThungTG || null,
+                BkmisSoMe: bkmisSoMe || null
             };
         }
 
@@ -1888,7 +1896,7 @@
         })
 
         $("#btnReset").click(function() {
-            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi', 'ID_HRC', 'SoThungTG']);
+            clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi', 'ID_HRC', 'SoThungTG', 'bkmisSoMe']);
             currentPage = 1;
             Search();
         })

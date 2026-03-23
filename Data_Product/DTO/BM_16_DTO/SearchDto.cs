@@ -23,6 +23,7 @@
         public bool? IsChiaGang { get; set; }
         public int? ID_HRC { get; set; }
         public string? SoThungTG { get; set; }
+        public string? BkmisSoMe { get; set; }
         public int? PageNumber { get; set; }
         public int? PageSize { get; set; } 
     }
