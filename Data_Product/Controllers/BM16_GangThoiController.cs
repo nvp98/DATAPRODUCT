@@ -1681,6 +1681,9 @@ namespace Data_Product.Controllers
                 {
                     foreach (var thung in danhSachThung)
                     {
+                        thung.Temp = int.TryParse(rec.Temp, out int tempValue) ? tempValue : (int?)null;
+                        thung.Si = rec.Si;
+
                         // Kiểm tra trạng thái thùng cho phép cập nhật
                         bool choPhepCapNhat =
                             (thung.G_ID_TrangThai == 1 || thung.G_ID_TrangThai == 3) &&
@@ -1693,9 +1696,7 @@ namespace Data_Product.Controllers
                         // Cập nhật thông tin mới từ BK-MIS
                         thung.BKMIS_PhanLoai = rec.ClassifyName;
                         thung.BKMIS_Gio = rec.Patterntime ?? string.Empty;
-                        thung.BKMIS_ThungSo = soMe.Length >= 2 ? soMe[^2..] : null;
-                        thung.Temp = int.TryParse(rec.Temp, out int tempValue) ? tempValue : (int?)null;
-                        thung.Si = rec.Si;
+                        thung.BKMIS_ThungSo = soMe.Length >= 2 ? soMe[^2..] : null;                       
                         cntUpdate++;
                     }
                 }
