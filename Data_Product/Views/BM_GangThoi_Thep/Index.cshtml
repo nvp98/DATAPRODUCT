@@ -2496,8 +2496,29 @@
                 // Nếu không phải copy, duyệt từng dòng trong group để lấy danh sách thùng gang
                 if (!isCopy) {
                     groupRows.forEach(($row) => {
-                        const rawNhietDo = $row.find('input[name="nhietDo"]').val();
-                        const NhietDo = rawNhietDo === "" ? null : parseFloat(rawNhietDo);
+                        // const rawNhietDo = $row.find('input[name="nhietDo"]').val();
+                        // const NhietDo = rawNhietDo === "" ? null : parseFloat(rawNhietDo);
+
+                        // if(!NhietDo){
+                        //     isValidLuu = false;
+                        // }
+                        // Bỏ qua row đã bị merge (không còn input trong DOM)
+                        const $inputNhietDo = $row.find('input[name="nhietDo"]');
+
+                        let NhietDo;
+                        if ($inputNhietDo.length) {
+                            // Dòng đầu tiên (còn input) → đọc và lưu lại
+                            const rawNhietDo = $inputNhietDo.val();
+                            NhietDo = rawNhietDo === "" ? null : parseFloat(rawNhietDo);
+                            nhietDoGroup = NhietDo; // lưu cho các dòng sau dùng
+
+                            if (!NhietDo) {
+                                isValidLuu = false;
+                            }
+                        } else {
+                            // Dòng bị merge → dùng lại giá trị từ dòng đầu
+                            NhietDo = nhietDoGroup;
+                        }
                         const thungGang = {
                             MaThungThep: $row.find('td.maThungThep').text().trim(),
                             MaThungGang: $row.find('td.maThungThep').attr('data-mathungganggoc'),
@@ -2598,7 +2619,7 @@
             }
             const dsThungTG = getTableData();
             if(!dsThungTG){
-                alert("Vui lòng nhập đầy đủ cả Mẻ thổi và Giờ chọn mẻ.");
+                alert("Vui lòng nhập đầy đủ cả Nhiệt độ, Mẻ thổi và Giờ chọn mẻ.");
                 isValidLuu = true;
                 return;
             }

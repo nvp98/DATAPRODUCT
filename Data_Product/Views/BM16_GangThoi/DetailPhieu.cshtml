@@ -211,6 +211,7 @@
 										<th rowspan="2" class="sticky-col thung-so">Thùng số</th>
 										<th rowspan="2" class="sticky-col gio">Giờ</th>
 										<th rowspan="2" class="sticky-col phan-loai">Phân loại</th>
+										<th rowspan="2">Si</th>
 										<th rowspan="2">Sàn ra gang</th>
 										<th rowspan="2">KL thùng & xe</th>
 										<th rowspan="2">KL thùng & gang & xe</th>
@@ -281,6 +282,7 @@
 												<td name="ThungSo" class="sticky-col thung-so">@item.ThuTuThung</td>
 												<td name="Gio" class="sticky-col gio">@item.GioNhaMay</td>
 												<td name="PhanLoai" class="sticky-col phan-loai">@item.PhanLoai</td>
+												<td name="Si">@item.Si</td>
 												<td>
 													<input type="number" name="G_SanRaGang" step="1" min="0" class="form-control" value="@item.G_SanRaGang"
 														   style="width: 50px; padding: 4px;" @disabledAttr />
@@ -1378,8 +1380,10 @@
 					alert('Xác nhận thành công!');
 					location.reload();
 				},
-				error: function () {
-					alert('Lỗi khi xác nhận thùng');
+				error: function (e) 
+				{
+	console.log(e.responseJSON);
+					alert(e.responseJSON.error);
 				}
 		});
 		}

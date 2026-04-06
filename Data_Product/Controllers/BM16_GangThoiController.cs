@@ -696,7 +696,8 @@ namespace Data_Product.Controllers
                 GioSortKey = GetSortKeyFromTime(t.BKMIS_Gio),
                 GioChonMe = gioChonMeByMe.ContainsKey(t.BKMIS_SoMe)
                 ? gioChonMeByMe[t.BKMIS_SoMe]
-                : null
+                : null,
+                Si = t.Si
             })//.OrderBy(x => x.MaThungPrefix)
               //  .ThenBy(x => x.MaThungSuffix)
                  .OrderBy(x => x.GioSortKey)
@@ -728,6 +729,7 @@ namespace Data_Product.Controllers
                     x.KLDuc,
                     x.G_SanRaGang,
                     x.GioChonMe,
+                    x.Si
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
@@ -981,6 +983,12 @@ namespace Data_Product.Controllers
                     var maThungs = string.Join(", ", thungKhongHopLe.Select(t => t.MaThungGang));
                     return Json(new { success = false, message = $"Thùng đã được xác nhận': {maThungs}" });
                 }
+
+                if (thungs.Any(x => x.Si == null))
+                {
+                    throw new Exception("Thùng không có dữ liệu Si");
+                }
+
                 var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
                 if (string.IsNullOrEmpty(tenTaiKhoan))
                     return Unauthorized("Phiên đăng nhập không hợp lệ.");
@@ -1681,9 +1689,6 @@ namespace Data_Product.Controllers
                 {
                     foreach (var thung in danhSachThung)
                     {
-                        thung.Temp = int.TryParse(rec.Temp, out int tempValue) ? tempValue : (int?)null;
-                        thung.Si = rec.Si;
-
                         // Kiểm tra trạng thái thùng cho phép cập nhật
                         bool choPhepCapNhat =
                             (thung.G_ID_TrangThai == 1 || thung.G_ID_TrangThai == 3) &&
@@ -1691,8 +1696,10 @@ namespace Data_Product.Controllers
                             (thung.T_ID_TrangThai == 2 || thung.T_ID_TrangThai == 4) &&
                             thung.ID_TrangThai == 2;
 
-                        if (!choPhepCapNhat) continue;
-
+                        if (!choPhepCapNhat || thung.XacNhan == true) continue;
+                       
+                        thung.Temp = int.TryParse(rec.Temp, out int tempValue) ? tempValue : (int?)null;
+                        thung.Si = rec.Si;
                         // Cập nhật thông tin mới từ BK-MIS
                         thung.BKMIS_PhanLoai = rec.ClassifyName;
                         thung.BKMIS_Gio = rec.Patterntime ?? string.Empty;
