@@ -144,6 +144,10 @@ namespace Data_Product.API
                         NGAY_TAO = reader.GetDateTime(reader.GetOrdinal("NGAY_TAO")),
                         G_KLGANGLONG = reader.IsDBNull(reader.GetOrdinal("G_KLGANGLONG")) ? 0 : reader.GetDecimal(reader.GetOrdinal("G_KLGANGLONG")),
                         SO_ME = reader["SO_ME"]?.ToString(),
+                        KLGang_Thoi = reader.IsDBNull(reader.GetOrdinal("KLGang_Thoi")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGang_Thoi")),
+                        NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo")) ? 0 : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
+                        KlGangNhan = reader.IsDBNull(reader.GetOrdinal("Tong_KLGangNhan")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Tong_KLGangNhan")),
+                        MaMeThoi = reader["MaMeThoi"]?.ToString()
                     };
 
                     result.Add(dto);
