@@ -984,7 +984,7 @@ namespace Data_Product.Controllers
                     return Json(new { success = false, message = $"Thùng đã được xác nhận': {maThungs}" });
                 }
 
-                if (thungs.Any(x =>x.IsCopy != true && x.Si == null))
+                if (thungs.Any(x =>x.T_copy != true && x.Si == null))
                 {
                     throw new Exception("Thùng không có dữ liệu Si");
                 }
