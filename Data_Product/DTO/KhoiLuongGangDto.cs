@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text.Json.Serialization;
 
 namespace Data_Product.DTO
 {
@@ -16,5 +17,14 @@ namespace Data_Product.DTO
 
         [JsonPropertyName("id_locao")]
         public int ID_LOCAO { get; set; }
+
+        public decimal? KLGang_Thoi {get; set; }
+
+        public decimal? NhietDo { get; set; }
+
+        [JsonPropertyName("Tong_KLGangNhan")]
+        public decimal? KlGangNhan { get; set; }
+
+        public string? MaMeThoi { get; set; }
     }
 }
