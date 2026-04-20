@@ -1565,10 +1565,15 @@
                 item.iD_TTG != null,
                 item.soThungTG != null,
                 item.nhietDo != null,
-                item.si != null,
-                // item.temp != null,
                 item.xacNhan == true
             ];
+
+            if(!item.t_copy){
+                requiredFields.push(
+                    item.si != null,
+                    // item.temp != null,
+                )
+            }
 
             // Nếu không có klGangChia thì phải kiểm tra thêm 3 trường này
             if (!hasKlGangChia) {
