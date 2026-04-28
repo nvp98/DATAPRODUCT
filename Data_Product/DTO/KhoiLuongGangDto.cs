@@ -22,9 +22,11 @@ namespace Data_Product.DTO
 
         public decimal? NhietDo { get; set; }
 
-        [JsonPropertyName("Tong_KLGangNhan")]
-        public decimal? KlGangNhan { get; set; }
+        //[JsonPropertyName("Tong_KLGangNhan")]
+        //public decimal? KlGangNhan { get; set; }
 
+        [JsonPropertyName("kl_gang_thoi_theo_me")]
+        public decimal? KLGangTheoMe { get; set; }
         public string? MaMeThoi { get; set; }
     }
 }

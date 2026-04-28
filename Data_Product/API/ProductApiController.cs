@@ -146,7 +146,8 @@ namespace Data_Product.API
                         SO_ME = reader["SO_ME"]?.ToString(),
                         KLGang_Thoi = reader.IsDBNull(reader.GetOrdinal("KLGang_Thoi")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGang_Thoi")),
                         NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo")) ? 0 : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
-                        KlGangNhan = reader.IsDBNull(reader.GetOrdinal("Tong_KLGangNhan")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Tong_KLGangNhan")),
+                        //KlGangNhan = reader.IsDBNull(reader.GetOrdinal("Tong_KLGangNhan")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Tong_KLGangNhan")),
+                        KLGangTheoMe = reader.IsDBNull(reader.GetOrdinal("KLGangTheoMe"))? 0 : reader.GetDecimal(reader.GetOrdinal("KLGangTheoMe")),
                         MaMeThoi = reader["MaMeThoi"]?.ToString()
                     };
 
