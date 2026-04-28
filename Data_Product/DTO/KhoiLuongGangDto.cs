@@ -28,5 +28,15 @@ namespace Data_Product.DTO
         [JsonPropertyName("kl_gang_thoi_theo_me")]
         public decimal? KLGangTheoMe { get; set; }
         public string? MaMeThoi { get; set; }
+        [JsonPropertyName("MeThoi")]
+        public List<MeThoiDto> MeThoi { get; set; } = new();
+    }
+    public class MeThoiDto
+    {
+        [JsonPropertyName("kl_gang_thoi_theo_me")]
+        public decimal? KLGangTheoMe { get; set; }
+
+        [JsonPropertyName("maMeThoi")]
+        public string? MaMeThoi { get; set; }
     }
 }

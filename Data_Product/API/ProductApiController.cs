@@ -147,18 +147,35 @@ namespace Data_Product.API
                         KLGang_Thoi = reader.IsDBNull(reader.GetOrdinal("KLGang_Thoi")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGang_Thoi")),
                         NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo")) ? 0 : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
                         //KlGangNhan = reader.IsDBNull(reader.GetOrdinal("Tong_KLGangNhan")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Tong_KLGangNhan")),
-                        KLGangTheoMe = reader.IsDBNull(reader.GetOrdinal("KLGangTheoMe"))? 0 : reader.GetDecimal(reader.GetOrdinal("KLGangTheoMe")),
+                        KLGangTheoMe = reader.IsDBNull(reader.GetOrdinal("KLGangTheoMe")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGangTheoMe")),
                         MaMeThoi = reader["MaMeThoi"]?.ToString()
                     };
 
                     result.Add(dto);
                 }
+                var grouped = result
+                    .GroupBy(x => new { x.SO_ME, x.NGAY_TAO, x.ID_LOCAO })
+                    .Select(g => new KhoiLuongGangDto
+                    {
+                        SO_ME = g.Key.SO_ME,
+                        NGAY_TAO = g.Key.NGAY_TAO,
+                        ID_LOCAO = g.Key.ID_LOCAO,
+                        G_KLGANGLONG = g.First().G_KLGANGLONG,
+                        KLGang_Thoi = g.First().KLGang_Thoi,
+                        NhietDo = g.First().NhietDo,
 
+                        MeThoi = g.Select(x => new MeThoiDto
+                        {
+                            KLGangTheoMe = x.KLGangTheoMe,
+                            MaMeThoi = x.MaMeThoi
+                        }).ToList()
+                    })
+                    .ToList();
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Data = result,
-                    Total = result != null ? result.Count() : 0,
+                    Data = grouped,
+                    Total = grouped.Count,
                     Message = "Thành công!"
                 });
             }
@@ -220,17 +237,17 @@ namespace Data_Product.API
                         KL_XeGoong = reader.IsDBNull(reader.GetOrdinal("KL_XeGoong"))
                 ? 0
                 : reader.GetDecimal(reader.GetOrdinal("KL_XeGoong")),
-                // 🔹 Map TPHH
-                    TPHH = new TPHHDto
-                    {
-                        C = reader.IsDBNull(reader.GetOrdinal("C")) ? 0 : reader.GetDecimal(reader.GetOrdinal("C")),
-                        Si = reader.IsDBNull(reader.GetOrdinal("Si")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Si")),
-                        Mn = reader.IsDBNull(reader.GetOrdinal("Mn")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Mn")),
-                        S = reader.IsDBNull(reader.GetOrdinal("S")) ? 0 : reader.GetDecimal(reader.GetOrdinal("S")),
-                        P = reader.IsDBNull(reader.GetOrdinal("P")) ? 0 : reader.GetDecimal(reader.GetOrdinal("P")),
-                        Ti = reader.IsDBNull(reader.GetOrdinal("Ti")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Ti")),
-                        Temp = reader.IsDBNull(reader.GetOrdinal("Temp")) ? 0 : reader.GetInt32(reader.GetOrdinal("Temp"))
-                    }
+                        // 🔹 Map TPHH
+                        TPHH = new TPHHDto
+                        {
+                            C = reader.IsDBNull(reader.GetOrdinal("C")) ? 0 : reader.GetDecimal(reader.GetOrdinal("C")),
+                            Si = reader.IsDBNull(reader.GetOrdinal("Si")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Si")),
+                            Mn = reader.IsDBNull(reader.GetOrdinal("Mn")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Mn")),
+                            S = reader.IsDBNull(reader.GetOrdinal("S")) ? 0 : reader.GetDecimal(reader.GetOrdinal("S")),
+                            P = reader.IsDBNull(reader.GetOrdinal("P")) ? 0 : reader.GetDecimal(reader.GetOrdinal("P")),
+                            Ti = reader.IsDBNull(reader.GetOrdinal("Ti")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Ti")),
+                            Temp = reader.IsDBNull(reader.GetOrdinal("Temp")) ? 0 : reader.GetInt32(reader.GetOrdinal("Temp"))
+                        }
 
                     };
 
@@ -540,7 +557,7 @@ namespace Data_Product.API
 
                 // Nhóm chi tiết theo ID phiếu
                 var chiTietGrouped = chiTiets.GroupBy(x => x.ID_NhatKy).ToDictionary(x => x.Key, x => x.ToList());
-            
+
                 // Tạo kết quả trả về
                 var result = new List<dynamic>();
 
@@ -586,7 +603,7 @@ namespace Data_Product.API
                             ghiChu = ct.GhiChu,
                             noiDungDung = ct.NoiDungDung,
                             thoiGianDung = ct.ThoiGianDung,
-                            TenCumTB = CumTBs.FirstOrDefault(x=>x.ID ==ct.ID_CumTB)?.TenCumTB,
+                            TenCumTB = CumTBs.FirstOrDefault(x => x.ID == ct.ID_CumTB)?.TenCumTB,
                             coDienSoLan = ct.CoDien_SoLan,
                             coDienChoXL = ct.CoDien_ChoXL,
                             coDienTGianXL = ct.CoDien_TGianXL,
