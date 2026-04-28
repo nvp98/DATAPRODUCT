@@ -11,23 +11,25 @@ namespace Data_Product.DTO
         [JsonPropertyName("ngay")]
         public DateTime NGAY_TAO { get; set; }
 
-
         [JsonPropertyName("kl_gang_nhap")]
         public decimal? G_KLGANGLONG { get; set; }
 
         [JsonPropertyName("id_locao")]
         public int ID_LOCAO { get; set; }
 
-        public decimal? KLGang_Thoi {get; set; }
+        [JsonPropertyName("kl_gang_thoi")] // Đặt tên JSON nếu cần
+        public decimal? KLGang_Thoi { get; set; }
 
+        [JsonPropertyName("nhiet_do")]
         public decimal? NhietDo { get; set; }
 
-        //[JsonPropertyName("Tong_KLGangNhan")]
-        //public decimal? KlGangNhan { get; set; }
-
-        [JsonPropertyName("kl_gang_thoi_theo_me")]
+        // Dùng JsonIgnore để không xuất hiện ở JSON cha
+        [JsonIgnore]
         public decimal? KLGangTheoMe { get; set; }
+
+        [JsonIgnore]
         public string? MaMeThoi { get; set; }
+
         [JsonPropertyName("MeThoi")]
         public List<MeThoiDto> MeThoi { get; set; } = new();
     }
