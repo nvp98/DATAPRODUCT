@@ -154,23 +154,25 @@ namespace Data_Product.API
                     result.Add(dto);
                 }
                 var grouped = result
-                    .GroupBy(x => new { x.SO_ME, x.NGAY_TAO, x.ID_LOCAO })
-                    .Select(g => new KhoiLuongGangDto
-                    {
-                        SO_ME = g.Key.SO_ME,
-                        NGAY_TAO = g.Key.NGAY_TAO,
-                        ID_LOCAO = g.Key.ID_LOCAO,
-                        G_KLGANGLONG = g.First().G_KLGANGLONG,
-                        KLGang_Thoi = g.First().KLGang_Thoi,
-                        NhietDo = g.First().NhietDo,
+                 .GroupBy(x => new { x.SO_ME, x.NGAY_TAO, x.ID_LOCAO })
+                 .Select(g => new KhoiLuongGangDto
+                 {
+                     SO_ME = g.Key.SO_ME,
+                     NGAY_TAO = g.Key.NGAY_TAO,
+                     ID_LOCAO = g.Key.ID_LOCAO,
+                     G_KLGANGLONG = g.First().G_KLGANGLONG,
+                     KLGang_Thoi = g.First().KLGang_Thoi,
+                     NhietDo = g.First().NhietDo,
 
-                        MeThoi = g.Select(x => new MeThoiDto
-                        {
-                            KLGangTheoMe = x.KLGangTheoMe,
-                            MaMeThoi = x.MaMeThoi
-                        }).ToList()
-                    })
-                    .ToList();
+                     // Gom danh sách MeThoi từ các bản ghi trùng GroupKey
+                     MeThoi = g.Where(x => !string.IsNullOrEmpty(x.MaMeThoi)) 
+                               .Select(x => new MeThoiDto
+                               {
+                                   KLGangTheoMe = x.KLGangTheoMe,
+                                   MaMeThoi = x.MaMeThoi
+                               }).ToList()
+                 })
+                 .ToList();
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
