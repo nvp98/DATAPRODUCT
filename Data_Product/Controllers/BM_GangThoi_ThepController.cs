@@ -2785,6 +2785,11 @@ namespace Data_Product.Controllers
         {
             try
             {
+                // chạy store trong database để cập nhật lại dữ liệu trước khi load
+                await _context.Database.ExecuteSqlRawAsync(
+                        "EXEC dbo.usp_RunSyncCCTHRC1All"
+                    );
+
                 var thungList = await this._hrc1LuyenThepService.LoadDanhSachThungThepHRC1ATAsync(payload);
                 return Ok(new { success = true, data = thungList });
             }
