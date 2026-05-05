@@ -546,7 +546,8 @@
                         <th class="hide-col">Nhiệt độ Gang (ºC)</th>
                         <th class="hide-col">Si</th>
                         <th class="hide-col">Tình trạng QLCL</th>
-                        <th class="hide-col" style="min-width: 70px;">Phân loại</th>
+                        <th class="hide-col" style="min-width: 70px;">Phân loại TCO4</th>
+                        <th class="hide-col" style="min-width: 70px;">Phân loại LT TC06</th>
                         <th>Sàn ra gang</th>
                         <th>KL xe goong</th>
                         <th>KL thùng và gang</th>
@@ -1409,6 +1410,7 @@
 
                     row.append(`<td class="hide-col">${tinhTrangQLCLHTML}</td>`);
                     row.append(`<td class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
+                    row.append(`<td class="hide-col">${item.phanLoaiLoThoi ?? ''}</td>`);
 
                     if(item.t_copy == true || isCopy){
                         row.append(`<td></td>`);

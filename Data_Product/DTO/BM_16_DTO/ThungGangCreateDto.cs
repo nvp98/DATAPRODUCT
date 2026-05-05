@@ -35,5 +35,7 @@ namespace Data_Product.DTO.BM_16_DTO
         public string G_GhiChu { get; set; }
         public int? G_SanRaGang { get; set; }
         public int? Loai_Thung { get; set; }
+
+        public int? Temp {get; set; }
     }
 }
