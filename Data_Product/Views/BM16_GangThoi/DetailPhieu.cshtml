@@ -77,6 +77,21 @@
 			width: 48.13px;
 		}
 
+		.sticky-col.tc06-1 {
+			left: calc(351.82px + 48.13px);
+		}
+
+		.sticky-col.tc06-2 {
+			left: calc(351.82px + 48.13px * 2);
+			left: calc(351.82px + 48.13px * 2);
+		}
+
+		.sticky-col.tc06-group {
+			left: 400px; /* giống tc06-1 */
+			width: 160px; /* 80 + 80 */
+			z-index: 11; /* cao hơn con */
+		}
+
 	/* Đảm bảo header nổi trên */
 	thead th {
 		z-index: 20 !important;
@@ -210,9 +225,11 @@
 										<th rowspan="2" class="sticky-col so-me">Số mẻ</th>
 										<th rowspan="2" class="sticky-col thung-so">Thùng số</th>
 										<th rowspan="2" class="sticky-col gio">Giờ</th>
-										<th rowspan="2" class="sticky-col phan-loai">Phân loại</th>
+										<th rowspan="2" class="sticky-col phan-loai">Phân loại TC04</th>
+										<th colspan="2" class="sticky-col tc06-group">Phân loại TC06</th>
 										<th rowspan="2">Si</th>
-										<th rowspan="2">Sàn ra gang</th>
+										<th rowspan="2">Nhiệt độ gang</th>
+										<th rowspan="2">Sàn ra gang</th>	
 										<th rowspan="2">KL thùng & xe</th>
 										<th rowspan="2">KL thùng & gang & xe</th>
 										<th rowspan="2">KL xe goong</th>
@@ -240,6 +257,9 @@
 
 									</tr>
 									<tr>
+										<th class ="sticky-col tc06-1">NM.LG</th>
+										<th class ="sticky-col tc06-2">NM.LT</th>
+
 										<th>NM.HRC1</th>
 										<th>NM.HRC2</th>
 										<th>ĐÚC1</th>
@@ -282,7 +302,14 @@
 												<td name="ThungSo" class="sticky-col thung-so">@item.ThuTuThung</td>
 												<td name="Gio" class="sticky-col gio">@item.GioNhaMay</td>
 												<td name="PhanLoai" class="sticky-col phan-loai">@item.PhanLoai</td>
+												<td name="PhanLoaiLoThoiLG" class="sticky-col tc06-1"></td>
+												<td name="PhanLoaiLoThoiLT" class="sticky-col tc06-2">@item.PhanLoaiLoThoi</td>
 												<td name="Si">@item.Si</td>
+												<td>
+													<input type="number" name="NhietDoGang" step="1" min="0" class="form-control nhiet-do-gang" value="@item.Temp"
+														   style="width: 60px; padding: 4px;" @disabledAttr />
+												</td>
+
 												<td>
 													<input type="number" name="G_SanRaGang" step="1" min="0" class="form-control" value="@item.G_SanRaGang"
 														   style="width: 50px; padding: 4px;" @disabledAttr />
@@ -1296,7 +1323,7 @@
 			<tr class="tong-row" style="font-weight:bold; background-color:#f0f0f0;">
 				<td colspan="3"></td>
 				<td>${soLuongMe}</td>
-				<td colspan="9"></td>
+				<td colspan="12"></td>
 				<td>${tong.toFixed(2)}</td>
 				<td colspan="9"></td>
 				<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
@@ -1432,7 +1459,8 @@
 				Gio_NM: row.find('input[name="GioNM"]').val() || null,
 				G_GhiChu: row.find('textarea[name="GhiChu"]').val() || null,
 				ChuyenDen: chuyenDen,
-				G_SanRaGang: gSanRaGang
+				G_SanRaGang: gSanRaGang,
+				Temp: parseInt(row.find('input[name="NhietDoGang"]').val()) || null,
 			});
 		});
 
@@ -1464,6 +1492,10 @@
 			const $row = $(this).closest("tr");
 			if ($(this).is(":checked")) {
 				$row.find("input[name^='VanChuyen']").not(this).prop("checked", false);
+			}
+			// Đánh dấu dòng là đã thay đổi
+			if (!$row.is('[data-new="true"]')) {
+				$row.attr('data-changed', 'true');
 			}
 		});
 		
@@ -1512,4 +1544,12 @@
 		});
 	});
 
+		$(".nhiet-do-gang").change(function () {
+		let val = parseInt($(this).val());
+
+		if (val < 1000 || val > 2000) {
+			alert("Nhiệt độ phải từ 1000 đến 2000");
+			$(this).val("");
+		}
+	});
 </script>

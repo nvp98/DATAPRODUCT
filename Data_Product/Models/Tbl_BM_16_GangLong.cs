@@ -216,7 +216,10 @@ namespace Data_Product.Models
 
         public int? Temp { get; set; }
 
+
         [Column(TypeName = "decimal(10, 3)")]
         public decimal? Si { get; set; }
+
+        public string? PhanLoaiLoThoi { get; set; }
     }
 }
