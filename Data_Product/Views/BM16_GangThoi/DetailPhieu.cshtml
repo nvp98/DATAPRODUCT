@@ -306,9 +306,10 @@
 												<td name="PhanLoaiLoThoiLT" class="sticky-col tc06-2">@item.PhanLoaiLoThoi</td>
 												<td name="Si">@item.Si</td>
 												<td>
-													<input type="number" name="NhietDoGang" step="1" min="0" class="form-control" value="@item.Temp"
+													<input type="number" name="NhietDoGang" step="1" min="0" class="form-control nhiet-do-gang" value="@item.Temp"
 														   style="width: 60px; padding: 4px;" @disabledAttr />
 												</td>
+
 												<td>
 													<input type="number" name="G_SanRaGang" step="1" min="0" class="form-control" value="@item.G_SanRaGang"
 														   style="width: 50px; padding: 4px;" @disabledAttr />
@@ -1543,4 +1544,12 @@
 		});
 	});
 
+		$(".nhiet-do-gang").change(function () {
+		let val = parseInt($(this).val());
+
+		if (val < 1000 || val > 2000) {
+			alert("Nhiệt độ phải từ 1000 đến 2000");
+			$(this).val("");
+		}
+	});
 </script>

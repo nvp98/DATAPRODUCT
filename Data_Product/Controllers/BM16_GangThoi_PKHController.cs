@@ -1162,6 +1162,7 @@ namespace Data_Product.Controllers
                                 }
 
                                 worksheet.Cell(row, colIndex++).Value = item.BKMIS_PhanLoai;
+                                worksheet.Cell(row, colIndex++).Value = item.PhanLoaiLoThoi;
                                 worksheet.Cell(row, colIndex++).Value = item.KR == true ? "X" : "";
                                 if (item.T_copy == true || item.IsCopy == true)
                                 {
@@ -1372,7 +1373,7 @@ namespace Data_Product.Controllers
 
                         // --- Dòng tổng ---
                         int sumRow = row;
-                        var totalLabel = worksheet.Range($"A{sumRow}:R{sumRow}");
+                        var totalLabel = worksheet.Range($"A{sumRow}:S{sumRow}");
                         totalLabel.Merge();
                         totalLabel.Value = "Tổng:";
                         totalLabel.Style.Font.SetBold();
@@ -1380,38 +1381,39 @@ namespace Data_Product.Controllers
 
 
                         // Tổng cột Q (19)
-                        worksheet.Cell(sumRow, 19).FormulaA1 = $"=SUM(S8:S{row - 1})";
-                        worksheet.Cell(sumRow, 19).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 19).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 19).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        worksheet.Cell(sumRow, 20).FormulaA1 = $"=SUM(T8:T{row - 1})";
+                        worksheet.Cell(sumRow, 20).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 20).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 20).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge R -> AD (20 -> 33)
-                        worksheet.Range(sumRow, 20, sumRow, 33).Merge().Value = "";
-                        worksheet.Range(sumRow, 20, sumRow, 33).Style.Fill.BackgroundColor = XLColor.White;
+                        worksheet.Range(sumRow, 21, sumRow, 34).Merge().Value = "";
+                        worksheet.Range(sumRow, 21, sumRow, 34).Style.Fill.BackgroundColor = XLColor.White;
 
                         // Tổng cột AE (32)
-                        worksheet.Cell(sumRow, 34).FormulaA1 = $"=SUM(AH8:AH{row - 1})";
-                        worksheet.Cell(sumRow, 34).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 34).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 34).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        // Tổng cột AI
+                        worksheet.Cell(sumRow, 35).FormulaA1 = $"=SUM(AI8:AI{row - 1})";
+                        worksheet.Cell(sumRow, 35).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 35).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 35).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge AF -> AJ (33 -> 37)
-                        worksheet.Range(sumRow, 35, sumRow, 39).Merge().Value = "";
-                        worksheet.Range(sumRow, 35, sumRow, 39).Style.Fill.BackgroundColor = XLColor.White;
+                        worksheet.Range(sumRow, 36, sumRow, 40).Merge().Value = "";
+                        worksheet.Range(sumRow, 36, sumRow, 40).Style.Fill.BackgroundColor = XLColor.White;
 
                         // Tổng cột AK (38)
-                        worksheet.Cell(sumRow, 40).FormulaA1 = $"=SUM(AN8:AN{row - 1})";
-                        worksheet.Cell(sumRow, 40).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumRow, 40).Style.Font.SetBold();
-                        worksheet.Cell(sumRow, 40).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        worksheet.Cell(sumRow, 41).FormulaA1 = $"=SUM(AO8:AO{row - 1})";
+                        worksheet.Cell(sumRow, 41).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumRow, 41).Style.Font.SetBold();
+                        worksheet.Cell(sumRow, 41).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
                         // Merge AL -> AQ (39 -> 44)
-                        worksheet.Range(sumRow, 41, sumRow, 46).Merge().Value = "";
-                        worksheet.Range(sumRow, 41, sumRow, 46).Style.Fill.BackgroundColor = XLColor.White;
+                        worksheet.Range(sumRow, 42, sumRow, 47).Merge().Value = "";
+                        worksheet.Range(sumRow, 42, sumRow, 47).Style.Fill.BackgroundColor = XLColor.White;
 
                         // --- Dòng tổng all ---
                         int sumAllRow = row + 1;
-                        var totalAllLabel = worksheet.Range($"A{sumAllRow}:R{sumAllRow}");
+                        var totalAllLabel = worksheet.Range($"A{sumAllRow}:S{sumAllRow}");
                         totalAllLabel.Merge();
                         totalAllLabel.Value = "Tổng Tất Cả:";
                         totalAllLabel.Style.Font.SetBold();
@@ -1419,16 +1421,16 @@ namespace Data_Product.Controllers
 
 
 
-                        worksheet.Cell(sumAllRow, 19).Value = sumKLGang;
-                        worksheet.Cell(sumAllRow, 19).Style.NumberFormat.Format = "#,##0.00";
-                        worksheet.Cell(sumAllRow, 19).Style.Font.SetBold();
-                        worksheet.Cell(sumAllRow, 19).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+                        worksheet.Cell(sumAllRow, 20).Value = sumKLGang;
+                        worksheet.Cell(sumAllRow, 20).Style.NumberFormat.Format = "#,##0.00";
+                        worksheet.Cell(sumAllRow, 20).Style.Font.SetBold();
+                        worksheet.Cell(sumAllRow, 20).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
 
-                        worksheet.Range(sumAllRow, 20, sumAllRow, 46).Merge().Value = "";
-                        worksheet.Range(sumAllRow, 20, sumAllRow, 46).Style.Fill.BackgroundColor = XLColor.White;
+                        worksheet.Range(sumAllRow, 21, sumAllRow, 47).Merge().Value = "";
+                        worksheet.Range(sumAllRow, 21, sumAllRow, 47).Style.Fill.BackgroundColor = XLColor.White;
 
                         // Format toàn bảng
-                        var usedRange = worksheet.Range($"A7:AW{sumAllRow}");
+                        var usedRange = worksheet.Range($"A7:AX{sumAllRow}");
                         usedRange.Style.Font.SetFontName("Arial").Font.SetFontSize(11);
                         usedRange.Style.NumberFormat.SetFormat("General");
                         //usedRange.Style.Font.FontColor = XLColor.Black;
