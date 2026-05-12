@@ -1820,22 +1820,33 @@
                 processData: false,
                 success: function (res) {
                     if (res.isValid) {
+                        // === NEW: dùng allIds (tập đầy đủ sau BFS closure) thay vì selectedIds ===
+                        const allIdsPayload = res.allIds.map(function(id) { return { id: id }; });
                         $.ajax({
                             url: "/BM16_GangThoi_PKH/ChotThung",
                             type: "POST",
                             contentType: "application/json",
-                            data: JSON.stringify(selectedIds),
+                            // data: JSON.stringify(selectedIds), // OLD: chỉ chốt thùng được chọn
+                            data: JSON.stringify(allIdsPayload),
                             processData: false,
                             success: function (res) {
                                 alert("Đã chốt thùng thành công");
-                                Search(); 
+                                Search();
                             },
                             error: function () {
                                 alert("Lỗi khi nhận dữ liệu!");
                             }
                         });
+                        // === END NEW ===
                     } else {
-                        alert("Vui lòng kiểm tra dữ liệu các thùng");
+                        // === NEW: hiển thị chi tiết thùng lỗi thay vì alert chung ===
+                        // OLD: alert("Vui lòng kiểm tra dữ liệu các thùng");
+                        var msg = "Các thùng sau chưa đủ điều kiện chốt:\n";
+                        (res.invalidItems || []).forEach(function(item) {
+                            msg += "- " + (item.maThungThep || item.maThungGang) + ": thiếu " + item.missingFields.join(", ") + "\n";
+                        });
+                        alert(msg);
+                        // === END NEW ===
                         Search();
                     }
                 },
@@ -1883,14 +1894,27 @@
               }
 
               $.ajax({
-                  url: "/BM16_GangThoi_PKH/HuyChotThung",
+                  url: "/BM16_GangThoi_PKH/CheckHuyChotThung",
                   type: "POST",
                   contentType: "application/json",
                   data: JSON.stringify(selectedIds),
                   processData: false,
                   success: function (res) {
-                      alert("Đã Hủy chốt thùng thành công")
-                      Search();
+                      const allIdsPayload = res.allIds.map(function(id) { return { id: id }; });
+                      $.ajax({
+                          url: "/BM16_GangThoi_PKH/HuyChotThung",
+                          type: "POST",
+                          contentType: "application/json",
+                          data: JSON.stringify(allIdsPayload),
+                          processData: false,
+                          success: function (res) {
+                              alert("Đã Hủy chốt thùng thành công");
+                              Search();
+                          },
+                          error: function () {
+                              alert("Lỗi khi nhận dữ liệu!");
+                          }
+                      });
                   },
                   error: function () {
                       alert("Lỗi khi nhận dữ liệu!");

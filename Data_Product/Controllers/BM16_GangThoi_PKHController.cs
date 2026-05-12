@@ -68,6 +68,20 @@ namespace Data_Product.Controllers
 
             var Ids = selectedIds.Select(x => x.id).ToList();
 
+            // === NEW: BFS closure + validate toàn bộ tập liên đới ===
+            var allIds = await ResolveThungChotClosure(Ids);
+            if (!allIds.Any())
+                return NotFound("Không tìm thấy thùng nào.");
+
+            var invalidItems = await ValidateChotCondition(allIds);
+
+            if (invalidItems.Any())
+                return Ok(new { isValid = false, invalidItems, allIds = new List<int>() });
+
+            return Ok(new { isValid = true, invalidItems = new List<object>(), allIds });
+            // === END NEW ===
+
+            /* === OLD LOGIC (giữ lại để rollback) ===
             // Lấy tất cả các thùng cần xử lý
             var thungs = await _context.Tbl_BM_16_GangLong
                 .Where(x => Ids.Contains(x.ID) && x.T_ID_TrangThai == (int)TinhTrang.DaNhan)
@@ -83,11 +97,7 @@ namespace Data_Product.Controllers
                     x.G_KLThungChua == null ||
                     x.G_KLGangLong == null ||
                     x.ChuyenDen == null ||
-                    x.Gio_NM == null 
-                    // || x.T_KLThungVaGang == null ||
-                    //x.T_KLThungChua == null ||
-                    //x.T_KLGangLong == null ||
-                    //x.ID_TTG == null
+                    x.Gio_NM == null
                 )
                 .Select(x => new { x.ID, x.MaThungGang })
                 .ToList();
@@ -98,7 +108,7 @@ namespace Data_Product.Controllers
                 {
                     isValid = false,
                     invalidThungsGang,
-                    invalidThungsTTG = new List<object>() 
+                    invalidThungsTTG = new List<object>()
                 });
             }
             var allowedDestinations = new[] { "DUC1", "DUC2" };
@@ -144,12 +154,13 @@ namespace Data_Product.Controllers
                 return Ok(new
                 {
                     isValid = false,
-                    invalidThungsGang = new List<object>(), 
+                    invalidThungsGang = new List<object>(),
                     invalidThungsTTG
                 });
             }
 
             return Ok(new { isValid = true });
+            === END OLD === */
         }
 
 
@@ -234,6 +245,25 @@ namespace Data_Product.Controllers
 
             await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CheckHuyChotThung([FromBody] List<ChotThungDto> selectedIds)
+        {
+            if (selectedIds == null || selectedIds.Count == 0)
+                return BadRequest("Danh sách ID trống.");
+
+            var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var TaiKhoan = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.TenTaiKhoan == TenTaiKhoan);
+            if (TaiKhoan == null) return Unauthorized();
+
+            var Ids = selectedIds.Select(x => x.id).ToList();
+
+            var allIds = await ResolveThungHuyChotClosure(Ids);
+            if (!allIds.Any())
+                return NotFound("Không tìm thấy thùng nào.");
+
+            return Ok(new { allIds });
         }
 
         [HttpPost]
@@ -324,6 +354,284 @@ namespace Data_Product.Controllers
                 return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
             }
         }
+        // === NEW: helper class cho kết quả validate chốt ===
+        private class ChotThungInvalidItem
+        {
+            public int ID { get; set; }
+            public string MaThungThep { get; set; }
+            public string MaThungGang { get; set; }
+            public List<string> MissingFields { get; set; }
+        }
+
+        // === NEW: BFS closure — mở rộng tập thùng cần chốt theo 3 loại cạnh liên đới ===
+        private async Task<List<int>> ResolveThungChotClosure(List<int> initialIds)
+        {
+            var visitedMaThungGang = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var queue = new Queue<string>();
+            var resultIds = new HashSet<int>();
+
+            var initRows = await _context.Tbl_BM_16_GangLong
+                .AsNoTracking()
+                .Where(x => initialIds.Contains(x.ID) && x.T_ID_TrangThai == (int)TinhTrang.DaNhan
+                            && x.ID_TrangThai != (int)TinhTrang.DaChot)
+                .Select(x => new { x.ID, x.MaThungGang })
+                .ToListAsync();
+
+            foreach (var r in initRows)
+                if (!string.IsNullOrEmpty(r.MaThungGang) && visitedMaThungGang.Add(r.MaThungGang))
+                    queue.Enqueue(r.MaThungGang);
+
+            while (queue.Count > 0)
+            {
+                var ma = queue.Dequeue();
+
+                // Edge 1: tất cả GangLong cùng MaThungGang, chưa chốt
+                var rows = await _context.Tbl_BM_16_GangLong
+                    .AsNoTracking()
+                    .Where(x => x.MaThungGang == ma && x.T_ID_TrangThai == (int)TinhTrang.DaNhan
+                                && x.ID_TrangThai != (int)TinhTrang.DaChot)
+                    .Select(x => new { x.ID, x.ID_TTG, x.MaThungThep })
+                    .ToListAsync();
+
+                foreach (var row in rows)
+                {
+                    resultIds.Add(row.ID);
+
+                    // Edge 2: TTG chung → các thùng gang khác cùng MaThungTG
+                    if (row.ID_TTG.HasValue)
+                    {
+                        var maThungTG = await _context.Tbl_BM_16_ThungTrungGian
+                            .AsNoTracking()
+                            .Where(x => x.ID == row.ID_TTG.Value)
+                            .Select(x => x.MaThungTG)
+                            .FirstOrDefaultAsync();
+
+                        if (maThungTG != null)
+                        {
+                            var siblingTTGIds = await _context.Tbl_BM_16_ThungTrungGian
+                                .AsNoTracking()
+                                .Where(x => x.MaThungTG == maThungTG)
+                                .Select(x => x.ID)
+                                .ToListAsync();
+
+                            var newGangs = await _context.Tbl_BM_16_GangLong
+                                .AsNoTracking()
+                                .Where(x => x.ID_TTG.HasValue && siblingTTGIds.Contains(x.ID_TTG.Value)
+                                            && x.MaThungGang != null)
+                                .Select(x => x.MaThungGang)
+                                .Distinct()
+                                .ToListAsync();
+
+                            foreach (var g in newGangs)
+                                if (visitedMaThungGang.Add(g))
+                                    queue.Enqueue(g);
+                        }
+                    }
+
+                    // Edge 3: gộp thùng (ChiaGang cùng MaChiaGang) → các thùng gang khác
+                    if (!string.IsNullOrEmpty(row.MaThungThep))
+                    {
+                        var maChiaGang = await _context.Tbl_BM_16_ChiaGang
+                            .AsNoTracking()
+                            .Where(x => x.MaThungThep == row.MaThungThep)
+                            .Select(x => x.MaChiaGang)
+                            .FirstOrDefaultAsync();
+
+                        if (maChiaGang != null)
+                        {
+                            var newGangs = await _context.Tbl_BM_16_ChiaGang
+                                .AsNoTracking()
+                                .Where(x => x.MaChiaGang == maChiaGang && x.MaThungGang != null)
+                                .Select(x => x.MaThungGang)
+                                .Distinct()
+                                .ToListAsync();
+
+                            foreach (var g in newGangs)
+                                if (visitedMaThungGang.Add(g))
+                                    queue.Enqueue(g);
+                        }
+                    }
+                }
+            }
+
+            return resultIds.ToList();
+        }
+
+        // BFS closure cho hủy chốt — giống ResolveThungChotClosure nhưng filter ID_TrangThai == DaChot
+        private async Task<List<int>> ResolveThungHuyChotClosure(List<int> initialIds)
+        {
+            var visitedMaThungGang = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var queue = new Queue<string>();
+            var resultIds = new HashSet<int>();
+
+            var initRows = await _context.Tbl_BM_16_GangLong
+                .AsNoTracking()
+                .Where(x => initialIds.Contains(x.ID) && x.ID_TrangThai == (int)TinhTrang.DaChot)
+                .Select(x => new { x.ID, x.MaThungGang })
+                .ToListAsync();
+
+            foreach (var r in initRows)
+                if (!string.IsNullOrEmpty(r.MaThungGang) && visitedMaThungGang.Add(r.MaThungGang))
+                    queue.Enqueue(r.MaThungGang);
+
+            while (queue.Count > 0)
+            {
+                var ma = queue.Dequeue();
+
+                var rows = await _context.Tbl_BM_16_GangLong
+                    .AsNoTracking()
+                    .Where(x => x.MaThungGang == ma && x.ID_TrangThai == (int)TinhTrang.DaChot)
+                    .Select(x => new { x.ID, x.ID_TTG, x.MaThungThep })
+                    .ToListAsync();
+
+                foreach (var row in rows)
+                {
+                    resultIds.Add(row.ID);
+
+                    if (row.ID_TTG.HasValue)
+                    {
+                        var maThungTG = await _context.Tbl_BM_16_ThungTrungGian
+                            .AsNoTracking()
+                            .Where(x => x.ID == row.ID_TTG.Value)
+                            .Select(x => x.MaThungTG)
+                            .FirstOrDefaultAsync();
+
+                        if (maThungTG != null)
+                        {
+                            var siblingTTGIds = await _context.Tbl_BM_16_ThungTrungGian
+                                .AsNoTracking()
+                                .Where(x => x.MaThungTG == maThungTG)
+                                .Select(x => x.ID)
+                                .ToListAsync();
+
+                            var newGangs = await _context.Tbl_BM_16_GangLong
+                                .AsNoTracking()
+                                .Where(x => x.ID_TTG.HasValue && siblingTTGIds.Contains(x.ID_TTG.Value)
+                                            && x.MaThungGang != null
+                                            && x.ID_TrangThai == (int)TinhTrang.DaChot)
+                                .Select(x => x.MaThungGang)
+                                .Distinct()
+                                .ToListAsync();
+
+                            foreach (var g in newGangs)
+                                if (visitedMaThungGang.Add(g))
+                                    queue.Enqueue(g);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(row.MaThungThep))
+                    {
+                        var maChiaGang = await _context.Tbl_BM_16_ChiaGang
+                            .AsNoTracking()
+                            .Where(x => x.MaThungThep == row.MaThungThep)
+                            .Select(x => x.MaChiaGang)
+                            .FirstOrDefaultAsync();
+
+                        if (maChiaGang != null)
+                        {
+                            var candidateGangs = await _context.Tbl_BM_16_ChiaGang
+                                .AsNoTracking()
+                                .Where(x => x.MaChiaGang == maChiaGang && x.MaThungGang != null)
+                                .Select(x => x.MaThungGang)
+                                .Distinct()
+                                .ToListAsync();
+
+                            var newGangs = await _context.Tbl_BM_16_GangLong
+                                .AsNoTracking()
+                                .Where(x => candidateGangs.Contains(x.MaThungGang)
+                                            && x.ID_TrangThai == (int)TinhTrang.DaChot)
+                                .Select(x => x.MaThungGang)
+                                .Distinct()
+                                .ToListAsync();
+
+                            foreach (var g in newGangs)
+                                if (visitedMaThungGang.Add(g))
+                                    queue.Enqueue(g);
+                        }
+                    }
+                }
+            }
+
+            return resultIds.ToList();
+        }
+
+        // === NEW: validate điều kiện chốt, ánh xạ từ checkCondition() ở frontend ===
+        private async Task<List<ChotThungInvalidItem>> ValidateChotCondition(List<int> allIds)
+        {
+            var thungs = await _context.Tbl_BM_16_GangLong
+                .AsNoTracking()
+                .Where(x => allIds.Contains(x.ID) && x.T_ID_TrangThai == (int)TinhTrang.DaNhan
+                            && x.ID_TrangThai != (int)TinhTrang.DaChot)
+                .ToListAsync();
+
+            var ttgIds = thungs.Where(x => x.ID_TTG.HasValue).Select(x => x.ID_TTG.Value).Distinct().ToList();
+            var ttgMap = await _context.Tbl_BM_16_ThungTrungGian
+                .AsNoTracking()
+                .Where(x => ttgIds.Contains(x.ID))
+                .ToDictionaryAsync(x => x.ID);
+
+            var invalidList = new List<ChotThungInvalidItem>();
+            var allowedDest = new[] { "DUC1", "DUC2" };
+
+            foreach (var t in thungs)
+            {
+                Tbl_BM_16_ThungTrungGian ttg = null;
+                if (t.ID_TTG.HasValue) ttgMap.TryGetValue(t.ID_TTG.Value, out ttg);
+
+                // Bỏ qua các row gắn với TTG copy (mirrors: if(item.isCopy) return false)
+                if (ttg?.IsCopy == true) continue;
+
+                // Fast path DUC
+                bool isDUC = allowedDest.Contains(t.ChuyenDen);
+                if (isDUC && t.T_ID_TrangThai == (int)TinhTrang.DaNhan && t.G_ID_TrangThai == 3)
+                    continue;
+
+                var missing = new List<string>();
+
+                if (t.T_ID_TrangThai != (int)TinhTrang.DaNhan) missing.Add("T_ID_TrangThai");
+                if (t.G_ID_TrangThai != 3)                      missing.Add("G_ID_TrangThai");
+                if (t.KL_XeGoong == null)                       missing.Add("KL_XeGoong");
+                if (t.G_KLThungChua == null)                    missing.Add("G_KLThungChua");
+                if (t.G_KLThungVaGang == null)                  missing.Add("G_KLThungVaGang");
+                if (t.G_KLGangLong == null)                     missing.Add("G_KLGangLong");
+                if (t.ChuyenDen == null)                        missing.Add("ChuyenDen");
+                if (t.Gio_NM == null)                           missing.Add("Gio_NM");
+                if (t.ID_TTG == null)                           missing.Add("ID_TTG");
+                if (ttg?.SoThungTG == null)                     missing.Add("SoThungTG");
+                if (t.NhietDo == null)                          missing.Add("NhietDo");
+                if (t.XacNhan != true)                          missing.Add("XacNhan");
+
+                // Chỉ thùng gốc (T_copy == false) mới cần Si
+                if (t.T_copy == false && t.Si == null)          missing.Add("Si");
+
+                // Chỉ khi không có KLGangChia mới cần các trường KL thùng + TTG
+                if (t.KLGangChia == null)
+                {
+                    if (t.T_KLThungVaGang == null)    missing.Add("T_KLThungVaGang");
+                    if (t.T_KLThungChua == null)       missing.Add("T_KLThungChua");
+                    if (t.T_KLGangLong == null)        missing.Add("T_KLGangLong");
+                    if (ttg?.KLThungVaGang_Thoi == null) missing.Add("KLThungVaGang_Thoi");
+                    if (ttg?.KLThung_Thoi == null)     missing.Add("KLThung_Thoi");
+                    if (ttg?.KLGang_Thoi == null)      missing.Add("KLGang_Thoi");
+                    if (ttg?.KL_phe == null)           missing.Add("KL_phe");
+                    if (ttg?.ID_MeThoi == null)        missing.Add("ID_MeThoi");
+                    if (ttg?.GioChonMe == null)        missing.Add("GioChonMe");
+                }
+
+                if (missing.Any())
+                    invalidList.Add(new ChotThungInvalidItem
+                    {
+                        ID = t.ID,
+                        MaThungThep = t.MaThungThep,
+                        MaThungGang = t.MaThungGang,
+                        MissingFields = missing
+                    });
+            }
+
+            return invalidList;
+        }
+        // === END NEW ===
+
         private async Task<decimal> SumLatestCRWithFallbackAsync(
             IQueryable<Tbl_BM_16_GangLong> gangQueryScope,
             List<int> ttgTargetIds)

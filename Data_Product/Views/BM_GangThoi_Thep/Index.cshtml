@@ -2512,7 +2512,7 @@
                             NhietDo = rawNhietDo === "" ? null : parseFloat(rawNhietDo);
                             nhietDoGroup = NhietDo; // lưu cho các dòng sau dùng
 
-                            if (!NhietDo) {
+                            if (!NhietDo || NhietDo < 1000 || NhietDo > 2000) {
                                 isValidLuu = false;
                             }
                         } else {
