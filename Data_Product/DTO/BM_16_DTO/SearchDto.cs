@@ -25,7 +25,16 @@
         public string? SoThungTG { get; set; }
         public string? BkmisSoMe { get; set; }
         public int? PageNumber { get; set; }
-        public int? PageSize { get; set; } 
+        public int? PageSize { get; set; }
+        // true = tìm theo tổ hợp BFS (backend tự expand từ MaThungGang/MaThungThep/BkmisSoMe)
+        public bool? IsToHop { get; set; }
+    }
+
+    public class GetToHopDto
+    {
+        public string? MaThungGang { get; set; }
+        public string? MaThungThep { get; set; }
+        public string? BkmisSoMe { get; set; }
     }
 
     public class SearchLTDto
