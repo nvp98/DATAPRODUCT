@@ -490,6 +490,7 @@
                                     <div class="col-7" style="display: flex;justify-content: flex-end;align-items: center;">
                                         <div class="d-flex justify-content-center w-100 gap-2">
                                             <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
+                                            <button class="btn btn-info btn-sm px-4 status-card text-white" id="btnTimToHop" style="font-size: 11px">Tìm tổ hợp</button>
                                             <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
                                             <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
                                             <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
@@ -838,6 +839,7 @@
      let currentPage = 1;
      const pageSize = 20;
      let danhSachThung = [];
+     let isTimToHop = false; // true khi đang tìm theo tổ hợp BFS
 
     // reset cacs filter search
         function clearFilter(ids = []) {
@@ -1674,7 +1676,8 @@
                 IsChiaGang: IsChiaGang,
                 ID_HRC : ID_HRC || null,
                 SoThungTG: SoThungTG || null,
-                BkmisSoMe: bkmisSoMe || null
+                BkmisSoMe: bkmisSoMe || null,
+                IsToHop: isTimToHop
             };
         }
 
@@ -1923,11 +1926,28 @@
         });
 
         $("#btnTimKiem").click(function() {
+            isTimToHop = false;
             currentPage = 1;
-            Search();   
+            Search();
+        })
+
+        $("#btnTimToHop").click(function() {
+            const maThungGang = $("#MaThungGang").val().trim();
+            const maThungThep = $("#MaThungThep").val().trim();
+            const bkmisSoMe = $("#bkmisSoMe").val().trim();
+
+            if (!maThungGang && !maThungThep && !bkmisSoMe) {
+                alert("Vui lòng nhập ít nhất một trong: Mã thùng gang, Mã thùng thép, hoặc Số mẻ BKMIS.");
+                return;
+            }
+
+            isTimToHop = true;
+            currentPage = 1;
+            Search();
         })
 
         $("#btnReset").click(function() {
+            isTimToHop = false;
             clearFilter(['LoCao', 'LoThoi', 'TuNgayLG', 'DenNgayLG','TuNgayLT', 'DenNgayLT', 'CaLT', 'CaLG', 'KipLT', 'KipLG', 'ChuyenDen', 'ThungSo', 'TinhTrangChot', 'TinhTrangLT', 'TinhTrangLG', 'MaThungGang', 'MaThungThep', 'MaMeThoi', 'ID_HRC', 'SoThungTG', 'bkmisSoMe']);
             currentPage = 1;
             Search();
