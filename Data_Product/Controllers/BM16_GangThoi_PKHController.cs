@@ -1769,7 +1769,8 @@ namespace Data_Product.Controllers
                                      GioChonMe = ttg != null ? ttg.GioChonMe : null,
                                      KLXiKR = a.KLXiKR,
                                      KLChiaXiKR = a.KLChiaXiKR,
-                                     KLGangCCTVaXi = a.KLGangCCTVaXi
+                                     KLGangCCTVaXi = a.KLGangCCTVaXi,
+                                     PhanLoaiLoThoi = a.PhanLoaiLoThoi
                                  }).ToListAsync();
 
             gocData = FilterByTinhTrang(gocData, dto.ID_TinhTrang);
