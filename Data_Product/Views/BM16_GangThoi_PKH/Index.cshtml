@@ -549,6 +549,7 @@
                         <th class="hide-col">Tình trạng QLCL</th>
                         <th class="hide-col" style="min-width: 70px;">Phân loại LG TC04</th>
                         <th class="hide-col" style="min-width: 70px;">Phân loại LT TC06</th>
+                        <th class="hide-col" style="min-width: 50px;">Xác nhận không có mẫu LT</th>
                         <th>Sàn ra gang</th>
                         <th>KL xe goong</th>
                         <th>KL thùng và gang</th>
@@ -1333,7 +1334,7 @@
                 tbody.empty();
             const data = res.data;
             if (!data || data.length === 0) {
-                tbody.append(`<tr><td colspan="35" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
+                tbody.append(`<tr><td colspan="36" class="text-center text-muted" style="padding: 20px; font-size: 20px; font-weight: 600;">
                             Không tìm thấy dữ liệu
                             </td></tr>`);
                 return;
@@ -1413,6 +1414,11 @@
                     row.append(`<td class="hide-col">${tinhTrangQLCLHTML}</td>`);
                     row.append(`<td class="hide-col">${item.bkmiS_PhanLoai ?? ''}</td>`);
                     row.append(`<td class="hide-col">${item.phanLoaiLoThoi ?? ''}</td>`);
+                    row.append(`
+                        <td class="hide-col text-center">
+                            <input type="checkbox" ${item.hasPhanLoaiLoThoi ? 'checked' : ''} disabled>
+                        </td>
+                    `);
 
                     if(item.t_copy == true || isCopy){
                         row.append(`<td></td>`);

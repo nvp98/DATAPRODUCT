@@ -34,6 +34,7 @@ using System;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Globalization;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 
 
 namespace Data_Product.Controllers
@@ -700,6 +701,7 @@ namespace Data_Product.Controllers
                 : null,
                 Si = t.Si,
                 PhanLoaiLoThoi = t.PhanLoaiLoThoi,
+                HasPhanLoaiLoThoi = t.HasPhanLoaiLoThoi,
                 Temp =t.Temp,
             })//.OrderBy(x => x.MaThungPrefix)
               //  .ThenBy(x => x.MaThungSuffix)
@@ -734,6 +736,7 @@ namespace Data_Product.Controllers
                     x.GioChonMe,
                     x.Si,
                     x.PhanLoaiLoThoi,
+                    x.HasPhanLoaiLoThoi,
                     x.Temp
                 })
                 .ToList();
@@ -966,6 +969,54 @@ namespace Data_Product.Controllers
             }
         }
         [HttpPost]
+        public async Task<IActionResult> ToggleHasPhanLoaiLoThoi([FromBody] ToggleHasPhanLoaiReq req)
+        {
+            try
+            {
+                if (req == null || string.IsNullOrEmpty(req.MaPhieu) || string.IsNullOrEmpty(req.MaThungGang))
+                    return BadRequest(new { success = false, message = "Thiếu thông tin mã phiếu hoặc mã thùng." });
+
+                var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                if (string.IsNullOrEmpty(tenTaiKhoan))
+                    return Unauthorized("Phiên đăng nhập không hợp lệ.");
+
+                var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+                if (taiKhoan == null)
+                    return Unauthorized("Tài khoản không tồn tại.");
+
+                var phongBan = await _context.Tbl_PhongBan.FirstOrDefaultAsync(x => x.ID_PhongBan == taiKhoan.ID_PhongBan);
+
+                if (phongBan?.TenNgan != "P.QLCL")
+                    return StatusCode(403, new { success = false, message = "Chỉ P.QLCL mới có quyền thực hiện thao tác này." });
+
+                var thung = await _context.Tbl_BM_16_GangLong
+                    .FirstOrDefaultAsync(t => t.MaPhieu == req.MaPhieu && t.MaThungGang == req.MaThungGang);
+
+                if (thung == null)
+                    return NotFound(new { success = false, message = "Không tìm thấy thùng." });
+
+                if (!string.IsNullOrEmpty(thung.PhanLoaiLoThoi))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Thùng đã có phân loại lò thổi"
+                    });
+                  
+                }
+                thung.HasPhanLoaiLoThoi = !(thung.HasPhanLoaiLoThoi == true);
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new { success = true, hasValue = thung.HasPhanLoaiLoThoi, message = "Cập nhật thành công." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = "Lỗi khi cập nhật", error = ex.Message });
+            }
+        }
+
+        [HttpPost]
         public async Task<IActionResult> XacNhanThung([FromBody] XacNhanThungReq req)
         {
             try
@@ -994,6 +1045,14 @@ namespace Data_Product.Controllers
                 if (thungs.Any(x =>x.T_copy != true && x.Si == null))
                 {
                     throw new Exception("Thùng không có dữ liệu Si");
+                }
+                var thungKhongHopLePhanLoai = thungs.Where
+                (x => string.IsNullOrWhiteSpace(x.PhanLoaiLoThoi)
+                 && x.HasPhanLoaiLoThoi != true).ToList();
+
+                if (thungKhongHopLePhanLoai.Any())
+                {
+                    throw new Exception("Các thùng chưa có phân loại lò thổi hoặc chưa xác nhận không có mẫu");
                 }
 
                 var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
@@ -1697,7 +1756,7 @@ namespace Data_Product.Controllers
                     foreach (var thung in danhSachThung)
                     {
                         // thung.Temp = int.TryParse(rec.Temp, out int tempValue) ? tempValue : (int?)null;
-                        thung.PhanLoaiLoThoi = rec.PhanLoaiLoThoi;
+                      
                         // Kiểm tra trạng thái thùng cho phép cập nhật
                         bool choPhepCapNhat =
                             (thung.G_ID_TrangThai == 1 || thung.G_ID_TrangThai == 3) &&
@@ -1706,7 +1765,7 @@ namespace Data_Product.Controllers
                             thung.ID_TrangThai == 2;
 
                         if (!choPhepCapNhat) continue;
-                       
+                        thung.PhanLoaiLoThoi = rec.PhanLoaiLoThoi;
                         thung.Si = rec.Si;
                         // Cập nhật thông tin mới từ BK-MIS
                         thung.BKMIS_PhanLoai = rec.ClassifyName;

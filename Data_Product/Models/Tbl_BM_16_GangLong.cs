@@ -221,5 +221,7 @@ namespace Data_Product.Models
         public decimal? Si { get; set; }
 
         public string? PhanLoaiLoThoi { get; set; }
+
+        public bool? HasPhanLoaiLoThoi { get; set; }
     }
 }
