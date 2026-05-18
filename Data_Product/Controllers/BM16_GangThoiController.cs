@@ -1004,6 +1004,15 @@ namespace Data_Product.Controllers
                     });
                   
                 }
+                if (thung.XacNhan == true)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Thùng đã được xác nhận, không thể thay đổi phân loại lò thổi"
+                    });
+                };
+
                 thung.HasPhanLoaiLoThoi = !(thung.HasPhanLoaiLoThoi == true);
 
                 await _context.SaveChangesAsync();
