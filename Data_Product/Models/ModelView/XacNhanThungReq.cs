@@ -7,4 +7,10 @@ namespace Data_Product.Models.ModelView
             public string? MaPhieu { get; set; }
             public List<ThungGangDto>? DsMaThung { get; set; }
     }
+
+    public class ToggleHasPhanLoaiReq
+    {
+        public string? MaPhieu { get; set; }
+        public string? MaThungGang { get; set; }
+    }
 }

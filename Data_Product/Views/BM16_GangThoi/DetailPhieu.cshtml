@@ -189,10 +189,10 @@
 										<button type="button" id="btnLuuThungMoi" class="btn btn-primary">
 											<i class="bi bi-save"></i> Lưu
 										</button>
-										<button type="button" class="btn btn-secondary" id="btnLamMoi">
+									@* 	<button type="button" class="btn btn-secondary" id="btnLamMoi">
 											<i class="bi bi-arrow-clockwise"></i>
 											<span class="small pt-2 ps-1 text-white">Làm mới</span>
-										</button>
+										</button> *@
 										@* <button type="button" class="btn btn-success me-2 btnchuyenthung">
 										<i class="bi bi-arrow-right-circle"></i> Chuyển
 									</button>
@@ -208,6 +208,10 @@
 											Ẩn/Hiện
 										</button> *@
 									}
+									    <button type="button" class="btn btn-secondary" id="btnLamMoi">
+											<i class="bi bi-arrow-clockwise"></i>
+											<span class="small pt-2 ps-1 text-white">Làm mới</span>
+										</button>
 								</div>
 							</div>
 						</div>
@@ -227,6 +231,7 @@
 										<th rowspan="2" class="sticky-col gio">Giờ</th>
 										<th rowspan="2" class="sticky-col phan-loai">Phân loại TC04</th>
 										<th colspan="2" class="sticky-col tc06-group">Phân loại TC06</th>
+										<th rowspan="2">Xác nhận không có mẫu TC06</th>
 										<th rowspan="2">Si</th>
 										<th rowspan="2">Nhiệt độ gang</th>
 										<th rowspan="2">Sàn ra gang</th>	
@@ -253,7 +258,7 @@
 										<th rowspan="2">KL ĐÚC</th>
 										<th rowspan="2" class="toggle-col">Người chỉnh sửa </th>
 										<th rowspan="2">Chốt thùng</th>
-										<th rowspan="2">Xác nhận QLCL</th>
+										<th rowspan="2">Xác nhận QLCL</th>										
 
 									</tr>
 									<tr>
@@ -304,6 +309,14 @@
 												<td name="PhanLoai" class="sticky-col phan-loai">@item.PhanLoai</td>
 												<td name="PhanLoaiLoThoiLG" class="sticky-col tc06-1"></td>
 												<td name="PhanLoaiLoThoiLT" class="sticky-col tc06-2">@item.PhanLoaiLoThoi</td>
+												<td name="HasPhanLoaiLoThoi" class="text-center">
+													<input type="checkbox"
+														   class="form-check-input @(isQLCL ? "toggle-has-phan-loai" : "")"
+														   data-maphieu="@ViewBag.MaPhieu"
+														   data-mathung="@item.MaThung"
+														   @(isQLCL ? "" : "disabled")
+														   @(item.HasPhanLoaiLoThoi == true ? "checked" : "") />
+												</td>
 												<td name="Si">@item.Si</td>
 												<td>
 													<input type="number" name="NhietDoGang" step="1" min="0" class="form-control nhiet-do-gang" value="@item.Temp"
@@ -394,6 +407,7 @@
 														<span class="badge bg-secondary">Chưa xác nhận</span>
 													}
 												</td>
+												
 											</tr>
 										}
 									}
@@ -445,6 +459,8 @@
 
 </style>
 
+@if (!isQLCL)
+{
 <div class="mt-4" id="double-auto-mapping">
 	<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
 	</div>
@@ -509,6 +525,7 @@
 		</div>
 	</div>
 </div>
+}
 
 <script>
 		// Thay thế phần JavaScript cũ
@@ -1321,14 +1338,14 @@
 
 		let tongRow = `
 			<tr class="tong-row" style="font-weight:bold; background-color:#f0f0f0;">
-				<td colspan="3"></td>
+				<td colspan="4"></td>
 				<td>${soLuongMe}</td>
-				<td colspan="12"></td>
+				<td colspan="13"></td>
 				<td>${tong.toFixed(2)}</td>
 				<td colspan="9"></td>
 				<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
 				<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
-				<td colspan="3"></td>
+				<td colspan="4"></td>
 			</tr>
 		`;
 
@@ -1551,5 +1568,35 @@
 			alert("Nhiệt độ phải từ 1000 đến 2000");
 			$(this).val("");
 		}
+	});
+
+	$(document).on('change', '.toggle-has-phan-loai', function () {
+		const $cb = $(this);
+		const maPhieu = $cb.data('maphieu');
+		const maThung = $cb.data('mathung');
+
+		$.ajax({
+			url: '/BM16_GangThoi/ToggleHasPhanLoaiLoThoi',
+			method: 'POST',
+			contentType: 'application/json',
+			data: JSON.stringify({ MaPhieu: maPhieu, MaThungGang: maThung }),
+			success: function (res) {
+				$cb.prop('checked', res.hasValue === true);
+				if(res.hasValue == true)
+				{
+					alert('Xác nhận có mẫu lò thổi thành công.');
+				}
+				else 
+				{
+					alert('Hủy xác nhận có mẫu lò thổi thành công.');
+				}
+			},
+			error: function (xhr) {
+				// Rollback nếu lỗi
+				$cb.prop('checked', !$cb.prop('checked'));
+				const msg = xhr.responseJSON?.message || 'Lỗi khi cập nhật';
+				alert(msg);
+			}
+		});
 	});
 </script>

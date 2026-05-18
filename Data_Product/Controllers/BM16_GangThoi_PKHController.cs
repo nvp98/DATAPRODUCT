@@ -1770,7 +1770,8 @@ namespace Data_Product.Controllers
                                      KLXiKR = a.KLXiKR,
                                      KLChiaXiKR = a.KLChiaXiKR,
                                      KLGangCCTVaXi = a.KLGangCCTVaXi,
-                                     PhanLoaiLoThoi = a.PhanLoaiLoThoi
+                                     PhanLoaiLoThoi = a.PhanLoaiLoThoi,
+                                     HasPhanLoaiLoThoi = a.HasPhanLoaiLoThoi,
                                  }).ToListAsync();
 
             gocData = FilterByTinhTrang(gocData, dto.ID_TinhTrang);
@@ -2053,7 +2054,7 @@ namespace Data_Product.Controllers
                         var lastRow = Math.Max(worksheet.LastRowUsed()?.RowNumber() ?? 8, 8);
                         if (lastRow >= 8)
                         {
-                            var rangeClear = worksheet.Range($"A8:AE{lastRow}");
+                            var rangeClear = worksheet.Range($"A8:AF{lastRow}");
                             rangeClear.Clear(XLClearOptions.Contents | XLClearOptions.NormalFormats);
                             // Set lại format General sau khi clear
                             rangeClear.Style.NumberFormat.SetFormat("General");
@@ -2116,6 +2117,7 @@ namespace Data_Product.Controllers
 
                                 worksheet.Cell(row, colIndex++).Value = item.BKMIS_PhanLoai;
                                 worksheet.Cell(row, colIndex++).Value = item.PhanLoaiLoThoi;
+                                worksheet.Cell(row, colIndex++).Value = item.HasPhanLoaiLoThoi == true ? "X" : "";
                                 worksheet.Cell(row, colIndex++).Value = item.KR == true ? "X" : "";
                                 if (item.T_copy == true || item.IsCopy == true)
                                 {
