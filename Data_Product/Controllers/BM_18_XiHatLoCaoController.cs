@@ -531,7 +531,7 @@ namespace Data_Product.Controllers
                         NgaySanXuat = header.NgaySanXuat,
                         MaPhieu = header.MaPhieu,
                         ID_LoCao = header.ID_Locao,
-                        Ten_NVL = "Xỉ hạt lò cao",
+                        Ten_NVL = "Xỉ lò cao, hạt rắn",
                         DVT = "Tấn",
                         ID_Lo = null,
                         HeSo = heSoXi.Value,
