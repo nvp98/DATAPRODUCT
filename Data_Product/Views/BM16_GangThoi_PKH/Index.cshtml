@@ -490,7 +490,7 @@
                                     <div class="col-7" style="display: flex;justify-content: flex-end;align-items: center;">
                                         <div class="d-flex justify-content-center w-100 gap-2">
                                             <button class="btn btn-primary btn-sm px-4 status-card" id="btnTimKiem">Tìm</button>
-                                            <button class="btn btn-info btn-sm px-4 status-card text-white" id="btnTimToHop" style="font-size: 11px">Tìm tổ hợp</button>
+                                            <button class="btn btn-info btn-sm px-4 status-card text-white" id="btnTimToHop" style="padding: 0 !important; font-size: 11px;">Tìm tổ hợp</button>
                                             <button class="btn btn-warning btn-sm px-4 status-card" id="BtnAnHien">Ẩn/Hiện</button>
                                             <button class="btn btn-warning btn-sm px-4 status-card" id="btnReset">Reset</button>
                                             <button class="btn btn-success btn-sm px-4 status-card" id="btnXuatExcel">Excel</button>
@@ -2177,10 +2177,10 @@
             // Cột cần ẩn/hiện
             $('.hide-col').css('display', display);
 
-            $('.total-space').attr('colspan', isHidden ? 11 : 16);
+            $('.total-space').attr('colspan', isHidden ? 11 : 18);
 
             $('.total-space-text').attr('colspan', isHidden ? 11 : 9);
-            $('.total-space-all').attr('colspan', isHidden ? 0 : 6);
+            $('.total-space-all').attr('colspan', isHidden ? 0 : 8);
 
             $('.space-2').attr('colspan', isHidden ? 5 : 11);
 
