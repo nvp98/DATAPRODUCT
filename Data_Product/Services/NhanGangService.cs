@@ -355,8 +355,18 @@ namespace Data_Product.Services
                 if (!payload.IsChildRun)
                 {
                     var query = GetBOFQuery(payload.idLoThoi);
+
+                    // Loại mẻ chuyển đến tại lò này: ParentID của chúng trỏ sang lò nguồn,
+                    // không phải split child thật sự.
+                    var chuyenDenIds = await _context.Tbl_BOF_ChuyenMe
+                        .Where(x => x.DenLoID == payload.idLoThoi)
+                        .Select(x => x.DenMeID)
+                        .ToListAsync();
+
                     var meCons = await query
-                        .Where(x => x.ParentID == payload.idThungAT && x.IsChuyenMe != true)
+                        .Where(x => x.ParentID == payload.idThungAT
+                                 && x.IsChuyenMe != true
+                                 && !chuyenDenIds.Contains(x.ID))
                         .ToListAsync();
 
                     foreach (var meCon in meCons)
