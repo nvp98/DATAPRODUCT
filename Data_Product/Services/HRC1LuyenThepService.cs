@@ -492,9 +492,19 @@ namespace Data_Product.Services
                 var (rootLoID, rootMe) = await GetRootMeAsync(idLoThoi, thungGangAt);
                 var rootMeID = rootMe.ID;
 
-                // 3️⃣ Lấy toàn bộ mẻ trong chuỗi (mọi mẻ có root này)
-                var meIdsInChain = await query
-                    .Where(x => x.ID == rootMeID || x.ParentID == rootMeID)
+                // 3️⃣ Lấy toàn bộ mẻ trong chuỗi (mọi mẻ có root này) — phải query đúng lò của root
+                var rootQuery = GetBOFQuery(rootLoID);
+
+                // Loại các mẻ "chuyển đến" tại rootLoID: ParentID của chúng trỏ sang lò nguồn,
+                // không phải parent thật trong chuỗi tách mẻ cùng lò.
+                var chuyenDenIds = await _context.Tbl_BOF_ChuyenMe
+                    .Where(x => x.DenLoID == rootLoID)
+                    .Select(x => x.DenMeID)
+                    .ToListAsync();
+
+                var meIdsInChain = await rootQuery
+                    .Where(x => (x.ID == rootMeID || x.ParentID == rootMeID)
+                             && !chuyenDenIds.Contains(x.ID))
                     .Select(x => x.ID)
                     .ToListAsync();
 
@@ -629,14 +639,22 @@ namespace Data_Product.Services
                 var meConNguon = await GetBOFQuery(tuLoID)
                     .FirstOrDefaultAsync(x => x.ID == chuyenDen.TuMeID);
 
-                if (meConNguon != null && meConNguon.ParentID.HasValue)
+                if (meConNguon != null)
                 {
-                    // 4️⃣ Lấy mẻ CHA THẬT (root)
-                    var meCha = await GetBOFQuery(tuLoID)
-                        .FirstOrDefaultAsync(x => x.ID == meConNguon.ParentID.Value);
+                    if (meConNguon.ParentID.HasValue)
+                    {
+                        // 4️⃣ Mẻ nguồn là mẻ con (đã tách mẻ) → lấy mẻ CHA THẬT (root)
+                        var meCha = await GetBOFQuery(tuLoID)
+                            .FirstOrDefaultAsync(x => x.ID == meConNguon.ParentID.Value);
 
-                    if (meCha != null)
-                        return (tuLoID, meCha);
+                        if (meCha != null)
+                            return (tuLoID, meCha);
+                    }
+                    else
+                    {
+                        // 4️⃣ Mẻ nguồn chính là mẻ gốc (không tách mẻ) → trả về luôn
+                        return (tuLoID, meConNguon);
+                    }
                 }
             }
 
@@ -1051,7 +1069,7 @@ namespace Data_Product.Services
                 toEntity.NgaySanXuat = fromEntity.NgaySanXuat;
 
                 toEntity.IsChuyenMe = false;
-                toEntity.ParentID = fromEntity.ID; // ❗ chuyển mẻ ≠ tách mẻ
+                toEntity.ParentID = null; // Cross-lò relationship tracked via Tbl_BOF_ChuyenMe
 
                 await _context.SaveChangesAsync(); // 🔑 để EF sinh ID
 
