@@ -23,7 +23,7 @@ namespace Data_Product.Models
         [NotMapped]
         public string? TenXuong { get; set; 
         }
-        public int ID_ChucVu { get; set; }
+        public int? ID_ChucVu { get; set; }
         [NotMapped]
         public string? TenChucVu { get; set; }
 

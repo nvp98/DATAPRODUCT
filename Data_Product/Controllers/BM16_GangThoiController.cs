@@ -79,42 +79,42 @@ namespace Data_Product.Controllers
                     Console.WriteLine("Kết nối thành công!");
 
                     // Câu lệnh SQL cần thực thi
-                    string query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternNam,Si,phamCaplothoi " +
+                    string query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternNam,Si,phamCaplothoi,phamCaplothoilg " +
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc1 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ProductionDate = '" +
                          ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc1.ShiftName ='" + cakip + "'";
 
                     if (ID_LoCao == 2)
                     {
-                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi " +
+                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi,phamCaplothoilg " +
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc2 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc2.ProductionDate = '" +
                          ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc2.ShiftName ='" + cakip + "'";
                     }
                     else if (ID_LoCao == 3)
                     {
-                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi " +
+                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi,phamCaplothoilg " +
                         "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc3 " +
                         "where bkmis_kcshpsdq.view_dq1_lg_daura_lc3.ProductionDate = '" +
                          ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc3.ShiftName ='" + cakip + "'";
                     }
                     else if (ID_LoCao == 4)
                     {
-                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi " +
+                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi,phamCaplothoilg " +
                        "FROM bkmis_kcshpsdq.view_dq1_lg_daura_lc4 " +
                        "where bkmis_kcshpsdq.view_dq1_lg_daura_lc4.ProductionDate = '" +
                         ngay + "'" + " and bkmis_kcshpsdq.view_dq1_lg_daura_lc4.ShiftName ='" + cakip + "'";
                     }
                     else if (ID_LoCao == 5)
                     {
-                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi " +
+                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi,phamCaplothoilg " +
                        "FROM bkmis_kcshpsdq.view_dq2_kqganglocao " +
                        "where bkmis_kcshpsdq.view_dq2_kqganglocao.ProductionDate = '" +
                         ngay + "'" + " and bkmis_kcshpsdq.view_dq2_kqganglocao.ShiftName ='" + cakip + "'";
                     }
                     else if (ID_LoCao == 6)
                     {
-                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi " +
+                        query = "SELECT TestPatternCode,ClassifyName,ProductionDate,ShiftName,InputTime,Patterntime,TestPatternName,Si,phamCaplothoi,phamCaplothoilg " +
                        "FROM bkmis_kcshpsdq.view_dq2_kqganglocao_6 " +
                        "where bkmis_kcshpsdq.view_dq2_kqganglocao_6.ProductionDate = '" +
                         ngay + "'" + " and bkmis_kcshpsdq.view_dq2_kqganglocao_6.ShiftName ='" + cakip + "'";
@@ -137,8 +137,9 @@ namespace Data_Product.Controllers
                                     TestPatternCode = reader["TestPatternCode"].ToString(),
                                     TestPatternName = reader["TestPatternName"].ToString(),
                                    // Temp = reader["Temp"].ToString(),
-                                    Si = reader["Si"] != DBNull.Value ? reader.GetDecimal(reader.GetOrdinal("Si")) : 0m,
+                                    Si = reader["Si"] != DBNull.Value ? reader.GetDecimal(reader.GetOrdinal("Si")) : 0m,                             
                                     PhanLoaiLoThoi = reader["phamCaplothoi"]?.ToString(),
+                                    PhanLoaiLoThoiLG = reader["phamCaplothoilg"]?.ToString(),
                                 });
                             }
                         }
@@ -703,6 +704,7 @@ namespace Data_Product.Controllers
                 PhanLoaiLoThoi = t.PhanLoaiLoThoi,
                 HasPhanLoaiLoThoi = t.HasPhanLoaiLoThoi,
                 Temp =t.Temp,
+                PhanLoaiLoThoiLG = t.PhanLoaiLoThoiLG,
             })//.OrderBy(x => x.MaThungPrefix)
               //  .ThenBy(x => x.MaThungSuffix)
                  .OrderBy(x => x.GioSortKey)
@@ -737,7 +739,8 @@ namespace Data_Product.Controllers
                     x.Si,
                     x.PhanLoaiLoThoi,
                     x.HasPhanLoaiLoThoi,
-                    x.Temp
+                    x.Temp,
+                    x.PhanLoaiLoThoiLG
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
@@ -1015,9 +1018,14 @@ namespace Data_Product.Controllers
 
                 thung.HasPhanLoaiLoThoi = !(thung.HasPhanLoaiLoThoi == true);
 
+                if (!string.IsNullOrEmpty(thung.PhanLoaiLoThoiLG))
+                {
+                    thung.PhanLoaiLoThoi = thung.PhanLoaiLoThoiLG;
+                }
+
                 await _context.SaveChangesAsync();
 
-                return Ok(new { success = true, hasValue = thung.HasPhanLoaiLoThoi, message = "Cập nhật thành công." });
+                return Ok(new { success = true, hasValue = thung.HasPhanLoaiLoThoi, phanLoaiLoThoi = thung.PhanLoaiLoThoi, message = "Cập nhật thành công." });
             }
             catch (Exception ex)
             {
@@ -1775,6 +1783,7 @@ namespace Data_Product.Controllers
 
                         if (!choPhepCapNhat) continue;
                         thung.PhanLoaiLoThoi = rec.PhanLoaiLoThoi;
+                        thung.PhanLoaiLoThoiLG = rec.PhanLoaiLoThoiLG;
                         thung.Si = rec.Si;
                         // Cập nhật thông tin mới từ BK-MIS
                         thung.BKMIS_PhanLoai = rec.ClassifyName;
@@ -1811,7 +1820,8 @@ namespace Data_Product.Controllers
                         NgayTao = ngay,
                         //Temp = int.TryParse(rec.Temp, out int tempValue) ? tempValue : (int?)null,
                         Si = rec.Si,
-                        PhanLoaiLoThoi=rec.PhanLoaiLoThoi
+                        PhanLoaiLoThoi=rec.PhanLoaiLoThoi,
+                        PhanLoaiLoThoiLG=rec.PhanLoaiLoThoiLG
                     });
 
                     cntInsert++;
