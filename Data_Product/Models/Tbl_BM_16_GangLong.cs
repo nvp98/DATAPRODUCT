@@ -223,5 +223,7 @@ namespace Data_Product.Models
         public string? PhanLoaiLoThoi { get; set; }
 
         public bool? HasPhanLoaiLoThoi { get; set; }
+
+        public string? PhanLoaiLoThoiLG { get; set; }
     }
 }

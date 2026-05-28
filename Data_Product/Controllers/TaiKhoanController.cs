@@ -117,7 +117,7 @@ namespace Data_Product.Controllers
                 }
                 if(_DO.ID_PhanXuong == null || _DO.ID_Quyen == null || _DO.ID_ChucVu == null)
                 {
-                    TempData["msgError"] = "<script>alert('Kiểm tra lại thông tin Xưởng);</script>";
+                    TempData["msgError"] = "<script>alert('Kiểm tra lại thông tin');</script>";
                     return RedirectToAction("Index", "TaiKhoan");
                 }
                 var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_TaiKhoan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",
