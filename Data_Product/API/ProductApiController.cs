@@ -150,6 +150,7 @@ namespace Data_Product.API
                         KLGangTheoMe = reader.IsDBNull(reader.GetOrdinal("KLGangTheoMe")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGangTheoMe")),
                         MaMeThoi = reader["MaMeThoi"]?.ToString(),
                         NhietDo_LG = reader.IsDBNull(reader.GetOrdinal("Temp")) ? 0: reader.GetInt32(reader.GetOrdinal("Temp")),
+                        ChuyenDen = reader["ChuyenDen"]?.ToString(),
                     };
 
                     result.Add(dto);
@@ -165,6 +166,7 @@ namespace Data_Product.API
                      KLGang_Thoi = g.First().KLGang_Thoi,
                      NhietDo = g.First().NhietDo,
                      NhietDo_LG = g.First().NhietDo_LG,
+                     ChuyenDen = g.First().ChuyenDen,
 
                      // Gom danh sách MeThoi từ các bản ghi trùng GroupKey
                      MeThoi = g.Where(x => !string.IsNullOrEmpty(x.MaMeThoi)) 
