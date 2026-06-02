@@ -23,9 +23,11 @@ namespace Data_Product.DTO
         [JsonPropertyName("nhiet_do")]
         public decimal? NhietDo { get; set; }
 
-
         [JsonPropertyName("nhiet_do_lg")]
         public int? NhietDo_LG { get; set; }
+
+        [JsonPropertyName("chuyen_den")]
+        public string? ChuyenDen { get; set; }
 
         // Dùng JsonIgnore để không xuất hiện ở JSON cha
         [JsonIgnore]
