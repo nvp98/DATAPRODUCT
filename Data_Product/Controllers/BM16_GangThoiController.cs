@@ -971,68 +971,191 @@ namespace Data_Product.Controllers
                 return StatusCode(500, new { success = false, message = "Lỗi hệ thống.", detail = ex.Message });
             }
         }
+        //[HttpPost]
+        //public async Task<IActionResult> ToggleHasPhanLoaiLoThoi([FromBody] ToggleHasPhanLoaiReq req)
+        //{
+        //    try
+        //    {
+        //        if (req == null || string.IsNullOrEmpty(req.MaPhieu) || string.IsNullOrEmpty(req.MaThungGang))
+        //            return BadRequest(new { success = false, message = "Thiếu thông tin mã phiếu hoặc mã thùng." });
+
+        //        var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+        //        if (string.IsNullOrEmpty(tenTaiKhoan))
+        //            return Unauthorized("Phiên đăng nhập không hợp lệ.");
+
+        //        var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+        //        if (taiKhoan == null)
+        //            return Unauthorized("Tài khoản không tồn tại.");
+
+        //        var phongBan = await _context.Tbl_PhongBan.FirstOrDefaultAsync(x => x.ID_PhongBan == taiKhoan.ID_PhongBan);
+
+        //        if (phongBan?.TenNgan != "P.QLCL")
+        //            return StatusCode(403, new { success = false, message = "Chỉ P.QLCL mới có quyền thực hiện thao tác này." });
+
+        //        var thung = await _context.Tbl_BM_16_GangLong
+        //            .FirstOrDefaultAsync(t => t.MaPhieu == req.MaPhieu && t.MaThungGang == req.MaThungGang);
+
+        //        if (thung == null)
+        //            return NotFound(new { success = false, message = "Không tìm thấy thùng." });
+
+        //        if (!string.IsNullOrEmpty(thung.PhanLoaiLoThoi))
+        //        {
+        //            return BadRequest(new
+        //            {
+        //                success = false,
+        //                message = "Thùng đã có phân loại lò thổi"
+        //            });
+
+        //        }
+        //        if (thung.XacNhan == true)
+        //        {
+        //            return BadRequest(new
+        //            {
+        //                success = false,
+        //                message = "Thùng đã được xác nhận, không thể thay đổi phân loại lò thổi"
+        //            });
+        //        };
+
+        //        thung.HasPhanLoaiLoThoi = !(thung.HasPhanLoaiLoThoi == true);
+
+        //        if (!string.IsNullOrEmpty(thung.PhanLoaiLoThoiLG))
+        //        {
+        //            thung.PhanLoaiLoThoi = thung.PhanLoaiLoThoiLG;
+        //        }
+
+        //        await _context.SaveChangesAsync();
+
+        //        return Ok(new { success = true, hasValue = thung.HasPhanLoaiLoThoi, phanLoaiLoThoi = thung.PhanLoaiLoThoi, message = "Cập nhật thành công." });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { success = false, message = "Lỗi khi cập nhật", error = ex.Message });
+        //    }
+        //}
         [HttpPost]
         public async Task<IActionResult> ToggleHasPhanLoaiLoThoi([FromBody] ToggleHasPhanLoaiReq req)
         {
             try
             {
-                if (req == null || string.IsNullOrEmpty(req.MaPhieu) || string.IsNullOrEmpty(req.MaThungGang))
-                    return BadRequest(new { success = false, message = "Thiếu thông tin mã phiếu hoặc mã thùng." });
+                if (req == null ||
+                    string.IsNullOrWhiteSpace(req.MaPhieu) ||
+                    string.IsNullOrWhiteSpace(req.MaThungGang))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Thiếu thông tin mã phiếu hoặc mã thùng."
+                    });
+                }
 
                 var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+
                 if (string.IsNullOrEmpty(tenTaiKhoan))
                     return Unauthorized("Phiên đăng nhập không hợp lệ.");
 
-                var taiKhoan = await _context.Tbl_TaiKhoan.FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+                var taiKhoan = await _context.Tbl_TaiKhoan
+                    .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
                 if (taiKhoan == null)
                     return Unauthorized("Tài khoản không tồn tại.");
 
-                var phongBan = await _context.Tbl_PhongBan.FirstOrDefaultAsync(x => x.ID_PhongBan == taiKhoan.ID_PhongBan);
+                var phongBan = await _context.Tbl_PhongBan
+                    .FirstOrDefaultAsync(x => x.ID_PhongBan == taiKhoan.ID_PhongBan);
 
                 if (phongBan?.TenNgan != "P.QLCL")
-                    return StatusCode(403, new { success = false, message = "Chỉ P.QLCL mới có quyền thực hiện thao tác này." });
+                {
+                    return StatusCode(403, new
+                    {
+                        success = false,
+                        message = "Chỉ P.QLCL mới có quyền thực hiện thao tác này."
+                    });
+                }
 
+                // Thùng được chọn
                 var thung = await _context.Tbl_BM_16_GangLong
-                    .FirstOrDefaultAsync(t => t.MaPhieu == req.MaPhieu && t.MaThungGang == req.MaThungGang);
+                    .FirstOrDefaultAsync(x =>
+                        x.MaPhieu == req.MaPhieu &&
+                        x.MaThungGang == req.MaThungGang);
 
                 if (thung == null)
-                    return NotFound(new { success = false, message = "Không tìm thấy thùng." });
-
-                if (!string.IsNullOrEmpty(thung.PhanLoaiLoThoi))
                 {
-                    return BadRequest(new
+                    return NotFound(new
                     {
                         success = false,
-                        message = "Thùng đã có phân loại lò thổi"
+                        message = "Không tìm thấy thùng."
                     });
-                  
                 }
-                if (thung.XacNhan == true)
+
+                if (string.IsNullOrEmpty(thung.BKMIS_SoMe))
                 {
                     return BadRequest(new
                     {
                         success = false,
-                        message = "Thùng đã được xác nhận, không thể thay đổi phân loại lò thổi"
+                        message = "Không xác định được số mẻ."
                     });
-                };
+                }
 
-                thung.HasPhanLoaiLoThoi = !(thung.HasPhanLoaiLoThoi == true);
+                // Lấy toàn bộ thùng cùng số mẻ
+                var dsThungCungMe = await _context.Tbl_BM_16_GangLong
+                    .Where(x => x.BKMIS_SoMe == thung.BKMIS_SoMe)
+                    .ToListAsync();
 
-                if (!string.IsNullOrEmpty(thung.PhanLoaiLoThoiLG))
+                if (!dsThungCungMe.Any())
                 {
-                    thung.PhanLoaiLoThoi = thung.PhanLoaiLoThoiLG;
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Không tìm thấy dữ liệu cùng số mẻ."
+                    });
+                }
+
+                // Không cho cập nhật nếu có thùng đã xác nhận
+                if (dsThungCungMe.Any(x => x.XacNhan == true))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"Mẻ {thung.BKMIS_SoMe} đã có thùng xác nhận."
+                    });
+                }
+
+                bool newHasValue = !(thung.HasPhanLoaiLoThoi ?? false);
+
+                foreach (var item in dsThungCungMe)
+                {
+                    item.HasPhanLoaiLoThoi = newHasValue;
+
+                    if (newHasValue)
+                    {
+                        item.PhanLoaiLoThoi = item.PhanLoaiLoThoiLG;
+                    }
+                    else
+                    {
+                        item.PhanLoaiLoThoi = null;
+                    }
                 }
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { success = true, hasValue = thung.HasPhanLoaiLoThoi, phanLoaiLoThoi = thung.PhanLoaiLoThoi, message = "Cập nhật thành công." });
+                return Ok(new
+                {
+                    success = true,
+                    soMe = thung.BKMIS_SoMe,
+                    hasValue = newHasValue,
+                    soLuongCapNhat = dsThungCungMe.Count,
+                    message = $"Đã đồng bộ {dsThungCungMe.Count} thùng của mẻ {thung.BKMIS_SoMe}"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = "Lỗi khi cập nhật", error = ex.Message });
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Lỗi khi cập nhật",
+                    error = ex.Message
+                });
             }
         }
-
         [HttpPost]
         public async Task<IActionResult> XacNhanThung([FromBody] XacNhanThungReq req)
         {
