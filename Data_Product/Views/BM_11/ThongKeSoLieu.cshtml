@@ -1,0 +1,384 @@
+@model IEnumerable<Data_Product.Models.ThongKe_BM11_VM>
+@using Data_Product.Repositorys;
+@{
+    ViewData["Title"] = "Thống kê số liệu BM.11/QT.05";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Pager pager = new Pager();
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+    }
+}
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
+<link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
+<style>
+    #tbl-thongke_wrapper .dataTables_paginate {
+    margin-top: 8px;
+    }
+
+    #tbl-thongke_wrapper .dataTables_length,
+    #tbl-thongke_wrapper .dataTables_info {
+    font-size: 12px;
+    }
+
+    #tbl-thongke {
+    width: 100% !important;
+    table-layout: fixed;
+    }
+
+    #tbl-thongke th,
+    #tbl-thongke td {
+    font-size: 14px;
+    word-break: break-word;
+    white-space: normal;
+    overflow: hidden;
+    }
+
+    @* .table-bbgn thead tr:first-child th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    }
+
+    .table-bbgn thead tr:nth-child(2) th {
+    position: sticky;
+    top: 40px;
+    z-index: 19;
+    } *@
+
+    .table-container {
+    max-height: 75vh;
+    overflow: auto;
+    border: 1px solid #d6d6d6;
+    }
+
+    .table-bbgn {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+    }
+
+    .table-bbgn th,
+    .table-bbgn td {
+    border: 1px solid #d0d7de !important;
+    padding: 6px;
+    }
+</style>
+
+<div class="app-main__outer">
+    <div class="app-main__inner" style="display:block;padding-bottom:0px;">
+        <div class="tab-content">
+            <div class="row">
+                <div class="card">
+                    <div class="row" style="width:100%; height:120px;">
+                        <div
+                            style="display:flex;border-bottom:0.8px solid #E8E8E8;position:fixed;background-color:#F9F9F9;width:-webkit-fill-available;z-index:100;">
+                            <div class="col-12"
+                                 style="text-align:left;padding:1% 2% 1% 0%;display:flex;align-items:center;">
+                                <div class="col-6">
+                                    <span class="text-muted small pt-2 ps-1">
+                                        <b style="color:#06428b;font-size:15px;">
+                                            THỐNG KÊ SỐ LIỆU - BM.11/QT.05 (BBGN Nguyên/Nhiên/Vật tư)
+                                        </b>
+                                    </span>
+                                </div>
+                                <div class="col-6 d-flex justify-content-end">
+                                    <button type="button" class="btn btn-success" id="btn-Export">
+                                        <i class="bi bi-file-earmark-excel"></i>
+                                        <span class="small pt-2 ps-1" style="color:white;">Xuất Excel</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bộ lọc -->
+                    <div class="row" style="width:100%;padding-bottom:1%; margin-top: -42px;">
+                        <form method="get" asp-action="ThongKeSoLieu" asp-controller="BM_11">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Từ ngày</label>
+                                    <input type="date" name="begind" class="form-control form-control-sm"
+                                           value="@ViewBag.begind" />
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Đến ngày</label>
+                                    <input type="date" name="endd" class="form-control form-control-sm"
+                                           value="@ViewBag.endd" />
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Phòng ban bên giao</label>
+                                    @Html.DropDownList("ID_PhongBanBG", ViewBag.PBListBG as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm" })
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Xưởng bên giao</label>
+                                    @Html.DropDownList("ID_XuongBG", ViewBag.XuongListBG as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm" })
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Phòng ban bên nhận</label>
+                                    @Html.DropDownList("ID_PhongBanBN", ViewBag.PBListBN as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm" })
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Xưởng bên nhận</label>
+                                    @Html.DropDownList("ID_XuongBN", ViewBag.XuongListBN as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm" })
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Vật tư</label>
+                                    @Html.DropDownList("ID_VatTu", ViewBag.VatTuList as SelectList, "-- Tất cả --", new
+                                    { @class = "form-select form-select-sm" })
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Phòng ban</label>
+                                    @Html.DropDownList("ID_PhongBan", ViewBag.PBListBN as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm" })
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Xưởng</label>
+                                    @Html.DropDownList("ID_Xuong", ViewBag.XuongListBN as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm" })
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Tình Trạng</label>
+                                    @Html.DropDownList("ID_TrangThai", ViewBag.TrangThaiPhieu as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm" ,multiple = "multiple"})
+                                </div>
+                                <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Tìm kiếm</label>
+                                    <input type="text" name="search" class="form-control form-control-sm"
+                                           placeholder="Số phiếu / Vật tư..." value="@ViewBag.search"
+                                           style="width:180px;" />
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-search"></i> Lọc
+                                    </button>
+                                    <a href="@Url.Action("ThongKeSoLieu", "BM_11")" class="btn btn-secondary btn-sm">
+                                        <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Bảng dữ liệu -->
+                    <div class="card-body" style="padding-top:0.5%;">
+                        <div style="font-size:12px;color:#555;margin-bottom:6px;">
+                            Tổng: <b>@Model.Count()</b> dòng &nbsp;|&nbsp;
+                            KL bên giao: <b>@Model.Sum(x => x.KhoiLuong_BG).ToString("F3")</b> &nbsp;|&nbsp;
+                            KL quy khô BG: <b>@Model.Sum(x => x.KL_QuyKho_BG).ToString("F3")</b> &nbsp;|&nbsp;
+                            KL bên nhận: <b>@Model.Sum(x => x.KhoiLuong_BN).ToString("F3")</b> &nbsp;|&nbsp;
+                            KL quy khô BN: <b>@Model.Sum(x => x.KL_QuyKho_BN).ToString("F3")</b>
+                        </div>
+                        <div class="table-container">
+                            <table class="table table-bordered table-hover table-sm table-bbgn" id="tbl-thongke"
+                                   cellpadding="0">
+                                @* <colgroup>
+                                <col style="width:3%"> <%-- STT --%>
+                                <col style="width:7%"> <%-- Số phiếu --%>
+                                <col style="width:5%"> <%-- Ngày --%>
+                                <col style="width:3%"> <%-- Kíp --%>
+                                <col style="width:8%"> <%-- PB BG --%>
+                                <col style="width:6%"> <%-- PX BG --%>
+                                <col style="width:8%"> <%-- PB BN --%>
+                                <col style="width:6%"> <%-- PX BN --%>
+                                <col style="width:12%"> <%-- Tên vật tư --%>
+                                <col style="width:4%"> <%-- ĐVT --%>
+                                <col style="width:5%"> <%-- Mã lô --%>
+                                <col style="width:4%"> <%-- W% --%>
+                                <col style="width:5%"> <%-- KL BG --%>
+                                <col style="width:5%"> <%-- KL quy khô BG --%>
+                                <col style="width:5%"> <%-- KL BN --%>
+                                <col style="width:5%"> <%-- KL quy khô BN --%>
+                                <col style="width:6%"> <%-- Trạng thái --%>
+                                <col style="width:8%"> <%-- Ghi chú --%>
+                            </colgroup> *@
+                                <thead>
+                                    <tr style="background-color:#f9f9f9;">
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle; width: 20px;" >STT</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Số phiếu</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Ngày</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Kíp</th>
+                                        <th class="text-center" colspan="2" style="vertical-align:middle;">Bên giao</th>
+                                        <th class="text-center" colspan="2" style="vertical-align:middle;">Bên nhận</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Tên
+                                            nguyên/nhiên/vật tư</th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">ĐVT</th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Mã lô</th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">W (%)</th>
+                                            <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên giao
+                                            </th>
+                                            <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên nhận
+                                            </th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Trạng thái
+                                            </th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Ghi chú</th>
+                                        </tr>
+                                        <tr style="background-color:#f9f9f9;">
+                                            <th class="text-center" style="vertical-align:middle;">Phòng ban</th>
+                                            <th class="text-center" style="vertical-align:middle;">Phân xưởng</th>
+                                            <th class="text-center" style="vertical-align:middle;">Phòng ban</th>
+                                            <th class="text-center" style="vertical-align:middle;">Phân xưởng</th>
+                                            <th class="text-center" style="vertical-align:middle;">Khối lượng</th>
+                                            <th class="text-center" style="vertical-align:middle;">KL quy khô</th>
+                                            <th class="text-center" style="vertical-align:middle;">Khối lượng</th>
+                                            <th class="text-center" style="vertical-align:middle;">KL quy khô</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int stt = 1;
+                                            foreach (var item in Model)
+                                            {
+                                                string rowStyle = item.IsLock ? "background-color:#fff3cd;" : "";
+                                                
+                                                <tr style="font-size:13px;@rowStyle">
+                                                    <td class="text-center" style="vertical-align:middle;">@stt</td>
+                                                    <td style="vertical-align:middle;">
+                                                        <a href="@Url.Action("Index_Detai", "BM_11", new { id = item.ID_BBGN })">
+                                                            @item.SoPhieu
+                                                        </a>
+                                                    </td>
+                                                    <td class="text-center" style="vertical-align:middle;">
+                                                        @item.ThoiGianXuLyBG.ToString("dd/MM/yyyy")</td>
+                                                        <td class="text-center" style="vertical-align:middle;">@item.Kip</td>
+                                                        @* <td style="vertical-align:middle;">@item.TenNhanVien_BG -
+                                        @item.HoVaTen_BG</td>
+                                    *@
+                                                        <td style="vertical-align:middle;">@item.TenPhongBan_BG</td>
+                                                        <td style="vertical-align:middle;">@item.TenXuong_BG</td>
+                                                        @* <td style="vertical-align:middle;">@item.TenNhanVien_BN -
+                                        @item.HoVaTen_BN</td>
+                                    *@
+                                                        <td style="vertical-align:middle;">@item.TenPhongBan_BN</td>
+                                                        <td style="vertical-align:middle;">@item.TenXuong_BN</td>
+                                                        <td style="vertical-align:middle;">@item.TenVatTu</td>
+                                                        <td class="text-center" style="vertical-align:middle;">@item.DonViTinh</td>
+                                                        <td class="text-center" style="vertical-align:middle;">@item.MaLo</td>
+                                                        <td class="text-end" style="vertical-align:middle;">@item.DoAm_W.ToString("F2")
+                                                        </td>
+                                                        <td class="text-end" style="vertical-align:middle;">
+                                                            @item.KhoiLuong_BG.ToString("F3")</td>
+                                                            <td class="text-end" style="vertical-align:middle;">
+                                                                @item.KL_QuyKho_BG.ToString("F3")</td>
+                                                                <td class="text-end" style="vertical-align:middle;">@(item.KhoiLuong_BN == 0 ?
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    "" :
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    item.KhoiLuong_BN.ToString("F3"))</td>
+                                                                    <td class="text-end" style="vertical-align:middle;">@(item.KL_QuyKho_BN == 0 ?
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "" :
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        item.KL_QuyKho_BN.ToString("F3"))</td>
+                                                                        <td class="text-center" style="vertical-align:middle;">
+                                                                            @if (item.IsLock)
+                                                                            {
+                                                                                <span class="badge bg-warning text-dark">Đã khóa</span>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <span
+                                                                                class="badge @(item.ID_TrangThai_BBGN == 1 ? "bg-success" : "bg-secondary")">@item.TenTrangThai_BBGN</span>
+                                                                            }
+                                                                        </td>
+                                                                        <td style="vertical-align:middle;">@item.GhiChu</td>
+                                                                    </tr>
+                                                                    stt++;
+                                                                }
+                                                            }
+                                                        </tbody>
+                                                        <tfoot>
+                                                            <tr style="font-size:13px;font-weight:bold;background-color:#f9f9f9;">
+                                                                <td colspan="12" class="text-center">Tổng cộng</td>
+                                                                <td class="text-end">@Model.Sum(x => x.KhoiLuong_BG).ToString("F3")</td>
+                                                                <td class="text-end">@Model.Sum(x => x.KL_QuyKho_BG).ToString("F3")</td>
+                                                                <td class="text-end">@Model.Sum(x => x.KhoiLuong_BN).ToString("F3")</td>
+                                                                <td class="text-end">@Model.Sum(x => x.KL_QuyKho_BN).ToString("F3")</td>
+                                                                <td colspan="2"></td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+
+                             $("#ID_TrangThai").chosen({
+                                width: "100%"
+                            });
+                             $("#ID_VatTu").chosen({
+                                width: "100%"
+                            });
+                             $("#ID_Xuong").chosen({
+                                width: "100%"
+                            });
+                                $("#ID_PhongBan").chosen({
+                                    width: "100%"
+                                });
+                                $("#ID_XuongBN").chosen({
+                                    width: "100%"
+                                });
+                                $("#ID_PhongBanBN").chosen({
+                                    width: "100%"
+                                });
+                                $("#ID_XuongBG").chosen({
+                                    width: "100%"
+                                });
+                                $("#ID_PhongBanBG").chosen({
+                                    width: "100%"
+                                });
+                            document.getElementById('btn-Export').addEventListener('click', function () {
+                            var params = new URLSearchParams(window.location.search);
+                            params.set('begind', document.querySelector('input[name="begind"]').value);
+                            params.set('endd', document.querySelector('input[name="endd"]').value);
+                            window.location.href = '@Url.Action("ExportThongKeSoLieu", "BM_11")?' + params.toString();
+                            });
+
+                            $(document).ready(function () {
+                            var table = $('#tbl-thongke').DataTable({
+                            paging: true,
+                            pageLength: 50,
+                            lengthMenu: [[25, 50, 100, 200, -1], [25, 50, 100, 200, 'Tất cả']],
+                            searching: false,
+                            ordering: true,
+                            orderCellsTop: true,
+                            autoWidth: false,
+                            language: {
+                            paginate: {
+                            first: '«',
+                            last: '»',
+                            next: '›',
+                            previous: '‹'
+                            },
+                            lengthMenu: 'Hiển thị _MENU_ dòng / trang',
+                            info: 'Đang hiển thị _START_ - _END_ trong tổng <b>_TOTAL_</b> dòng',
+                            zeroRecords: 'Không có dữ liệu',
+                            emptyTable: 'Không có dữ liệu'
+                            },
+                            dom: 'lrtip',
+                            columnDefs: [
+                            { orderable: false, targets: [0] }
+                            ]
+                            });
+                            });
+                        </script>

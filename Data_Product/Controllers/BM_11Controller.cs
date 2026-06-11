@@ -2790,5 +2790,143 @@ namespace Data_Product.Controllers
             }); // Quay lại trang danh sách
         }
 
+        public async Task<IActionResult> ThongKeSoLieu(DateTime? begind, DateTime? endd,
+            int? ID_PhongBanBG, int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN,
+            int? ID_PhongBan, int? ID_Xuong,
+            List<int?> ID_TrangThai,
+            int? ID_VatTu, string? search, int page = 1)
+        {
+            DateTime now = DateTime.Now;
+            DateTime startDay = begind ?? now.AddDays(-1);
+            DateTime endDay = endd ?? now;
+
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+            var taiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == tenTaiKhoan).FirstOrDefault();
+
+            List<int> listPBInt = new List<int>();
+            if (taiKhoan?.PhongBan_Them != null)
+            {
+                var listPB = taiKhoan.PhongBan_Them.Split(',').Select(s => s.Trim()).ToList();
+                foreach (var item in listPB)
+                {
+                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item).FirstOrDefault();
+                    if (pb != null) listPBInt.Add(pb.ID_PhongBan);
+                }
+            }
+
+            var query = from a in _context.Tbl_BienBanGiaoNhan
+                        join b in _context.Tbl_ChiTiet_BienBanGiaoNhan on a.ID_BBGN equals b.ID_BBGN
+                        join vt in _context.Tbl_VatTu on b.ID_VatTu equals vt.ID_VatTu
+                        join tkBG in _context.Tbl_TaiKhoan on a.ID_NhanVien_BG equals tkBG.ID_TaiKhoan
+                        join tkBN in _context.Tbl_TaiKhoan on a.ID_NhanVien_BN equals tkBN.ID_TaiKhoan
+                        join pbBG in _context.Tbl_PhongBan on a.ID_PhongBan_BG equals pbBG.ID_PhongBan
+                        join xBG in _context.Tbl_Xuong on a.ID_Xuong_BG equals xBG.ID_Xuong
+                        join pbBN in _context.Tbl_PhongBan on a.ID_PhongBan_BN equals pbBN.ID_PhongBan
+                        join xBN in _context.Tbl_Xuong on a.ID_Xuong_BN equals xBN.ID_Xuong
+                        where a.ThoiGianXuLyBG >= startDay && a.ThoiGianXuLyBG <= endDay && !a.IsDelete
+                        select new ThongKe_BM11_VM
+                        {
+                            ID_BBGN = a.ID_BBGN,
+                            SoPhieu = a.SoPhieu,
+                            ThoiGianXuLyBG = a.ThoiGianXuLyBG,
+                            Kip = a.Kip,
+                            Ca = a.Ca,
+                            TenNhanVien_BG = tkBG.TenTaiKhoan,
+                            HoVaTen_BG = tkBG.HoVaTen,
+                            TenPhongBan_BG = pbBG.TenPhongBan,
+                            TenXuong_BG = xBG.TenXuong,
+                            TenNhanVien_BN = tkBN.TenTaiKhoan,
+                            HoVaTen_BN = tkBN.HoVaTen,
+                            TenPhongBan_BN = pbBN.TenPhongBan,
+                            TenXuong_BN = xBN.TenXuong,
+                            TenVatTu = vt.TenVatTu,
+                            DonViTinh = vt.DonViTinh,
+                            MaLo = b.MaLo,
+                            DoAm_W = b.DoAm_W,
+                            KhoiLuong_BG = b.KhoiLuong_BG,
+                            KL_QuyKho_BG = b.KL_QuyKho_BG,
+                            KhoiLuong_BN = b.KhoiLuong_BN,
+                            KL_QuyKho_BN = b.KL_QuyKho_BN,
+                            GhiChu = b.GhiChu,
+                            ID_TrangThai_BBGN = a.ID_TrangThai_BBGN,
+                            TenTrangThai_BBGN = _context.Tbl_TrangThai.Where(t => t.ID_TrangThai == a.ID_TrangThai_BBGN).Select(t => t.TenTrangThai).FirstOrDefault(),
+                            IsLock = a.IsLock
+                        };
+
+            var res = await query.OrderByDescending(x => x.ThoiGianXuLyBG).ToListAsync();
+
+            if (taiKhoan?.ID_Quyen > 3 && taiKhoan.ID_Quyen != 8)
+            {
+                res = res.Where(x =>
+                    x.TenPhongBan_BG == _context.Tbl_PhongBan.Where(p => p.ID_PhongBan == taiKhoan.ID_PhongBan).Select(p => p.TenPhongBan).FirstOrDefault() ||
+                    x.TenPhongBan_BN == _context.Tbl_PhongBan.Where(p => p.ID_PhongBan == taiKhoan.ID_PhongBan).Select(p => p.TenPhongBan).FirstOrDefault()
+                ).ToList();
+            }
+
+            if (ID_PhongBanBG != null)
+            {
+                var tenPB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_PhongBanBG).Select(x => x.TenPhongBan).FirstOrDefault();
+                res = res.Where(x => x.TenPhongBan_BG == tenPB).ToList();
+            }
+            if (ID_XuongBG != null)
+            {
+                var tenX = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_XuongBG).Select(x => x.TenXuong).FirstOrDefault();
+                res = res.Where(x => x.TenXuong_BG == tenX).ToList();
+            }
+            if (ID_PhongBanBN != null)
+            {
+                var tenPB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_PhongBanBN).Select(x => x.TenPhongBan).FirstOrDefault();
+                res = res.Where(x => x.TenPhongBan_BN == tenPB).ToList();
+            }
+            if (ID_XuongBN != null)
+            {
+                var tenX = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_XuongBN).Select(x => x.TenXuong).FirstOrDefault();
+                res = res.Where(x => x.TenXuong_BN == tenX).ToList();
+            }
+            if (ID_VatTu != null)
+            {
+                var tenVT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == ID_VatTu).Select(x => x.TenVatTu).FirstOrDefault();
+                res = res.Where(x => x.TenVatTu == tenVT).ToList();
+            }
+            if (!string.IsNullOrEmpty(search))
+            {
+                res = res.Where(x => (!string.IsNullOrEmpty(x.SoPhieu) && x.SoPhieu.Contains(search)) ||
+                                     (!string.IsNullOrEmpty(x.TenVatTu) && x.TenVatTu.Contains(search))).ToList();
+            }
+            if (ID_TrangThai != null && ID_TrangThai.Any())
+            {
+                res = res.Where(x => ID_TrangThai.Contains(x.ID_TrangThai_BBGN)).ToList();
+            }
+            if (ID_PhongBan != null)
+            {
+                var tenPB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_PhongBan).Select(x => x.TenPhongBan).FirstOrDefault();
+                res = res.Where(x => x.TenPhongBan_BG == tenPB || x.TenPhongBan_BN == tenPB).ToList();
+            }
+            if (ID_Xuong != null)
+            {
+                var tenX = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_Xuong).Select(x => x.TenXuong).FirstOrDefault();
+                res = res.Where(x => x.TenXuong_BG == tenX || x.TenXuong_BN == tenX).ToList();
+            }
+
+            var pbls = _context.Tbl_PhongBan.ToList();
+            ViewBag.PBListBG = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBG);
+            ViewBag.XuongListBG = new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", ID_XuongBG);
+            ViewBag.PBListBN = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBN);
+            ViewBag.XuongListBN = new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", ID_XuongBN);
+            ViewBag.VatTuList = new SelectList(_context.Tbl_VatTu.OrderBy(x => x.TenVatTu).ToList(), "ID_VatTu", "TenVatTu", ID_VatTu);
+            ViewBag.begind = startDay.ToString("yyyy-MM-dd");
+            ViewBag.endd = endDay.ToString("yyyy-MM-dd");
+            ViewBag.TrangThaiPhieu = new SelectList(_context.Tbl_TrangThai.ToList(), "ID_TrangThai", "TenTrangThai", ID_TrangThai);
+            ViewBag.search = search;
+
+            const int pageSize = 1000;
+            if (page < 1) page = 1;
+            int resCount = res.Count;
+            var pager = new Pager(resCount, page, pageSize);
+            int recSkip = (page - 1) * pageSize;
+            var data = res.Skip(recSkip).Take(pager.PageSize).ToList();
+            this.ViewBag.Pager = pager;
+            return View(data);
+        }
     }
 }
