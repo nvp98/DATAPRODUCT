@@ -2794,6 +2794,7 @@ namespace Data_Product.Controllers
             int? ID_PhongBanBG, int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN,
             int? ID_PhongBan, int? ID_Xuong,
             List<int?> ID_TrangThai,
+            List<string?> MaLo,
             int? ID_VatTu, string? search, int page = 1)
         {
             DateTime now = DateTime.Now;
@@ -2801,130 +2802,114 @@ namespace Data_Product.Controllers
             DateTime endDay = endd ?? now;
 
             var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
-            var taiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == tenTaiKhoan).FirstOrDefault();
+            var taiKhoan = await _context.Tbl_TaiKhoan
+                .Where(x => x.TenTaiKhoan == tenTaiKhoan)
+                .FirstOrDefaultAsync();
 
-            List<int> listPBInt = new List<int>();
-            if (taiKhoan?.PhongBan_Them != null)
-            {
-                var listPB = taiKhoan.PhongBan_Them.Split(',').Select(s => s.Trim()).ToList();
-                foreach (var item in listPB)
-                {
-                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item).FirstOrDefault();
-                    if (pb != null) listPBInt.Add(pb.ID_PhongBan);
-                }
-            }
+            // Build IQueryable with all joins — no DB call yet
+            var baseQuery = from a in _context.Tbl_BienBanGiaoNhan
+                            join b in _context.Tbl_ChiTiet_BienBanGiaoNhan on a.ID_BBGN equals b.ID_BBGN
+                            join vt in _context.Tbl_VatTu on b.ID_VatTu equals vt.ID_VatTu
+                            join tkBG in _context.Tbl_TaiKhoan on a.ID_NhanVien_BG equals tkBG.ID_TaiKhoan
+                            join tkBN in _context.Tbl_TaiKhoan on a.ID_NhanVien_BN equals tkBN.ID_TaiKhoan
+                            join pbBG in _context.Tbl_PhongBan on a.ID_PhongBan_BG equals pbBG.ID_PhongBan
+                            join xBG in _context.Tbl_Xuong on a.ID_Xuong_BG equals xBG.ID_Xuong
+                            join pbBN in _context.Tbl_PhongBan on a.ID_PhongBan_BN equals pbBN.ID_PhongBan
+                            join xBN in _context.Tbl_Xuong on a.ID_Xuong_BN equals xBN.ID_Xuong
+                            join tt in _context.Tbl_TrangThai on a.ID_TrangThai_BBGN equals tt.ID_TrangThai into ttGroup
+                            from tt in ttGroup.DefaultIfEmpty()
+                            where a.ThoiGianXuLyBG >= startDay && a.ThoiGianXuLyBG <= endDay && !a.IsDelete
+                            select new { a, b, vt, tkBG, tkBN, pbBG, xBG, pbBN, xBN, tt };
 
-            var query = from a in _context.Tbl_BienBanGiaoNhan
-                        join b in _context.Tbl_ChiTiet_BienBanGiaoNhan on a.ID_BBGN equals b.ID_BBGN
-                        join vt in _context.Tbl_VatTu on b.ID_VatTu equals vt.ID_VatTu
-                        join tkBG in _context.Tbl_TaiKhoan on a.ID_NhanVien_BG equals tkBG.ID_TaiKhoan
-                        join tkBN in _context.Tbl_TaiKhoan on a.ID_NhanVien_BN equals tkBN.ID_TaiKhoan
-                        join pbBG in _context.Tbl_PhongBan on a.ID_PhongBan_BG equals pbBG.ID_PhongBan
-                        join xBG in _context.Tbl_Xuong on a.ID_Xuong_BG equals xBG.ID_Xuong
-                        join pbBN in _context.Tbl_PhongBan on a.ID_PhongBan_BN equals pbBN.ID_PhongBan
-                        join xBN in _context.Tbl_Xuong on a.ID_Xuong_BN equals xBN.ID_Xuong
-                        where a.ThoiGianXuLyBG >= startDay && a.ThoiGianXuLyBG <= endDay && !a.IsDelete
-                        select new ThongKe_BM11_VM
-                        {
-                            ID_BBGN = a.ID_BBGN,
-                            SoPhieu = a.SoPhieu,
-                            ThoiGianXuLyBG = a.ThoiGianXuLyBG,
-                            Kip = a.Kip,
-                            Ca = a.Ca,
-                            TenNhanVien_BG = tkBG.TenTaiKhoan,
-                            HoVaTen_BG = tkBG.HoVaTen,
-                            TenPhongBan_BG = pbBG.TenPhongBan,
-                            TenXuong_BG = xBG.TenXuong,
-                            TenNhanVien_BN = tkBN.TenTaiKhoan,
-                            HoVaTen_BN = tkBN.HoVaTen,
-                            TenPhongBan_BN = pbBN.TenPhongBan,
-                            TenXuong_BN = xBN.TenXuong,
-                            TenVatTu = vt.TenVatTu,
-                            DonViTinh = vt.DonViTinh,
-                            MaLo = b.MaLo,
-                            DoAm_W = b.DoAm_W,
-                            KhoiLuong_BG = b.KhoiLuong_BG,
-                            KL_QuyKho_BG = b.KL_QuyKho_BG,
-                            KhoiLuong_BN = b.KhoiLuong_BN,
-                            KL_QuyKho_BN = b.KL_QuyKho_BN,
-                            GhiChu = b.GhiChu,
-                            ID_TrangThai_BBGN = a.ID_TrangThai_BBGN,
-                            TenTrangThai_BBGN = _context.Tbl_TrangThai.Where(t => t.ID_TrangThai == a.ID_TrangThai_BBGN).Select(t => t.TenTrangThai).FirstOrDefault(),
-                            IsLock = a.IsLock
-                        };
-
-            var res = await query.OrderByDescending(x => x.ThoiGianXuLyBG).ToListAsync();
-
+            // All filters pushed to SQL using IDs — no in-memory filtering
             if (taiKhoan?.ID_Quyen > 3 && taiKhoan.ID_Quyen != 8)
             {
-                res = res.Where(x =>
-                    x.TenPhongBan_BG == _context.Tbl_PhongBan.Where(p => p.ID_PhongBan == taiKhoan.ID_PhongBan).Select(p => p.TenPhongBan).FirstOrDefault() ||
-                    x.TenPhongBan_BN == _context.Tbl_PhongBan.Where(p => p.ID_PhongBan == taiKhoan.ID_PhongBan).Select(p => p.TenPhongBan).FirstOrDefault()
-                ).ToList();
+                int userPB = taiKhoan.ID_PhongBan;
+                baseQuery = baseQuery.Where(x => x.a.ID_PhongBan_BG == userPB || x.a.ID_PhongBan_BN == userPB);
             }
-
             if (ID_PhongBanBG != null)
-            {
-                var tenPB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_PhongBanBG).Select(x => x.TenPhongBan).FirstOrDefault();
-                res = res.Where(x => x.TenPhongBan_BG == tenPB).ToList();
-            }
+                baseQuery = baseQuery.Where(x => x.a.ID_PhongBan_BG == ID_PhongBanBG);
             if (ID_XuongBG != null)
-            {
-                var tenX = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_XuongBG).Select(x => x.TenXuong).FirstOrDefault();
-                res = res.Where(x => x.TenXuong_BG == tenX).ToList();
-            }
+                baseQuery = baseQuery.Where(x => x.a.ID_Xuong_BG == ID_XuongBG);
             if (ID_PhongBanBN != null)
-            {
-                var tenPB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_PhongBanBN).Select(x => x.TenPhongBan).FirstOrDefault();
-                res = res.Where(x => x.TenPhongBan_BN == tenPB).ToList();
-            }
+                baseQuery = baseQuery.Where(x => x.a.ID_PhongBan_BN == ID_PhongBanBN);
             if (ID_XuongBN != null)
-            {
-                var tenX = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_XuongBN).Select(x => x.TenXuong).FirstOrDefault();
-                res = res.Where(x => x.TenXuong_BN == tenX).ToList();
-            }
+                baseQuery = baseQuery.Where(x => x.a.ID_Xuong_BN == ID_XuongBN);
             if (ID_VatTu != null)
+                baseQuery = baseQuery.Where(x => x.b.ID_VatTu == ID_VatTu);
+            if (MaLo != null && MaLo.Any(m => m != null))
             {
-                var tenVT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == ID_VatTu).Select(x => x.TenVatTu).FirstOrDefault();
-                res = res.Where(x => x.TenVatTu == tenVT).ToList();
+                var maLoList = MaLo.Where(m => m != null).ToList();
+                baseQuery = baseQuery.Where(x => maLoList.Contains(x.b.MaLo));
             }
             if (!string.IsNullOrEmpty(search))
-            {
-                res = res.Where(x => (!string.IsNullOrEmpty(x.SoPhieu) && x.SoPhieu.Contains(search)) ||
-                                     (!string.IsNullOrEmpty(x.TenVatTu) && x.TenVatTu.Contains(search))).ToList();
-            }
+                baseQuery = baseQuery.Where(x => (x.a.SoPhieu != null && x.a.SoPhieu.Contains(search)) || (x.vt.TenVatTu != null && x.vt.TenVatTu.Contains(search)));
             if (ID_TrangThai != null && ID_TrangThai.Any())
             {
-                res = res.Where(x => ID_TrangThai.Contains(x.ID_TrangThai_BBGN)).ToList();
+                var trangThaiIds = ID_TrangThai.Where(t => t.HasValue).Select(t => t!.Value).ToList();
+                baseQuery = baseQuery.Where(x => trangThaiIds.Contains(x.a.ID_TrangThai_BBGN));
             }
             if (ID_PhongBan != null)
-            {
-                var tenPB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_PhongBan).Select(x => x.TenPhongBan).FirstOrDefault();
-                res = res.Where(x => x.TenPhongBan_BG == tenPB || x.TenPhongBan_BN == tenPB).ToList();
-            }
+                baseQuery = baseQuery.Where(x => x.a.ID_PhongBan_BG == ID_PhongBan || x.a.ID_PhongBan_BN == ID_PhongBan);
             if (ID_Xuong != null)
-            {
-                var tenX = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ID_Xuong).Select(x => x.TenXuong).FirstOrDefault();
-                res = res.Where(x => x.TenXuong_BG == tenX || x.TenXuong_BN == tenX).ToList();
-            }
+                baseQuery = baseQuery.Where(x => x.a.ID_Xuong_BG == ID_Xuong || x.a.ID_Xuong_BN == ID_Xuong);
 
-            var pbls = _context.Tbl_PhongBan.ToList();
-            ViewBag.PBListBG = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBG);
-            ViewBag.XuongListBG = new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", ID_XuongBG);
-            ViewBag.PBListBN = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBN);
-            ViewBag.XuongListBN = new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", ID_XuongBN);
-            ViewBag.VatTuList = new SelectList(_context.Tbl_VatTu.OrderBy(x => x.TenVatTu).ToList(), "ID_VatTu", "TenVatTu", ID_VatTu);
-            ViewBag.begind = startDay.ToString("yyyy-MM-dd");
-            ViewBag.endd = endDay.ToString("yyyy-MM-dd");
-            ViewBag.TrangThaiPhieu = new SelectList(_context.Tbl_TrangThai.ToList(), "ID_TrangThai", "TenTrangThai", ID_TrangThai);
-            ViewBag.search = search;
-
+            // Count at DB level for pagination
             const int pageSize = 1000;
             if (page < 1) page = 1;
-            int resCount = res.Count;
+            int resCount = await baseQuery.CountAsync();
             var pager = new Pager(resCount, page, pageSize);
             int recSkip = (page - 1) * pageSize;
-            var data = res.Skip(recSkip).Take(pager.PageSize).ToList();
+
+            // Fetch only one page and project to ViewModel — single DB call
+            var data = await baseQuery
+                .OrderByDescending(x => x.a.ThoiGianXuLyBG)
+                .Skip(recSkip)
+                .Take(pager.PageSize)
+                .Select(x => new ThongKe_BM11_VM
+                {
+                    ID_BBGN = x.a.ID_BBGN,
+                    SoPhieu = x.a.SoPhieu,
+                    ThoiGianXuLyBG = x.a.ThoiGianXuLyBG,
+                    Kip = x.a.Kip,
+                    Ca = x.a.Ca,
+                    TenNhanVien_BG = x.tkBG.TenTaiKhoan,
+                    HoVaTen_BG = x.tkBG.HoVaTen,
+                    TenPhongBan_BG = x.pbBG.TenPhongBan,
+                    TenXuong_BG = x.xBG.TenXuong,
+                    TenNhanVien_BN = x.tkBN.TenTaiKhoan,
+                    HoVaTen_BN = x.tkBN.HoVaTen,
+                    TenPhongBan_BN = x.pbBN.TenPhongBan,
+                    TenXuong_BN = x.xBN.TenXuong,
+                    TenVatTu = x.vt.TenVatTu,
+                    DonViTinh = x.vt.DonViTinh,
+                    MaLo = x.b.MaLo,
+                    DoAm_W = x.b.DoAm_W,
+                    KhoiLuong_BG = x.b.KhoiLuong_BG,
+                    KL_QuyKho_BG = x.b.KL_QuyKho_BG,
+                    KhoiLuong_BN = x.b.KhoiLuong_BN,
+                    KL_QuyKho_BN = x.b.KL_QuyKho_BN,
+                    GhiChu = x.b.GhiChu,
+                    ID_TrangThai_BBGN = x.a.ID_TrangThai_BBGN,
+                    TenTrangThai_BBGN = x.tt.TenTrangThai,
+                    IsLock = x.a.IsLock
+                })
+                .ToListAsync();
+
+            var pbls = await _context.Tbl_PhongBan.ToListAsync();
+            var xuongs = await _context.Tbl_Xuong.ToListAsync();
+            ViewBag.PBListBG = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBG);
+            ViewBag.XuongListBG = new SelectList(xuongs, "ID_Xuong", "TenXuong", ID_XuongBG);
+            ViewBag.PBListBN = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBN);
+            ViewBag.XuongListBN = new SelectList(xuongs, "ID_Xuong", "TenXuong", ID_XuongBN);
+            ViewBag.VatTuList = new SelectList(await _context.Tbl_VatTu.OrderBy(x => x.TenVatTu).ToListAsync(), "ID_VatTu", "TenVatTu", ID_VatTu);
+            ViewBag.begind = startDay.ToString("yyyy-MM-dd");
+            ViewBag.endd = endDay.ToString("yyyy-MM-dd");
+            ViewBag.TrangThaiPhieu = new SelectList(await _context.Tbl_TrangThai.ToListAsync(), "ID_TrangThai", "TenTrangThai", ID_TrangThai);
+            var allMaLo = await _context.Tbl_MaLo.Where(x => x.TenMaLo != null).OrderBy(x => x.TenMaLo).Select(x => x.TenMaLo).ToListAsync();
+            ViewBag.MaLoList = allMaLo;
+            ViewBag.SelectedMaLo = MaLo ?? new List<string?>();
+            ViewBag.search = search;
             this.ViewBag.Pager = pager;
             return View(data);
         }

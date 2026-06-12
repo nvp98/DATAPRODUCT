@@ -161,6 +161,25 @@
                                     new { @class = "form-select form-select-sm" ,multiple = "multiple"})
                                 </div>
                                 <div class="col-auto">
+                                    <label class="form-label" style="font-size:13px;">Mã lô</label>
+                                    <select name="MaLo" id="MaLo" class="form-select form-select-sm" multiple="multiple">
+                                        @{
+                                            var selectedMaLo = ViewBag.SelectedMaLo as List<string?> ?? new List<string?>();
+                                            foreach (var ml in ViewBag.MaLoList as List<string> ?? new List<string>())
+                                            {
+                                                if (selectedMaLo.Contains(ml))
+                                                {
+                                                    <option value="@ml" selected>@ml</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@ml">@ml</option>
+                                                }
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-auto">
                                     <label class="form-label" style="font-size:13px;">Tìm kiếm</label>
                                     <input type="text" name="search" class="form-control form-control-sm"
                                            placeholder="Số phiếu / Vật tư..." value="@ViewBag.search"
@@ -325,6 +344,10 @@
 
                              $("#ID_TrangThai").chosen({
                                 width: "100%"
+                            });
+                             $("#MaLo").chosen({
+                                width: "100%",
+                                placeholder_text_multiple: "-- Tất cả --"
                             });
                              $("#ID_VatTu").chosen({
                                 width: "100%"
