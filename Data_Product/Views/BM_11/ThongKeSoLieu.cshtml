@@ -1,81 +1,28 @@
-@model IEnumerable<Data_Product.Models.ThongKe_BM11_VM>
-@using Data_Product.Repositorys;
 @{
     ViewData["Title"] = "Thống kê số liệu BM.11/QT.05";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
-    Pager pager = new Pager();
-    if (ViewBag.Pager != null)
-    {
-        pager = ViewBag.Pager;
-    }
 }
-@if (TempData["msgSuccess"] != null)
-{
-    @Html.Raw(TempData["msgSuccess"])
-}
-@if (TempData["msgError"] != null)
-{
-    @Html.Raw(TempData["msgError"])
-}
+@if (TempData["msgSuccess"] != null) { @Html.Raw(TempData["msgSuccess"]) }
+@if (TempData["msgError"] != null) { @Html.Raw(TempData["msgError"]) }
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
 <style>
-    #tbl-thongke_wrapper .dataTables_paginate {
-    margin-top: 8px;
-    }
-
-    #tbl-thongke_wrapper .dataTables_length,
-    #tbl-thongke_wrapper .dataTables_info {
-    font-size: 12px;
-    }
-
-    #tbl-thongke {
-    width: 100% !important;
-    table-layout: fixed;
-    }
-
-    #tbl-thongke th,
-    #tbl-thongke td {
-    font-size: 14px;
-    word-break: break-word;
-    white-space: normal;
-    overflow: hidden;
-    }
-
-    @* .table-bbgn thead tr:first-child th {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    }
-
-    .table-bbgn thead tr:nth-child(2) th {
-    position: sticky;
-    top: 40px;
-    z-index: 19;
-    } *@
-
     .table-container {
-    max-height: 75vh;
-    overflow: auto;
-    border: 1px solid #d6d6d6;
+        max-height: 75vh;
+        overflow: auto;
+        border: 1px solid #d6d6d6;
     }
-
     .table-bbgn {
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 12px;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 12px;
     }
-
     .table-bbgn th,
     .table-bbgn td {
-    border: 1px solid #d0d7de !important;
-    padding: 6px;
+        border: 1px solid #d0d7de !important;
+        padding: 6px;
     }
 </style>
 
@@ -85,10 +32,8 @@
             <div class="row">
                 <div class="card">
                     <div class="row" style="width:100%; height:120px;">
-                        <div
-                            style="display:flex;border-bottom:0.8px solid #E8E8E8;position:fixed;background-color:#F9F9F9;width:-webkit-fill-available;z-index:100;">
-                            <div class="col-12"
-                                 style="text-align:left;padding:1% 2% 1% 0%;display:flex;align-items:center;">
+                        <div style="display:flex;border-bottom:0.8px solid #E8E8E8;position:fixed;background-color:#F9F9F9;width:-webkit-fill-available;z-index:100;">
+                            <div class="col-12" style="text-align:left;padding:1% 2% 1% 0%;display:flex;align-items:center;">
                                 <div class="col-6">
                                     <span class="text-muted small pt-2 ps-1">
                                         <b style="color:#06428b;font-size:15px;">
@@ -108,300 +53,297 @@
 
                     <!-- Bộ lọc -->
                     <div class="row" style="width:100%;padding-bottom:1%; margin-top: -42px;">
-                        <form method="get" asp-action="ThongKeSoLieu" asp-controller="BM_11">
-                            <div class="row g-2 align-items-end">
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Từ ngày</label>
-                                    <input type="date" name="begind" class="form-control form-control-sm"
-                                           value="@ViewBag.begind" />
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Đến ngày</label>
-                                    <input type="date" name="endd" class="form-control form-control-sm"
-                                           value="@ViewBag.endd" />
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Phòng ban bên giao</label>
-                                    @Html.DropDownList("ID_PhongBanBG", ViewBag.PBListBG as SelectList, "-- Tất cả --",
-                                    new { @class = "form-select form-select-sm" })
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Xưởng bên giao</label>
-                                    @Html.DropDownList("ID_XuongBG", ViewBag.XuongListBG as SelectList, "-- Tất cả --",
-                                    new { @class = "form-select form-select-sm" })
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Phòng ban bên nhận</label>
-                                    @Html.DropDownList("ID_PhongBanBN", ViewBag.PBListBN as SelectList, "-- Tất cả --",
-                                    new { @class = "form-select form-select-sm" })
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Xưởng bên nhận</label>
-                                    @Html.DropDownList("ID_XuongBN", ViewBag.XuongListBN as SelectList, "-- Tất cả --",
-                                    new { @class = "form-select form-select-sm" })
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Vật tư</label>
-                                    @Html.DropDownList("ID_VatTu", ViewBag.VatTuList as SelectList, "-- Tất cả --", new
-                                    { @class = "form-select form-select-sm" })
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Phòng ban</label>
-                                    @Html.DropDownList("ID_PhongBan", ViewBag.PBListBN as SelectList, "-- Tất cả --",
-                                    new { @class = "form-select form-select-sm" })
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Xưởng</label>
-                                    @Html.DropDownList("ID_Xuong", ViewBag.XuongListBN as SelectList, "-- Tất cả --",
-                                    new { @class = "form-select form-select-sm" })
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Tình Trạng</label>
-                                    @Html.DropDownList("ID_TrangThai", ViewBag.TrangThaiPhieu as SelectList, "-- Tất cả --",
-                                    new { @class = "form-select form-select-sm" ,multiple = "multiple"})
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Mã lô</label>
-                                    <select name="MaLo" id="MaLo" class="form-select form-select-sm" multiple="multiple">
-                                        @{
-                                            var selectedMaLo = ViewBag.SelectedMaLo as List<string?> ?? new List<string?>();
-                                            foreach (var ml in ViewBag.MaLoList as List<string> ?? new List<string>())
-                                            {
-                                                if (selectedMaLo.Contains(ml))
-                                                {
-                                                    <option value="@ml" selected>@ml</option>
-                                                }
-                                                else
-                                                {
-                                                    <option value="@ml">@ml</option>
-                                                }
-                                            }
-                                        }
-                                    </select>
-                                </div>
-                                <div class="col-auto">
-                                    <label class="form-label" style="font-size:13px;">Tìm kiếm</label>
-                                    <input type="text" name="search" class="form-control form-control-sm"
-                                           placeholder="Số phiếu / Vật tư..." value="@ViewBag.search"
-                                           style="width:180px;" />
-                                </div>
-                                <div class="col-auto">
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="bi bi-search"></i> Lọc
-                                    </button>
-                                    <a href="@Url.Action("ThongKeSoLieu", "BM_11")" class="btn btn-secondary btn-sm">
-                                        <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
-                                    </a>
-                                </div>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Từ ngày</label>
+                                <input type="date" id="f-begind" class="form-control form-control-sm" value="@ViewBag.begind" />
                             </div>
-                        </form>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Đến ngày</label>
+                                <input type="date" id="f-endd" class="form-control form-control-sm" value="@ViewBag.endd" />
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Phòng ban bên giao</label>
+                                @Html.DropDownList("ID_PhongBanBG", ViewBag.PBListBG as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm", id = "f-pbBG" })
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Xưởng bên giao</label>
+                                @Html.DropDownList("ID_XuongBG", ViewBag.XuongListBG as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm", id = "f-xBG" })
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Phòng ban bên nhận</label>
+                                @Html.DropDownList("ID_PhongBanBN", ViewBag.PBListBN as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm", id = "f-pbBN" })
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Xưởng bên nhận</label>
+                                @Html.DropDownList("ID_XuongBN", ViewBag.XuongListBN as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm", id = "f-xBN" })
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Vật tư</label>
+                                @Html.DropDownList("ID_VatTu", ViewBag.VatTuList as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm", id = "f-vattu" })
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Phòng ban</label>
+                                @Html.DropDownList("ID_PhongBan", ViewBag.PBListBN as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm", id = "f-pb" })
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Xưởng</label>
+                                @Html.DropDownList("ID_Xuong", ViewBag.XuongListBN as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm", id = "f-xuong" })
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Tình Trạng</label>
+                                @Html.DropDownList("ID_TrangThai", ViewBag.TrangThaiPhieu as SelectList, "-- Tất cả --",
+                                    new { @class = "form-select form-select-sm", id = "f-trangthai", multiple = "multiple" })
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Mã lô</label>
+                                <select id="f-malo" class="form-select form-select-sm" multiple="multiple">
+                                    @foreach (var ml in ViewBag.MaLoList as List<string> ?? new List<string>())
+                                    {
+                                        <option value="@ml">@ml</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Tìm kiếm</label>
+                                <input type="text" id="f-search" class="form-control form-control-sm"
+                                       placeholder="Số phiếu / Vật tư..." style="width:180px;" />
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-primary btn-sm" id="btn-loc">
+                                    <i class="bi bi-search"></i> Lọc
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="btn-reset">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Đặt lại
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Bảng dữ liệu -->
                     <div class="card-body" style="padding-top:0.5%;">
-                        <div style="font-size:12px;color:#555;margin-bottom:6px;">
-                            Tổng: <b>@Model.Count()</b> dòng &nbsp;|&nbsp;
-                            KL bên giao: <b>@Model.Sum(x => x.KhoiLuong_BG).ToString("F3")</b> &nbsp;|&nbsp;
-                            KL quy khô BG: <b>@Model.Sum(x => x.KL_QuyKho_BG).ToString("F3")</b> &nbsp;|&nbsp;
-                            KL bên nhận: <b>@Model.Sum(x => x.KhoiLuong_BN).ToString("F3")</b> &nbsp;|&nbsp;
-                            KL quy khô BN: <b>@Model.Sum(x => x.KL_QuyKho_BN).ToString("F3")</b>
+                        <div style="font-size:12px;color:#555;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                Tổng: <b id="sum-total">-</b> dòng &nbsp;|&nbsp;
+                                KL bên giao: <b id="sum-kl-bg">-</b> &nbsp;|&nbsp;
+                                KL quy khô BG: <b id="sum-qk-bg">-</b> &nbsp;|&nbsp;
+                                KL bên nhận: <b id="sum-kl-bn">-</b> &nbsp;|&nbsp;
+                                KL quy khô BN: <b id="sum-qk-bn">-</b>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="font-size:12px;">Hiển thị:</span>
+                                <select id="f-pagesize" class="form-select form-select-sm" style="width:auto;">
+                                    <option value="25">25 dòng</option>
+                                    <option value="50" selected>50 dòng</option>
+                                    <option value="100">100 dòng</option>
+                                    <option value="200">200 dòng</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="table-container">
-                            <table class="table table-bordered table-hover table-sm table-bbgn" id="tbl-thongke"
-                                   cellpadding="0">
-                                @* <colgroup>
-                                <col style="width:3%"> <%-- STT --%>
-                                <col style="width:7%"> <%-- Số phiếu --%>
-                                <col style="width:5%"> <%-- Ngày --%>
-                                <col style="width:3%"> <%-- Kíp --%>
-                                <col style="width:8%"> <%-- PB BG --%>
-                                <col style="width:6%"> <%-- PX BG --%>
-                                <col style="width:8%"> <%-- PB BN --%>
-                                <col style="width:6%"> <%-- PX BN --%>
-                                <col style="width:12%"> <%-- Tên vật tư --%>
-                                <col style="width:4%"> <%-- ĐVT --%>
-                                <col style="width:5%"> <%-- Mã lô --%>
-                                <col style="width:4%"> <%-- W% --%>
-                                <col style="width:5%"> <%-- KL BG --%>
-                                <col style="width:5%"> <%-- KL quy khô BG --%>
-                                <col style="width:5%"> <%-- KL BN --%>
-                                <col style="width:5%"> <%-- KL quy khô BN --%>
-                                <col style="width:6%"> <%-- Trạng thái --%>
-                                <col style="width:8%"> <%-- Ghi chú --%>
-                            </colgroup> *@
+                            <table class="table table-bordered table-hover table-sm table-bbgn" cellpadding="0">
                                 <thead>
                                     <tr style="background-color:#f9f9f9;">
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle; width: 20px;" >STT</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;width:30px;">STT</th>
                                         <th class="text-center" rowspan="2" style="vertical-align:middle;">Số phiếu</th>
                                         <th class="text-center" rowspan="2" style="vertical-align:middle;">Ngày</th>
                                         <th class="text-center" rowspan="2" style="vertical-align:middle;">Kíp</th>
                                         <th class="text-center" colspan="2" style="vertical-align:middle;">Bên giao</th>
                                         <th class="text-center" colspan="2" style="vertical-align:middle;">Bên nhận</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Tên
-                                            nguyên/nhiên/vật tư</th>
-                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">ĐVT</th>
-                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Mã lô</th>
-                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">W (%)</th>
-                                            <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên giao
-                                            </th>
-                                            <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên nhận
-                                            </th>
-                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Trạng thái
-                                            </th>
-                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Ghi chú</th>
-                                        </tr>
-                                        <tr style="background-color:#f9f9f9;">
-                                            <th class="text-center" style="vertical-align:middle;">Phòng ban</th>
-                                            <th class="text-center" style="vertical-align:middle;">Phân xưởng</th>
-                                            <th class="text-center" style="vertical-align:middle;">Phòng ban</th>
-                                            <th class="text-center" style="vertical-align:middle;">Phân xưởng</th>
-                                            <th class="text-center" style="vertical-align:middle;">Khối lượng</th>
-                                            <th class="text-center" style="vertical-align:middle;">KL quy khô</th>
-                                            <th class="text-center" style="vertical-align:middle;">Khối lượng</th>
-                                            <th class="text-center" style="vertical-align:middle;">KL quy khô</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @{
-                                            int stt = 1;
-                                            foreach (var item in Model)
-                                            {
-                                                string rowStyle = item.IsLock ? "background-color:#fff3cd;" : "";
-                                                
-                                                <tr style="font-size:13px;@rowStyle">
-                                                    <td class="text-center" style="vertical-align:middle;">@stt</td>
-                                                    <td style="vertical-align:middle;">
-                                                        <a href="@Url.Action("Index_Detai", "BM_11", new { id = item.ID_BBGN })">
-                                                            @item.SoPhieu
-                                                        </a>
-                                                    </td>
-                                                    <td class="text-center" style="vertical-align:middle;">
-                                                        @item.ThoiGianXuLyBG.ToString("dd/MM/yyyy")</td>
-                                                        <td class="text-center" style="vertical-align:middle;">@item.Kip</td>
-                                                        @* <td style="vertical-align:middle;">@item.TenNhanVien_BG -
-                                        @item.HoVaTen_BG</td>
-                                    *@
-                                                        <td style="vertical-align:middle;">@item.TenPhongBan_BG</td>
-                                                        <td style="vertical-align:middle;">@item.TenXuong_BG</td>
-                                                        @* <td style="vertical-align:middle;">@item.TenNhanVien_BN -
-                                        @item.HoVaTen_BN</td>
-                                    *@
-                                                        <td style="vertical-align:middle;">@item.TenPhongBan_BN</td>
-                                                        <td style="vertical-align:middle;">@item.TenXuong_BN</td>
-                                                        <td style="vertical-align:middle;">@item.TenVatTu</td>
-                                                        <td class="text-center" style="vertical-align:middle;">@item.DonViTinh</td>
-                                                        <td class="text-center" style="vertical-align:middle;">@item.MaLo</td>
-                                                        <td class="text-end" style="vertical-align:middle;">@item.DoAm_W.ToString("F2")
-                                                        </td>
-                                                        <td class="text-end" style="vertical-align:middle;">
-                                                            @item.KhoiLuong_BG.ToString("F3")</td>
-                                                            <td class="text-end" style="vertical-align:middle;">
-                                                                @item.KL_QuyKho_BG.ToString("F3")</td>
-                                                                <td class="text-end" style="vertical-align:middle;">@(item.KhoiLuong_BN == 0 ?
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                    "" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    item.KhoiLuong_BN.ToString("F3"))</td>
-                                                                    <td class="text-end" style="vertical-align:middle;">@(item.KL_QuyKho_BN == 0 ?
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            "" :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        item.KL_QuyKho_BN.ToString("F3"))</td>
-                                                                        <td class="text-center" style="vertical-align:middle;">
-                                                                            @if (item.IsLock)
-                                                                            {
-                                                                                <span class="badge bg-warning text-dark">Đã khóa</span>
-                                                                            }
-                                                                            else
-                                                                            {
-                                                                                <span
-                                                                                class="badge @(item.ID_TrangThai_BBGN == 1 ? "bg-success" : "bg-secondary")">@item.TenTrangThai_BBGN</span>
-                                                                            }
-                                                                        </td>
-                                                                        <td style="vertical-align:middle;">@item.GhiChu</td>
-                                                                    </tr>
-                                                                    stt++;
-                                                                }
-                                                            }
-                                                        </tbody>
-                                                        <tfoot>
-                                                            <tr style="font-size:13px;font-weight:bold;background-color:#f9f9f9;">
-                                                                <td colspan="12" class="text-center">Tổng cộng</td>
-                                                                <td class="text-end">@Model.Sum(x => x.KhoiLuong_BG).ToString("F3")</td>
-                                                                <td class="text-end">@Model.Sum(x => x.KL_QuyKho_BG).ToString("F3")</td>
-                                                                <td class="text-end">@Model.Sum(x => x.KhoiLuong_BN).ToString("F3")</td>
-                                                                <td class="text-end">@Model.Sum(x => x.KL_QuyKho_BN).ToString("F3")</td>
-                                                                <td colspan="2"></td>
-                                                            </tr>
-                                                        </tfoot>
-                                                    </table>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Tên nguyên/nhiên/vật tư</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">ĐVT</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Mã lô</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">W (%)</th>
+                                        <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên giao</th>
+                                        <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên nhận</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Trạng thái</th>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Ghi chú</th>
+                                    </tr>
+                                    <tr style="background-color:#f9f9f9;">
+                                        <th class="text-center">Phòng ban</th>
+                                        <th class="text-center">Phân xưởng</th>
+                                        <th class="text-center">Phòng ban</th>
+                                        <th class="text-center">Phân xưởng</th>
+                                        <th class="text-center">Khối lượng</th>
+                                        <th class="text-center">KL quy khô</th>
+                                        <th class="text-center">Khối lượng</th>
+                                        <th class="text-center">KL quy khô</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-main">
+                                    <tr><td colspan="18" class="text-center py-3 text-muted">Nhấn Lọc để tải dữ liệu</td></tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="font-size:13px;font-weight:bold;background-color:#f9f9f9;">
+                                        <td colspan="12" class="text-center">Tổng cộng</td>
+                                        <td class="text-end" id="tfoot-kl-bg">-</td>
+                                        <td class="text-end" id="tfoot-qk-bg">-</td>
+                                        <td class="text-end" id="tfoot-kl-bn">-</td>
+                                        <td class="text-end" id="tfoot-qk-bn">-</td>
+                                        <td colspan="2"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
 
-                        <script>
+                        <!-- Phân trang -->
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted" id="page-info"></small>
+                            <nav id="pagination-wrap"></nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-                             $("#ID_TrangThai").chosen({
-                                width: "100%"
-                            });
-                             $("#MaLo").chosen({
-                                width: "100%",
-                                placeholder_text_multiple: "-- Tất cả --"
-                            });
-                             $("#ID_VatTu").chosen({
-                                width: "100%"
-                            });
-                             $("#ID_Xuong").chosen({
-                                width: "100%"
-                            });
-                                $("#ID_PhongBan").chosen({
-                                    width: "100%"
-                                });
-                                $("#ID_XuongBN").chosen({
-                                    width: "100%"
-                                });
-                                $("#ID_PhongBanBN").chosen({
-                                    width: "100%"
-                                });
-                                $("#ID_XuongBG").chosen({
-                                    width: "100%"
-                                });
-                                $("#ID_PhongBanBG").chosen({
-                                    width: "100%"
-                                });
-                            document.getElementById('btn-Export').addEventListener('click', function () {
-                            var params = new URLSearchParams(window.location.search);
-                            params.set('begind', document.querySelector('input[name="begind"]').value);
-                            params.set('endd', document.querySelector('input[name="endd"]').value);
-                            window.location.href = '@Url.Action("ExportThongKeSoLieu", "BM_11")?' + params.toString();
-                            });
+<script>
+    $("#f-trangthai").chosen({ width: "100%" });
+    $("#f-malo").chosen({ width: "100%", placeholder_text_multiple: "-- Tất cả --" });
+    $("#f-vattu").chosen({ width: "100%" });
+    $("#f-xuong").chosen({ width: "100%" });
+    $("#f-pb").chosen({ width: "100%" });
+    $("#f-xBN").chosen({ width: "100%" });
+    $("#f-pbBN").chosen({ width: "100%" });
+    $("#f-xBG").chosen({ width: "100%" });
+    $("#f-pbBG").chosen({ width: "100%" });
 
-                            $(document).ready(function () {
-                            var table = $('#tbl-thongke').DataTable({
-                            paging: true,
-                            pageLength: 50,
-                            lengthMenu: [[25, 50, 100, 200, -1], [25, 50, 100, 200, 'Tất cả']],
-                            searching: false,
-                            ordering: true,
-                            orderCellsTop: true,
-                            autoWidth: false,
-                            language: {
-                            paginate: {
-                            first: '«',
-                            last: '»',
-                            next: '›',
-                            previous: '‹'
-                            },
-                            lengthMenu: 'Hiển thị _MENU_ dòng / trang',
-                            info: 'Đang hiển thị _START_ - _END_ trong tổng <b>_TOTAL_</b> dòng',
-                            zeroRecords: 'Không có dữ liệu',
-                            emptyTable: 'Không có dữ liệu'
-                            },
-                            dom: 'lrtip',
-                            columnDefs: [
-                            { orderable: false, targets: [0] }
-                            ]
-                            });
-                            });
-                        </script>
+    var urlData   = '@Url.Action("ThongKeSoLieuData", "BM_11")';
+    var urlDetail = '@Url.Action("Index_Detai", "BM_11")';
+    var urlExport = '@Url.Action("ExportThongKeSoLieu", "BM_11")';
+    var currentPage = 1;
+
+    function getParams(page) {
+        var p = {
+            begind:   $('#f-begind').val(),
+            endd:     $('#f-endd').val(),
+            page:     page || currentPage,
+            pageSize: parseInt($('#f-pagesize').val())
+        };
+        var pbBG = $('#f-pbBG').val(); if (pbBG) p.ID_PhongBanBG = pbBG;
+        var xBG  = $('#f-xBG').val();  if (xBG)  p.ID_XuongBG    = xBG;
+        var pbBN = $('#f-pbBN').val(); if (pbBN) p.ID_PhongBanBN = pbBN;
+        var xBN  = $('#f-xBN').val();  if (xBN)  p.ID_XuongBN    = xBN;
+        var pb   = $('#f-pb').val();   if (pb)   p.ID_PhongBan   = pb;
+        var x    = $('#f-xuong').val(); if (x)   p.ID_Xuong      = x;
+        var vt   = $('#f-vattu').val(); if (vt)  p.ID_VatTu      = vt;
+        var s    = $('#f-search').val(); if (s)  p.search        = s;
+        var tt   = $('#f-trangthai').val();
+        if (tt && tt.length) p.trangThaiList = tt.join(',');
+        var ml   = $('#f-malo').val();
+        if (ml && ml.length) p.maLoList = ml.join(',');
+        return p;
+    }
+
+    function loadData(page) {
+        currentPage = page || 1;
+        var params = getParams(currentPage);
+
+        $('#tbody-main').html('<tr><td colspan="18" class="text-center py-3"><i class="text-muted">Đang tải...</i></td></tr>');
+
+        $.get(urlData, params, function (res) {
+            var html = '';
+            var rowNum = (res.page - 1) * res.pageSize + 1;
+
+            if (!res.data || res.data.length === 0) {
+                html = '<tr><td colspan="18" class="text-center py-3 text-muted">Không có dữ liệu</td></tr>';
+            } else {
+                $.each(res.data, function (i, row) {
+                    var lockStyle = row.isLock ? 'background-color:#fff3cd;' : '';
+                    var badge = row.isLock
+                        ? '<span class="badge bg-warning text-dark">Đã khóa</span>'
+                        : '<span class="badge ' + (row.idTrangThai === 1 ? 'bg-success' : 'bg-secondary') + '">' + (row.trangThai || '') + '</span>';
+
+                    html += '<tr style="font-size:13px;' + lockStyle + '">';
+                    html += '<td class="text-center" style="vertical-align:middle;">' + rowNum++ + '</td>';
+                    html += '<td style="vertical-align:middle;"><a href="' + urlDetail + '?id=' + row.id + '">' + (row.soPhieu || '') + '</a></td>';
+                    html += '<td class="text-center" style="vertical-align:middle;">' + (row.ngay || '') + '</td>';
+                    html += '<td class="text-center" style="vertical-align:middle;">' + (row.kip || '') + '</td>';
+                    html += '<td style="vertical-align:middle;">' + (row.pbBG || '') + '</td>';
+                    html += '<td style="vertical-align:middle;">' + (row.xuongBG || '') + '</td>';
+                    html += '<td style="vertical-align:middle;">' + (row.pbBN || '') + '</td>';
+                    html += '<td style="vertical-align:middle;">' + (row.xuongBN || '') + '</td>';
+                    html += '<td style="vertical-align:middle;">' + (row.tenVatTu || '') + '</td>';
+                    html += '<td class="text-center" style="vertical-align:middle;">' + (row.dvt || '') + '</td>';
+                    html += '<td class="text-center" style="vertical-align:middle;">' + (row.maLo || '') + '</td>';
+                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.doAmW || '') + '</td>';
+                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.klBG || '') + '</td>';
+                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.klQuyKhoBG || '') + '</td>';
+                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.klBN || '') + '</td>';
+                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.klQuyKhoBN || '') + '</td>';
+                    html += '<td class="text-center" style="vertical-align:middle;">' + badge + '</td>';
+                    html += '<td style="vertical-align:middle;">' + (row.ghiChu || '') + '</td>';
+                    html += '</tr>';
+                });
+            }
+
+            $('#tbody-main').html(html);
+            $('#sum-total').text(res.totalCount);
+            $('#sum-kl-bg').text(res.sumKhoBG);
+            $('#sum-qk-bg').text(res.sumQKBG);
+            $('#sum-kl-bn').text(res.sumKhoBN);
+            $('#sum-qk-bn').text(res.sumQKBN);
+            $('#tfoot-kl-bg').text(res.sumKhoBG);
+            $('#tfoot-qk-bg').text(res.sumQKBG);
+            $('#tfoot-kl-bn').text(res.sumKhoBN);
+            $('#tfoot-qk-bn').text(res.sumQKBN);
+
+            var shown = res.data ? res.data.length : 0;
+            $('#page-info').text('Trang ' + res.page + ' / ' + res.totalPages + '  (' + shown + ' / ' + res.totalCount + ' dòng)');
+            renderPaging(res.page, res.totalPages);
+            currentPage = res.page;
+        });
+    }
+
+    function renderPaging(page, totalPages) {
+        if (totalPages <= 1) { $('#pagination-wrap').html(''); return; }
+        var h = '<ul class="pagination pagination-sm mb-0">';
+        h += btn(1, '«', page <= 1);
+        h += btn(page - 1, '‹', page <= 1);
+        var s = Math.max(1, page - 2), e = Math.min(totalPages, page + 2);
+        for (var p = s; p <= e; p++) {
+            h += '<li class="page-item' + (p === page ? ' active' : '') + '">'
+               + '<a class="page-link" href="#" onclick="loadData(' + p + ');return false;">' + p + '</a></li>';
+        }
+        h += btn(page + 1, '›', page >= totalPages);
+        h += btn(totalPages, '»', page >= totalPages);
+        h += '</ul>';
+        $('#pagination-wrap').html(h);
+    }
+
+    function btn(p, label, disabled) {
+        return '<li class="page-item' + (disabled ? ' disabled' : '') + '">'
+             + '<a class="page-link" href="#" onclick="loadData(' + p + ');return false;">' + label + '</a></li>';
+    }
+
+    $('#btn-loc').on('click', function () { loadData(1); });
+
+    $('#btn-reset').on('click', function () {
+        $('#f-begind').val('@ViewBag.begind');
+        $('#f-endd').val('@ViewBag.endd');
+        $('#f-pbBG, #f-xBG, #f-pbBN, #f-xBN, #f-pb, #f-xuong, #f-vattu').val('').trigger('chosen:updated');
+        $('#f-trangthai').val([]).trigger('chosen:updated');
+        $('#f-malo').val([]).trigger('chosen:updated');
+        $('#f-search').val('');
+        loadData(1);
+    });
+
+    $('#f-pagesize').on('change', function () { loadData(1); });
+
+    document.getElementById('btn-Export').addEventListener('click', function () {
+        var p = getParams(1);
+        delete p.page; delete p.pageSize;
+        var qs = Object.keys(p).map(function(k) {
+            return encodeURIComponent(k) + '=' + encodeURIComponent(p[k]);
+        }).join('&');
+        window.location.href = urlExport + '?' + qs;
+    });
+</script>

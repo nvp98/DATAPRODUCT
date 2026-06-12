@@ -2790,128 +2790,168 @@ namespace Data_Product.Controllers
             }); // Quay lại trang danh sách
         }
 
-        public async Task<IActionResult> ThongKeSoLieu(DateTime? begind, DateTime? endd,
-            int? ID_PhongBanBG, int? ID_XuongBG, int? ID_PhongBanBN, int? ID_XuongBN,
-            int? ID_PhongBan, int? ID_Xuong,
-            List<int?> ID_TrangThai,
-            List<string?> MaLo,
-            int? ID_VatTu, string? search, int page = 1)
+        public async Task<IActionResult> ThongKeSoLieu()
+        {
+            DateTime now = DateTime.Now;
+            var pbls = await _context.Tbl_PhongBan.ToListAsync();
+            var xuongs = await _context.Tbl_Xuong.ToListAsync();
+            ViewBag.PBListBG = new SelectList(pbls, "ID_PhongBan", "TenPhongBan");
+            ViewBag.XuongListBG = new SelectList(xuongs, "ID_Xuong", "TenXuong");
+            ViewBag.PBListBN = new SelectList(pbls, "ID_PhongBan", "TenPhongBan");
+            ViewBag.XuongListBN = new SelectList(xuongs, "ID_Xuong", "TenXuong");
+            ViewBag.VatTuList = new SelectList(await _context.Tbl_VatTu.OrderBy(x => x.TenVatTu).ToListAsync(), "ID_VatTu", "TenVatTu");
+            ViewBag.begind = now.AddDays(-1).ToString("yyyy-MM-dd");
+            ViewBag.endd = now.ToString("yyyy-MM-dd");
+            ViewBag.TrangThaiPhieu = new SelectList(await _context.Tbl_TrangThai.ToListAsync(), "ID_TrangThai", "TenTrangThai");
+            var allMaLo = await _context.Tbl_ChiTiet_BienBanGiaoNhan
+                .Where(x => x.MaLo != null).Select(x => x.MaLo!).Distinct().OrderBy(x => x).ToListAsync();
+            ViewBag.MaLoList = allMaLo;
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ThongKeSoLieuData(
+            DateTime? begind = null, DateTime? endd = null,
+            int? ID_PhongBanBG = null, int? ID_XuongBG = null,
+            int? ID_PhongBanBN = null, int? ID_XuongBN = null,
+            int? ID_PhongBan = null, int? ID_Xuong = null,
+            string? trangThaiList = null, string? maLoList = null,
+            int? ID_VatTu = null, string? search = null,
+            int page = 1, int pageSize = 50)
         {
             DateTime now = DateTime.Now;
             DateTime startDay = begind ?? now.AddDays(-1);
             DateTime endDay = endd ?? now;
+            if (pageSize <= 0) pageSize = 50;
+            int pageIndex = Math.Max(1, page);
 
             var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
             var taiKhoan = await _context.Tbl_TaiKhoan
-                .Where(x => x.TenTaiKhoan == tenTaiKhoan)
-                .FirstOrDefaultAsync();
+                .Where(x => x.TenTaiKhoan == tenTaiKhoan).FirstOrDefaultAsync();
 
-            // Build IQueryable with all joins — no DB call yet
-            var baseQuery = from a in _context.Tbl_BienBanGiaoNhan
-                            join b in _context.Tbl_ChiTiet_BienBanGiaoNhan on a.ID_BBGN equals b.ID_BBGN
-                            join vt in _context.Tbl_VatTu on b.ID_VatTu equals vt.ID_VatTu
-                            join tkBG in _context.Tbl_TaiKhoan on a.ID_NhanVien_BG equals tkBG.ID_TaiKhoan
-                            join tkBN in _context.Tbl_TaiKhoan on a.ID_NhanVien_BN equals tkBN.ID_TaiKhoan
-                            join pbBG in _context.Tbl_PhongBan on a.ID_PhongBan_BG equals pbBG.ID_PhongBan
-                            join xBG in _context.Tbl_Xuong on a.ID_Xuong_BG equals xBG.ID_Xuong
-                            join pbBN in _context.Tbl_PhongBan on a.ID_PhongBan_BN equals pbBN.ID_PhongBan
-                            join xBN in _context.Tbl_Xuong on a.ID_Xuong_BN equals xBN.ID_Xuong
-                            join tt in _context.Tbl_TrangThai on a.ID_TrangThai_BBGN equals tt.ID_TrangThai into ttGroup
-                            from tt in ttGroup.DefaultIfEmpty()
-                            where a.ThoiGianXuLyBG >= startDay && a.ThoiGianXuLyBG <= endDay && !a.IsDelete
-                            select new { a, b, vt, tkBG, tkBN, pbBG, xBG, pbBN, xBN, tt };
+            var bienBanQuery = _context.Tbl_BienBanGiaoNhan.AsNoTracking()
+                .Where(x => !x.IsDelete && x.ThoiGianXuLyBG >= startDay && x.ThoiGianXuLyBG <= endDay);
 
-            // All filters pushed to SQL using IDs — no in-memory filtering
             if (taiKhoan?.ID_Quyen > 3 && taiKhoan.ID_Quyen != 8)
             {
                 int userPB = taiKhoan.ID_PhongBan;
-                baseQuery = baseQuery.Where(x => x.a.ID_PhongBan_BG == userPB || x.a.ID_PhongBan_BN == userPB);
+                bienBanQuery = bienBanQuery.Where(x => x.ID_PhongBan_BG == userPB || x.ID_PhongBan_BN == userPB);
             }
-            if (ID_PhongBanBG != null)
-                baseQuery = baseQuery.Where(x => x.a.ID_PhongBan_BG == ID_PhongBanBG);
-            if (ID_XuongBG != null)
-                baseQuery = baseQuery.Where(x => x.a.ID_Xuong_BG == ID_XuongBG);
-            if (ID_PhongBanBN != null)
-                baseQuery = baseQuery.Where(x => x.a.ID_PhongBan_BN == ID_PhongBanBN);
-            if (ID_XuongBN != null)
-                baseQuery = baseQuery.Where(x => x.a.ID_Xuong_BN == ID_XuongBN);
-            if (ID_VatTu != null)
-                baseQuery = baseQuery.Where(x => x.b.ID_VatTu == ID_VatTu);
-            if (MaLo != null && MaLo.Any(m => m != null))
+            if (ID_PhongBanBG != null) bienBanQuery = bienBanQuery.Where(x => x.ID_PhongBan_BG == ID_PhongBanBG);
+            if (ID_XuongBG != null) bienBanQuery = bienBanQuery.Where(x => x.ID_Xuong_BG == ID_XuongBG);
+            if (ID_PhongBanBN != null) bienBanQuery = bienBanQuery.Where(x => x.ID_PhongBan_BN == ID_PhongBanBN);
+            if (ID_XuongBN != null) bienBanQuery = bienBanQuery.Where(x => x.ID_Xuong_BN == ID_XuongBN);
+            if (!string.IsNullOrEmpty(trangThaiList))
             {
-                var maLoList = MaLo.Where(m => m != null).ToList();
-                baseQuery = baseQuery.Where(x => maLoList.Contains(x.b.MaLo));
-            }
-            if (!string.IsNullOrEmpty(search))
-                baseQuery = baseQuery.Where(x => (x.a.SoPhieu != null && x.a.SoPhieu.Contains(search)) || (x.vt.TenVatTu != null && x.vt.TenVatTu.Contains(search)));
-            if (ID_TrangThai != null && ID_TrangThai.Any())
-            {
-                var trangThaiIds = ID_TrangThai.Where(t => t.HasValue).Select(t => t!.Value).ToList();
-                baseQuery = baseQuery.Where(x => trangThaiIds.Contains(x.a.ID_TrangThai_BBGN));
+                var ttIds = trangThaiList.Split(',')
+                    .Select(x => int.TryParse(x.Trim(), out var v) ? v : (int?)null)
+                    .Where(x => x.HasValue).Select(x => x!.Value).ToList();
+                if (ttIds.Any()) bienBanQuery = bienBanQuery.Where(x => ttIds.Contains(x.ID_TrangThai_BBGN));
             }
             if (ID_PhongBan != null)
-                baseQuery = baseQuery.Where(x => x.a.ID_PhongBan_BG == ID_PhongBan || x.a.ID_PhongBan_BN == ID_PhongBan);
+                bienBanQuery = bienBanQuery.Where(x => x.ID_PhongBan_BG == ID_PhongBan || x.ID_PhongBan_BN == ID_PhongBan);
             if (ID_Xuong != null)
-                baseQuery = baseQuery.Where(x => x.a.ID_Xuong_BG == ID_Xuong || x.a.ID_Xuong_BN == ID_Xuong);
+                bienBanQuery = bienBanQuery.Where(x => x.ID_Xuong_BG == ID_Xuong || x.ID_Xuong_BN == ID_Xuong);
 
-            // Count at DB level for pagination
-            const int pageSize = 1000;
-            if (page < 1) page = 1;
-            int resCount = await baseQuery.CountAsync();
-            var pager = new Pager(resCount, page, pageSize);
-            int recSkip = (page - 1) * pageSize;
+            var chiTietQuery = _context.Tbl_ChiTiet_BienBanGiaoNhan.AsNoTracking().AsQueryable();
+            if (ID_VatTu.HasValue) chiTietQuery = chiTietQuery.Where(x => x.ID_VatTu == ID_VatTu);
+            if (!string.IsNullOrEmpty(maLoList))
+            {
+                var mls = maLoList.Split(',').Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToList();
+                if (mls.Any()) chiTietQuery = chiTietQuery.Where(x => mls.Contains(x.MaLo));
+            }
 
-            // Fetch only one page and project to ViewModel — single DB call
-            var data = await baseQuery
+            var query = from a in bienBanQuery
+                        join b in chiTietQuery on a.ID_BBGN equals b.ID_BBGN
+                        join vt in _context.Tbl_VatTu.AsNoTracking() on b.ID_VatTu equals vt.ID_VatTu
+                        join tkBG in _context.Tbl_TaiKhoan.AsNoTracking() on a.ID_NhanVien_BG equals tkBG.ID_TaiKhoan
+                        join tkBN in _context.Tbl_TaiKhoan.AsNoTracking() on a.ID_NhanVien_BN equals tkBN.ID_TaiKhoan
+                        join pbBG in _context.Tbl_PhongBan.AsNoTracking() on a.ID_PhongBan_BG equals pbBG.ID_PhongBan
+                        join pbBN in _context.Tbl_PhongBan.AsNoTracking() on a.ID_PhongBan_BN equals pbBN.ID_PhongBan
+                        join xBG in _context.Tbl_Xuong.AsNoTracking() on a.ID_Xuong_BG equals xBG.ID_Xuong
+                        join xBN in _context.Tbl_Xuong.AsNoTracking() on a.ID_Xuong_BN equals xBN.ID_Xuong
+                        join tt in _context.Tbl_TrangThai.AsNoTracking() on a.ID_TrangThai_BBGN equals tt.ID_TrangThai into ttGroup
+                        from tt in ttGroup.DefaultIfEmpty()
+                        select new { a, b, vt, pbBG, pbBN, xBG, xBN, tt };
+
+            if (!string.IsNullOrWhiteSpace(search))
+                query = query.Where(x =>
+                    (x.a.SoPhieu != null && x.a.SoPhieu.Contains(search)) ||
+                    (x.vt.TenVatTu != null && x.vt.TenVatTu.Contains(search)));
+
+            // Query 1: chỉ kéo 4 số để tính tổng + đếm
+            var agg = await query
+                .Select(x => new { x.b.KhoiLuong_BG, x.b.KL_QuyKho_BG, x.b.KhoiLuong_BN, x.b.KL_QuyKho_BN })
+                .ToListAsync();
+            int totalCount = agg.Count;
+            double sumKhoBG = agg.Sum(x => x.KhoiLuong_BG);
+            double sumQKBG  = agg.Sum(x => x.KL_QuyKho_BG);
+            double sumKhoBN = agg.Sum(x => x.KhoiLuong_BN);
+            double sumQKBN  = agg.Sum(x => x.KL_QuyKho_BN);
+
+            // Query 2: chỉ lấy 1 trang
+            var pageData = await query
                 .OrderByDescending(x => x.a.ThoiGianXuLyBG)
-                .Skip(recSkip)
-                .Take(pager.PageSize)
+                .Skip((pageIndex - 1) * pageSize).Take(pageSize)
                 .Select(x => new ThongKe_BM11_VM
                 {
-                    ID_BBGN = x.a.ID_BBGN,
-                    SoPhieu = x.a.SoPhieu,
-                    ThoiGianXuLyBG = x.a.ThoiGianXuLyBG,
-                    Kip = x.a.Kip,
-                    Ca = x.a.Ca,
-                    TenNhanVien_BG = x.tkBG.TenTaiKhoan,
-                    HoVaTen_BG = x.tkBG.HoVaTen,
-                    TenPhongBan_BG = x.pbBG.TenPhongBan,
-                    TenXuong_BG = x.xBG.TenXuong,
-                    TenNhanVien_BN = x.tkBN.TenTaiKhoan,
-                    HoVaTen_BN = x.tkBN.HoVaTen,
-                    TenPhongBan_BN = x.pbBN.TenPhongBan,
-                    TenXuong_BN = x.xBN.TenXuong,
-                    TenVatTu = x.vt.TenVatTu,
-                    DonViTinh = x.vt.DonViTinh,
-                    MaLo = x.b.MaLo,
-                    DoAm_W = x.b.DoAm_W,
-                    KhoiLuong_BG = x.b.KhoiLuong_BG,
-                    KL_QuyKho_BG = x.b.KL_QuyKho_BG,
-                    KhoiLuong_BN = x.b.KhoiLuong_BN,
-                    KL_QuyKho_BN = x.b.KL_QuyKho_BN,
-                    GhiChu = x.b.GhiChu,
+                    ID_BBGN           = x.a.ID_BBGN,
+                    SoPhieu           = x.a.SoPhieu,
+                    ThoiGianXuLyBG    = x.a.ThoiGianXuLyBG,
+                    Kip               = x.a.Kip,
+                    TenPhongBan_BG    = x.pbBG.TenPhongBan,
+                    TenXuong_BG       = x.xBG.TenXuong,
+                    TenPhongBan_BN    = x.pbBN.TenPhongBan,
+                    TenXuong_BN       = x.xBN.TenXuong,
+                    TenVatTu          = x.vt.TenVatTu,
+                    DonViTinh         = x.vt.DonViTinh,
+                    MaLo              = x.b.MaLo,
+                    DoAm_W            = x.b.DoAm_W,
+                    KhoiLuong_BG      = x.b.KhoiLuong_BG,
+                    KL_QuyKho_BG      = x.b.KL_QuyKho_BG,
+                    KhoiLuong_BN      = x.b.KhoiLuong_BN,
+                    KL_QuyKho_BN      = x.b.KL_QuyKho_BN,
+                    GhiChu            = x.b.GhiChu,
                     ID_TrangThai_BBGN = x.a.ID_TrangThai_BBGN,
-                    TenTrangThai_BBGN = x.tt.TenTrangThai,
-                    IsLock = x.a.IsLock
+                    TenTrangThai_BBGN = x.tt != null ? x.tt.TenTrangThai : "",
+                    IsLock            = x.a.IsLock
                 })
                 .ToListAsync();
 
-            var pbls = await _context.Tbl_PhongBan.ToListAsync();
-            var xuongs = await _context.Tbl_Xuong.ToListAsync();
-            ViewBag.PBListBG = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBG);
-            ViewBag.XuongListBG = new SelectList(xuongs, "ID_Xuong", "TenXuong", ID_XuongBG);
-            ViewBag.PBListBN = new SelectList(pbls, "ID_PhongBan", "TenPhongBan", ID_PhongBanBN);
-            ViewBag.XuongListBN = new SelectList(xuongs, "ID_Xuong", "TenXuong", ID_XuongBN);
-            ViewBag.VatTuList = new SelectList(await _context.Tbl_VatTu.OrderBy(x => x.TenVatTu).ToListAsync(), "ID_VatTu", "TenVatTu", ID_VatTu);
-            ViewBag.begind = startDay.ToString("yyyy-MM-dd");
-            ViewBag.endd = endDay.ToString("yyyy-MM-dd");
-            ViewBag.TrangThaiPhieu = new SelectList(await _context.Tbl_TrangThai.ToListAsync(), "ID_TrangThai", "TenTrangThai", ID_TrangThai);
-            var allMaLo = await _context.Tbl_MaLo.Where(x => x.TenMaLo != null).OrderBy(x => x.TenMaLo).Select(x => x.TenMaLo).ToListAsync();
-            ViewBag.MaLoList = allMaLo;
-            ViewBag.SelectedMaLo = MaLo ?? new List<string?>();
-            ViewBag.search = search;
-            this.ViewBag.Pager = pager;
-            return View(data);
+            return Json(new
+            {
+                data = pageData.Select(x => new
+                {
+                    id          = x.ID_BBGN,
+                    soPhieu     = x.SoPhieu     ?? "",
+                    ngay        = x.ThoiGianXuLyBG.ToString("dd/MM/yyyy"),
+                    kip         = x.Kip         ?? "",
+                    pbBG        = x.TenPhongBan_BG  ?? "",
+                    xuongBG     = x.TenXuong_BG     ?? "",
+                    pbBN        = x.TenPhongBan_BN  ?? "",
+                    xuongBN     = x.TenXuong_BN     ?? "",
+                    tenVatTu    = x.TenVatTu    ?? "",
+                    dvt         = x.DonViTinh   ?? "",
+                    maLo        = x.MaLo        ?? "",
+                    doAmW       = x.DoAm_W.ToString("F2"),
+                    klBG        = x.KhoiLuong_BG.ToString("F3"),
+                    klQuyKhoBG  = x.KL_QuyKho_BG.ToString("F3"),
+                    klBN        = x.KhoiLuong_BN == 0 ? "" : x.KhoiLuong_BN.ToString("F3"),
+                    klQuyKhoBN  = x.KL_QuyKho_BN == 0 ? "" : x.KL_QuyKho_BN.ToString("F3"),
+                    trangThai   = x.TenTrangThai_BBGN ?? "",
+                    isLock      = x.IsLock,
+                    idTrangThai = x.ID_TrangThai_BBGN,
+                    ghiChu      = x.GhiChu ?? ""
+                }),
+                totalCount,
+                sumKhoBG = sumKhoBG.ToString("F3"),
+                sumQKBG  = sumQKBG.ToString("F3"),
+                sumKhoBN = sumKhoBN.ToString("F3"),
+                sumQKBN  = sumQKBN.ToString("F3"),
+                page     = pageIndex,
+                pageSize,
+                totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+            });
         }
     }
 }
