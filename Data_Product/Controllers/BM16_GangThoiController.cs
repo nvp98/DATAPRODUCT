@@ -591,7 +591,7 @@ namespace Data_Product.Controllers
                     .Select(g => new
                     {
                         SoMe = g.Key,
-                        Tong = g.Sum(x => x.KLGangChia ?? x.T_KLGangLong ?? 0)
+                        Tong = g.Sum(x => (decimal?)(x.KLGangCCTVaXi ?? x.KLGangChia ?? x.T_KLGangLong)) ?? 0m
                     })
                     .OrderBy(x => x.SoMe)
                     .ToListAsync();
