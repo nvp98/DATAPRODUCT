@@ -2,27 +2,94 @@
     ViewData["Title"] = "Thống kê số liệu BM.11/QT.05";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@if (TempData["msgSuccess"] != null) { @Html.Raw(TempData["msgSuccess"]) }
-@if (TempData["msgError"] != null) { @Html.Raw(TempData["msgError"]) }
+@if (TempData["msgSuccess"] != null)
+{
+    @Html.Raw(TempData["msgSuccess"])
+}
+@if (TempData["msgError"] != null)
+{
+    @Html.Raw(TempData["msgError"])
+}
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="~/Content/assets/Chonse/chosen.jquery.js"></script>
 <link href="~/Content/assets/Chonse/chosen.css" rel="stylesheet" />
 <style>
+    /* ===== Sticky filter + title ===== */
+    .page-sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #F9F9F9;
+    border-bottom: 0.8px solid #E8E8E8;
+    padding: 8px 12px 10px 12px;
+    }
+
+    /* ===== Bảng ===== */
     .table-container {
-        max-height: 75vh;
-        overflow: auto;
-        border: 1px solid #d6d6d6;
+    max-height: calc(100vh - 310px);
+    /* Điều chỉnh nếu layout có navbar khác chiều cao */
+    overflow: auto;
+    border: 1px solid #d6d6d6;
     }
+
     .table-bbgn {
-        border-collapse: separate;
-        border-spacing: 0;
-        font-size: 12px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
     }
+
     .table-bbgn th,
     .table-bbgn td {
-        border: 1px solid #d0d7de !important;
-        padding: 6px;
+    border: 1px solid #d0d7de !important;
+    padding: 6px;
+    }
+
+    /* Sticky thead trong vùng cuộn */
+    .table-bbgn thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    }
+
+    .table-bbgn thead th {
+    background-color: #f9f9f9;
+    }
+
+    /* Sticky tfoot trong vùng cuộn */
+    .table-bbgn tfoot {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    }
+
+    .table-bbgn tfoot td {
+    background-color: #f9f9f9;
+    }
+
+    /* filter */
+    .filter-bar label {
+    font-size: 11px !important;
+    margin-bottom: 2px;
+    }
+
+    .filter-bar .form-control,
+    .filter-bar .form-select {
+    font-size: 12px;
+    height: 28px;
+    min-height: 28px;
+    padding: 2px 6px;
+    }
+
+    .filter-bar .btn {
+    height: 28px;
+    padding: 2px 8px;
+    font-size: 12px;
+    }
+
+    .filter-bar .col-auto {
+    padding-right: 4px;
+    padding-left: 4px;
     }
 </style>
 
@@ -30,37 +97,33 @@
     <div class="app-main__inner" style="display:block;padding-bottom:0px;">
         <div class="tab-content">
             <div class="row">
-                <div class="card">
-                    <div class="row" style="width:100%; height:120px;">
-                        <div style="display:flex;border-bottom:0.8px solid #E8E8E8;position:fixed;background-color:#F9F9F9;width:-webkit-fill-available;z-index:100;">
-                            <div class="col-12" style="text-align:left;padding:1% 2% 1% 0%;display:flex;align-items:center;">
-                                <div class="col-6">
-                                    <span class="text-muted small pt-2 ps-1">
-                                        <b style="color:#06428b;font-size:15px;">
-                                            THỐNG KÊ SỐ LIỆU - BM.11/QT.05 (BBGN Nguyên/Nhiên/Vật tư)
-                                        </b>
-                                    </span>
-                                </div>
-                                <div class="col-6 d-flex justify-content-end">
-                                    <button type="button" class="btn btn-success" id="btn-Export">
-                                        <i class="bi bi-file-earmark-excel"></i>
-                                        <span class="small pt-2 ps-1" style="color:white;">Xuất Excel</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="card" style="padding:0;">
 
-                    <!-- Bộ lọc -->
-                    <div class="row" style="width:100%;padding-bottom:1%; margin-top: -42px;">
-                        <div class="row g-2 align-items-end">
+                    <!-- ===== Phần cố định: Tiêu đề + Bộ lọc ===== -->
+                    <div class="page-sticky-top">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small pt-2 ps-1">
+                                <b style="color:#06428b;font-size:15px;">
+                                    THỐNG KÊ SỐ LIỆU - BM.11/QT.05 (BBGN Nguyên/Nhiên/Vật tư)
+                                </b>
+                            </span>
+                            <button type="button" class="btn btn-success btn-sm" id="btn-Export">
+                                <i class="bi bi-file-earmark-excel"></i>
+                                <span class="small ps-1" style="color:white;">Xuất Excel</span>
+                            </button>
+                        </div>
+
+                        <!-- Bộ lọc -->
+                        <div class="row g-2 align-items-end filter-bar" id="filterPanel">
                             <div class="col-auto">
                                 <label class="form-label" style="font-size:13px;">Từ ngày</label>
-                                <input type="date" id="f-begind" class="form-control form-control-sm" value="@ViewBag.begind" />
+                                <input type="date" id="f-begind" class="form-control form-control-sm"
+                                       value="@ViewBag.begind" />
                             </div>
                             <div class="col-auto">
                                 <label class="form-label" style="font-size:13px;">Đến ngày</label>
-                                <input type="date" id="f-endd" class="form-control form-control-sm" value="@ViewBag.endd" />
+                                <input type="date" id="f-endd" class="form-control form-control-sm"
+                                       value="@ViewBag.endd" />
                             </div>
                             <div class="col-auto">
                                 <label class="form-label" style="font-size:13px;">Phòng ban bên giao</label>
@@ -125,11 +188,46 @@
                                 </button>
                             </div>
                         </div>
+                        @* <div class="d-flex text-center" style="margin-top:-6px;">
+                            <button type="button" class="btn btn-link p-0 text-secondary" id="btnToggleFilter"
+                                    title="Ẩn/Hiện bộ lọc">
+                                <i class="bi bi-caret-down-fill"></i>
+                            </button>
+                        </div> *@
+                        <div class="position-relative my-1">
+                            <hr class="m-0">
+
+                            <button type="button" id="btnToggleFilter"
+                                    class="btn btn-link p-0 text-secondary position-absolute top-50 start-50 translate-middle bg-white px-1">
+                                <i class="bi bi-caret-down-fill"></i>
+                            </button>
+                        </div>
+                        <script>
+                            $(document).ready(function () {
+
+                            $("#btnToggleFilter").on("click", function () {
+
+                            $("#filterPanel").slideToggle(150);
+
+                            const icon = $(this).find("i");
+
+                            if ($("#filterPanel").is(":visible")) {
+                            icon.removeClass("bi-caret-right-fill")
+                            .addClass("bi-caret-down-fill");
+                            } else {
+                            icon.removeClass("bi-caret-down-fill")
+                            .addClass("bi-caret-right-fill");
+                            }
+                            });
+
+                            });
+                        </script>
                     </div>
 
-                    <!-- Bảng dữ liệu -->
-                    <div class="card-body" style="padding-top:0.5%;">
-                        <div style="font-size:12px;color:#555;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+                    <!-- ===== Vùng dữ liệu ===== -->
+                    <div class="card-body" style="padding:6px 12px;">
+                        <div
+                            style="font-size:12px;color:#555;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
                             <div>
                                 Tổng: <b id="sum-total">-</b> dòng &nbsp;|&nbsp;
                                 KL bên giao: <b id="sum-kl-bg">-</b> &nbsp;|&nbsp;
@@ -147,142 +245,166 @@
                                 </select>
                             </div>
                         </div>
+
+                        <!-- Bảng: chỉ tbody cuộn, thead & tfoot cố định -->
                         <div class="table-container">
                             <table class="table table-bordered table-hover table-sm table-bbgn" cellpadding="0">
                                 <thead>
                                     <tr style="background-color:#f9f9f9;">
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;width:30px;">STT</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Số phiếu</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Ngày</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Kíp</th>
-                                        <th class="text-center" colspan="2" style="vertical-align:middle;">Bên giao</th>
-                                        <th class="text-center" colspan="2" style="vertical-align:middle;">Bên nhận</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Tên nguyên/nhiên/vật tư</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">ĐVT</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Mã lô</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">W (%)</th>
-                                        <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên giao</th>
-                                        <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên nhận</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Trạng thái</th>
-                                        <th class="text-center" rowspan="2" style="vertical-align:middle;">Ghi chú</th>
-                                    </tr>
-                                    <tr style="background-color:#f9f9f9;">
-                                        <th class="text-center">Phòng ban</th>
-                                        <th class="text-center">Phân xưởng</th>
-                                        <th class="text-center">Phòng ban</th>
-                                        <th class="text-center">Phân xưởng</th>
-                                        <th class="text-center">Khối lượng</th>
-                                        <th class="text-center">KL quy khô</th>
-                                        <th class="text-center">Khối lượng</th>
-                                        <th class="text-center">KL quy khô</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody-main">
-                                    <tr><td colspan="18" class="text-center py-3 text-muted">Nhấn Lọc để tải dữ liệu</td></tr>
-                                </tbody>
-                                <tfoot>
-                                    <tr style="font-size:13px;font-weight:bold;background-color:#f9f9f9;">
-                                        <td colspan="12" class="text-center">Tổng cộng</td>
-                                        <td class="text-end" id="tfoot-kl-bg">-</td>
-                                        <td class="text-end" id="tfoot-qk-bg">-</td>
-                                        <td class="text-end" id="tfoot-kl-bn">-</td>
-                                        <td class="text-end" id="tfoot-qk-bn">-</td>
-                                        <td colspan="2"></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                                        <th class="text-center" rowspan="2" style="vertical-align:middle;width:30px;">
+                                            STT</th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Số phiếu</th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Ngày</th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Kíp</th>
+                                            <th class="text-center" colspan="2" style="vertical-align:middle;">Bên giao</th>
+                                            <th class="text-center" colspan="2" style="vertical-align:middle;">Bên nhận</th>
+                                            <th class="text-center" rowspan="2" style="vertical-align:middle;">Tên
+                                                nguyên/nhiên/vật tư</th>
+                                                <th class="text-center" rowspan="2" style="vertical-align:middle;">ĐVT</th>
+                                                <th class="text-center" rowspan="2" style="vertical-align:middle;">Mã lô</th>
+                                                <th class="text-center" rowspan="2" style="vertical-align:middle;">W (%)</th>
+                                                <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên giao
+                                                </th>
+                                                <th class="text-center" colspan="2" style="vertical-align:middle;">KL bên nhận
+                                                </th>
+                                                <th class="text-center" rowspan="2" style="vertical-align:middle;">Trạng thái
+                                                </th>
+                                                <th class="text-center" rowspan="2" style="vertical-align:middle;">Ghi chú</th>
+                                            </tr>
+                                            <tr style="background-color:#f9f9f9;">
+                                                <th class="text-center">Phòng ban</th>
+                                                <th class="text-center">Phân xưởng</th>
+                                                <th class="text-center">Phòng ban</th>
+                                                <th class="text-center">Phân xưởng</th>
+                                                <th class="text-center">Khối lượng</th>
+                                                <th class="text-center">KL quy khô</th>
+                                                <th class="text-center">Khối lượng</th>
+                                                <th class="text-center">KL quy khô</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-main">
+                                            <tr>
+                                                <td colspan="18" class="text-center py-3 text-muted">Nhấn Lọc để tải dữ liệu
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr style="font-size:13px;font-weight:bold;background-color:#f9f9f9;">
+                                                <td colspan="12" class="text-center">Tổng cộng</td>
+                                                <td class="text-end" id="tfoot-kl-bg">-</td>
+                                                <td class="text-end" id="tfoot-qk-bg">-</td>
+                                                <td class="text-end" id="tfoot-kl-bn">-</td>
+                                                <td class="text-end" id="tfoot-qk-bn">-</td>
+                                                <td colspan="2"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
 
-                        <!-- Phân trang -->
-                        <div class="d-flex justify-content-between align-items-center mt-2">
-                            <small class="text-muted" id="page-info"></small>
-                            <nav id="pagination-wrap"></nav>
+                                <!-- Phân trang -->
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <small class="text-muted" id="page-info"></small>
+                                    <nav id="pagination-wrap"></nav>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<script>
-    $("#f-trangthai").chosen({ width: "100%" });
-    $("#f-malo").chosen({ width: "100%", placeholder_text_multiple: "-- Tất cả --" });
-    $("#f-vattu").chosen({ width: "100%" });
-    $("#f-xuong").chosen({ width: "100%" });
-    $("#f-pb").chosen({ width: "100%" });
-    $("#f-xBN").chosen({ width: "100%" });
-    $("#f-pbBN").chosen({ width: "100%" });
-    $("#f-xBG").chosen({ width: "100%" });
-    $("#f-pbBG").chosen({ width: "100%" });
+        <script>
+            $("#f-trangthai").chosen({ width: "100%" });
+            $("#f-malo").chosen({ width: "100%", placeholder_text_multiple: "-- Tất cả --" });
+            $("#f-vattu").chosen({ width: "100%" });
+            $("#f-xuong").chosen({ width: "100%" });
+            $("#f-pb").chosen({ width: "100%" });
+            $("#f-xBN").chosen({ width: "100%" });
+            $("#f-pbBN").chosen({ width: "100%" });
+            $("#f-xBG").chosen({ width: "100%" });
+            $("#f-pbBG").chosen({ width: "100%" });
 
-    var urlData   = '@Url.Action("ThongKeSoLieuData", "BM_11")';
-    var urlDetail = '@Url.Action("Index_Detai", "BM_11")';
-    var urlExport = '@Url.Action("ExportThongKeSoLieu", "BM_11")';
-    var currentPage = 1;
+            // Tự động tính chiều cao bảng theo viewport sau khi render
+            function adjustTableHeight() {
+            var topH = $('.page-sticky-top').outerHeight(true) || 0;
+            var sumH = $('.card-body > div:first').outerHeight(true) || 0;
+            var pagH = $('.card-body > div:last').outerHeight(true) || 0;
+            var cardPad = 24;
+            var h = $(window).height() - topH - sumH - pagH - cardPad;
+            $('.table-container').css('max-height', Math.max(200, h) + 'px');
+            }
+            $(window).on('resize', adjustTableHeight);
+            // Gọi sau khi chosen render xong
+            setTimeout(adjustTableHeight, 50);
 
-    function getParams(page) {
-        var p = {
-            begind:   $('#f-begind').val(),
-            endd:     $('#f-endd').val(),
-            page:     page || currentPage,
+            var urlData = '@Url.Action("ThongKeSoLieuData", "BM_11")';
+            var urlDetail = '@Url.Action("Index_Detai", "BM_11")';
+            var urlExport = '@Url.Action("ExportThongKeSoLieu", "BM_11")';
+            var currentPage = 1;
+
+            function getParams(page) {
+            var p = {
+            begind: $('#f-begind').val(),
+            endd: $('#f-endd').val(),
+            page: page || currentPage,
             pageSize: parseInt($('#f-pagesize').val())
-        };
-        var pbBG = $('#f-pbBG').val(); if (pbBG) p.ID_PhongBanBG = pbBG;
-        var xBG  = $('#f-xBG').val();  if (xBG)  p.ID_XuongBG    = xBG;
-        var pbBN = $('#f-pbBN').val(); if (pbBN) p.ID_PhongBanBN = pbBN;
-        var xBN  = $('#f-xBN').val();  if (xBN)  p.ID_XuongBN    = xBN;
-        var pb   = $('#f-pb').val();   if (pb)   p.ID_PhongBan   = pb;
-        var x    = $('#f-xuong').val(); if (x)   p.ID_Xuong      = x;
-        var vt   = $('#f-vattu').val(); if (vt)  p.ID_VatTu      = vt;
-        var s    = $('#f-search').val(); if (s)  p.search        = s;
-        var tt   = $('#f-trangthai').val();
-        if (tt && tt.length) p.trangThaiList = tt.join(',');
-        var ml   = $('#f-malo').val();
-        if (ml && ml.length) p.maLoList = ml.join(',');
-        return p;
-    }
+            };
+            var pbBG = $('#f-pbBG').val(); if (pbBG) p.ID_PhongBanBG = pbBG;
+            var xBG = $('#f-xBG').val(); if (xBG) p.ID_XuongBG = xBG;
+            var pbBN = $('#f-pbBN').val(); if (pbBN) p.ID_PhongBanBN = pbBN;
+            var xBN = $('#f-xBN').val(); if (xBN) p.ID_XuongBN = xBN;
+            var pb = $('#f-pb').val(); if (pb) p.ID_PhongBan = pb;
+            var x = $('#f-xuong').val(); if (x) p.ID_Xuong = x;
+            var vt = $('#f-vattu').val(); if (vt) p.ID_VatTu = vt;
+            var s = $('#f-search').val(); if (s) p.search = s;
+            var tt = $('#f-trangthai').val();
+            if (tt && tt.length) p.trangThaiList = tt.join(',');
+            var ml = $('#f-malo').val();
+            if (ml && ml.length) p.maLoList = ml.join(',');
+            return p;
+            }
 
-    function loadData(page) {
-        currentPage = page || 1;
-        var params = getParams(currentPage);
+            function loadData(page) {
+            currentPage = page || 1;
+            var params = getParams(currentPage);
 
-        $('#tbody-main').html('<tr><td colspan="18" class="text-center py-3"><i class="text-muted">Đang tải...</i></td></tr>');
+            $('#tbody-main').html('<tr><td colspan="18" class="text-center py-3"><i class="text-muted">Đang tải...</i></td></tr>');
 
-        $.get(urlData, params, function (res) {
+            $.get(urlData, params, function (res) {
             var html = '';
             var rowNum = (res.page - 1) * res.pageSize + 1;
 
             if (!res.data || res.data.length === 0) {
-                html = '<tr><td colspan="18" class="text-center py-3 text-muted">Không có dữ liệu</td></tr>';
+            html = '<tr><td colspan="18" class="text-center py-3 text-muted">Không có dữ liệu</td></tr>';
             } else {
-                $.each(res.data, function (i, row) {
-                    var lockStyle = row.isLock ? 'background-color:#fff3cd;' : '';
-                    var badge = row.isLock
-                        ? '<span class="badge bg-warning text-dark">Đã khóa</span>'
-                        : '<span class="badge ' + (row.idTrangThai === 1 ? 'bg-success' : 'bg-secondary') + '">' + (row.trangThai || '') + '</span>';
+            $.each(res.data, function (i, row) {
+            var lockStyle = row.isLock ? 'background-color:#fff3cd;' : '';
+            var badge = row.isLock
+            ? '<span class="badge bg-warning text-dark">Đã khóa</span>'
+            : '<span class="badge ' + (row.idTrangThai === 1 ? 'bg-success' : 'bg-secondary') + '">' + (row.trangThai || '') + '</span>';
 
-                    html += '<tr style="font-size:13px;' + lockStyle + '">';
-                    html += '<td class="text-center" style="vertical-align:middle;">' + rowNum++ + '</td>';
-                    html += '<td style="vertical-align:middle;"><a href="' + urlDetail + '?id=' + row.id + '">' + (row.soPhieu || '') + '</a></td>';
-                    html += '<td class="text-center" style="vertical-align:middle;">' + (row.ngay || '') + '</td>';
-                    html += '<td class="text-center" style="vertical-align:middle;">' + (row.kip || '') + '</td>';
-                    html += '<td style="vertical-align:middle;">' + (row.pbBG || '') + '</td>';
-                    html += '<td style="vertical-align:middle;">' + (row.xuongBG || '') + '</td>';
-                    html += '<td style="vertical-align:middle;">' + (row.pbBN || '') + '</td>';
-                    html += '<td style="vertical-align:middle;">' + (row.xuongBN || '') + '</td>';
-                    html += '<td style="vertical-align:middle;">' + (row.tenVatTu || '') + '</td>';
-                    html += '<td class="text-center" style="vertical-align:middle;">' + (row.dvt || '') + '</td>';
-                    html += '<td class="text-center" style="vertical-align:middle;">' + (row.maLo || '') + '</td>';
-                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.doAmW || '') + '</td>';
-                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.klBG || '') + '</td>';
-                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.klQuyKhoBG || '') + '</td>';
-                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.klBN || '') + '</td>';
-                    html += '<td class="text-end" style="vertical-align:middle;">' + (row.klQuyKhoBN || '') + '</td>';
-                    html += '<td class="text-center" style="vertical-align:middle;">' + badge + '</td>';
-                    html += '<td style="vertical-align:middle;">' + (row.ghiChu || '') + '</td>';
-                    html += '</tr>';
-                });
+            html += '<tr style="font-size:13px;' + lockStyle + '">';
+            html += '<td class="text-center" style="vertical-align:middle;">' + rowNum++ + '</td>';
+            html += '<td style="vertical-align:middle;"><a href="' + urlDetail + '?id=' + row.id + '">' + (row.soPhieu || '') + '</a></td>';
+            html += '<td class="text-center" style="vertical-align:middle;">' + (row.ngay || '') + '</td>';
+            html += '<td class="text-center" style="vertical-align:middle;">' + (row.kip || '') + '</td>';
+            html += '<td style="vertical-align:middle;">' + (row.pbBG || '') + '</td>';
+            html += '<td style="vertical-align:middle;">' + (row.xuongBG || '') + '</td>';
+            html += '<td style="vertical-align:middle;">' + (row.pbBN || '') + '</td>';
+            html += '<td style="vertical-align:middle;">' + (row.xuongBN || '') + '</td>';
+            html += '<td style="vertical-align:middle;">' + (row.tenVatTu || '') + '</td>';
+            html += '<td class="text-center" style="vertical-align:middle;">' + (row.dvt || '') + '</td>';
+            html += '<td class="text-center" style="vertical-align:middle;">' + (row.maLo || '') + '</td>';
+            html += '<td class="text-end" style="vertical-align:middle;">' + (row.doAmW || '') + '</td>';
+            html += '<td class="text-end" style="vertical-align:middle;">' + (row.klBG || '') + '</td>';
+            html += '<td class="text-end" style="vertical-align:middle;">' + (row.klQuyKhoBG || '') + '</td>';
+            html += '<td class="text-end" style="vertical-align:middle;">' + (row.klBN || '') + '</td>';
+            html += '<td class="text-end" style="vertical-align:middle;">' + (row.klQuyKhoBN || '') + '</td>';
+            html += '<td class="text-center" style="vertical-align:middle;">' + badge + '</td>';
+            html += '<td style="vertical-align:middle;">' + (row.ghiChu || '') + '</td>';
+            html += '</tr>';
+            });
             }
 
             $('#tbody-main').html(html);
@@ -300,50 +422,53 @@
             $('#page-info').text('Trang ' + res.page + ' / ' + res.totalPages + '  (' + shown + ' / ' + res.totalCount + ' dòng)');
             renderPaging(res.page, res.totalPages);
             currentPage = res.page;
-        });
-    }
 
-    function renderPaging(page, totalPages) {
-        if (totalPages <= 1) { $('#pagination-wrap').html(''); return; }
-        var h = '<ul class="pagination pagination-sm mb-0">';
-        h += btn(1, '«', page <= 1);
-        h += btn(page - 1, '‹', page <= 1);
-        var s = Math.max(1, page - 2), e = Math.min(totalPages, page + 2);
-        for (var p = s; p <= e; p++) {
+            // Recalculate after pagination renders
+            setTimeout(adjustTableHeight, 10);
+            });
+            }
+
+            function renderPaging(page, totalPages) {
+            if (totalPages <= 1) { $('#pagination-wrap').html(''); return; }
+            var h = '<ul class="pagination pagination-sm mb-0">';
+            h += btn(1, '«', page <= 1);
+            h += btn(page - 1, '‹', page <= 1);
+            var s = Math.max(1, page - 2), e = Math.min(totalPages, page + 2);
+            for (var p = s; p <= e; p++) {
             h += '<li class="page-item' + (p === page ? ' active' : '') + '">'
-               + '<a class="page-link" href="#" onclick="loadData(' + p + ');return false;">' + p + '</a></li>';
-        }
-        h += btn(page + 1, '›', page >= totalPages);
-        h += btn(totalPages, '»', page >= totalPages);
-        h += '</ul>';
-        $('#pagination-wrap').html(h);
-    }
+            + '<a class="page-link" href="#" onclick="loadData(' + p + ');return false;">' + p + '</a></li>';
+            }
+            h += btn(page + 1, '›', page >= totalPages);
+            h += btn(totalPages, '»', page >= totalPages);
+            h += '</ul>';
+            $('#pagination-wrap').html(h);
+            }
 
-    function btn(p, label, disabled) {
-        return '<li class="page-item' + (disabled ? ' disabled' : '') + '">'
-             + '<a class="page-link" href="#" onclick="loadData(' + p + ');return false;">' + label + '</a></li>';
-    }
+            function btn(p, label, disabled) {
+            return '<li class="page-item' + (disabled ? ' disabled' : '') + '">'
+            + '<a class="page-link" href="#" onclick="loadData(' + p + ');return false;">' + label + '</a></li>';
+            }
 
-    $('#btn-loc').on('click', function () { loadData(1); });
+            $('#btn-loc').on('click', function () { loadData(1); });
 
-    $('#btn-reset').on('click', function () {
-        $('#f-begind').val('@ViewBag.begind');
-        $('#f-endd').val('@ViewBag.endd');
-        $('#f-pbBG, #f-xBG, #f-pbBN, #f-xBN, #f-pb, #f-xuong, #f-vattu').val('').trigger('chosen:updated');
-        $('#f-trangthai').val([]).trigger('chosen:updated');
-        $('#f-malo').val([]).trigger('chosen:updated');
-        $('#f-search').val('');
-        loadData(1);
-    });
+            $('#btn-reset').on('click', function () {
+            $('#f-begind').val('@ViewBag.begind');
+            $('#f-endd').val('@ViewBag.endd');
+            $('#f-pbBG, #f-xBG, #f-pbBN, #f-xBN, #f-pb, #f-xuong, #f-vattu').val('').trigger('chosen:updated');
+            $('#f-transthai').val([]).trigger('chosen:updated');
+            $('#f-malo').val([]).trigger('chosen:updated');
+            $('#f-search').val('');
+            loadData(1);
+            });
 
-    $('#f-pagesize').on('change', function () { loadData(1); });
+            $('#f-pagesize').on('change', function () { loadData(1); });
 
-    document.getElementById('btn-Export').addEventListener('click', function () {
-        var p = getParams(1);
-        delete p.page; delete p.pageSize;
-        var qs = Object.keys(p).map(function(k) {
+            document.getElementById('btn-Export').addEventListener('click', function () {
+            var p = getParams(1);
+            delete p.page; delete p.pageSize;
+            var qs = Object.keys(p).map(function (k) {
             return encodeURIComponent(k) + '=' + encodeURIComponent(p[k]);
-        }).join('&');
-        window.location.href = urlExport + '?' + qs;
-    });
-</script>
+            }).join('&');
+            window.location.href = urlExport + '?' + qs;
+            });
+        </script>
