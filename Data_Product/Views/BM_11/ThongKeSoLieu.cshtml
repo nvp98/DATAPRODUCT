@@ -463,12 +463,13 @@
 
             $('#f-pagesize').on('change', function () { loadData(1); });
 
-            document.getElementById('btn-Export').addEventListener('click', function () {
+            $('#btn-Export').click(function () {
             var p = getParams(1);
-            delete p.page; delete p.pageSize;
+            delete p.page;
+            delete p.pageSize;
             var qs = Object.keys(p).map(function (k) {
             return encodeURIComponent(k) + '=' + encodeURIComponent(p[k]);
             }).join('&');
-            window.location.href = urlExport + '?' + qs;
+            window.location.href = urlExport + (qs ? '?' + qs : '');
             });
         </script>

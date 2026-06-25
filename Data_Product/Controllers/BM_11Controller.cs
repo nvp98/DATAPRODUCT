@@ -3092,5 +3092,241 @@ namespace Data_Product.Controllers
             });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ExportThongKeSoLieu(
+            DateTime? begind = null, DateTime? endd = null,
+            int? ID_PhongBanBG = null, int? ID_XuongBG = null,
+            int? ID_PhongBanBN = null, int? ID_XuongBN = null,
+            int? ID_PhongBan = null, int? ID_Xuong = null,
+            string? trangThaiList = null, string? maLoList = null,
+            int? ID_VatTu = null, string? search = null)
+        {
+            try
+            {
+                string fileNamemau = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BBGN.xlsx";
+                string fileNamemaunew = AppDomain.CurrentDomain.DynamicDirectory + @"App_Data\BBGN_Temp.xlsx";
+                XLWorkbook Workbook = new XLWorkbook(fileNamemau);
+                IXLWorksheet Worksheet = Workbook.Worksheet("BBGN");
+
+                DateTime now = DateTime.Now;
+                DateTime startDay = begind ?? now.AddDays(-1);
+                DateTime endDay = endd ?? now;
+
+                var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+                var taiKhoan = await _context.Tbl_TaiKhoan
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+                var bienBanQuery = _context.Tbl_BienBanGiaoNhan
+                    .AsNoTracking()
+                    .Where(x => !x.IsDelete &&
+                        x.ThoiGianXuLyBG >= startDay &&
+                        x.ThoiGianXuLyBG <= endDay);
+
+                if (taiKhoan?.ID_Quyen > 3 && taiKhoan.ID_Quyen != 8)
+                {
+                    int userPB = taiKhoan.ID_PhongBan;
+                    bienBanQuery = bienBanQuery.Where(x =>
+                        x.ID_PhongBan_BG == userPB || x.ID_PhongBan_BN == userPB);
+                }
+
+                if (ID_PhongBanBG.HasValue)
+                    bienBanQuery = bienBanQuery.Where(x => x.ID_PhongBan_BG == ID_PhongBanBG);
+                if (ID_XuongBG.HasValue)
+                    bienBanQuery = bienBanQuery.Where(x => x.ID_Xuong_BG == ID_XuongBG);
+                if (ID_PhongBanBN.HasValue)
+                    bienBanQuery = bienBanQuery.Where(x => x.ID_PhongBan_BN == ID_PhongBanBN);
+                if (ID_XuongBN.HasValue)
+                    bienBanQuery = bienBanQuery.Where(x => x.ID_Xuong_BN == ID_XuongBN);
+                if (ID_PhongBan.HasValue)
+                    bienBanQuery = bienBanQuery.Where(x =>
+                        x.ID_PhongBan_BG == ID_PhongBan || x.ID_PhongBan_BN == ID_PhongBan);
+                if (ID_Xuong.HasValue)
+                    bienBanQuery = bienBanQuery.Where(x =>
+                        x.ID_Xuong_BG == ID_Xuong || x.ID_Xuong_BN == ID_Xuong);
+
+                if (!string.IsNullOrWhiteSpace(trangThaiList))
+                {
+                    var ttIds = trangThaiList.Split(',')
+                        .Select(x => int.TryParse(x.Trim(), out var v) ? v : (int?)null)
+                        .Where(x => x.HasValue).Select(x => x!.Value).ToList();
+                    if (ttIds.Any())
+                        bienBanQuery = bienBanQuery.Where(x => ttIds.Contains(x.ID_TrangThai_BBGN));
+                }
+
+                var chiTietQuery = _context.Tbl_ChiTiet_BienBanGiaoNhan.AsNoTracking().AsQueryable();
+
+                if (ID_VatTu.HasValue)
+                    chiTietQuery = chiTietQuery.Where(x => x.ID_VatTu == ID_VatTu);
+
+                if (!string.IsNullOrWhiteSpace(maLoList))
+                {
+                    var maLos = maLoList.Split(',')
+                        .Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)).ToList();
+                    if (maLos.Any())
+                        chiTietQuery = chiTietQuery.Where(x => maLos.Contains(x.MaLo));
+                }
+
+                var exportQuery =
+                    from a in bienBanQuery
+                    join b in chiTietQuery on a.ID_BBGN equals b.ID_BBGN
+                    join vt in _context.Tbl_VatTu.AsNoTracking() on b.ID_VatTu equals vt.ID_VatTu
+                    join pbBG in _context.Tbl_PhongBan.AsNoTracking() on a.ID_PhongBan_BG equals pbBG.ID_PhongBan
+                    join pbBN in _context.Tbl_PhongBan.AsNoTracking() on a.ID_PhongBan_BN equals pbBN.ID_PhongBan
+                    join xBG in _context.Tbl_Xuong.AsNoTracking() on a.ID_Xuong_BG equals xBG.ID_Xuong
+                    join xBN in _context.Tbl_Xuong.AsNoTracking() on a.ID_Xuong_BN equals xBN.ID_Xuong
+                    join kip in _context.Tbl_Kip.AsNoTracking() on a.ID_Kip equals kip.ID_Kip into kipGroup
+                    from kip in kipGroup.DefaultIfEmpty()
+                    select new { a, b, vt, pbBG, pbBN, xBG, xBN, kip };
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    exportQuery = exportQuery.Where(x =>
+                        (x.a.SoPhieu != null && x.a.SoPhieu.Contains(search)) ||
+                        (x.vt.TenVatTu != null && x.vt.TenVatTu.Contains(search)));
+                }
+
+                var data = await exportQuery.OrderByDescending(x => x.a.ThoiGianXuLyBG).ToListAsync();
+
+                int row = 8, stt = 0, icol;
+                foreach (var item in data)
+                {
+                    row++; stt++; icol = 1;
+
+                    Worksheet.Cell(row, icol).Value = stt;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.a.ThoiGianXuLyBG;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    Worksheet.Cell(row, icol).Style.DateFormat.Format = "dd/MM/yyyy";
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.kip?.TenKip ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.kip?.TenCa == "1" ? "Ngày" : "Đêm";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.vt?.TenVatTu ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.b.MaLo ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.vt?.DonViTinh ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.b.KhoiLuong_BN;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.b.DoAm_W;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.b.KL_QuyKho_BN;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.xBN?.TenXuong ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.pbBN?.TenPhongBan ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.b.KhoiLuong_BG;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.b.DoAm_W;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.b.KL_QuyKho_BG;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.xBG?.TenXuong ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.pbBG?.TenPhongBan ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.b.GhiChu ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.a.SoPhieu ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    string trangThai = item.a.ID_TrangThai_BBGN switch
+                    {
+                        0 => "Đang xử lý",
+                        1 => "Hoàn thành",
+                        2 => "BN Hủy Phiếu",
+                        3 => "Đề nghị hiệu chỉnh",
+                        4 => "Xóa Phiếu",
+                        5 => "PKH Hủy phiếu",
+                        _ => ""
+                    };
+                    Worksheet.Cell(row, icol).Value = trangThai;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                }
+
+                Worksheet.Range("A7:T" + row).Style.Font.SetFontName("Times New Roman");
+                Worksheet.Range("A7:T" + row).Style.Font.SetFontSize(13);
+                Worksheet.Range("A7:T" + row).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                Worksheet.Range("A7:T" + row).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                Worksheet.Column(8).Style.NumberFormat.Format = "0.000";
+                Worksheet.Column(9).Style.NumberFormat.Format = "0.00";
+                Worksheet.Column(10).Style.NumberFormat.Format = "0.000";
+                Worksheet.Column(13).Style.NumberFormat.Format = "0.000";
+                Worksheet.Column(14).Style.NumberFormat.Format = "0.00";
+                Worksheet.Column(15).Style.NumberFormat.Format = "0.000";
+
+                Workbook.SaveAs(fileNamemaunew);
+                byte[] fileBytes = System.IO.File.ReadAllBytes(fileNamemaunew);
+                string fileName = "Thống kê BBGN.xlsx";
+                return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["msgError"] = "<script>alert('Có lỗi khi xuất dữ liệu.');</script>";
+                return RedirectToAction("ThongKeSoLieu", "BM_11");
+            }
+        }
+
     }
 }

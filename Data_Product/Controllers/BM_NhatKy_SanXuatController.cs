@@ -241,7 +241,7 @@ namespace Data_Product.Controllers
             ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", IDXuong);
             ViewBag.XuongSelect = IDXuong ?? 0;
 
-            var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x => !x.IsDelete)
+            var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x => !x.IsDelete && x.NgayDungSX >= startDay && x.NgayDungSX <= endDay)
                         join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan into gj
                         from b in gj.DefaultIfEmpty()
                         //let c = chiTietQuery.Where(x => x.ID_NhatKy == a.ID).ToList()
@@ -300,7 +300,7 @@ namespace Data_Product.Controllers
             if (IDPhongBan != null) query = query.Where(x => x.ID_PhongBan_SX == IDPhongBan);
             if (IDXuong != null) query = query.Where(x => x.ID_Xuong_SX == IDXuong);
             if (LyDoDung != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.ID_NhatKy == x.ID && a.LyDo_DungThietBi == LyDoDung));
-            if (startDay != default && endDay != default) query = query.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay);
+            //if (startDay != default && endDay != default) query = query.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay);
             if (noidungDung != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.ID_NhatKy == x.ID && (!string.IsNullOrEmpty(a.NoiDungDung) && a.NoiDungDung.ToLower().Contains(noidungDung.ToLower()))));
 
             // Thực thi truy vấn tại đây
