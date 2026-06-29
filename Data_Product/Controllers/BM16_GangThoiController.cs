@@ -1095,9 +1095,21 @@ namespace Data_Product.Controllers
                     });
                 }
 
-                // Lấy toàn bộ thùng cùng số mẻ
+                if (thung.HasPhanLoaiLoThoi != true
+                    && !string.IsNullOrWhiteSpace(thung.PhanLoaiLoThoi)
+                    && !string.IsNullOrWhiteSpace(thung.PhanLoaiLoThoiLG))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"Mẻ {thung.BKMIS_SoMe} đã có đầy đủ phân loại lò thổi từ BKMIS, không thể thay đổi."
+                    });
+                }
+
+                // Lấy toàn bộ thùng cùng số mẻ (gốc + copy), BKMIS_SoMe là duy nhất theo phiếu
                 var dsThungCungMe = await _context.Tbl_BM_16_GangLong
-                    .Where(x => x.BKMIS_SoMe == thung.BKMIS_SoMe)
+                    .Where(x => x.BKMIS_SoMe == thung.BKMIS_SoMe
+                             && (x.MaPhieu == req.MaPhieu || x.T_copy == true))
                     .ToListAsync();
 
                 if (!dsThungCungMe.Any())
@@ -1109,8 +1121,8 @@ namespace Data_Product.Controllers
                     });
                 }
 
-                // Không cho cập nhật nếu có thùng đã xác nhận
-                if (dsThungCungMe.Any(x => x.XacNhan == true))
+                // Không cho cập nhật nếu có thùng gốc đã xác nhận
+                if (dsThungCungMe.Any(x => x.T_copy != true && x.XacNhan == true))
                 {
                     return BadRequest(new
                     {
@@ -1124,12 +1136,11 @@ namespace Data_Product.Controllers
                 foreach (var item in dsThungCungMe)
                 {
                     item.HasPhanLoaiLoThoi = newHasValue;
-
-                    if (newHasValue)
+                    if (newHasValue && string.IsNullOrWhiteSpace(item.PhanLoaiLoThoi))
                     {
                         item.PhanLoaiLoThoi = item.PhanLoaiLoThoiLG;
                     }
-                    else
+                    else if (!newHasValue)
                     {
                         item.PhanLoaiLoThoi = null;
                     }
@@ -1900,13 +1911,21 @@ namespace Data_Product.Controllers
                         // Kiểm tra trạng thái thùng cho phép cập nhật
                         bool choPhepCapNhat =
                             (thung.G_ID_TrangThai == 1 || thung.G_ID_TrangThai == 3) &&
-                            thung.XacNhan == false &&
+                            thung.XacNhan != true &&
                             (thung.T_ID_TrangThai == 2 || thung.T_ID_TrangThai == 4) &&
                             thung.ID_TrangThai == 2;
 
                         if (!choPhepCapNhat) continue;
-                        thung.PhanLoaiLoThoi = rec.PhanLoaiLoThoi;
+
+                        // PhanLoaiLoThoiLG luôn đồng bộ từ BKMIS để giữ dữ liệu mới nhất
                         thung.PhanLoaiLoThoiLG = rec.PhanLoaiLoThoiLG;
+
+                        // PhanLoaiLoThoi chỉ cập nhật khi chưa toggle (chưa xác nhận không có mẫu)
+                        if (thung.HasPhanLoaiLoThoi != true)
+                        {
+                            thung.PhanLoaiLoThoi = rec.PhanLoaiLoThoi;
+                            thung.HasPhanLoaiLoThoi = false;
+                        }
                         thung.Si = rec.Si;
                         // Cập nhật thông tin mới từ BK-MIS
                         thung.BKMIS_PhanLoai = rec.ClassifyName;
