@@ -705,6 +705,7 @@ namespace Data_Product.Controllers
                 HasPhanLoaiLoThoi = t.HasPhanLoaiLoThoi,
                 Temp =t.Temp,
                 PhanLoaiLoThoiLG = t.PhanLoaiLoThoiLG,
+                NhietDo = t.NhietDo
             })//.OrderBy(x => x.MaThungPrefix)
               //  .ThenBy(x => x.MaThungSuffix)
                  .OrderBy(x => x.GioSortKey)
@@ -740,7 +741,8 @@ namespace Data_Product.Controllers
                     x.PhanLoaiLoThoi,
                     x.HasPhanLoaiLoThoi,
                     x.Temp,
-                    x.PhanLoaiLoThoiLG
+                    x.PhanLoaiLoThoiLG,
+                    x.NhietDo
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;
@@ -906,7 +908,8 @@ namespace Data_Product.Controllers
                                 item.G_KLThungVaGang != null &&
                                 item.G_KLGangLong != null &&
                                 !string.IsNullOrEmpty(item.ChuyenDen) &&
-                                item.Gio_NM != null;
+                                item.Gio_NM != null &&
+                                item.Temp != null;
 
                 thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
 
@@ -2384,7 +2387,8 @@ namespace Data_Product.Controllers
                                                 thung.G_KLThungVaGang != null &&
                                                 thung.G_KLGangLong != null &&
                                                 !string.IsNullOrEmpty(thung.ChuyenDen) &&
-                                                thung.Gio_NM != null;
+                                                thung.Gio_NM != null &&
+                                                thung.Temp != null;
 
                                 // Cập nhật trạng thái: 3 = Đã xử lý, 1 = Chưa xử lý
                                 thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
