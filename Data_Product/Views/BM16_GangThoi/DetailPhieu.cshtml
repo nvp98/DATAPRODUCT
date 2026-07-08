@@ -258,7 +258,8 @@
 										<th rowspan="2">KL ĐÚC</th>
 										<th rowspan="2" class="toggle-col">Người chỉnh sửa </th>
 										<th rowspan="2">Chốt thùng</th>
-										<th rowspan="2">Xác nhận QLCL</th>										
+										<th rowspan="2">Xác nhận QLCL</th>
+										<th rowspan="2">Nhiệt độ luyện thép</th>
 
 									</tr>
 									<tr>
@@ -407,7 +408,7 @@
 														<span class="badge bg-secondary">Chưa xác nhận</span>
 													}
 												</td>
-												
+												<td>@item.NhietDo</td>
 											</tr>
 										}
 									}
@@ -1345,7 +1346,7 @@
 				<td colspan="9"></td>
 				<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
 				<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
-				<td colspan="4"></td>
+				<td colspan="5"></td>
 			</tr>
 		`;
 
