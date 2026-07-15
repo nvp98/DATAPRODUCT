@@ -1191,7 +1191,9 @@ namespace Data_Product.Controllers
                             T_ReceiveSeq = nextSeq,
                             XacNhan = t.XacNhan,
                             ID_NguoiXacNhan = t.ID_NguoiXacNhan,
-                            G_SanRaGang = t.G_SanRaGang
+                            G_SanRaGang = t.G_SanRaGang,
+                            Si = t.Si,
+                            Temp =t.Temp,
                         };
                         _context.Tbl_BM_16_GangLong.Add(clone);
                         currentMaxSeq = nextSeq;
