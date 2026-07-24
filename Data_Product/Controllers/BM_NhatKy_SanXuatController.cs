@@ -61,13 +61,14 @@ namespace Data_Product.Controllers
             //    new SelectListItem { Value = "3", Text = "Đã xóa phiếu" },
             //};
             ViewBag.TTList = new SelectList(
-              ConstantsDungSX.Map.Select(m => new {
+              ConstantsDungSX.Map.Select(m => new
+              {
                   Value = m.Key,
                   Text = m.Value.Ten
               }),
                "Value", "Text", ID_TrangThai
            );
-            var XuongThem = _context.Tbl_QuyenXuLy.Where(x => x.MaXL == "DUNGSX" && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan).Select(x=>x.ID_XuongXL).ToList();
+            var XuongThem = _context.Tbl_QuyenXuLy.Where(x => x.MaXL == "DUNGSX" && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan).Select(x => x.ID_XuongXL).ToList();
             //ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
             var res = await (from a in _context.Tbl_NhatKy_SanXuat.Where(x => x.ID_NhanVien_SX == ID_NhanVien_BG && !x.IsDelete || x.ID_Xuong_SX == TaiKhoan.ID_PhanXuong && !x.IsDelete
                              || XuongThem.Contains(x.ID_Xuong_SX) && !x.IsDelete
@@ -130,7 +131,8 @@ namespace Data_Product.Controllers
             //};
             //ViewBag.TTList = new SelectList(trangThaiList, "Value", "Text", ID_TrangThai);
             ViewBag.TTList = new SelectList(
-              ConstantsDungSX.Map.Select(m => new {
+              ConstantsDungSX.Map.Select(m => new
+              {
                   Value = m.Key,
                   Text = m.Value.Ten
               }),
@@ -209,10 +211,11 @@ namespace Data_Product.Controllers
             //    new SelectListItem { Value = "3", Text = "Đã xóa phiếu" }
             //};
             ViewBag.ID_TrangThai = new SelectList(
-               ConstantsDungSX.Map.Select(m => new {
-                    Value = m.Key,
-                    Text = m.Value.Ten
-                }),
+               ConstantsDungSX.Map.Select(m => new
+               {
+                   Value = m.Key,
+                   Text = m.Value.Ten
+               }),
                 "Value", "Text", ID_TrangThai
             );
 
@@ -244,7 +247,7 @@ namespace Data_Product.Controllers
             var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x => !x.IsDelete && x.NgayDungSX >= startDay && x.NgayDungSX <= endDay)
                         join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan into gj
                         from b in gj.DefaultIfEmpty()
-                        //let c = chiTietQuery.Where(x => x.ID_NhatKy == a.ID).ToList()
+                            //let c = chiTietQuery.Where(x => x.ID_NhatKy == a.ID).ToList()
                         let btbd = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == a.ID_NhanVien_BTBD)
                         let xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == a.ID_Xuong_SX)
                         select new Tbl_NhatKy_SanXuat
@@ -277,7 +280,7 @@ namespace Data_Product.Controllers
                 ListPB = TaiKhoan.PhongBan_Them.Split(',').Select(item => item.Trim()).ToList();
                 foreach (var item in ListPB)
                 {
-                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item).FirstOrDefault();
+                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item.Trim()).FirstOrDefault();
                     if (pb != null) ListPBInt.Add(pb.ID_PhongBan);
                 }
             }
@@ -502,7 +505,7 @@ namespace Data_Product.Controllers
                                   }).ToListAsync();
             ViewBag.IDTaiKhoan = new SelectList(NhanVien, "ID_TaiKhoan", "HoVaTen");
 
-          
+
 
             ViewBag.CumThietBi = new SelectList(_context.Tbl_NhatKy_CumTB
                 .Where(cum => _context.Tbl_NhatKy_CumTB_Xuong
@@ -568,7 +571,7 @@ namespace Data_Product.Controllers
                 //    return RedirectToAction("Create", "BM_NhatKy_SanXuat");
                 //}
 
-                if(XacNhan == "1") // Edit
+                if (XacNhan == "1") // Edit
                 {
                     var NhatKy = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == _DO.ID);
                     NhatKy.ID_NhanVien_BTBD = IDTaiKhoanBTBD;
@@ -626,7 +629,7 @@ namespace Data_Product.Controllers
                     //TempData["msgSuccess"] = "<script>alert('Thêm mới thành công');</script>";
                     //return RedirectToAction("View_Details", "BM_NhatKy_SanXuat", new { IDNKSX = _DO.ID });
                 }
-                else if(XacNhan == "0") // Hiệu chỉnh
+                else if (XacNhan == "0") // Hiệu chỉnh
                 {
                     var NhatKy = _context.Tbl_NhatKy_SanXuat.FirstOrDefault(x => x.ID == _DO.ID);
                     int sttPhieu = _context.Tbl_NhatKy_SanXuat.Where(x => x.SoPhieu.Contains(NhatKy.SoPhieu)).Count();
@@ -639,8 +642,8 @@ namespace Data_Product.Controllers
                     {
                         ID_NhanVien_SX = ThongTin_NV.ID_TaiKhoan,
                         ID_PhongBan_SX = NhatKy.ID_PhongBan_SX,
-                        ID_Xuong_SX =NhatKy.ID_Xuong_SX,
-                        SoPhieu = NhatKy.SoPhieu + "_HC."+ sttPhieu,
+                        ID_Xuong_SX = NhatKy.ID_Xuong_SX,
+                        SoPhieu = NhatKy.SoPhieu + "_HC." + sttPhieu,
                         NgayTao = DateTime.Now,
                         NgayDungSX = NhatKy.NgayDungSX,
                         Ca = NhatKy.Ca,
@@ -813,7 +816,7 @@ namespace Data_Product.Controllers
             TimeSpan DungKhachQuan = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.LyDo_DungThietBi == 4).Sum(x => x.ThoiGianDung) ?? 0);
             TimeSpan TongTgianDung = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Sum(x => x.ThoiGianDung) ?? 0);
 
-            TimeSpan TongTgianDungDC = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x=>x.DungDayChuyen == true).Sum(x => x.ThoiGianDung) ?? 0);
+            TimeSpan TongTgianDungDC = TimeSpan.FromMinutes(res.NhatKy_SanXuat_ChiTiet.Where(x => x.DungDayChuyen == true).Sum(x => x.ThoiGianDung) ?? 0);
 
 
             ViewBag.DungThietBi = tgdungThietbi.TotalHours.ToString("F2");
@@ -823,7 +826,7 @@ namespace Data_Product.Controllers
 
             ViewBag.TongTgianDung = TongTgianDung.TotalMinutes.ToString("F0");
             ViewBag.TongTgianDungDC = TongTgianDungDC.TotalHours.ToString("F2");
-            ViewBag.TGianKhongDungDC =(TongTgianDung - TongTgianDungDC).TotalHours.ToString("F2");
+            ViewBag.TGianKhongDungDC = (TongTgianDung - TongTgianDungDC).TotalHours.ToString("F2");
 
             return PartialView(res);
         }
@@ -1037,18 +1040,18 @@ namespace Data_Product.Controllers
                               NoiDungDung = a.NoiDungDung,
                               GhiChu = a.GhiChu,
                               TinhTrang = b.TinhTrang,
-                              TenCumTB = _context.Tbl_NhatKy_CumTB.FirstOrDefault(x=>x.ID == a.ID_CumTB).TenCumTB,
-                              CoDien_ChoXL =a.CoDien_ChoXL,
-                              CoDien_SoLan =a.CoDien_SoLan,
-                              CoDien_TGianSC =a.CoDien_TGianSC,
+                              TenCumTB = _context.Tbl_NhatKy_CumTB.FirstOrDefault(x => x.ID == a.ID_CumTB).TenCumTB,
+                              CoDien_ChoXL = a.CoDien_ChoXL,
+                              CoDien_SoLan = a.CoDien_SoLan,
+                              CoDien_TGianSC = a.CoDien_TGianSC,
                               CoDien_TGianXL = a.CoDien_TGianXL,
-                              TGian_KH_BTBD =a.TGian_KH_BTBD,
-                              DungDayChuyen =a.DungDayChuyen
+                              TGian_KH_BTBD = a.TGian_KH_BTBD,
+                              DungDayChuyen = a.DungDayChuyen
 
                           };
                 var query = from nks in _context.Tbl_NhatKy_SanXuat.Where(x => (!begind.HasValue || x.NgayDungSX >= begind) && (!endd.HasValue || x.NgayDungSX <= endd) && (!ID_TrangThai.HasValue || x.TinhTrang == ID_TrangThai) && !x.IsDelete)
                             where !(from ct in _context.Tbl_NhatKy_SanXuat_ChiTiet
-                            select ct.ID_NhatKy).Contains(nks.ID)
+                                    select ct.ID_NhatKy).Contains(nks.ID)
                             join c in _context.Tbl_PhongBan.Where(x => (!IDPhongBan.HasValue || x.ID_PhongBan == IDPhongBan)) on nks.ID_PhongBan_SX equals c.ID_PhongBan
                             join d in _context.Tbl_Xuong on nks.ID_Xuong_SX equals d.ID_Xuong
                             select new Tbl_NhatKy_SanXuat_ChiTietExport
@@ -1242,7 +1245,7 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
                         icol++;
-                        Worksheet.Cell(row, icol).Value = item.DungDayChuyen == true?"Có":"Không";
+                        Worksheet.Cell(row, icol).Value = item.DungDayChuyen == true ? "Có" : "Không";
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -1614,7 +1617,8 @@ namespace Data_Product.Controllers
 
         public async Task<IActionResult> XoaDuLieu(int? id)
         {
-            try {
+            try
+            {
                 var nkdsx = _context.Tbl_NhatKy_SanXuat_ChiTiet.Where(x => x.ID_NhatKy == id);
                 if (nkdsx.Any())
                 {
@@ -1792,7 +1796,7 @@ namespace Data_Product.Controllers
             if (phieu == null)
                 return Json(new { success = false, message = "Phiếu không tồn tại" });
 
-            if(phieu.ID_PhieuHieuChinh != null) // hiệu chỉnh
+            if (phieu.ID_PhieuHieuChinh != null) // hiệu chỉnh
             {
                 var phieu_cu = _context.Tbl_NhatKy_SanXuat.Find(phieu.ID_PhieuHieuChinh);
                 phieu_cu.IsDelete = false; // Reset về phiếu cũ
@@ -2038,7 +2042,7 @@ namespace Data_Product.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> BaoCaoTongHopDung(DateTime? fromDate, DateTime? toDate,int? fromCa, int? toCa, int? boPhan, int? xuong, int? tinhtrang)
+        public async Task<IActionResult> BaoCaoTongHopDung(DateTime? fromDate, DateTime? toDate, int? fromCa, int? toCa, int? boPhan, int? xuong, int? tinhtrang)
         {
 
             if (fromDate == null) fromDate = DateTime.Now.AddDays(-1);
@@ -2104,7 +2108,7 @@ namespace Data_Product.Controllers
             var tableDataNgay = dtNgay.AsEnumerable().Select((r, index) => new
             {
                 stt = index + 1,
-                ngay = r["NgayDungSX"] == DBNull.Value? "": Convert.ToDateTime(r["NgayDungSX"]).ToString("dd/MM/yyyy"),
+                ngay = r["NgayDungSX"] == DBNull.Value ? "" : Convert.ToDateTime(r["NgayDungSX"]).ToString("dd/MM/yyyy"),
                 thoigiandung = r["ThoiGianDung"].ToString()
             }).ToList();
 
@@ -2306,7 +2310,7 @@ namespace Data_Product.Controllers
                 phieu.ID_NhanVien_BTBD = null;
                 phieu.GhiChu = null;
             }
-            if(chitietphieu != null)
+            if (chitietphieu != null)
             {
                 _context.Tbl_NhatKy_SanXuat_ChiTiet.RemoveRange(chitietphieu);
             }

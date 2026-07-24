@@ -48,7 +48,7 @@
                             if (ar != "")
                             {
                                 //int ID_PhongBan = Convert.ToInt32(ar);
-                                var TenPhongBan = _context.Tbl_PhongBan.Where(x => x.TenNgan == ar).FirstOrDefault();
+                                var TenPhongBan = _context.Tbl_PhongBan.Where(x => x.TenNgan == ar.Trim()).FirstOrDefault();
                                 List_BP = String.Concat(TenPhongBan.TenPhongBan + ", " + List_BP);
                                 selectedValues.Add(TenPhongBan.TenNgan.ToString());
                             }

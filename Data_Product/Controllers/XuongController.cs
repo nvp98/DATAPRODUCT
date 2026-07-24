@@ -47,12 +47,12 @@ namespace Data_Product.Controllers
                                  ).ToList();
             ViewBag.XList = new SelectList(xuong, "ID_Xuong", "TenXuong");
             List<Tbl_TaiKhoan> taiKhoans = (from a in _context.Tbl_TaiKhoan
-                                     join b in _context.Tbl_PhongBan on a.ID_PhongBan equals b.ID_PhongBan
-                                     select new Tbl_TaiKhoan
-                                     {
-                                         ID_TaiKhoan = a.ID_TaiKhoan,
-                                         TenTaiKhoan = a.TenTaiKhoan + " - " + a.HoVaTen
-                                     }
+                                            join b in _context.Tbl_PhongBan on a.ID_PhongBan equals b.ID_PhongBan
+                                            select new Tbl_TaiKhoan
+                                            {
+                                                ID_TaiKhoan = a.ID_TaiKhoan,
+                                                TenTaiKhoan = a.TenTaiKhoan + " - " + a.HoVaTen
+                                            }
                                  ).ToList();
             ViewBag.TKList = new SelectList(taiKhoans, "ID_TaiKhoan", "TenTaiKhoan");
             //const int pageSize = 20;
@@ -100,7 +100,7 @@ namespace Data_Product.Controllers
                 return RedirectToAction("Index", "TaiKhoan");
             }
 
-            var res = await (from a in _context.Tbl_Xuong.Where(x=>x.ID_Xuong == id)
+            var res = await (from a in _context.Tbl_Xuong.Where(x => x.ID_Xuong == id)
                              join pb in _context.Tbl_PhongBan on a.ID_PhongBan equals pb.ID_PhongBan
                              select new Tbl_Xuong
                              {
@@ -140,7 +140,7 @@ namespace Data_Product.Controllers
             try
             {
                 var ID = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == id).FirstOrDefault();
-                var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Xuong_update {0},{1},{2}", id,_DO.TenXuong,_DO.ID_PhongBan);
+                var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_Xuong_update {0},{1},{2}", id, _DO.TenXuong, _DO.ID_PhongBan);
 
                 TempData["msgSuccess"] = "<script>alert('Chỉnh sửa thành công');</script>";
             }
@@ -263,7 +263,7 @@ namespace Data_Product.Controllers
                         {
                             string PhanXuong = serviceDetails.Rows[i][1].ToString().Trim();
                             string TenBP = serviceDetails.Rows[i][2].ToString().Trim();
-                            var check_bp = _context.Tbl_PhongBan.Where(x => x.TenNgan == TenBP).FirstOrDefault();
+                            var check_bp = _context.Tbl_PhongBan.Where(x => x.TenNgan == TenBP.Trim()).FirstOrDefault();
                             if (check_bp == null)
                             {
                                 TempData["msgSuccess"] = "<script>alert('Vui lòng kiểm tra tên BP/NM: " + PhanXuong + "');</script>";
@@ -334,7 +334,7 @@ namespace Data_Product.Controllers
             foreach (var item in data)
             {
                 string taiKhoan = item.TaiKhoan;
-                if(taiKhoan != null)
+                if (taiKhoan != null)
                 {
                     var danhSachXuong = ((IEnumerable<dynamic>)item.DanhSachXuong).Select(x => x.ToString()).ToList();
                     foreach (var xuong in danhSachXuong)
@@ -345,7 +345,7 @@ namespace Data_Product.Controllers
                             int IDXuong = Convert.ToInt32(xuong);
                             //check trùng
                             var che = _context.Tbl_QuyenXuLy.FirstOrDefault(x => x.MaXL == "BTBD" && x.ID_TaiKhoan == IDTaiKhoan && x.ID_XuongXL == IDXuong);
-                            if(che == null)
+                            if (che == null)
                             {
                                 var newQuyen = new Tbl_QuyenXuLy()
                                 {
@@ -414,7 +414,7 @@ namespace Data_Product.Controllers
         }
 
         [HttpPost]
-        public JsonResult SaveSelected(List<int> ids )
+        public JsonResult SaveSelected(List<int> ids)
         {
             // Xử lý dữ liệu (lưu DB, logic tùy ý)
             if (ids == null || ids.Count == 0)

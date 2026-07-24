@@ -129,7 +129,7 @@ namespace Data_Product.Controllers
                 ListPB = TaiKhoan.PhongBan_Them.Split(',').Select(item => item.Trim()).ToList();
                 foreach (var item in ListPB)
                 {
-                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item).FirstOrDefault();
+                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item.Trim()).FirstOrDefault();
                     if (pb != null) ListPBInt.Add(pb.ID_PhongBan);
                 }
             }
@@ -2113,7 +2113,7 @@ namespace Data_Product.Controllers
                     ListPB = TaiKhoan.PhongBan_Them.Split(',').Select(item => item.Trim()).ToList();
                     foreach (var item in ListPB)
                     {
-                        var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item).FirstOrDefault();
+                        var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item.Trim()).FirstOrDefault();
                         if (pb != null) ListPBInt.Add(pb.ID_PhongBan);
                     }
                 }
