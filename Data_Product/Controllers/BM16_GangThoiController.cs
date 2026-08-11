@@ -705,7 +705,8 @@ namespace Data_Product.Controllers
                 HasPhanLoaiLoThoi = t.HasPhanLoaiLoThoi,
                 Temp =t.Temp,
                 PhanLoaiLoThoiLG = t.PhanLoaiLoThoiLG,
-                NhietDo = t.NhietDo
+                NhietDo = t.NhietDo,
+                NhietDoGangVaoHRC = t.NhietDoGangVaoHRC
             })//.OrderBy(x => x.MaThungPrefix)
               //  .ThenBy(x => x.MaThungSuffix)
                  .OrderBy(x => x.GioSortKey)
@@ -742,7 +743,8 @@ namespace Data_Product.Controllers
                     x.HasPhanLoaiLoThoi,
                     x.Temp,
                     x.PhanLoaiLoThoiLG,
-                    x.NhietDo
+                    x.NhietDo,
+                    x.NhietDoGangVaoHRC
                 })
                 .ToList();
             ViewBag.DanhSachThung = viewData;

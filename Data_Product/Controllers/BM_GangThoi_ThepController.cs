@@ -667,6 +667,7 @@ namespace Data_Product.Controllers
                             KL_GangChiaCR = 0m,             // sẽ gán sau
                             IsSaiChuyenDen = null,
                             NhietDo = x.NhietDo,
+                            NhietDoGangVaoHRC = x.NhietDoGangVaoHRC,
                             KLXiKR = x.KLXiKR
                         }
                     })
@@ -751,6 +752,7 @@ namespace Data_Product.Controllers
                                 IsSaiChuyenDen = null,
                                 IsChiaCR = x.IsChiaCR,
                                 NhietDo = x.NhietDo,
+                                NhietDoGangVaoHRC = x.NhietDoGangVaoHRC,
                                 KLXiKR = x.KLXiKR
                             }).ToList();
                 }
@@ -1601,6 +1603,7 @@ namespace Data_Product.Controllers
                         thung.T_ReceiveSeq = null;
                         thung.KR = null;
                         thung.NhietDo = null;
+                        thung.NhietDoGangVaoHRC = null;
                         thung.KLChiaXiKR = null;
                         thung.KLXiKR = null;
                         thung.KLGangCCTVaXi = null;
@@ -1810,6 +1813,104 @@ namespace Data_Product.Controllers
             }
         }
 
+        private async Task XuLyNhietDoGangVaoHRC_HRC1(List<ThungTrungGianDto> ds)
+        {
+            // Gom nhóm theo MaChia (chỉ nhóm có MaChia)
+            var groups = ds
+                .Where(x => !string.IsNullOrEmpty(x.MaChia))
+                .GroupBy(x => x.MaChia);
+
+            foreach (var group in groups)
+            {
+                var items = group.ToList();
+
+                // Lấy nhiệt độ gang vào HRC từ thùng đầu tiên có giá trị trong nhóm
+                decimal? nhietDoChung = items
+                    .SelectMany(x => x.DanhSachThungGang)
+                    .Select(x => x.NhietDoGangVaoHRC)
+                    .FirstOrDefault(x => x.HasValue);
+
+                // Gán cho payload
+                foreach (var item in items)
+                {
+                    foreach (var thung in item.DanhSachThungGang)
+                        thung.NhietDoGangVaoHRC = nhietDoChung;
+                }
+
+                // Gán DB tất cả thùng cùng nhóm
+                var maThungs = items
+                    .SelectMany(x => x.DanhSachThungGang)
+                    .Select(x => x.MaThungThep)
+                    .ToList();
+
+                var dbRows = await _context.Tbl_BM_16_GangLong
+                    .Where(x => maThungs.Contains(x.MaThungThep))
+                    .ToListAsync();
+
+                foreach (var db in dbRows)
+                    db.NhietDoGangVaoHRC = nhietDoChung;
+            }
+
+            // Xử lý thùng không có MaChia (giữ nguyên giá trị FE)
+            var noGroup = ds.Where(x => string.IsNullOrEmpty(x.MaChia));
+            foreach (var item in noGroup)
+            {
+                var thung = item.DanhSachThungGang.FirstOrDefault();
+                if (thung == null) continue;
+
+                var dbRow = await _context.Tbl_BM_16_GangLong
+                    .FirstOrDefaultAsync(x => x.MaThungThep == thung.MaThungThep);
+
+                if (dbRow != null)
+                    dbRow.NhietDoGangVaoHRC = thung.NhietDoGangVaoHRC;
+            }
+        }
+
+        private async Task XuLyNhietDoGangVaoHRC_HRC2(List<ThungTrungGianDto> ds)
+        {
+            // Lọc các item có MaChia
+            var dsCoChia = ds.Where(x => !string.IsNullOrEmpty(x.MaChia)).ToList();
+            if (!dsCoChia.Any()) return;
+
+            foreach (var tg in dsCoChia)
+            {
+                string maChia = tg.MaChia;
+
+                // 1) Lấy toàn bộ thùng thuộc group này từ DB
+                var thungGroupDB = await _context.Tbl_BM_16_ChiaGang
+                    .Where(x => x.MaChiaGang == maChia)
+                    .Select(x => x.MaThungThep)
+                    .ToListAsync();
+
+                if (!thungGroupDB.Any())
+                    continue;
+
+                // 2) Lấy các thùng thuộc nhóm trong payload
+                var thungTrongPayload = ds
+                    .SelectMany(p => p.DanhSachThungGang)
+                    .Where(x => thungGroupDB.Contains(x.MaThungThep))
+                    .ToList();
+
+                if (!thungTrongPayload.Any())
+                    continue;
+
+                // 3) Lấy nhiệt độ gang vào HRC của thùng đầu tiên không null
+                decimal? nhietDoChung = thungTrongPayload
+                    .Where(x => x.NhietDoGangVaoHRC.HasValue)
+                    .Select(x => x.NhietDoGangVaoHRC)
+                    .FirstOrDefault();
+
+                // Nếu tất cả đều null → vẫn để null
+                // 4) Gán lại cho tất cả thùng thuộc nhóm trong payload
+                foreach (var item in thungTrongPayload)
+                {
+                    item.NhietDoGangVaoHRC = nhietDoChung;
+                }
+
+                // THÙNG KHÔNG THUỘC NHÓM → GIỮ NGUYÊN, do không cần xử lý
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> Luu([FromBody] List<ThungTrungGianDto> dsThungTG)
         {
@@ -1830,9 +1931,15 @@ namespace Data_Product.Controllers
             var ttgSaved = new List<Tbl_BM_16_ThungTrungGian>();
 
             if (isHRC1)
+            {
                 await XuLyNhietDo_HRC1(dsThungTG);
+                await XuLyNhietDoGangVaoHRC_HRC1(dsThungTG);
+            }
             else
+            {
                 await XuLyNhietDo_HRC2(dsThungTG);
+                await XuLyNhietDoGangVaoHRC_HRC2(dsThungTG);
+            }
 
 
             foreach (var tgDto in dsThungTG)
@@ -1918,6 +2025,7 @@ namespace Data_Product.Controllers
                         entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
                         entity.T_KLThungChua = thungGang.T_KLThungChua;
                         entity.NhietDo = thungGang.NhietDo;
+                        entity.NhietDoGangVaoHRC = thungGang.NhietDoGangVaoHRC;
 
                         maThungThepCanTinhToan.Add(thungGang.MaThungGang);
                     }

@@ -31,6 +31,7 @@
         public int G_ID_TrangThai { get; set; }
         public int T_ID_TrangThai { get; set; }
         public decimal NhietDo { get; set; }
+        public decimal NhietDoGangVaoHRC { get; set; }
         public decimal KL_XeGoong { get; set; }
         public TPHHDto TPHH { get; set; }
     }
