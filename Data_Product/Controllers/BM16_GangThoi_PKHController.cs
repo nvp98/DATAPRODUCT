@@ -739,6 +739,7 @@ namespace Data_Product.Controllers
                 if (t.ID_TTG == null)                           missing.Add("ID_TTG");
                 if (ttg?.SoThungTG == null)                     missing.Add("SoThungTG");
                 if (t.NhietDo == null)                          missing.Add("NhietDo");
+                if (t.NhietDoGangVaoHRC == null)                 missing.Add("NhietDoGangVaoHRC");
                 if (t.XacNhan != true)                          missing.Add("XacNhan");
 
                 // Chỉ thùng gốc (T_copy == false) mới cần Si
@@ -1242,6 +1243,7 @@ namespace Data_Product.Controllers
                                      G_SanRaGang = a.G_SanRaGang,
                                      XacNhan = a.XacNhan,
                                      NhietDo = a.NhietDo,
+                                     NhietDoGangVaoHRC = a.NhietDoGangVaoHRC,
                                      Si = a.Si,
                                      Temp = a.Temp,
 
@@ -1749,6 +1751,7 @@ namespace Data_Product.Controllers
                                      G_SanRaGang = a.G_SanRaGang,
                                      XacNhan = a.XacNhan,
                                      NhietDo = a.NhietDo,
+                                     NhietDoGangVaoHRC = a.NhietDoGangVaoHRC,
                                      Si = a.Si,
                                      Temp = a.Temp,
                                      HoVaTen = user.HoVaTen,
@@ -2018,6 +2021,7 @@ namespace Data_Product.Controllers
                 GioChonMe = null,
                 TrangThaiTinh = original.TrangThaiTinh,
                 NhietDo = original.NhietDo,
+                NhietDoGangVaoHRC = original.NhietDoGangVaoHRC,
 
             };
         }

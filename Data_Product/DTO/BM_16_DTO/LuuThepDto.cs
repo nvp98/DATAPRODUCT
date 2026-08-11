@@ -19,6 +19,7 @@
     {
         public string MaThungThep { get; set; }
         public decimal? NhietDo { get; set; }
+        public decimal? NhietDoGangVaoHRC { get; set; }
         public decimal? T_KLThungVaGang { get; set; }
         public decimal? T_KLThungChua { get; set; }
         public decimal? T_KLGangLong { get; set; }

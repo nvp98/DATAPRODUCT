@@ -40,6 +40,7 @@ namespace Data_Product.Models.ModelView
         public bool? IsChiaCR { get; set; }
 
         public decimal? NhietDo { get; set; }
+        public decimal? NhietDoGangVaoHRC { get; set; }
         public decimal? KLXiKR { get; set; }
 
     }
