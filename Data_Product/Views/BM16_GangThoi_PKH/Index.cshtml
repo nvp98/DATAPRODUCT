@@ -565,6 +565,7 @@
                         <th>Kíp LT</th>
                         <th class="hide-col">Mã thùng thép</th>
                         <th class="hide-col">Nhiệt độ trước khi rót (ºC)</th>
+                        <th class="hide-col">Nhiệt độ gang vào HRC (ºC)</th>
                         <th class="hide-col">KL thùng & gang lỏng (T)</th>
                         <th class="hide-col">KL thùng (T)</th>
                         <th class="hide-col">KL gang lỏng (T)</th>
@@ -1449,6 +1450,7 @@
                     row.append(`<td>${item.t_TenKip ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.maThungThep ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.nhietDo ?? ''}</td>`);
+                    row.append(`<td  class="hide-col">${item.nhietDoGangVaoHRC ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungVaGang ?? ''}</td>`);
                     row.append(`<td  class="hide-col">${item.t_KLThungChua ?? ''}</td>`);
                     row.append(`<td  class="hide-col T_KLGangLong">${item.t_KLGangLong ?? ''}</td>`);
@@ -1577,6 +1579,7 @@
                 item.iD_TTG != null,
                 item.soThungTG != null,
                 item.nhietDo != null,
+                item.nhietDoGangVaoHRC != null,
                 item.xacNhan == true
             ];
 
