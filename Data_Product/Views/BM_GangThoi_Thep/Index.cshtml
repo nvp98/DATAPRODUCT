@@ -668,6 +668,7 @@
                                         <th>Lò cao</th>
                                         <th>Thùng số</th>
                                         <th>Trạng thái</th>
+                                        <th>Nhiệt độ gang vào HRC (ºC)</th>
                                         <th>Nhiệt độ trước khi rót (ºC)</th>
                                         <th>KL thùng & gang lỏng (T)</th>
                                         <th>KL thùng (T)</th>
@@ -1069,12 +1070,17 @@
               if (isCopyTTG) {
                 row += `
                   <td class="col-nhietDo"><span></span></td>
+                  <td class="col-nhietDoGangVaoHRC"><span></span></td>
                   <td class="col-vagang"><span></span></td>
                   <td class="col-thung"><span></span></td>
                   <td class="col-ganglong KLGangLong"><span></span></td>
                 `;
               } else {
                 row += `
+                    <td class="col-nhietDoGangVaoHRC">
+                    <input class="table_tbx nhietDoGangVaoHRC" type="number" min="0"
+                           name="nhietDoGangVaoHRC" ${disabled} value="${thung.nhietDoGangVaoHRC ?? ''}"/>
+                  </td>
                   <td class="col-nhietDo">
                     <input class="table_tbx nhietDo" type="number" min="0"
                            name="nhietDo" ${disabled} value="${thung.nhietDo ?? ''}"/>
@@ -1163,7 +1169,7 @@
         const TTG_COLS = ['td.hrc2','td.col-gangnhan','td.col-sothungtg','td.col-thungvagangthoi','td.col-thungthoi', 'td.col-ganglongtruockr',
           'td.col-phe','td.col-gangthoi','td.col-methoi','td.col-giochonme','td.col-ghichu', 'td.col-klxikr'
         ];
-        const MACHIA_COLS = ['td.col-nhietDo','td.col-vagang','td.col-thung','td.col-ganglong'];
+        const MACHIA_COLS = ['td.col-nhietDo','td.col-nhietDoGangVaoHRC','td.col-vagang','td.col-thung','td.col-ganglong'];
 
         // Thu thập ranges theo attr
         const $rows = $tbody.find('tr');
@@ -2444,6 +2450,8 @@
            
 
             let isValidLuu = true;
+            let hasInvalidNhietDo = false;
+            let hasInvalidNhietDoGangVaoHRC = false;
             for (const key in groups) {
                 const groupRows = groups[key];
                 const $firstRow = groupRows[0];
@@ -2515,16 +2523,35 @@
 
                             if (!NhietDo || NhietDo < 1000 || NhietDo > 2000) {
                                 isValidLuu = false;
-                                alert('Vui lòng nhập nhiệt độ trong khoảng 1000 đến 2000!');
+                                hasInvalidNhietDo = true;
                             }
                         } else {
                             // Dòng bị merge → dùng lại giá trị từ dòng đầu
                             NhietDo = nhietDoGroup;
                         }
+
+                        const $inputNhietDoGangVaoHRC = $row.find('input[name="nhietDoGangVaoHRC"]');
+
+                        let NhietDoGangVaoHRC;
+                        if ($inputNhietDoGangVaoHRC.length) {
+                            // Dòng đầu tiên (còn input) → đọc và lưu lại
+                            const rawNhietDoGangVaoHRC = $inputNhietDoGangVaoHRC.val();
+                            NhietDoGangVaoHRC = rawNhietDoGangVaoHRC === "" ? null : parseFloat(rawNhietDoGangVaoHRC);
+                            nhietDoGangVaoHRCGroup = NhietDoGangVaoHRC; // lưu cho các dòng sau dùng
+
+                            if (!NhietDoGangVaoHRC || NhietDoGangVaoHRC < 1000 || NhietDoGangVaoHRC > 2000) {
+                                isValidLuu = false;
+                                hasInvalidNhietDoGangVaoHRC = true;
+                            }
+                        } else {
+                            // Dòng bị merge → dùng lại giá trị từ dòng đầu
+                            NhietDoGangVaoHRC = nhietDoGangVaoHRCGroup;
+                        }
                         const thungGang = {
                             MaThungThep: $row.find('td.maThungThep').text().trim(),
                             MaThungGang: $row.find('td.maThungThep').attr('data-mathungganggoc'),
                             NhietDo: NhietDo,
+                            NhietDoGangVaoHRC: NhietDoGangVaoHRC,
                             T_KLThungVaGang: parseFloat($row.find('input[name="t_KLThungVaGang"]').val()) || null,
                             T_KLThungChua: parseFloat($row.find('input[name="t_KLThungChua"]').val()) || null,
                             T_KLGangLong: parseFloat($row.find('.KLGangLong').text()) || 0
@@ -2545,8 +2572,15 @@
                 
             }
 
+            if (hasInvalidNhietDo) {
+                alert('Vui lòng nhập nhiệt độ trong khoảng 1000 đến 2000!');
+            }
+            if (hasInvalidNhietDoGangVaoHRC) {
+                alert('Vui lòng nhập nhiệt độ gang vào HRC trong khoảng 1000 đến 2000!');
+            }
+
             if (!isValidLuu) {
-               
+
                 return null;
             }
 
