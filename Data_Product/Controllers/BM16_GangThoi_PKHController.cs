@@ -889,8 +889,14 @@ namespace Data_Product.Controllers
                 ok(item.ID_TTG),
                 ok(item.SoThungTG),
                 ok(item.ID_MeThoi),
-                ok(item.GioChonMe)
+                ok(item.GioChonMe),
+                ok(item.NhietDo),
+                ok(item.NhietDoGangVaoHRC)
             };
+
+            // Si và XacNhan chỉ bắt buộc với bản gốc (không phải bản nhận lần 2 trở đi)
+            bool siOk = item.T_copy == true || ok(item.Si);
+            bool xacNhanOk = item.T_copy == true || item.XacNhan == true;
 
             // TH đặc biệt: DUC1 / DUC2
             if (item.ChuyenDen == "DUC1" || item.ChuyenDen == "DUC2")
@@ -915,7 +921,7 @@ namespace Data_Product.Controllers
             // Nếu là bản copy: chỉ cần common fields
             if (item.IsCopy == true)
             {
-                valid = common.All(x => x);
+                valid = common.All(x => x) && siOk && xacNhanOk;
             }
             else
             {
@@ -945,7 +951,7 @@ namespace Data_Product.Controllers
                     });
                 }
 
-                valid = common.All(x => x) && add.All(x => x);
+                valid = common.All(x => x) && add.All(x => x) && siOk && xacNhanOk;
             }
 
             // Trả ra 1 (đủ) hoặc 2 (thiếu)
