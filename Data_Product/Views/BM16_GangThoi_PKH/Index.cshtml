@@ -1552,6 +1552,17 @@
              renderTongPhanTramChenhLech('IDTongAllKLGangLong','IDTongAllKLGangLongThep','IDTongAllPhanTramChenhLech');
         }
 
+        // Chỉ bắt buộc nhietDoGangVaoHRC với các mẻ luyện thép từ ngày 13/08/2026 trở đi
+        const NHIET_DO_GANG_VAO_HRC_FROM_DATE = new Date(2026, 7, 13);
+
+        function requireNhietDoGangVaoHRC(item){
+            if(!item.ngayLuyenThep) return false;
+            const ngayLuyenThepDate = new Date(item.ngayLuyenThep);
+            if(isNaN(ngayLuyenThepDate)) return false;
+            const dateOnly = new Date(ngayLuyenThepDate.getFullYear(), ngayLuyenThepDate.getMonth(), ngayLuyenThepDate.getDate());
+            return dateOnly >= NHIET_DO_GANG_VAO_HRC_FROM_DATE;
+        }
+
         function checkCondition(item){
             if(item.isCopy){
                 return false;
@@ -1579,7 +1590,7 @@
                 item.iD_TTG != null,
                 item.soThungTG != null,
                 item.nhietDo != null,
-                item.nhietDoGangVaoHRC != null,
+                (!requireNhietDoGangVaoHRC(item) || item.nhietDoGangVaoHRC != null),
                 item.xacNhan == true
             ];
 

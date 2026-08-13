@@ -712,6 +712,8 @@ namespace Data_Product.Controllers
 
             var invalidList = new List<ChotThungInvalidItem>();
             var allowedDest = new[] { "DUC1", "DUC2" };
+            // Chỉ bắt buộc NhietDoGangVaoHRC với các mẻ luyện thép từ ngày 13/08/2026 trở đi
+            var nhietDoGangVaoHRCFromDate = new DateTime(2026, 8, 13);
 
             foreach (var t in thungs)
             {
@@ -739,7 +741,8 @@ namespace Data_Product.Controllers
                 if (t.ID_TTG == null)                           missing.Add("ID_TTG");
                 if (ttg?.SoThungTG == null)                     missing.Add("SoThungTG");
                 if (t.NhietDo == null)                          missing.Add("NhietDo");
-                if (t.NhietDoGangVaoHRC == null)                 missing.Add("NhietDoGangVaoHRC");
+                if (t.NgayLuyenThep.HasValue && t.NgayLuyenThep.Value.Date >= nhietDoGangVaoHRCFromDate && t.NhietDoGangVaoHRC == null)
+                                                                 missing.Add("NhietDoGangVaoHRC");
                 if (t.XacNhan != true)                          missing.Add("XacNhan");
 
                 // Chỉ thùng gốc (T_copy == false) mới cần Si
