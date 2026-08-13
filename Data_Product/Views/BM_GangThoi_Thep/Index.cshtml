@@ -2430,6 +2430,11 @@
             if (!IDCaNhan) { alert("Vui lòng chọn Ca"); return; }
             if (!IDLoThoi) { alert("Vui lòng chọn Lò thổi"); return; }
 
+            // Chỉ bắt buộc nhiệt độ gang vào HRC với các phiếu có Ngày Nhận từ 13/08/2026 trở đi
+            const NHIET_DO_GANG_VAO_HRC_FROM_DATE = new Date(2026, 7, 13);
+            const ngayNhanDate = new Date(NgayNhan);
+            const requireNhietDoGangVaoHRC = !isNaN(ngayNhanDate) && ngayNhanDate >= NHIET_DO_GANG_VAO_HRC_FROM_DATE;
+
             const $rows = $('#IDtbXuLySoLieu tbody tr');
             
             const groups = {};
@@ -2539,7 +2544,14 @@
                             NhietDoGangVaoHRC = rawNhietDoGangVaoHRC === "" ? null : parseFloat(rawNhietDoGangVaoHRC);
                             nhietDoGangVaoHRCGroup = NhietDoGangVaoHRC; // lưu cho các dòng sau dùng
 
-                            if (!NhietDoGangVaoHRC || NhietDoGangVaoHRC < 1000 || NhietDoGangVaoHRC > 2000) {
+                            if (NhietDoGangVaoHRC) {
+                                // Đã nhập thì luôn phải nằm trong khoảng 1000-2000, bất kể ngày
+                                if (NhietDoGangVaoHRC < 1000 || NhietDoGangVaoHRC > 2000) {
+                                    isValidLuu = false;
+                                    hasInvalidNhietDoGangVaoHRC = true;
+                                }
+                            } else if (requireNhietDoGangVaoHRC) {
+                                // Chưa nhập, chỉ bắt buộc với phiếu từ 13/08/2026 trở đi
                                 isValidLuu = false;
                                 hasInvalidNhietDoGangVaoHRC = true;
                             }
