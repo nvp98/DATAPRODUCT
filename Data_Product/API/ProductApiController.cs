@@ -145,8 +145,9 @@ namespace Data_Product.API
                         G_KLGANGLONG = reader.IsDBNull(reader.GetOrdinal("G_KLGANGLONG")) ? 0 : reader.GetDecimal(reader.GetOrdinal("G_KLGANGLONG")),
                         SO_ME = reader["SO_ME"]?.ToString(),
                         KLGang_Thoi = reader.IsDBNull(reader.GetOrdinal("KLGang_Thoi")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGang_Thoi")),
-                        NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo")) ? 0 : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
+                        //NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo")) ? 0 : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
                         //KlGangNhan = reader.IsDBNull(reader.GetOrdinal("Tong_KLGangNhan")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Tong_KLGangNhan")),
+                        NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo"))? 0: reader.GetDecimal(reader.GetOrdinal("NhietDo")), //(Đã đổi giá trị cột NhietDo thành NhietDoGangVaoHRC vẫn giữ NhietDo để không viết lại API)
                         KLGangTheoMe = reader.IsDBNull(reader.GetOrdinal("KLGangTheoMe")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGangTheoMe")),
                         MaMeThoi = reader["MaMeThoi"]?.ToString(),
                         NhietDo_LG = reader.IsDBNull(reader.GetOrdinal("Temp")) ? 0: reader.GetInt32(reader.GetOrdinal("Temp")),
