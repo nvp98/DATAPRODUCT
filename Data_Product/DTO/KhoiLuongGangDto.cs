@@ -23,9 +23,6 @@ namespace Data_Product.DTO
         [JsonPropertyName("nhiet_do")]
         public decimal? NhietDo { get; set; }
 
-        [JsonPropertyName("nhiet_do_gang_vao_hrc")]
-        public decimal? NhietDoGangVaoHRC { get; set; }
-
         [JsonPropertyName("nhiet_do_lg")]
         public int? NhietDo_LG { get; set; }
 
