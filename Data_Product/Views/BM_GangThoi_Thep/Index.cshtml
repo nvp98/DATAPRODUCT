@@ -698,7 +698,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr style="height: 50px;">
-                                        <td class="total-space" colspan="7" style="font-weight: 600; text-align: start">Tổng</td>
+                                        <td class="total-space" colspan="8" style="font-weight: 600; text-align: start">Tổng</td>
                                         <td id="IDTongKLGangLong" style="font-weight: 600">0.00</td>
                                         <td class="hide-col" id="IDTongKLGangChia" style="font-weight: 600">0.00</td>
                                         @* <td style="@(PhongBan != "HRC2" ? "display:none;" : "")"></td> *@
@@ -2076,11 +2076,11 @@
 
             if( phongBan == "HRC2"){
                 $('.hrc2').css('display', display);
-                $('.total-space').attr('colspan', isHidden ? 7 : 9);
+                $('.total-space').attr('colspan', isHidden ? 8 : 11);
                 $('.total-space-tmp').attr('colspan', isHidden ? 2: 3)
             } else {
                 // Nếu bạn có cột tổng cuối bảng cần cập nhật colspan
-                $('.total-space').attr('colspan', isHidden ? 7 : 9);
+                $('.total-space').attr('colspan', isHidden ? 8 : 11);
             }
 
         }
