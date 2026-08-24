@@ -1313,7 +1313,7 @@ namespace Data_Product.Controllers
                     .Select(g => new
                     {
                         SoMe = g.Key,
-                        Tong = g.Sum(x => (decimal?)(x.KLGangChia ?? x.T_KLGangLong ?? 0m)) ?? 0m
+                        Tong = g.Sum(x => (decimal?)(x.KLGangCCTVaXi ?? x.KLGangChia ?? x.T_KLGangLong ?? 0m)) ?? 0m
                     })
                     .ToDictionaryAsync(k => k.SoMe, v => v.Tong);
                 // 1) Lấy % đúc
