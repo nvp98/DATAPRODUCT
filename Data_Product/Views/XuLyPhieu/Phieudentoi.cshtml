@@ -44,7 +44,12 @@
     var PhanXuong_BN = _context.Tbl_Xuong.Where(x => x.ID_Xuong == ThongTin_BN.ID_PhanXuong).FirstOrDefault();
     var ViTri_BN = _context.Tbl_ViTri.Where(x => x.ID_ViTri == ThongTin_BN.ID_ChucVu).FirstOrDefault();
 }
-@using (Html.BeginForm("Phieudentoi", "XuLyPhieu", FormMethod.Post, new { enctype = "multipart/form-data", onsubmit = "submitForm(event)" }))
+@using (Html.BeginForm("Phieudentoi", "XuLyPhieu", FormMethod.Post, new
+{
+    enctype = "multipart/form-data",
+    onsubmit =
+"submitForm(event)"
+}))
 {
     <div class="app-main__outer">
         <div class="app-main__inner" style="display:block;padding-bottom: 0px;">
@@ -52,7 +57,8 @@
                 <div class="row">
                     <div class="card">
                         <div class="row" style="width:100%">
-                            <div style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;width: -webkit-fill-available;">
+                            <div
+                                style="display: flex;border-bottom: 0.8px solid #E8E8E8;position: fixed;background-color: #F9F9F9;width: -webkit-fill-available;">
                                 <div class="col-8" style="text-align: left;padding: 2%  2%  2% 0%; ">
                                     <span class="text-muted small pt-2 ps-1">
                                         <b style="color:#06428b">
@@ -77,13 +83,15 @@
                             </div>
                         </div>
                         <div class="row" style="width:100%;padding-top:7.5%;">
-                            <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 80px;padding: 1.7% 0% 0% 1%;border-radius: 10px;margin-left: 8px;">
+                            <div class="col-lg-12"
+                                 style="text-align: left;background-color: #f9f9f9;height: 80px;padding: 1.7% 0% 0% 1%;border-radius: 10px;margin-left: 8px;">
                                 <span style="color:black; font-size:14px;">
-                                     @ID_BBGN.SoPhieu
+                                    @ID_BBGN.SoPhieu
                                 </span>
                             </div><!-- End Recent Sales -->
                             <div class="col-lg-12" style="display:flex;padding-bottom: 1%;padding-top:1.5%;">
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                <div class="col-xxl-4 col-md-6"
+                                     style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
                                     <div style="padding-left: 3%;padding-top:3%;">
                                         <span style="color:black; font-size:14px;">
                                             Đại diện bên giao:
@@ -97,7 +105,8 @@
 
                                 </div>
 
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                <div class="col-xxl-4 col-md-6"
+                                     style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
                                     <div style="padding-left: 3%;padding-top:3%;">
                                         <span style="color:black; font-size:14px;">
                                             Chức vụ:
@@ -112,7 +121,8 @@
 
                                 </div>
 
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                <div class="col-xxl-4 col-md-6"
+                                     style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
                                     <div style="padding-left: 3%;padding-top:3%;">
                                         <span style="color:black; font-size:14px;">
                                             BP/NM:
@@ -131,7 +141,8 @@
                         </div>
                         <div class="row" style="width:100%">
                             <div class="col-lg-12" style="display:flex;padding-bottom: 1%;">
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
+                                <div class="col-xxl-4 col-md-6"
+                                     style="height: 80px; background-color: #f9f9f9; border-radius: 10px;margin-right: 0.5%;">
                                     <div style="padding-left: 3%;padding-top:3%;">
                                         <span style="color:black; font-size:14px;">
                                             Đại diện bên nhận:
@@ -144,7 +155,8 @@
                                     </div>
 
                                 </div>
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
+                                <div class="col-xxl-4 col-md-6"
+                                     style="height: 80px; background-color: #f9f9f9;border-radius: 10px;margin-right: 0.5%;">
                                     <div style="padding-left: 3%;padding-top:3%;">
                                         <span style="color:black; font-size:14px;">
                                             Chức vụ:
@@ -159,7 +171,8 @@
 
                                 </div>
 
-                                <div class="col-xxl-4 col-md-6" style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
+                                <div class="col-xxl-4 col-md-6"
+                                     style="height: 80px; background-color: #f9f9f9;margin-right: 1%;border-radius: 10px;">
                                     <div style="padding-left: 3%;padding-top:3%;">
                                         <span style="color:black; font-size:14px;">
                                             BP/NM:
@@ -175,119 +188,168 @@
                                 </div>
                             </div>
                         </div>
+                        @if (ID_BBGN.FileDinhKem != null && ID_BBGN.FileDinhKem != "")
+                        {
+                            <div class="row" style="width:100%; padding-bottom:1%;">
+                                <div class="col-lg-12"
+                                     style="text-align: left;background-color: #f9f9f9;padding: 0.5%;border-radius: 10px;margin-left: 8px;">
+                                    <span style="color:black; font-size:14px;">
+                                        File đính kèm:
+                                    </span>
+                                    <a href="@ID_BBGN.FileDinhKem" target="_blank">
+                                        Xem file đính kèm
+                                    </a>
+                                </div>
+                            </div>
+                        }
                         <div class="row" style="width:100%; padding-bottom:1%;">
-                            <div class="col-lg-12" style="text-align: left;background-color: #f9f9f9;height: 110px;padding: 0.5% 1% 0% 1%;border-radius: 10px;margin-left: 8px;">
+                            <div class="col-lg-12"
+                                 style="text-align: left;background-color: #f9f9f9;height: 110px;padding: 0.5% 1% 0% 1%;border-radius: 10px;margin-left: 8px;">
                                 <span style="color:black; font-size:14px;">
-                                   Lý do không xác nhận phiếu ( Nếu có ):
+                                    Lý do không xác nhận phiếu ( Nếu có ):
                                 </span>
-                                <input class='form-control' id='ykien' name='ykien' style="height:50px;margin-top: 0.5%;" cols='20' rows='1' value=""></input>
+                                <input class='form-control' id='ykien' name='ykien' style="height:50px;margin-top: 0.5%;"
+                                       cols='20' rows='1' value=""></input>
                             </div><!-- End Recent Sales -->
-                         </div>
+                        </div>
 
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-bordered table-hover" id="table" cellpadding="0">
                                     <thead>
                                         <tr style="font-size:14px;">
-                                            <th width="50px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
-                                            <th class="text-center" rowspan="3" width="500px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
-                                            <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
-                                            <th class="text-center" rowspan="3" width="250px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
-                                            <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
-                                            <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
-                                        </tr>
-                                        <tr style="font-size:14px;">
-                                            <th width="150px" rowspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">W (%)</th>
-                                            <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên giao</th>
-                                            <th width="150px" colspan="2" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL bên nhận</th>
-                                        </tr>
-                                        <tr style="font-size:14px;">
-                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
-                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+                                            <th width="50px" rowspan="3"
+                                                style="vertical-align:middle;background-color: #f9f9f9">STT</th>
+                                            <th class="text-center" rowspan="3" width="500px"
+                                                style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/
+                                                phụ liệu</th>
+                                                <th class="text-center" rowspan="3" width="150px"
+                                                    style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
+                                                <th class="text-center" rowspan="3" width="250px"
+                                                    style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
+                                                <th class="text-center" colspan="5" width="200px"
+                                                    style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra
+                                                    trong kíp</th>
+                                                    <th class="text-center" rowspan="3" width="200px"
+                                                        style="vertical-align:middle;background-color: #f9f9f9">Ghi chú</th>
+                                                </tr>
+                                                <tr style="font-size:14px;">
+                                                    <th width="150px" rowspan="2" class="text-center"
+                                                        style="vertical-align:middle;background-color: #f9f9f9">W (%)</th>
+                                                    <th width="150px" colspan="2" class="text-center"
+                                                        style="vertical-align:middle;background-color: #f9f9f9">KL bên giao</th>
+                                                    <th width="150px" colspan="2" class="text-center"
+                                                        style="vertical-align:middle;background-color: #f9f9f9">KL bên nhận</th>
+                                                </tr>
+                                                <tr style="font-size:14px;">
+                                                    <th width="150px" class="text-center"
+                                                        style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
+                                                    <th width="150px" class="text-center"
+                                                        style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
 
-                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
-                                            <th width="150px" class="text-center" style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @{
-                                            int i = 1;
-                                            var Models = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID).ToList();
-
-                                        }
-                                        @foreach (var item in Models)
-                                        {
-                                            <tr>
+                                                    <th width="150px" class="text-center"
+                                                        style="vertical-align:middle;background-color: #f9f9f9">Khối lượng</th>
+                                                    <th width="150px" class="text-center"
+                                                        style="vertical-align:middle;background-color: #f9f9f9">KL quy khô</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
                                                 @{
-                                                    var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item.ID_VatTu).FirstOrDefault();
-                                                    var ID_PB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
-                                                    var List = _context.Tbl_VatTu.ToList();
-                                                    var VatTu = await (from a in _context.Tbl_VatTu.Where(x => x.PhongBan.Contains(ID_PB.TenNgan))
-                                                                       select new Tbl_VatTu
-                                                                       {
-                                                                           ID_VatTu = a.ID_VatTu,
-                                                                           TenVatTu = a.TenVatTu
-                                                                       }).ToListAsync();
-                                                    ViewBag.VT_List = new SelectList(VatTu, "ID_VatTu", "TenVatTu", ID_VT?.ID_VatTu);
+                                                    int i = 1;
+                                                    var Models = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN ==
+                                            ID).ToList();
+
                                                 }
+                                                @foreach (var item in Models)
+                                                {
+                                                    <tr>
+                                                        @{
+                                                            var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu ==
+                                                item.ID_VatTu).FirstOrDefault();
+                                                            var ID_PB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan ==
+                                                ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
+                                                            var List = _context.Tbl_VatTu.ToList();
+                                                            var VatTu = await (from a in _context.Tbl_VatTu.Where(x =>
+                                                x.PhongBan.Contains(ID_PB.TenNgan))
+                                                                               select new Tbl_VatTu
+                                                                               {
+                                                                                   ID_VatTu = a.ID_VatTu,
+                                                                                   TenVatTu = a.TenVatTu
+                                                                               }).ToListAsync();
+                                                            ViewBag.VT_List = new SelectList(VatTu, "ID_VatTu", "TenVatTu",
+                                                ID_VT?.ID_VatTu);
+                                                        }
 
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    @i
-                                                </td>
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                            @i
+                                                        </td>
 
-                                                <td style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' rows='1' value="@ID_VT?.TenVatTu" disabled="disabled"></input>
-                                                </td>
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' rows='1' value="@ID_VT?.DonViTinh" disabled="disabled"></input>
+                                                        <td style="font-size:14px;vertical-align:middle;">
+                                                            <input class='form-control' cols='20' rows='1' value="@ID_VT?.TenVatTu"
+                                                                   disabled="disabled"></input>
+                                                        </td>
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                            <input class='form-control' cols='20' rows='1' value="@ID_VT?.DonViTinh"
+                                                                   disabled="disabled"></input>
 
-                                                </td>
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                 
-                                                   <input class='form-control' cols='20' rows='1' value="@item.MaLo" disabled="disabled"></input>
-                                                </td>
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' rows='1' value="@item.DoAm_W" disabled="disabled"></input>
-                                                </td>
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                        </td>
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                    <input class='form-control' cols='20' rows='1' value="@item.KhoiLuong_BG" disabled="disabled"></input>
+                                                            <input class='form-control' cols='20' rows='1' value="@item.MaLo"
+                                                                   disabled="disabled"></input>
+                                                        </td>
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                            <input class='form-control' cols='20' rows='1' value="@item.DoAm_W"
+                                                                   disabled="disabled"></input>
+                                                        </td>
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                </td>
+                                                            <input class='form-control' cols='20' rows='1' value="@item.KhoiLuong_BG"
+                                                                   disabled="disabled"></input>
 
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' placeholder='KL quy khô' rows='1' value="@item.KL_QuyKho_BG" readonly></input>
-                                                </td>
+                                                        </td>
 
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                            <input class='form-control' cols='20' placeholder='KL quy khô' rows='1'
+                                                                   value="@item.KL_QuyKho_BG" readonly></input>
+                                                        </td>
 
-                                                    <input class='form-control' cols='20' id='khoiluongbn_@item.ID_CT_BBGN' name='khoiluongbn_@item.ID_CT_BBGN' placeholder='Khối lượng' type="number" step="0.001" rows='1' value="@item.KhoiLuong_BG.ToString(System.Globalization.CultureInfo.InvariantCulture)"></input>
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
 
-                                                </td>
+                                                            <input class='form-control' cols='20' id='khoiluongbn_@item.ID_CT_BBGN'
+                                                                   name='khoiluongbn_@item.ID_CT_BBGN' placeholder='Khối lượng'
+                                                                   type="number" step="0.001" rows='1'
+                                                                   value="@item.KhoiLuong_BG.ToString(System.Globalization.CultureInfo.InvariantCulture)"></input>
 
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' id='quykhobn_@item.ID_CT_BBGN' name='quykhobn_@item.ID_CT_BBGN' placeholder='KL quy khô' rows='1' value="@item.KL_QuyKho_BG" readonly></input>
+                                                        </td>
 
-                                                </td>
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                            <input class='form-control' cols='20' id='quykhobn_@item.ID_CT_BBGN'
+                                                                   name='quykhobn_@item.ID_CT_BBGN' placeholder='KL quy khô' rows='1'
+                                                                   value="@item.KL_QuyKho_BG" readonly></input>
 
-                                                <td class="text-center" style="font-size:14px;vertical-align:middle;">
-                                                    <input class='form-control' cols='20' id='ghichu_@item.ID_CT_BBGN' name='ghichu_@item.ID_CT_BBGN' placeholder='' rows='1' value="@item.GhiChu"></input>
+                                                        </td>
 
-                                                </td>
-                                            </tr>
-                                            i++;
-                                        }
-                                    </tbody>
+                                                        <td class="text-center" style="font-size:14px;vertical-align:middle;">
+                                                            <input class='form-control' cols='20' id='ghichu_@item.ID_CT_BBGN'
+                                                                   name='ghichu_@item.ID_CT_BBGN' placeholder='' rows='1'
+                                                                   value="@item.GhiChu"></input>
 
-                                </table>
+                                                        </td>
+                                                    </tr>
+                                                    i++;
+                                                }
+                                            </tbody>
 
+                                        </table>
+
+                                    </div>
+
+                                </div>
                             </div>
-
                         </div>
                     </div>
+
                 </div>
             </div>
-
-        </div>
-    </div>
-}
+        }
