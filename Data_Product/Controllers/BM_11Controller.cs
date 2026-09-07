@@ -630,6 +630,102 @@ namespace Data_Product.Controllers
         }
 
 
+        public class TaoPhieuApiRequest
+        {
+            public int IDTaiKhoanBG { get; set; }  // bên giao (thay cookie)
+            public int IDTaiKhoan { get; set; }
+            public string XacNhan { get; set; }   // "1" = trình ký
+            public string ID_Day { get; set; }     // "2026-09-05"
+            public string IDCa { get; set; }       // TenCa trong DB
+            public string NoiDungTrichYeu { get; set; }
+            public List<ChiTietVatTu> ChiTiet { get; set; }
+        }
+        public class ChiTietVatTu
+        {
+            public int ID_VatTu { get; set; }
+            public string MaLo { get; set; }
+            public double DoAm_W { get; set; }
+            public double KhoiLuong_BG { get; set; }
+            public string GhiChu { get; set; }
+        }
+
+        [HttpPost("api/BM_11/TaoPhieu")]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> TaoPhieuApi([FromBody] TaoPhieuApiRequest req)
+        {
+            try
+            {
+                if (req.IDTaiKhoan == 0 || string.IsNullOrEmpty(req.XacNhan))
+                    return BadRequest(new { message = "Thiếu IDTaiKhoan hoặc XacNhan" });
+
+                if (req.ChiTiet == null || req.ChiTiet.Count == 0)
+                    return BadRequest(new { message = "Vui lòng điền thông tin vật tư giao nhận" });
+
+                if (req.ChiTiet.Any(x => x.KhoiLuong_BG == 0))
+                    return BadRequest(new { message = "Khối lượng bên giao không để trống" });
+
+                var ThongTin_BG = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == req.IDTaiKhoanBG).FirstOrDefault();
+                if (ThongTin_BG == null) return BadRequest(new { message = "IDTaiKhoanBG không hợp lệ" });
+                var ThongTin_BP_BG = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BG.ID_PhongBan).FirstOrDefault();
+
+                var ThongTin_BN = _context.Tbl_TaiKhoan.Where(x => x.ID_TaiKhoan == req.IDTaiKhoan).FirstOrDefault();
+                var ThongTin_BP_BN = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ThongTin_BN.ID_PhongBan).FirstOrDefault();
+
+                DateTime date = DateTime.Parse(req.ID_Day);
+                string day_bs = date.ToString("dd-MM-yyyy");
+                DateTime NgayXuLy = DateTime.ParseExact(day_bs, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+
+                DateTime today = DateTime.Today;
+                DateTime yesterday = today.AddDays(-1);
+                if (NgayXuLy.Date != today && NgayXuLy.Date != yesterday)
+                    return BadRequest(new { message = $"Đã quá thời gian tạo phiếu cho ngày {NgayXuLy:dd-MM-yyyy}" });
+
+                var ID_Kip = _context.Tbl_Kip.Where(x => x.TenCa == req.IDCa && x.NgayLamViec == NgayXuLy).FirstOrDefault();
+                if (ID_Kip == null)
+                    return BadRequest(new { message = "Vui lòng kiểm tra lại ca kíp làm việc" });
+
+                var count = _context.Tbl_BienBanGiaoNhan.Where(x => x.ThoiGianXuLyBG == NgayXuLy).Count();
+                int len = count.ToString().Length;
+                string stt = len == 1 ? "00" + (count + 1) : len == 2 ? "0" + (count + 1) : (count + 1).ToString();
+                string SoPhieu = $"{ThongTin_BP_BG.TenNgan}-{ThongTin_BP_BN.TenNgan}-{ID_Kip.TenCa}{ID_Kip.TenKip}-{NgayXuLy:ddMMyy}{stt}";
+
+                string noiDung = req.NoiDungTrichYeu;
+                if (string.IsNullOrEmpty(noiDung))
+                {
+                    var vattu = _context.Tbl_VatTu.Where(x => x.ID_VatTu == req.ChiTiet[0].ID_VatTu).FirstOrDefault();
+                    noiDung = vattu?.TenVatTu ?? "";
+                }
+
+                var Output_ID_BBGN = new SqlParameter
+                {
+                    ParameterName = "ID_BBGN",
+                    SqlDbType = System.Data.SqlDbType.Int,
+                    Direction = System.Data.ParameterDirection.Output,
+                };
+
+                _context.Database.ExecuteSqlRaw("EXEC Tbl_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},@ID_BBGN OUTPUT",
+                    ThongTin_BG.ID_TaiKhoan, ThongTin_BG.ID_PhongBan, ThongTin_BG.ID_PhanXuong, ThongTin_BG.ID_ChucVu, NgayXuLy, 1,
+                    ThongTin_BN.ID_TaiKhoan, ThongTin_BN.ID_PhongBan, ThongTin_BN.ID_PhanXuong, ThongTin_BN.ID_ChucVu, 0, SoPhieu, ID_Kip.ID_Kip, 0, 1, ID_Kip.TenKip, ID_Kip.TenCa, noiDung, "", Output_ID_BBGN);
+
+                int BBGN_ID = Convert.ToInt32(Output_ID_BBGN.Value);
+
+                foreach (var item in req.ChiTiet)
+                {
+                    double dividedNumber = item.KhoiLuong_BG * (100 - item.DoAm_W) / 100;
+                    double KL_QuyKho = RoundLikeExcel(dividedNumber, 3);
+                    string maLo = item.MaLo ?? "";
+                    _context.Database.ExecuteSqlRaw("EXEC Tbl_ChiTiet_BienBanGiaoNhan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8}",
+                        item.ID_VatTu, maLo, item.DoAm_W, item.KhoiLuong_BG, KL_QuyKho, item.KhoiLuong_BG, KL_QuyKho, item.GhiChu ?? "", BBGN_ID);
+                }
+
+                return Ok(new { message = "Trình ký thành công", BBGN_ID });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new { message = "Thêm mới thất bại", error = e.Message });
+            }
+        }
+
         public async Task<IActionResult> SuaPhieu(int? id)
         {
             var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
