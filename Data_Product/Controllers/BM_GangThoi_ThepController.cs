@@ -1625,8 +1625,47 @@ namespace Data_Product.Controllers
                             affectedThungIds.Add(thungCopy.ID);   // copy được nâng cấp
 
                             thungCopy.T_copy = false;
-                            // Xoá thùng gốc hiện tại 
+                            // Xoá thùng gốc hiện tại
                             _context.Tbl_BM_16_GangLong.Remove(thung);
+                        }
+                        else
+                        {
+                            // Lệch dữ liệu: soNguoiConNhan > 0 nhưng không tìm được bản ghi copy để nâng cấp.
+                            // Fallback: reset thùng gốc như trường hợp không còn ai nhận, tránh để lại
+                            // bản ghi "mồ côi" vẫn mang T_ID_TrangThai = DaNhan khiến lần nhận kế tiếp
+                            // bị coi là "đã nhận" và sinh clone thừa (T_copy = true) trong khi dòng
+                            // Tbl_BM_16_TaiKhoan_Thung tương ứng đã bị xóa.
+                            var chuyenDen = thung.ChuyenDen ?? "";
+
+                            thung.MaThungThep = null;
+                            thung.T_ID_Kip = null;
+                            thung.NgayLuyenThep = null;
+                            thung.T_KLThungVaGang = null;
+                            thung.T_KLThungChua = null;
+                            thung.T_KLGangLong = null;
+                            thung.ThungTrungGian = null;
+                            thung.T_KLThungVaGang_Thoi = null;
+                            thung.T_KLThungChua_Thoi = null;
+                            thung.T_KLGangLongThoi = null;
+                            thung.T_GhiChu = null;
+                            thung.T_ID_NguoiLuu = null;
+                            thung.ID_LoThoi = null;
+                            thung.ID_MeThoi = null;
+                            thung.T_Ca = null;
+                            thung.T_ID_NguoiHuyNhan = payload.idNguoiHuyNhan;
+                            thung.T_ID_TrangThai = (chuyenDen == "DUC1" || chuyenDen == "DUC2") ? (int)TinhTrang.DaNhan : (int)TinhTrang.ChoXuLy;
+                            thung.ID_TTG = null;
+                            thung.T_ID_NguoiNhan = null;
+                            thung.KLGangChia = null;
+                            thung.T_ReceiveSeq = null;
+                            thung.KR = null;
+                            thung.NhietDo = null;
+                            thung.NhietDoGangVaoHRC = null;
+                            thung.KLChiaXiKR = null;
+                            thung.KLXiKR = null;
+                            thung.KLGangCCTVaXi = null;
+
+                            affectedThungIds.Add(thung.ID);
                         }
                     }
                 }
