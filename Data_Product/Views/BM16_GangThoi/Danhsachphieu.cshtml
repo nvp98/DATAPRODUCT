@@ -33,6 +33,16 @@
 }
 @{
     string search = ViewBag.Search as string ?? "";
+
+    string ngayPGValue = "";
+    if (!string.IsNullOrEmpty(ViewBag.NgayPG))
+    {
+        DateTime parsedDate;
+        if (DateTime.TryParseExact(ViewBag.NgayPG, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out parsedDate))
+        {
+            ngayPGValue = parsedDate.ToString("yyyy-MM-dd");
+        }
+    }
 }
 <style>
 	.filter-row select, .filter-row input {
@@ -103,21 +113,10 @@
 					<div class="card-header" style="border-bottom: 0px; padding-bottom:2%">
 
                       <form method="get" asp-action="Danhsachphieu" asp-controller="BM16_GangThoi" class="row g-2 align-items-center mb-3">
-                    <div class="col-auto">                 
+                    <div class="col-auto">
                         <input type="text" name="maPhieu" class="form-control form-control-sm" placeholder="Mã Phiếu" value="@ViewBag.MaPhieu" />
                     </div>
-                            @{
-                                string ngayPGValue = "";
-                                if (!string.IsNullOrEmpty(ViewBag.NgayPG))
-                                {
-                                    DateTime parsedDate;
-                                    if (DateTime.TryParseExact(ViewBag.NgayPG, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out parsedDate))
-                                    {
-                                        ngayPGValue = parsedDate.ToString("yyyy-MM-dd");
-                                    }
-                                }
-                            }
-                            <div class="col-auto">                            
+                            <div class="col-auto">
                                 <input type="date" name="NgayPG" class="form-control form-control-sm" value="@ngayPGValue" />
                             </div>
                     <div class="col-auto">
@@ -208,7 +207,10 @@
                                                asp-action="Danhsachphieu"
                                                asp-controller="BM16_GangThoi"
                                                asp-route-page="@pge"
-                                               asp-route-search="@search">
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-ngaypg="@ngayPGValue"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao">
                                                 @pge
                                             </a>
                                         </li>
@@ -220,7 +222,10 @@
                                                asp-action="Danhsachphieu"
                                                asp-controller="BM16_GangThoi"
                                                asp-route-page="@(pager.CurrentPage + 1)"
-                                               asp-route-search="@search">
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-ngaypg="@ngayPGValue"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao">
                                                 Next
                                             </a>
                                         </li>
@@ -229,7 +234,10 @@
                                                asp-action="Danhsachphieu"
                                                asp-controller="BM16_GangThoi"
                                                asp-route-page="@(pager.TotalPages)"
-                                               asp-route-search="@search">
+                                               asp-route-maPhieu="@ViewBag.MaPhieu"
+                                               asp-route-ngaypg="@ngayPGValue"
+                                               asp-route-ca="@ViewBag.Ca"
+                                               asp-route-locao="@ViewBag.TenLoCao">
                                                 Last
                                             </a>
                                         </li>

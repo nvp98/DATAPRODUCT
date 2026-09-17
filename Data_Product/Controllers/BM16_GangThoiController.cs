@@ -321,13 +321,8 @@ namespace Data_Product.Controllers
                 {
                     if (int.TryParse(locao, out int locaoId))
                     {
-                        query = query.Where(s => _context.Tbl_LoCao
-                                                  .Where(lc => lc.ID == locaoId)
-                                                  .Select(lc => lc.TenLoCao)
-                                                  .FirstOrDefault() == s.TenLoCao);
+                        query = query.Where(s => s.ID_LoCao == locaoId);
                     }
-
-
                 }
                 else
                 {
