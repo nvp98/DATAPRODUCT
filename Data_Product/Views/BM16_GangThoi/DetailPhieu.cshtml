@@ -101,6 +101,18 @@
 		border: 2px solid #ff4d4d !important;
 		background-color: #fff !important; /* Giữ nền trắng */
 	}
+
+	.cell-chenhlech-bad {
+		color: red !important;
+		font-weight: bold;
+	}
+
+	.table-main-wrapper {
+		height: calc(100vh - 180px);
+		max-height: none;
+		overflow-x: auto;
+		overflow-y: auto;
+	}
 </style>
 @if (TempData["msgSuccess"] != null)
 {
@@ -215,7 +227,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="table-responsive" style="max-height: 700px; overflow-y: auto;">
+						<div class="table-responsive" style="max-height: 75vh; overflow-y: auto;">
 							<table class="table table-bordered table-hover align-middle text-center" id="dataTable">
 								<thead class="table-light sticky-top">
 									<tr>
@@ -239,6 +251,8 @@
 										<th rowspan="2">KL thùng & gang & xe</th>
 										<th rowspan="2">KL xe goong</th>
 										<th rowspan="2">KL thùng</th>
+										<th rowspan="2">KL thùng (HRC)</th>
+										<th rowspan="2">KL chênh lệch thùng rỗng</th>
 										<th rowspan="2">KL thùng & gang lỏng</th>
 										<th rowspan="2">KL gang lỏng cân ray</th>
 										<th colspan="4">Vận chuyển đến</th>
@@ -255,6 +269,7 @@
 										<th rowspan="2">Tình trạng</th>
 										<th rowspan="2" class="toggle-col">Nơi nhận </th>
 										<th rowspan="2">KL HRC</th>
+										<th rowspan="2">KL gang chênh lệch</th>
 										<th rowspan="2">KL ĐÚC</th>
 										<th rowspan="2" class="toggle-col">Người chỉnh sửa </th>
 										<th rowspan="2">Chốt thùng</th>
@@ -343,12 +358,32 @@
 												<td>
 													<input id="KLThung_${index}" name="KhoiLuongThung" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung" style="width: 100px; padding: 4px;" disabled>
 												</td>
+												@{
+													decimal? khoiLuongThungGang = item.KL_Thung;
+													decimal? khoiLuongThungThep = item.KL_Thung_T;
+													decimal? chenhLechThung = (khoiLuongThungGang.HasValue && khoiLuongThungThep.HasValue) ? khoiLuongThungGang - khoiLuongThungThep : (decimal?)null;
+													bool isChenhLechThungBaoDong = chenhLechThung.HasValue && Math.Abs(chenhLechThung.Value) >= 5m;
+												}
+												<td name="KLThungT">
+													@(khoiLuongThungThep.HasValue ? khoiLuongThungThep.Value.ToString("0.00") : "")
+												</td>
+												<td name="ChenhLechThung" class="cell-chenhlech @(isChenhLechThungBaoDong ? "cell-chenhlech-bad" : "")" data-g="@khoiLuongThungGang" data-t="@khoiLuongThungThep">
+													@(chenhLechThung.HasValue ? chenhLechThung.Value.ToString("0.00") : "")
+												</td>
 												<td>
 													<input id="KLThungGL_${index}" name="KLThungGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_Thung_GangLong" style="width: 100px; padding: 4px;" disabled>
 												</td>
 												<td>
 													<input id="KLGLCR_${index}" name="KLGangLong" type="number" step="0.01" min="0.01" class="form-control" value="@item.KL_GangLong_CanRay" style="width: 100px; padding: 4px;" disabled>
 												</td>
+												@{
+													decimal? khoiLuongGangLongCanRay = item.KL_GangLong_CanRay;
+													decimal khoiLuongHRCTho = item.TongKL_TheoMe;
+													decimal? khoiLuongHRC = khoiLuongHRCTho > 0 ? khoiLuongHRCTho : (decimal?)null;
+													decimal? chenhLechGangLong = (khoiLuongGangLongCanRay.HasValue && khoiLuongHRC.HasValue) ? khoiLuongGangLongCanRay - khoiLuongHRC : (decimal?)null;
+													bool isChenhLechGangLongBaoDong = chenhLechGangLong.HasValue && Math.Abs(chenhLechGangLong.Value) >= 5m;
+												}
+
 												<td><input type="checkbox" name="VanChuyenHRC1" @(item.DenHRC1 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenHRC2" @(item.DenHRC2 ? "checked" : "") @disabledAttr /></td>
 												<td><input type="checkbox" name="VanChuyenDUC1" @(item.DenDuc1 ? "checked" : "") @disabledAttr /></td>
@@ -382,6 +417,9 @@
 													}
 												</td>
 												<td name="KLGangChia" style="color:red;font-weight: bold">@item.TongKL_TheoMe</td>
+												<td name="ChenhLech" class="cell-chenhlech @(isChenhLechGangLongBaoDong ? "cell-chenhlech-bad" : "")" data-g="@khoiLuongGangLongCanRay" data-t="@khoiLuongHRC">
+													@(chenhLechGangLong.HasValue? chenhLechGangLong.Value.ToString("0.00") : "")
+												</td>
 												<td name="KLDuc" style="color:red;font-weight: bold">@item.KLDuc</td>
 												<td class="toggle-col">@item.NguoiLuu</td>
 												<td name="ChotThung">
@@ -500,7 +538,7 @@
 						<span class="badge bg-info" id="leftCount">0 dòng</span>
 					</div>
 					<div class="card-body p-2">
-						<div class="table-responsive" style="max-height:480px;overflow:auto;">
+						<div class="table-responsive" style="max-height:45vh;overflow:auto;">
 							<table class="table table-sm table-bordered table-hover align-middle" id="tableLeft">
 								<thead class="table-light">
 									<tr>
@@ -535,6 +573,9 @@
 
 	(function() {
 		const escapeHtml = (str) => $('<div/>').text(str || '').html();
+
+		// Chỉ những Số mẻ nằm trong tập này mới được gửi lên khi bấm "Cập nhật"
+		let dirtySoMeSet = new Set();
 
 		const getFormParams = () => ({
 			maPhieu: $('#PhieuID').val(),
@@ -666,13 +707,20 @@
 					setTimeout(() => $row.find('td').removeClass('cell-changed'), 2000);
 				}
 			} else if (selectedValue) {
-				$row.find('td').removeClass('cell-changed');
+				const originalSoMe = $row.data('original-some') || $row.attr('data-original-some') || '';
+				if (selectedValue !== originalSoMe) {
+					dirtySoMeSet.add(selectedValue.toString());
+					$row.find('td').addClass('cell-changed');
+				} else {
+					$row.find('td').removeClass('cell-changed');
+				}
 			}
 		});
 
 		const renderLeft = (list) => {
 			const $tbody = $("#tableLeft tbody");
 			$tbody.empty();
+			dirtySoMeSet = new Set(); // Dữ liệu vừa tải lại -> chưa có gì bị sửa
 
 			if (!list || !list.length) {
 				$tbody.append(
@@ -799,6 +847,8 @@
 				const soMe = $row.find('.ip-some').val();
 
 				if (!soMe || soMe === "0") return;
+				// Chỉ gửi các dòng thuộc Số mẻ đã thực sự bị thay đổi
+				if (!dirtySoMeSet.has(soMe.toString())) return;
 
 				items.push({
 					MaPhieu: maPhieu,
@@ -820,7 +870,7 @@
 			const items = collectFromLeft();
 
 			if (!items || items.length === 0) {
-				alert('Không có dữ liệu để cập nhật. Vui lòng chọn Số mẻ cho các dòng.');
+				alert('Không có Số mẻ nào vừa thay đổi để cập nhật.');
 				return;
 			}
 
@@ -830,6 +880,7 @@
 				contentType: 'application/json; charset=utf-8',
 				data: JSON.stringify(items),
 				success: res => {
+					dirtySoMeSet = new Set(); // đã lưu xong -> reset
 					alert(res?.message || 'Đã cập nhật khối lượng theo Số mẻ.');
 					location.reload();
 				},
@@ -1343,10 +1394,11 @@
 			<tr class="tong-row" style="font-weight:bold; background-color:#f0f0f0;">
 				<td colspan="4"></td>
 				<td>${soLuongMe}</td>
-				<td colspan="13"></td>
+				<td colspan="15"></td>
 				<td>${tong.toFixed(2)}</td>
 				<td colspan="9"></td>
 				<td style="color:red;font-weight: bold">${tongKLGangChia.toFixed(2)}</td>
+				<td></td>
 				<td style="color:red;font-weight: bold">${tongKLDuc.toFixed(2)}</td>
 				<td colspan="5"></td>
 			</tr>
