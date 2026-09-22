@@ -2319,23 +2319,68 @@ namespace Data_Product.Controllers
                         return Ok(new { success = true, message = "Đã cập nhật dữ liệu." });
                     }
 
-                    // Group items theo SoMe và tính KL gang lỏng
+                    // Lấy các dòng cân ray ĐÃ được gán các Số mẻ này từ trước trong DB (kể cả những dòng
+                    // không nằm trong "items" của lần gửi này - do UI chỉ gửi lên các Số mẻ vừa thay đổi).
+                    // Nếu không gộp thêm dữ liệu cũ này, khi người dùng gán thêm 1 dòng mới cho 1 Số mẻ
+                    // đã có sẵn dòng khác thì Min_Bi/Max_Tong sẽ chỉ tính trên dòng mới, làm mất dữ liệu
+                    // của (các) dòng đã lưu trước đó thay vì gộp lại.
+                    // - Loại trừ SoMe_Cleared = 1: dòng đã bị "xóa số mẻ" không được tính lại vào tổng.
+                    // - Giới hạn theo đúng (các) lò cao xuất hiện trong items: tránh gộp nhầm dữ liệu
+                    //   giữa 2 lò cao khác nhau nếu trùng chuỗi Số mẻ.
+                    var loCaoLG1 = items
+                        .Where(x => !string.IsNullOrWhiteSpace(x.SoMe) && x.SoMe != "0" && x.ID_LoCao >= 1 && x.ID_LoCao <= 4)
+                        .Select(x => x.ID_LoCao)
+                        .Distinct()
+                        .ToList();
+                    var loCaoLG2 = items
+                        .Where(x => !string.IsNullOrWhiteSpace(x.SoMe) && x.SoMe != "0" && (x.ID_LoCao == 5 || x.ID_LoCao == 6))
+                        .Select(x => x.ID_LoCao)
+                        .Distinct()
+                        .ToList();
+
+                    var existingLG1 = await _context.Tbl_CanRayLG1
+                        .Where(x => x.BKMIS_SoMe != null && soMes.Contains(x.BKMIS_SoMe.Trim())
+                                    && x.SoMe_Cleared != true
+                                    && x.ID_LoCao.HasValue && loCaoLG1.Contains(x.ID_LoCao.Value))
+                        .Select(x => new { SoMe = x.BKMIS_SoMe.Trim(), ID_LoCao = x.ID_LoCao.Value, x.KL_Bi, x.KL_Tong })
+                        .ToListAsync();
+
+                    var existingLG2 = await _context.Tbl_CanRayLG2
+                        .Where(x => x.BKMIS_SoMe != null && soMes.Contains(x.BKMIS_SoMe.Trim())
+                                    && x.SoMe_Cleared != true
+                                    && x.BF_no.HasValue && loCaoLG2.Contains(x.BF_no.Value))
+                        .Select(x => new { SoMe = x.BKMIS_SoMe.Trim(), ID_LoCao = x.BF_no.Value, KL_Bi = x.Weight_TARE, KL_Tong = x.Weight_GROSS })
+                        .ToListAsync();
+
+                    // Group items theo SoMe và tính KL gang lỏng (gộp cả dữ liệu cũ đã lưu trong DB)
                     var groups = items
                         .Where(x => !string.IsNullOrWhiteSpace(x.SoMe) && x.SoMe != "0")
                         .GroupBy(x => x.SoMe.Trim())
-                        .Select(g => new
+                        .Select(g =>
                         {
-                            SoMe = g.Key,
-                            HasBi = g.Any(i => i.G_KLXeVaThung.HasValue),
-                            HasTong = g.Any(i => i.G_KLXeThungVaGang.HasValue),
-                            Min_Bi = g.Where(i => i.G_KLXeVaThung.HasValue)
-                                       .Select(i => i.G_KLXeVaThung!.Value)
-                                       .DefaultIfEmpty()
-                                       .Min(),
-                            Max_Tong = g.Where(i => i.G_KLXeThungVaGang.HasValue)
-                                         .Select(i => i.G_KLXeThungVaGang!.Value)
-                                         .DefaultIfEmpty()
-                                         .Max()
+                            var soMe = g.Key;
+                            var groupLoCaoIds = g.Where(i => i.ID_LoCao > 0).Select(i => i.ID_LoCao).Distinct().ToList();
+
+                            var biValues = g.Where(i => i.G_KLXeVaThung.HasValue)
+                                             .Select(i => i.G_KLXeVaThung!.Value)
+                                             .Concat(existingLG1.Where(e => e.SoMe == soMe && groupLoCaoIds.Contains(e.ID_LoCao) && e.KL_Bi.HasValue).Select(e => e.KL_Bi!.Value))
+                                             .Concat(existingLG2.Where(e => e.SoMe == soMe && groupLoCaoIds.Contains(e.ID_LoCao) && e.KL_Bi.HasValue).Select(e => e.KL_Bi!.Value))
+                                             .ToList();
+
+                            var tongValues = g.Where(i => i.G_KLXeThungVaGang.HasValue)
+                                               .Select(i => i.G_KLXeThungVaGang!.Value)
+                                               .Concat(existingLG1.Where(e => e.SoMe == soMe && groupLoCaoIds.Contains(e.ID_LoCao) && e.KL_Tong.HasValue).Select(e => e.KL_Tong!.Value))
+                                               .Concat(existingLG2.Where(e => e.SoMe == soMe && groupLoCaoIds.Contains(e.ID_LoCao) && e.KL_Tong.HasValue).Select(e => e.KL_Tong!.Value))
+                                               .ToList();
+
+                            return new
+                            {
+                                SoMe = soMe,
+                                HasBi = biValues.Any(),
+                                HasTong = tongValues.Any(),
+                                Min_Bi = biValues.DefaultIfEmpty().Min(),
+                                Max_Tong = tongValues.DefaultIfEmpty().Max()
+                            };
                         })
                         .ToList();
 
