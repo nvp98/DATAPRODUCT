@@ -91,9 +91,17 @@ namespace Data_Product.Services
 
                 // Khóa theo scope để tuần tự hóa cấp sequence
                 var lockResource = $"NHAN:{payload.ngayNhan:yyyyMMdd}|{payload.idCa}|{payload.idLoThoi}";
-                await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_getapplock @Resource = {0}, @LockMode = 'Exclusive', @LockOwner='Transaction', @LockTimeout = 15000",
-                    lockResource);
+                await AcquireAppLockAsync(lockResource);
+
+                // Khóa theo mẻ AT: 2 người cùng móc nối 1 mẻ AT phải chạy tuần tự
+                // (lock NHAN ở trên theo ngày/ca/lò nên không chặn được khi 2 người khác ngày/ca)
+                await AcquireAppLockAsync($"MOCNOI_AT:{payload.idLoThoi}|{payload.idThungAT}");
+
+                // Check mẻ AT TRƯỚC khi ghi bất kỳ dữ liệu nào (nhận thùng, clone, chia gang...)
+                var atDaSuDung = await GetBOFQuery(payload.idLoThoi)
+                    .AnyAsync(x => x.ID == payload.idThungAT && x.IsUsed == true);
+                if (atDaSuDung)
+                    throw new Exception("Mẻ gang AT đã được sử dụng.");
 
                 // Kíp
                 var kip = await (from a in _context.Tbl_Kip
@@ -396,6 +404,19 @@ namespace Data_Product.Services
                 thungTrungGian = src.thungTrungGian,
                 IsChildRun = true
             };
+        }
+
+        private async Task AcquireAppLockAsync(string resource)
+        {
+            var result = new SqlParameter("@result", SqlDbType.Int) { Direction = ParameterDirection.Output };
+            await _context.Database.ExecuteSqlRawAsync(
+                "EXEC @result = sp_getapplock @Resource = @resource, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000",
+                result,
+                new SqlParameter("@resource", resource));
+
+            // < 0: timeout / deadlock / lỗi -> không được chạy tiếp khi không giữ được lock
+            if (result.Value is int code && code < 0)
+                throw new Exception("Hệ thống đang xử lý móc nối khác, vui lòng thử lại.");
         }
 
         private async Task<int> TaoThungTrungGian(DateTime ngayNhan, int idCa, int idLoThoi, string SoThungTG, int ID_NguoiNhan, string NoiNhan)
