@@ -151,6 +151,11 @@
                                     new { @class = "form-select form-select-sm", id = "f-vattu" })
                             </div>
                             <div class="col-auto">
+                                <label class="form-label" style="font-size:13px;">Mã vật tư</label>
+                                <input type="text" id="f-ma-vattu" class="form-control form-control-sm"
+                                       placeholder="Nhập mã vật tư" style="width:150px;" />
+                            </div>
+                            <div class="col-auto">
                                 <label class="form-label" style="font-size:13px;">Phòng ban</label>
                                 @Html.DropDownList("ID_PhongBan", ViewBag.PBListBN as SelectList, "-- Tất cả --",
                                     new { @class = "form-select form-select-sm", id = "f-pb" })
@@ -357,6 +362,7 @@
             var pb = $('#f-pb').val(); if (pb) p.ID_PhongBan = pb;
             var x = $('#f-xuong').val(); if (x) p.ID_Xuong = x;
             var vt = $('#f-vattu').val(); if (vt) p.ID_VatTu = vt;
+            var maVatTu = $('#f-ma-vattu').val(); if (maVatTu && maVatTu.trim()) p.maVatTu = maVatTu.trim();
             var s = $('#f-search').val(); if (s) p.search = s;
             var tt = $('#f-trangthai').val();
             if (tt && tt.length) p.trangThaiList = tt.join(',');
@@ -455,6 +461,7 @@
             $('#f-begind').val('@ViewBag.begind');
             $('#f-endd').val('@ViewBag.endd');
             $('#f-pbBG, #f-xBG, #f-pbBN, #f-xBN, #f-pb, #f-xuong, #f-vattu').val('').trigger('chosen:updated');
+            $('#f-ma-vattu').val('');
             $('#f-transthai').val([]).trigger('chosen:updated');
             $('#f-malo').val([]).trigger('chosen:updated');
             $('#f-search').val('');

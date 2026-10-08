@@ -110,16 +110,60 @@ namespace Data_Product.Controllers
             DateTime NgayTao = DateTime.Now;
             try
             {
-                var checktk = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == _DO.TenTaiKhoan).FirstOrDefault();
-                if (checktk != null) {
+                _DO.TenTaiKhoan = _DO.TenTaiKhoan?.Trim();
+                _DO.HoVaTen = _DO.HoVaTen?.Trim();
+                _DO.Email = _DO.Email?.Trim();
+                _DO.SoDienThoai = _DO.SoDienThoai?.Trim();
+
+                if (string.IsNullOrWhiteSpace(_DO.TenTaiKhoan) ||
+                    string.IsNullOrWhiteSpace(_DO.HoVaTen) ||
+                    string.IsNullOrWhiteSpace(_DO.MatKhau) ||
+                    _DO.ID_PhongBan <= 0 || _DO.ID_PhanXuong == null ||
+                    _DO.ID_ChucVu == null || _DO.ID_Quyen == null)
+                {
+                    TempData["msgError"] = "<script>alert('Vui lòng nhập mã nhân viên, họ tên, mật khẩu và chọn đầy đủ phòng ban, phân xưởng, chức vụ, quyền đăng nhập.');</script>";
+                    return RedirectToAction("Index", "TaiKhoan");
+                }
+
+                if (_DO.TenTaiKhoan.Length > 50 || _DO.HoVaTen.Length > 100 || _DO.MatKhau.Length > 255 ||
+                    (_DO.Email?.Length ?? 0) > 100 || (_DO.SoDienThoai?.Length ?? 0) > 20)
+                {
+                    TempData["msgError"] = "<script>alert('Thông tin vượt quá độ dài cho phép.');</script>";
+                    return RedirectToAction("Index", "TaiKhoan");
+                }
+
+                if (!string.IsNullOrWhiteSpace(_DO.Email))
+                {
+                    try
+                    {
+                        var parsedEmail = new System.Net.Mail.MailAddress(_DO.Email);
+                        if (!string.Equals(parsedEmail.Address, _DO.Email, StringComparison.OrdinalIgnoreCase))
+                            throw new FormatException();
+                    }
+                    catch (FormatException)
+                    {
+                        TempData["msgError"] = "<script>alert('Địa chỉ email không hợp lệ.');</script>";
+                        return RedirectToAction("Index", "TaiKhoan");
+                    }
+                }
+
+                if (await _context.Tbl_TaiKhoan.AnyAsync(x => x.TenTaiKhoan == _DO.TenTaiKhoan))
+                {
                     TempData["msgError"] = "<script>alert('Tài khoản đã tồn tại');</script>";
                     return RedirectToAction("Index", "TaiKhoan");
                 }
-                if(_DO.ID_PhanXuong == null || _DO.ID_Quyen == null || _DO.ID_ChucVu == null)
+
+                var phongBanHopLe = await _context.Tbl_PhongBan.AnyAsync(x => x.ID_PhongBan == _DO.ID_PhongBan);
+                var phanXuongHopLe = await _context.Tbl_Xuong.AnyAsync(x =>
+                    x.ID_Xuong == _DO.ID_PhanXuong && x.ID_PhongBan == _DO.ID_PhongBan);
+                var chucVuHopLe = await _context.Tbl_ViTri.AnyAsync(x => x.ID_ViTri == _DO.ID_ChucVu);
+                var quyenHopLe = await _context.Tbl_Quyen.AnyAsync(x => x.ID_Quyen == _DO.ID_Quyen);
+                if (!phongBanHopLe || !phanXuongHopLe || !chucVuHopLe || !quyenHopLe)
                 {
-                    TempData["msgError"] = "<script>alert('Kiểm tra lại thông tin');</script>";
+                    TempData["msgError"] = "<script>alert('Thông tin phòng ban, phân xưởng, chức vụ hoặc quyền đăng nhập không hợp lệ.');</script>";
                     return RedirectToAction("Index", "TaiKhoan");
                 }
+
                 var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_TaiKhoan_insert {0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}",
                                                                _DO.TenTaiKhoan, Encryptor.MD5Hash(_DO.MatKhau), _DO.HoVaTen, _DO.ID_PhongBan, _DO.ID_PhanXuong, _DO.ID_ChucVu, 
                                                                _DO.Email, _DO.SoDienThoai, NgayTao, _DO.ID_Quyen, null, 1);

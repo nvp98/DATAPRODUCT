@@ -2912,7 +2912,7 @@ namespace Data_Product.Controllers
             int? ID_PhongBanBN = null, int? ID_XuongBN = null,
             int? ID_PhongBan = null, int? ID_Xuong = null,
             string? trangThaiList = null, string? maLoList = null,
-            int? ID_VatTu = null, string? search = null,
+            int? ID_VatTu = null, string? maVatTu = null, string? search = null,
             int page = 1, int pageSize = 50)
         {
             DateTime now = DateTime.Now;
@@ -3079,6 +3079,7 @@ namespace Data_Product.Controllers
 
             if (!string.IsNullOrWhiteSpace(search))
             {
+                search = search.Trim();
                 query = query.Where(x =>
                     (x.a.SoPhieu != null &&
                      x.a.SoPhieu.Contains(search))
@@ -3086,7 +3087,16 @@ namespace Data_Product.Controllers
                     ||
 
                     (x.vt.TenVatTu != null &&
-                     x.vt.TenVatTu.Contains(search)));
+                     x.vt.TenVatTu.Contains(search)) ||
+                    (x.vt.MaVatTu_Sap != null &&
+                     x.vt.MaVatTu_Sap.Contains(search)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(maVatTu))
+            {
+                var maVatTuFilter = maVatTu.Trim();
+                query = query.Where(x => x.vt.MaVatTu_Sap != null &&
+                    x.vt.MaVatTu_Sap.Contains(maVatTuFilter));
             }
 
             //-----------------------------------
@@ -3195,7 +3205,7 @@ namespace Data_Product.Controllers
             int? ID_PhongBanBN = null, int? ID_XuongBN = null,
             int? ID_PhongBan = null, int? ID_Xuong = null,
             string? trangThaiList = null, string? maLoList = null,
-            int? ID_VatTu = null, string? search = null)
+            int? ID_VatTu = null, string? maVatTu = null, string? search = null)
         {
             try
             {
@@ -3277,9 +3287,18 @@ namespace Data_Product.Controllers
 
                 if (!string.IsNullOrWhiteSpace(search))
                 {
+                    search = search.Trim();
                     exportQuery = exportQuery.Where(x =>
                         (x.a.SoPhieu != null && x.a.SoPhieu.Contains(search)) ||
-                        (x.vt.TenVatTu != null && x.vt.TenVatTu.Contains(search)));
+                        (x.vt.TenVatTu != null && x.vt.TenVatTu.Contains(search)) ||
+                        (x.vt.MaVatTu_Sap != null && x.vt.MaVatTu_Sap.Contains(search)));
+                }
+
+                if (!string.IsNullOrWhiteSpace(maVatTu))
+                {
+                    var maVatTuFilter = maVatTu.Trim();
+                    exportQuery = exportQuery.Where(x => x.vt.MaVatTu_Sap != null &&
+                        x.vt.MaVatTu_Sap.Contains(maVatTuFilter));
                 }
 
                 var data = await exportQuery.OrderByDescending(x => x.a.ThoiGianXuLyBG).ToListAsync();

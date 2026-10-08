@@ -15,31 +15,31 @@
                 <div style="display: flex;padding-bottom: 1.5%;">
                     <div class="col-md-6">
                         <label for="inputName5" class="form-label">Mã nhân viên</label>
-                        @Html.EditorFor(model => model.TenTaiKhoan, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.EditorFor(model => model.TenTaiKhoan, new { htmlAttributes = new { @class = "form-control", placeholder = "", required = "required", maxlength = "50" } })
                         @Html.ValidationMessageFor(model => model.TenTaiKhoan, "", new { @class = "text-danger" })
                     </div>
                     <div class="col-md-6" style="padding-left: 1.5%;">
                         <label for="inputPassword5" class="form-label">Họ và tên</label>
-                        @Html.EditorFor(model => model.HoVaTen, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.EditorFor(model => model.HoVaTen, new { htmlAttributes = new { @class = "form-control", placeholder = "", required = "required", maxlength = "100" } })
                         @Html.ValidationMessageFor(model => model.HoVaTen, "", new { @class = "text-danger" })
                     </div>
                 </div>
                 <div style="display: flex;padding-bottom: 1.5%;">
                     <div class="col-md-6">
                         <label for="inputEmail5" class="form-label">Email</label>
-                        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control", placeholder = "", type = "email", maxlength = "100" } })
                         @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
                     </div>
                     <div class="col-md-6" style="padding-left: 1.5%;">
                         <label for="inputPassword5" class="form-label">Mật khẩu</label>
-                        @Html.EditorFor(model => model.MatKhau, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.PasswordFor(model => model.MatKhau, new { @class = "form-control", required = "required", maxlength = "255", autocomplete = "new-password" })
                         @Html.ValidationMessageFor(model => model.MatKhau, "", new { @class = "text-danger" })
                     </div>
                 </div>
                 <div style="display: flex;padding-bottom: 1.5%;">
                     <div class="col-md-6">
                         <label for="inputEmail5" class="form-label">Phòng ban</label>
-                        @Html.DropDownListFor(model => model.ID_PhongBan, ViewBag.PBList as SelectList, "----- Chọn BP/NM ------", new {  @style="text-align: center;", @id = "IDPhongBan", @class = "form-control" })
+                        @Html.DropDownListFor(model => model.ID_PhongBan, ViewBag.PBList as SelectList, "----- Chọn BP/NM ------", new {  @style="text-align: center;", @id = "IDPhongBan", @class = "form-control", required = "required" })
                         @Html.ValidationMessageFor(model => model.ID_PhongBan, "", new { @class = "text-danger" })
                     </div>
                     <script type="text/javascript">
@@ -61,25 +61,25 @@
                     </script>
                     <div class="col-md-6" style="padding-left: 1.5%;">
                         <label for="inputPassword5" class="form-label">Phân xưởng</label>
-                        @Html.DropDownListFor(model => model.ID_PhanXuong, ViewBag.XList as SelectList, "----- Chọn phân xưởng ------", new {  @style="text-align: center;", @id = "IDPhanXuong", @class = "form-control" })
+                        @Html.DropDownListFor(model => model.ID_PhanXuong, ViewBag.XList as SelectList, "----- Chọn phân xưởng ------", new {  @style="text-align: center;", @id = "IDPhanXuong", @class = "form-control", required = "required" })
                         @Html.ValidationMessageFor(model => model.ID_PhanXuong, "", new { @class = "text-danger" })
                     </div>
                 </div>
                 <div style="display: flex;padding-bottom: 1.5%;">
                     <div class="col-md-6">
                         <label for="inputEmail5" class="form-label">Chức vụ</label>
-                        @Html.DropDownListFor(model => model.ID_ChucVu, ViewBag.VTList as SelectList, "----- Chọn chức vụ ------", new {  @style="text-align: center;", @id = "IDChucVu", @class = "form-control" })
+                        @Html.DropDownListFor(model => model.ID_ChucVu, ViewBag.VTList as SelectList, "----- Chọn chức vụ ------", new {  @style="text-align: center;", @id = "IDChucVu", @class = "form-control", required = "required" })
                         @Html.ValidationMessageFor(model => model.ID_ChucVu, "", new { @class = "text-danger" })
                     </div>
                     <div class="col-md-6" style="padding-left: 1.5%;">
                         <label for="inputPassword5" class="form-label">Số điện thoại</label>
-                        @Html.EditorFor(model => model.SoDienThoai, new { htmlAttributes = new { @class = "form-control", placeholder = "", @id = "" } })
+                        @Html.EditorFor(model => model.SoDienThoai, new { htmlAttributes = new { @class = "form-control", placeholder = "", maxlength = "20" } })
                         @Html.ValidationMessageFor(model => model.SoDienThoai, "", new { @class = "text-danger" })
                     </div>
                 </div>
                 <div class="col-md-12" style="padding-bottom: 1.5%;">
                     <label for="inputEmail5" class="form-label">Quyền đăng nhập</label>
-                    @Html.DropDownListFor(model => model.ID_Quyen, ViewBag.QList as SelectList, "----- Chọn quyền đăng nhập ------", new {  @style="text-align: center;", @id = "IDQuyen", @class = "form-control" })
+                    @Html.DropDownListFor(model => model.ID_Quyen, ViewBag.QList as SelectList, "----- Chọn quyền đăng nhập ------", new {  @style="text-align: center;", @id = "IDQuyen", @class = "form-control", required = "required" })
                     @Html.ValidationMessageFor(model => model.ID_Quyen, "", new { @class = "text-danger" })
                 </div>
                 <div class="col-md-12" style="padding-bottom: 1.5%;">
