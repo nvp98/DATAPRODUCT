@@ -3,6 +3,7 @@ using Data_Product.Repositorys;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 
 namespace Data_Product.Controllers
@@ -78,13 +79,45 @@ namespace Data_Product.Controllers
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
-            var token = "token";
+            var pwd = HttpContext.Session.GetString("_v2pwd");
+            if (pwd != null)
+            {
+                HttpContext.Session.Remove("_v2pwd");
+                var jwt = await FetchV2TokenAsync(TaiKhoan.TenTaiKhoan, pwd);
+                if (!string.IsNullOrEmpty(jwt))
+                    HttpContext.Session.SetString("_v2token", jwt);
+            }
+            var token = HttpContext.Session.GetString("_v2token") ?? "";
 
             ViewBag.Token = token;
             ViewBag.User = JsonSerializer.Serialize(user);
             ViewBag.Userinfo = JsonSerializer.Serialize(userinfo, options);
             ViewBag.UserName = JsonSerializer.Serialize(user.name);
             return View();
+        }
+        private async Task<string> FetchV2TokenAsync(string username, string password)
+        {
+            try
+            {
+                using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+                var payload = JsonSerializer.Serialize(new { username, password });
+                var content = new StringContent(payload, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("https://report.hoaphatdungquat.vn:60528/api/TaiKhoan/login", content);
+                if (!response.IsSuccessStatusCode) return "";
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+                foreach (var prop in new[] { "token", "accessToken", "access_token", "Token", "AccessToken" })
+                {
+                    if (root.TryGetProperty(prop, out var val))
+                        return val.GetString() ?? "";
+                }
+                return "";
+            }
+            catch
+            {
+                return "";
+            }
         }
     }
 }

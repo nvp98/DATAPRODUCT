@@ -39,6 +39,8 @@ namespace Data_Product.Controllers
 
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
+                    HttpContext.Session.SetString("_v2pwd", u.MatKhau);
+
                     //return RedirectToAction("Index", "Home");
                     return RedirectToAction("Index", "Dashboard");
 
