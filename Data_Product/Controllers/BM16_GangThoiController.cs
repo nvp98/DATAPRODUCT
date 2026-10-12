@@ -2445,14 +2445,14 @@ namespace Data_Product.Controllers
                                         && i.SoMe.Trim() == grp.SoMe
                                         && i.CanRayId.HasValue
                                         && i.ID_LoCao > 0)
-                            .Select(i => new { Id = i.CanRayId!.Value, BfNo = i.ID_LoCao })
-                            .Distinct()
+                            .GroupBy(i => new { Id = i.CanRayId!.Value, BfNo = i.ID_LoCao })
+                            .Select(g => new { g.Key.Id, g.Key.BfNo, GhiChu = g.First().G_GhiChu })
                             .ToList();
-
-                        var ghiChu = items.FirstOrDefault(i => i.SoMe != null && i.SoMe.Trim() == grp.SoMe)?.G_GhiChu;
 
                         foreach (var it in relatedById)
                         {
+                            // Mỗi dòng cân ray giữ ghi chú riêng của nó, không dùng chung ghi chú của dòng khác cùng mẻ
+                            var ghiChu = it.GhiChu;
                             if (it.BfNo >= 1 && it.BfNo <= 4)
                             {
                                 await _context.Database.ExecuteSqlRawAsync(
