@@ -595,15 +595,38 @@
 				$row.find('td').removeClass('cell-changed');
 			}, duration);
 		};
-
 		const initSoMeSelectAjax = ($select) => {
 			if ($select.data('init') === 'true') return;
-
+			const currentSelect = $select;
 			$select.select2({
 				width: '100%',
 				placeholder: 'Chọn Số mẻ',
 				allowClear: true,
 				dropdownParent: $('#doubleAutoCollapse'),
+				// Hiển thị ngay trong danh sách xổ xuống, TRƯỚC khi bấm chọn:
+				// - Đỏ đậm: Số mẻ lệch giờ > 3h so với giờ chốt gang của dòng đang chọn.
+				// - Xanh: Số mẻ đã có khối lượng từ trước (chọn vào sẽ gộp thêm dòng mới).
+				templateResult: function(data) {
+					if (!data.warning && !data.hasKL) {
+						return data.text;
+					}
+
+					const ghiChuLines = [];
+					if (data.hasKL) {
+						ghiChuLines.push('<small style="color:#0d6efd;">ℹ Đã có khối lượng — chọn sẽ gộp thêm dòng mới</small>');
+					}
+					if (data.warning) {
+						ghiChuLines.push(`<small style="color:#dc3545;">⚠ Lệch ${data.diffHour} giờ so với giờ chốt gang</small>`);
+					}
+
+					return $(`
+						<div style="${data.warning ? 'color:#dc3545;font-weight:bold' : ''}">
+							${escapeHtml(data.text)}
+							<br/>
+							${ghiChuLines.join('<br/>')}
+						</div>
+					`);
+				},
 				ajax: {
 					url: '/BM16_GangThoi/GetAllSoMe',
 					delay: 300,
@@ -613,8 +636,30 @@
 						take: 100,
 						select2: true
 					}),
-					processResults: data => {
+					processResults: function(data) {
+						const $row = currentSelect.closest('tr');
+						const gioChotGang = $row.data('gioiso');
+						const gioChot = gioChotGang ? new Date(gioChotGang) : null;
+
+						if (gioChot && !isNaN(gioChot.getTime())) {
+							data.forEach(x => {
+								// BE (GetAllSoMe) đã quy đổi BKMIS_Gio về đúng DateTime thực
+								// (có xét Ca 1/Ca 2 vắt qua nửa đêm), nên chỉ cần parse trực tiếp.
+								if (!x.gioSoMe) return;
+
+								const gioSoMe = new Date(x.gioSoMe);
+								if (isNaN(gioSoMe.getTime())) return;
+
+								const diffHour = Math.abs(gioChot - gioSoMe) / (1000 * 60 * 60);
+								if (diffHour > 3) {
+									x.warning = true;
+									x.diffHour = diffHour.toFixed(1);
+								}
+							});
+						}
+
 						data.push({ id: "0", text: "Khác" });
+
 						return { results: data };
 					}
 				}

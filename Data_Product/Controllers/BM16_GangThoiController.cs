@@ -2025,21 +2025,77 @@ namespace Data_Product.Controllers
                 query = query.Where(x => x.BKMIS_SoMe.Contains(term));
             }
 
-            var list = await query
-                .Select(x => x.BKMIS_SoMe.Trim())
-                .Distinct()
-                .OrderBy(x => x)
-                .Take(take)
+            // Group theo Số mẻ để biết mẻ đó ĐÃ có khối lượng (từ 1 lần SaveAutoMapping trước đó) hay chưa,
+            // giúp người dùng biết trước là chọn vào sẽ gộp thêm dòng mới vào KL đã có.
+            // Lấy dữ liệu thô rồi gom nhóm trên bộ nhớ (EF không dịch được các biểu thức lồng trong GroupBy).
+            var rows = await query
+                .Select(x => new
+                {
+                    x.BKMIS_SoMe,
+                    x.BKMIS_Gio,
+                    x.NgayTao,
+                    x.G_Ca,
+                    HasKL = x.G_KLXeVaThung.HasValue || x.G_KLXeThungVaGang.HasValue
+                })
                 .ToListAsync();
+
+            var list = rows
+                .GroupBy(x => x.BKMIS_SoMe.Trim())
+                .Select(g => new
+                {
+                    SoMe = g.Key,
+                    GioSoMe = g.Select(i => i.BKMIS_Gio).FirstOrDefault(v => v != null),
+                    NgayTao = g.Select(i => i.NgayTao).FirstOrDefault(),
+                    Ca = g.Select(i => i.G_Ca).FirstOrDefault(),
+                    HasKL = g.Any(i => i.HasKL)
+                })
+                .OrderBy(x => x.SoMe)
+                .Take(take)
+                .ToList();
 
             if (select2)
             {
 
-                var result = list.Select(v => new { id = v, text = v });
+                //var result = list.Select(v => new { id = v, text = v });
+                var result = list.Select(v => new
+                {
+                    id = v.SoMe,
+                    text = v.SoMe,
+                    gioSoMe = TinhGioSoMeThucTe(v.GioSoMe, v.NgayTao, v.Ca),
+                    hasKL = v.HasKL
+                });
                 return Ok(result);
             }
 
             return Ok(list);
+        }
+
+        // BKMIS_Gio chỉ lưu giờ dạng chuỗi "HH'H'mm" (VD: "09H19"), không có ngày.
+        // Ca 1: 08:00-20:00 (cùng ngày NgayTao). Ca 2: 20:00-08:00 hôm sau
+        // (giờ >= 20h thuộc ngày NgayTao, giờ < 8h thuộc ngày NgayTao + 1).
+        // Hàm này quy đổi về đúng DateTime thực để so sánh chênh lệch giờ với giờ chốt gang (cân ray).
+        private static DateTime? TinhGioSoMeThucTe(string? gio, DateTime? ngayTao, int? ca)
+        {
+            if (string.IsNullOrWhiteSpace(gio) || !ngayTao.HasValue)
+                return null;
+
+            var match = System.Text.RegularExpressions.Regex.Match(
+                gio.Trim(), @"^(\d{1,2})H(\d{1,2})$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            if (!match.Success)
+                return null;
+
+            var gioTri = int.Parse(match.Groups[1].Value);
+            var phutTri = int.Parse(match.Groups[2].Value);
+            if (gioTri > 23 || phutTri > 59)
+                return null;
+
+            var ngay = ngayTao.Value.Date;
+            if (ca == 2 && gioTri < 8)
+                ngay = ngay.AddDays(1);
+
+            return ngay.AddHours(gioTri).AddMinutes(phutTri);
         }
 
 
@@ -2507,7 +2563,6 @@ namespace Data_Product.Controllers
                         @"UPDATE Tbl_CanRayLG1 
                   SET BKMIS_SoMe = NULL, 
                       OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe),
-                      Ghi_Chu = NULL, 
                       SoMe_Cleared = 1 
                   WHERE ID = {0} AND ID_LoCao = {1}",
                         request.CanRayId, request.ID_LoCao);
@@ -2519,7 +2574,6 @@ namespace Data_Product.Controllers
                         @"UPDATE Tbl_CanRayLG2 
                   SET BKMIS_SoMe = NULL, 
                       OriginalSoMe = ISNULL(OriginalSoMe, BKMIS_SoMe),
-                      Ghi_Chu = NULL, 
                       SoMe_Cleared = 1 
                   WHERE ID = {0} AND BF_no = {1}",
                         request.CanRayId, request.ID_LoCao);
