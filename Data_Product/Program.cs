@@ -41,6 +41,8 @@ builder.Services.AddScoped<IChiaGangService, ChiaGangService>();
 
 builder.Services.AddScoped<GetBkmisService>();
 
+builder.Services.AddHttpClient<IV2AuthService, V2AuthService>();
+
 builder.Services.AddDbContext<DataContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString") ?? throw new InvalidOperationException("Connection string 'ConnectionString' not found.")));
 

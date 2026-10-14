@@ -6,6 +6,7 @@ using System.Security.Claims;
 using Data_Product.Models;
 using Data_Product.Repositorys;
 using Data_Product.Common;
+using Data_Product.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Data_Product.Controllers
@@ -13,10 +14,12 @@ namespace Data_Product.Controllers
     public class DangNhapController : Controller
     {
         private readonly DataContext _context;
+        private readonly IV2AuthService _v2Auth;
 
-        public DangNhapController(DataContext _context)
+        public DangNhapController(DataContext _context, IV2AuthService v2Auth)
         {
             this._context = _context;
+            _v2Auth = v2Auth;
         }
         public IActionResult Index()
         {
@@ -25,40 +28,56 @@ namespace Data_Product.Controllers
         [HttpPost]
         public async Task<IActionResult> DangNhapTaiKhoan(Tbl_TaiKhoan u)
         {
-            if (u.TenTaiKhoan != "" && u.MatKhau != "" && u.TenTaiKhoan != null && u.MatKhau != null)
-            {
-                string mk = Common.Encryptor.MD5Hash(u.MatKhau);
-                Tbl_TaiKhoan? user = _context.Tbl_TaiKhoan?.Where(x => x.TenTaiKhoan == u.TenTaiKhoan && x.MatKhau == mk && x.ID_TrangThai ==1)?.FirstOrDefault();
-                if (user != null)
-                {
-                    var identity = new ClaimsIdentity(new[] {
-                    new Claim(ClaimTypes.Name, user?.TenTaiKhoan)
-                    }, CookieAuthenticationDefaults.AuthenticationScheme);
-
-                    var principal = new ClaimsPrincipal(identity);
-
-                    var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-                    HttpContext.Session.SetString("_v2pwd", u.MatKhau);
-
-                    //return RedirectToAction("Index", "Home");
-                    return RedirectToAction("Index", "Dashboard");
-
-                }
-                else
-                {
-                    TempData["msglg"] = "<script>alert('Tài khoản hoặc mật khẩu không đúng, liên hệ B.CNTT nếu bạn quên mật khẩu')</script>";
-                    return RedirectToAction("", "DangNhap");
-                }
-            }
-            else
+            if (string.IsNullOrWhiteSpace(u.TenTaiKhoan) || string.IsNullOrEmpty(u.MatKhau))
             {
                 TempData["msglg"] = "<script>alert('Vui lòng nhập tài khoản và mật khẩu')</script>";
                 return RedirectToAction("", "DangNhap");
             }
+
+            // Xóa token cũ (nếu có) trước khi đăng nhập
+            Response.Cookies.Delete(V2AuthService.TokenCookieName);
+
+            // 1. Ưu tiên đăng nhập qua API v2
+            string? tenTaiKhoan = null;
+            var token = await _v2Auth.LoginAsync(u.TenTaiKhoan, u.MatKhau);
+            if (token != null)
+            {
+                tenTaiKhoan = u.TenTaiKhoan;
+                Response.Cookies.Append(V2AuthService.TokenCookieName, token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = Request.IsHttps,
+                    SameSite = SameSiteMode.Lax
+                });
+            }
+            else
+            {
+                // 2. API v2 lỗi -> kiểm tra DB như cũ
+                string mk = Common.Encryptor.MD5Hash(u.MatKhau);
+                var user = await _context.Tbl_TaiKhoan
+                    .FirstOrDefaultAsync(x => x.TenTaiKhoan == u.TenTaiKhoan && x.MatKhau == mk && x.ID_TrangThai == 1);
+                tenTaiKhoan = user?.TenTaiKhoan;
+            }
+
+            if (tenTaiKhoan == null)
+            {
+                TempData["msglg"] = "<script>alert('Tài khoản hoặc mật khẩu không đúng, liên hệ B.CNTT nếu bạn quên mật khẩu')</script>";
+                return RedirectToAction("", "DangNhap");
+            }
+
+            var identity = new ClaimsIdentity(new[] {
+                new Claim(ClaimTypes.Name, tenTaiKhoan)
+            }, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
+
+            //return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Dashboard");
         }
         public async Task<IActionResult> DangXuatTaiKhoan()
         {
+            Response.Cookies.Delete(V2AuthService.TokenCookieName);
+            HttpContext.Session.Clear();
             await HttpContext.SignOutAsync();
             return RedirectToAction("Index", "DangNhap");
 

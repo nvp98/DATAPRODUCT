@@ -117,6 +117,10 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @*    @await RenderSectionAsync("Scripts", required: false)*@
+    <script>
+        // Về trang đăng nhập (đăng xuất / hết phiên) -> xóa token v2 và thông tin user lưu ở trình duyệt
+        ["token", "user", "username", "userinfo"].forEach(function (k) { localStorage.removeItem(k); });
+    </script>
 
 </body>
 
