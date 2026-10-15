@@ -244,83 +244,142 @@ namespace Data_Product.Controllers
             ViewBag.IDXuong = new SelectList(_context.Tbl_Xuong.ToList(), "ID_Xuong", "TenXuong", IDXuong);
             ViewBag.XuongSelect = IDXuong ?? 0;
 
-            var query = from a in _context.Tbl_NhatKy_SanXuat.Where(x => !x.IsDelete && x.NgayDungSX >= startDay && x.NgayDungSX <= endDay)
-                        join b in _context.Tbl_TaiKhoan on a.ID_NhanVien_SX equals b.ID_TaiKhoan into gj
-                        from b in gj.DefaultIfEmpty()
-                            //let c = chiTietQuery.Where(x => x.ID_NhatKy == a.ID).ToList()
-                        let btbd = _context.Tbl_TaiKhoan.FirstOrDefault(x => x.ID_TaiKhoan == a.ID_NhanVien_BTBD)
-                        let xuong = _context.Tbl_Xuong.FirstOrDefault(x => x.ID_Xuong == a.ID_Xuong_SX)
-                        select new Tbl_NhatKy_SanXuat
-                        {
-                            ID = a.ID,
-                            Ca = a.Ca,
-                            Kip = a.Kip,
-                            NgayDungSX = a.NgayDungSX,
-                            TinhTrang = a.TinhTrang,
-                            SoPhieu = a.SoPhieu,
-                            NgayTao = a.NgayTao,
-                            Tbl_TaiKhoan = b,
-                            //NhatKy_SanXuat_ChiTiet = c != null ? c : new List<Tbl_NhatKy_SanXuat_ChiTiet>(),
-                            ID_PhongBan_SX = a.ID_PhongBan_SX,
-                            IsLock = a.IsLock,
-                            TinhTrangCheckPhieu = _context.Tbl_PKHXuLyPhieu.FirstOrDefault(x => x.ID_NKDSX == a.ID && x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan) != null ? 1 : 0,
-                            ID_NhanVien_BTBD = a.ID_NhanVien_BTBD,
-                            HoTen_NhanVien_BTBD = (btbd.TenTaiKhoan ?? "") + " - " + (btbd.HoVaTen ?? ""),
-                            TenXuong_SX = xuong.TenXuong ?? "",
-                            GhiChu = a.GhiChu,
-                            ID_Xuong_SX = a.ID_Xuong_SX
-                        };
-
-
-            //Set quyền 
-            List<string> ListPB = new List<string>();
-            List<int> ListPBInt = new List<int>();
-            if (TaiKhoan.PhongBan_Them != null)
-            {
-                ListPB = TaiKhoan.PhongBan_Them.Split(',').Select(item => item.Trim()).ToList();
-                foreach (var item in ListPB)
-                {
-                    var pb = _context.Tbl_PhongBan.Where(x => x.TenNgan == item.Trim()).FirstOrDefault();
-                    if (pb != null) ListPBInt.Add(pb.ID_PhongBan);
-                }
-            }
-            // Filter Phòng ban Bổ sung
-            if (TaiKhoan.ID_Quyen > 3)
-            {
-                if (TaiKhoan.ID_Quyen != 8)
-                {
-                    query = query.Where(x =>
-                                     x.ID_PhongBan_SX == TaiKhoan.ID_PhongBan
-                                     || dsPhongBanXL.Contains(x.ID_PhongBan_SX)
-                                     || ListPBInt.Contains((int)x.ID_PhongBan_SX)
-                                     || x.ID_NhanVien_BTBD == TaiKhoan.ID_TaiKhoan);
-                }
-            }
-
-            // Áp dụng điều kiện lọc nếu có
-            if (ID_TrangThai != null) query = query.Where(x => x.TinhTrang == ID_TrangThai);
-            if (IDCa != null) query = query.Where(x => x.Ca == IDCa);
-            if (IDPhongBan != null) query = query.Where(x => x.ID_PhongBan_SX == IDPhongBan);
-            if (IDXuong != null) query = query.Where(x => x.ID_Xuong_SX == IDXuong);
-            if (LyDoDung != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.ID_NhatKy == x.ID && a.LyDo_DungThietBi == LyDoDung));
-            //if (startDay != default && endDay != default) query = query.Where(x => x.NgayDungSX >= startDay && x.NgayDungSX <= endDay);
-            if (noidungDung != null) query = query.Where(x => _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(a => a.ID_NhatKy == x.ID && (!string.IsNullOrEmpty(a.NoiDungDung) && a.NoiDungDung.ToLower().Contains(noidungDung.ToLower()))));
-
-            // Thực thi truy vấn tại đây
-            var res = await query.OrderByDescending(x => x.NgayDungSX).ToListAsync();
-
 
             const int pageSize = 20;
-            if (page < 1)
+            page = Math.Max(page, 1);
+
+            var query =
+                from a in _context.Tbl_NhatKy_SanXuat.AsNoTracking()
+                where !a.IsDelete
+                   && a.NgayDungSX >= startDay
+                   && a.NgayDungSX <= endDay
+
+                join b0 in _context.Tbl_TaiKhoan
+                    on a.ID_NhanVien_SX equals b0.ID_TaiKhoan into gj
+                from b in gj.DefaultIfEmpty()
+
+                join btbd0 in _context.Tbl_TaiKhoan
+                    on a.ID_NhanVien_BTBD equals btbd0.ID_TaiKhoan into gjBtbd
+                from btbd in gjBtbd.DefaultIfEmpty()
+
+                join xuong0 in _context.Tbl_Xuong
+                    on a.ID_Xuong_SX equals xuong0.ID_Xuong into gjXuong
+                from xuong in gjXuong.DefaultIfEmpty()
+
+                select new Tbl_NhatKy_SanXuat
+                {
+                    ID = a.ID,
+                    Ca = a.Ca,
+                    Kip = a.Kip,
+                    NgayDungSX = a.NgayDungSX,
+                    TinhTrang = a.TinhTrang,
+                    SoPhieu = a.SoPhieu,
+                    NgayTao = a.NgayTao,
+                    Tbl_TaiKhoan = b,
+
+                    ID_PhongBan_SX = a.ID_PhongBan_SX,
+                    IsLock = a.IsLock,
+
+                    TinhTrangCheckPhieu =
+                        _context.Tbl_PKHXuLyPhieu.Any(x =>
+                            x.ID_NKDSX == a.ID &&
+                            x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan)
+                        ? 1 : 0,
+
+                    ID_NhanVien_BTBD = a.ID_NhanVien_BTBD,
+
+                    HoTen_NhanVien_BTBD =
+                        (btbd.TenTaiKhoan ?? "") + " - " +
+                        (btbd.HoVaTen ?? ""),
+
+                    TenXuong_SX = xuong.TenXuong ?? "",
+                    GhiChu = a.GhiChu,
+                    ID_Xuong_SX = a.ID_Xuong_SX
+                };
+
+            // Phân quyền
+            var listPBInt = new List<int>();
+
+            if (TaiKhoan.PhongBan_Them != null)
             {
-                page = 1;
+                var listPB = TaiKhoan.PhongBan_Them
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim())
+                    .ToList();
+
+                listPBInt = await _context.Tbl_PhongBan
+                    .Where(x => listPB.Contains(x.TenNgan))
+                    .Select(x => x.ID_PhongBan)
+                    .ToListAsync();
             }
-            int resCount = res.Count;
+
+            if (TaiKhoan.ID_Quyen > 3 && TaiKhoan.ID_Quyen != 8)
+            {
+                query = query.Where(x =>
+                    x.ID_PhongBan_SX == TaiKhoan.ID_PhongBan ||
+                    dsPhongBanXL.Contains(x.ID_PhongBan_SX) ||
+                    listPBInt.Contains((int)x.ID_PhongBan_SX) ||
+                    x.ID_NhanVien_BTBD == TaiKhoan.ID_TaiKhoan);
+            }
+
+            // Bộ lọc
+            if (ID_TrangThai != null)
+                query = query.Where(x => x.TinhTrang == ID_TrangThai);
+
+            if (IDCa != null)
+                query = query.Where(x => x.Ca == IDCa);
+
+            if (IDPhongBan != null)
+                query = query.Where(x => x.ID_PhongBan_SX == IDPhongBan);
+
+            if (IDXuong != null)
+                query = query.Where(x => x.ID_Xuong_SX == IDXuong);
+
+            if (LyDoDung != null)
+            {
+                query = query.Where(x =>
+                    _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(c =>
+                        c.ID_NhatKy == x.ID &&
+                        c.LyDo_DungThietBi == LyDoDung));
+            }
+
+            if (!string.IsNullOrWhiteSpace(noidungDung))
+            {
+                string noiDungFilter = noidungDung.Trim().ToLower();
+
+                query = query.Where(x =>
+                    _context.Tbl_NhatKy_SanXuat_ChiTiet.Any(c =>
+                        c.ID_NhatKy == x.ID &&
+                        c.NoiDungDung != null &&
+                        c.NoiDungDung.ToLower().Contains(noiDungFilter)));
+            }
+
+            // Đếm trực tiếp trên SQL Server
+            int resCount = await query.CountAsync();
+
             var pager = new Pager(resCount, page, pageSize);
+
+            // Nếu page vượt tổng số trang, đưa về trang cuối
+            if (pager.TotalPages > 0 && page > pager.TotalPages)
+            {
+                page = pager.TotalPages;
+                pager = new Pager(resCount, page, pageSize);
+            }
+
             int recSkip = (page - 1) * pageSize;
-            var data = res.Skip(recSkip).Take(pager.PageSize).ToList();
-            this.ViewBag.Pager = pager;
+
+            // Chỉ lấy dữ liệu của trang hiện tại
+            var data = await query
+                .OrderByDescending(x => x.NgayDungSX)
+                .ThenByDescending(x => x.ID)
+                .Skip(recSkip)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Pager = pager;
+
             return View(data);
+
         }
 
 
