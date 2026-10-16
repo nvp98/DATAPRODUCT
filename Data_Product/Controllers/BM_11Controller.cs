@@ -2913,6 +2913,7 @@ namespace Data_Product.Controllers
             int? ID_PhongBan = null, int? ID_Xuong = null,
             string? trangThaiList = null, string? maLoList = null,
             int? ID_VatTu = null, string? maVatTu = null, string? search = null,
+            int? ca = null,
             int page = 1, int pageSize = 50)
         {
             DateTime now = DateTime.Now;
@@ -2985,6 +2986,12 @@ namespace Data_Product.Controllers
                 bienBanQuery = bienBanQuery.Where(x =>
                     x.ID_Xuong_BG == ID_Xuong ||
                     x.ID_Xuong_BN == ID_Xuong);
+            }
+
+            if (ca.HasValue)
+            {
+                var caValue = ca.Value.ToString();
+                bienBanQuery = bienBanQuery.Where(x => x.Ca != null && x.Ca == caValue);
             }
 
             //-----------------------------------
@@ -3112,6 +3119,7 @@ namespace Data_Product.Controllers
                     SoPhieu = x.a.SoPhieu,
                     ThoiGianXuLyBG = x.a.ThoiGianXuLyBG,
                     Kip = x.a.Kip,
+                    Ca = x.a.Ca,
 
                     TenPhongBan_BG = x.pbBG.TenPhongBan,
                     TenXuong_BG = x.xBG.TenXuong,
@@ -3150,6 +3158,7 @@ namespace Data_Product.Controllers
                     soPhieu = x.SoPhieu ?? "",
                     ngay = x.ThoiGianXuLyBG.ToString("dd/MM/yyyy"),
                     kip = x.Kip ?? "",
+                    ca = x.Ca ?? "",
 
                     pbBG = x.TenPhongBan_BG ?? "",
                     xuongBG = x.TenXuong_BG ?? "",
