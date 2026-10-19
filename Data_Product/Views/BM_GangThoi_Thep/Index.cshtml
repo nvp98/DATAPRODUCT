@@ -1035,17 +1035,19 @@
             const ttgKey = hasCopyVal ? tg.maThungTG_Copy : (tg.maThungTG || '');
             const isNhap = tg.isNhap;
 
-            thungs.forEach(thung => {
+            thungs.forEach((thung, thungIdx) => {
               const tinhTrangHTML = (typeof renderStatusCard === 'function') ? renderStatusCard(thung.iD_TrangThai) : (thung.iD_TrangThai ?? '');
               const disabled        = thung.iD_TrangThai === 5 ? 'disabled' : '';
               const disabledInputKL = thung.iD_TrangThai === 5 || phongBan === "HRC1" ? 'disabled' : '';
               const maChiaNorm = normKey(thung.maChiaGang);
               const isSaiChuyenDen = thung.isSaiChuyenDen;
+              const isTTGHead = thungIdx === 0;
               let row = `<tr data-ttgkey="${ttgKey}"
                              data-mathungtg="${tg.maThungTG || ''}"
                              data-mathunggang="${thung.maThungGang || ''}"
                              data-mathungthep="${thung.maThungThep || ''}"
                              data-id="${thung.id || ''}"
+                             data-ttghead="${isTTGHead}"
                              data-machia="${maChiaNorm}"`;
               if (hasCopyVal) row += ` data-mathungcopy="${tg.maThungTG_Copy}"`;
               row += ` data-copy="${isCopyTTG}">`;
@@ -2027,10 +2029,11 @@
         function tinhKLGangLong($row) {
             const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
             const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
-            
-            const maThungTG = $row.data('mathungtg');
-            const $rowGroupHead = $(`#IDtbXuLySoLieu tr[data-mathungtg="${maThungTG}"]`).first();
-            const isFirstRow = $row.is($rowGroupHead); 
+
+            // Hàng đầu nhóm TTG được đánh dấu cố định lúc render (data-ttghead),
+            // không suy luận lại bằng $(...).first() theo thứ tự DOM tại thời điểm tính,
+            // vì input .KLPhe chỉ còn tồn tại duy nhất trên hàng đầu sau khi applyMerge() xoá các hàng còn lại.
+            const isFirstRow = $row.attr('data-ttghead') === 'true';
 
             let KLGangLong = 0;
 
@@ -2038,10 +2041,10 @@
                 KLGangLong = KLThungVaGangLong - KLThung;
 
                 if (isFirstRow) {
-                    const KLPhe = parseFloat($rowGroupHead.find('.KLPhe').val());
-                    if (!isNaN(KLPhe)) {
-                        KLGangLong -= KLPhe;
-                    }
+                    const rawKLPhe = parseFloat($row.find('.KLPhe').val());
+                    // KLPhe chỉ được phép làm GIẢM KLGangLong, không bao giờ làm tăng
+                    const KLPhe = (!isNaN(rawKLPhe) && rawKLPhe > 0) ? rawKLPhe : 0;
+                    KLGangLong -= KLPhe;
                 }
             }
 
