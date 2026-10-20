@@ -147,10 +147,10 @@ namespace Data_Product.API
                         KLGang_Thoi = reader.IsDBNull(reader.GetOrdinal("KLGang_Thoi")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGang_Thoi")),
                         //NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo")) ? 0 : reader.GetDecimal(reader.GetOrdinal("NhietDo")),
                         //KlGangNhan = reader.IsDBNull(reader.GetOrdinal("Tong_KLGangNhan")) ? 0 : reader.GetDecimal(reader.GetOrdinal("Tong_KLGangNhan")),
-                        NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo"))? 0: reader.GetDecimal(reader.GetOrdinal("NhietDo")), //(Đã đổi giá trị cột NhietDo thành NhietDoGangVaoHRC vẫn giữ NhietDo để không viết lại API)
+                        NhietDo = reader.IsDBNull(reader.GetOrdinal("NhietDo")) ? 0 : reader.GetDecimal(reader.GetOrdinal("NhietDo")), //(Đã đổi giá trị cột NhietDo thành NhietDoGangVaoHRC vẫn giữ NhietDo để không viết lại API)
                         KLGangTheoMe = reader.IsDBNull(reader.GetOrdinal("KLGangTheoMe")) ? 0 : reader.GetDecimal(reader.GetOrdinal("KLGangTheoMe")),
                         MaMeThoi = reader["MaMeThoi"]?.ToString(),
-                        NhietDo_LG = reader.IsDBNull(reader.GetOrdinal("Temp")) ? 0: reader.GetInt32(reader.GetOrdinal("Temp")),
+                        NhietDo_LG = reader.IsDBNull(reader.GetOrdinal("Temp")) ? 0 : reader.GetInt32(reader.GetOrdinal("Temp")),
                         ChuyenDen = reader["ChuyenDen"]?.ToString(),
                     };
 
@@ -170,7 +170,7 @@ namespace Data_Product.API
                      ChuyenDen = g.First().ChuyenDen,
 
                      // Gom danh sách MeThoi từ các bản ghi trùng GroupKey
-                     MeThoi = g.Where(x => !string.IsNullOrEmpty(x.MaMeThoi)) 
+                     MeThoi = g.Where(x => !string.IsNullOrEmpty(x.MaMeThoi))
                                .Select(x => new MeThoiDto
                                {
                                    KLGangTheoMe = x.KLGangTheoMe,
@@ -586,9 +586,9 @@ namespace Data_Product.API
                             ca = phieu.Ca,
                             kip = phieu.Kip,
                             //idKip = phieu.ID_Kip,
-                            //idPhongBanSX = phieu.ID_PhongBan_SX,
+                            idPhongBanSX = phieu.ID_PhongBan_SX,
                             tenPhongBanSX = item.TenPhongBan,
-                            //idXuongSX = phieu.ID_Xuong_SX,
+                            idXuongSX = phieu.ID_Xuong_SX,
                             tenXuongSX = item.TenXuong,
                             tinhTrang = GetTinhTrangNhatKySX(phieu.TinhTrang),
                             //tinhTrangText = GetTinhTrangNhatKySX(phieu.TinhTrang),

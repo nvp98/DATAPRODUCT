@@ -19,5 +19,9 @@ namespace Data_Product.Models
         public double KL_QuyKho_BN { get; set; }
         public string? GhiChu { get; set; }
         public int ID_BBGN { get; set; }
+        [NotMapped]
+        public string? TenNhomVatTu { get; set; }
+        [NotMapped]
+        public int? HienThiBM { get; set; }
     }
 }

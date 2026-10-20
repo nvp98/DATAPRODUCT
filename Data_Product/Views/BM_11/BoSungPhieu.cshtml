@@ -376,7 +376,8 @@
                                     <thead>
                                         <tr style="font-size:14px;">
                                             <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
-                                            <th class="text-center" rowspan="3" width="400px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Tên NVL 2</th>
                                             <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
                                             <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
                                             <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
@@ -487,6 +488,7 @@
                                                                                     }
                                                                                 </select>
                                                                             </td>
+                                                                            <td style='font-size:14px;vertical-align:middle;padding:4px;' id='nhom_${i}'></td>
                                                                              <td >
                                                                                     <select class="form-control marginTB5 SelectDV" name="NoiDung_${i}" id="NoiDung_${i}" disabled="disabled">
                                                                                        <option value ='null'>--Đơn vị tính--</option>
@@ -577,6 +579,9 @@
                 else {
                     $("#lo_" + id).empty();
                 }
+            });
+            $.get("/BM_11/GetNhomVatTu", { IDVatTu: $(this).val() }, function (data) {
+                $("#nhom_" + id).text(data.tenNhomVatTu);
             });
              @*setTimeout(() => {
                 $("#lo_" + id).trigger("chosen:updated");

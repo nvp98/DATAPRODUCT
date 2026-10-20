@@ -34,6 +34,7 @@ namespace Data_Product.Controllers
                                  TenNhomVatTu = vt.TenNhomVatTu,
                                  PhongBan = a.PhongBan,
                                  ID_TrangThai = (int?)a.ID_TrangThai ?? default,
+                                 HienThiBM = a.HienThiBM,
                              }).ToListAsync();
             if (search != null)
             {
@@ -81,8 +82,8 @@ namespace Data_Product.Controllers
                     }
                     var ListGate = string.Join(", ", Name);
 
-                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6}",
-                    _DO.TenVatTu, _DO.MaVatTu_Sap, _DO.TenVatTu_Sap, _DO.DonViTinh, _DO.ID_NhomVatTu, ListGate, 1);
+                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6},{7}",
+                    _DO.TenVatTu, _DO.MaVatTu_Sap, _DO.TenVatTu_Sap, _DO.DonViTinh, _DO.ID_NhomVatTu, ListGate, 1, _DO.HienThiBM ?? 0);
                 }
                 else
                 {
@@ -123,7 +124,8 @@ namespace Data_Product.Controllers
                                  ID_NhomVatTu = (int)a.ID_NhomVatTu,
                                  TenNhomVatTu = vt.TenNhomVatTu,
                                  PhongBan = a.PhongBan,
-                                 ID_TrangThai = (int?)a.ID_TrangThai ?? default
+                                 ID_TrangThai = (int?)a.ID_TrangThai ?? default,
+                                 HienThiBM = a.HienThiBM,
                              }).ToListAsync();
 
             Tbl_VatTu DO = new Tbl_VatTu();
@@ -139,6 +141,7 @@ namespace Data_Product.Controllers
                     DO.ID_NhomVatTu = a?.ID_NhomVatTu;
                     DO.PhongBan = a.PhongBan;
                     DO.ID_TrangThai = (int?)a.ID_TrangThai ?? default;
+                    DO.HienThiBM = a.HienThiBM;
                 }
                 List<Tbl_NhomVatTu> vt = _context.Tbl_NhomVatTu.ToList();
                 ViewBag.VTList = new SelectList(vt, "ID_NhomVatTu", "TenNhomVatTu", DO.ID_NhomVatTu);
@@ -199,15 +202,15 @@ namespace Data_Product.Controllers
                        
                     }
                     var ListGate = string.Join(",", Name);
-                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_update {0},{1},{2},{3},{4},{5},{6}", id,
-                             _DO.TenVatTu, _DO.MaVatTu_Sap, _DO.TenVatTu_Sap, _DO.DonViTinh, _DO.ID_NhomVatTu, ListGate);
+                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_update {0},{1},{2},{3},{4},{5},{6},{7}", id,
+                             _DO.TenVatTu, _DO.MaVatTu_Sap, _DO.TenVatTu_Sap, _DO.DonViTinh, _DO.ID_NhomVatTu, ListGate, _DO.HienThiBM ?? 0);
                 }
                 else
                 {
                     var DO = _context.Tbl_VatTu.Where(x => x.ID_VatTu == _DO.ID_VatTu).FirstOrDefault();
 
-                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_update {0},{1},{2},{3},{4},{5},{6}", id,
-                        _DO.TenVatTu, _DO.MaVatTu_Sap, _DO.TenVatTu_Sap, _DO.DonViTinh, _DO.ID_NhomVatTu, DO.PhongBan);
+                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_update {0},{1},{2},{3},{4},{5},{6},{7}", id,
+                        _DO.TenVatTu, _DO.MaVatTu_Sap, _DO.TenVatTu_Sap, _DO.DonViTinh, _DO.ID_NhomVatTu, DO.PhongBan, _DO.HienThiBM ?? 0);
 
                 }
                 TempData["msgSuccess"] = "<script>alert('Chỉnh sửa thành công');</script>";
@@ -367,27 +370,27 @@ namespace Data_Product.Controllers
                             {
                                 if(TenNhom == "")
                                 {
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6}",
-                                TenNguyenLieu, null, TenVatTu_Sap, DonViTinh, null, TenBP, 1);
+                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6},{7}",
+                                TenNguyenLieu, null, TenVatTu_Sap, DonViTinh, null, TenBP, 1, 0);
                                 }
                                 else
                                 {
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6}",
-                               TenNguyenLieu, null, TenVatTu_Sap, DonViTinh, check_nhom.ID_NhomVatTu, TenBP, 1);
+                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6},{7}",
+                               TenNguyenLieu, null, TenVatTu_Sap, DonViTinh, check_nhom.ID_NhomVatTu, TenBP, 1, 0);
                                 }
-                               
-                            }   
+
+                            }
                             else
                             {
                                 if(TenNhom == "")
                                 {
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6}",
-                            TenNguyenLieu, MaVatTu_Sap, TenVatTu_Sap, DonViTinh, null, TenBP, 1);
+                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6},{7}",
+                            TenNguyenLieu, MaVatTu_Sap, TenVatTu_Sap, DonViTinh, null, TenBP, 1, 0);
                                 }
                                 else
                                 {
-                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6}",
-                            TenNguyenLieu, MaVatTu_Sap, TenVatTu_Sap, DonViTinh, check_nhom.ID_NhomVatTu, TenBP, 1);
+                                    var result = _context.Database.ExecuteSqlRaw("EXEC Tbl_VatTu_insert {0},{1},{2},{3},{4},{5},{6},{7}",
+                            TenNguyenLieu, MaVatTu_Sap, TenVatTu_Sap, DonViTinh, check_nhom.ID_NhomVatTu, TenBP, 1, 0);
                                 }
                                
                             }    

@@ -56,6 +56,8 @@
 
     var ListCTBBGN = await (from a in _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == ID)
                             join vt in _context.Tbl_VatTu on a.ID_VatTu equals vt.ID_VatTu
+                            join nhom in _context.Tbl_NhomVatTu on vt.ID_NhomVatTu equals nhom.ID_NhomVatTu into nhomG
+                            from nhom in nhomG.DefaultIfEmpty()
                             select new Tbl_ChiTiet_BienBanGiaoNhan
                             {
                                 ID_CT_BBGN = a.ID_CT_BBGN,
@@ -69,7 +71,9 @@
                                 KhoiLuong_BN = (double)a.KhoiLuong_BN,
                                 KL_QuyKho_BN = (double)a.KL_QuyKho_BN,
                                 GhiChu = a.GhiChu,
-                                ID_BBGN = a.ID_BBGN
+                                ID_BBGN = a.ID_BBGN,
+                                TenNhomVatTu = nhom != null ? nhom.TenNhomVatTu : null,
+                                HienThiBM = vt.HienThiBM,
                             }).ToListAsync();
 
 }
@@ -225,7 +229,9 @@
                                                                 }
                                                             </td>
                                                             <td style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;">
-                                                                @item.TenVatTu
+                                                                @(item.HienThiBM == 1 && !string.IsNullOrEmpty(item.TenNhomVatTu)
+                                                                    ? item.TenNhomVatTu
+                                                                    : item.TenVatTu)
                                                             </td>
                                                             <td class="text-center"
                                                                 style="font-size:14px;vertical-align:middle;padding:8px; border: 1px solid black;text-align:center">

@@ -265,6 +265,7 @@
                                             <th class="text-center" colspan="2" style="vertical-align:middle;">Bên nhận</th>
                                             <th class="text-center" rowspan="2" style="vertical-align:middle;">Tên
                                                 nguyên/nhiên/vật tư</th>
+                                                <th class="text-center" rowspan="2" style="vertical-align:middle;">Tên NVL 2</th>
                                                 <th class="text-center" rowspan="2" style="vertical-align:middle;">ĐVT</th>
                                                 <th class="text-center" rowspan="2" style="vertical-align:middle;">Mã lô</th>
                                                 <th class="text-center" rowspan="2" style="vertical-align:middle;">W (%)</th>
@@ -289,13 +290,13 @@
                                         </thead>
                                         <tbody id="tbody-main">
                                             <tr>
-                                                <td colspan="18" class="text-center py-3 text-muted">Nhấn Lọc để tải dữ liệu
+                                                <td colspan="19" class="text-center py-3 text-muted">Nhấn Lọc để tải dữ liệu
                                                 </td>
                                             </tr>
                                         </tbody>
                                         <tfoot>
                                             <tr style="font-size:13px;font-weight:bold;background-color:#f9f9f9;">
-                                                <td colspan="12" class="text-center">Tổng cộng</td>
+                                                <td colspan="13" class="text-center">Tổng cộng</td>
                                                 <td class="text-end" id="tfoot-kl-bg">-</td>
                                                 <td class="text-end" id="tfoot-qk-bg">-</td>
                                                 <td class="text-end" id="tfoot-kl-bn">-</td>
@@ -382,7 +383,7 @@
             var rowNum = (res.page - 1) * res.pageSize + 1;
 
             if (!res.data || res.data.length === 0) {
-            html = '<tr><td colspan="18" class="text-center py-3 text-muted">Không có dữ liệu</td></tr>';
+            html = '<tr><td colspan="19" class="text-center py-3 text-muted">Không có dữ liệu</td></tr>';
             } else {
             $.each(res.data, function (i, row) {
             var lockStyle = row.isLock ? 'background-color:#fff3cd;' : '';
@@ -400,6 +401,7 @@
             html += '<td style="vertical-align:middle;">' + (row.pbBN || '') + '</td>';
             html += '<td style="vertical-align:middle;">' + (row.xuongBN || '') + '</td>';
             html += '<td style="vertical-align:middle;">' + (row.tenVatTu || '') + '</td>';
+            html += '<td style="vertical-align:middle;">' + (row.tenNhomVatTu || '') + '</td>';
             html += '<td class="text-center" style="vertical-align:middle;">' + (row.dvt || '') + '</td>';
             html += '<td class="text-center" style="vertical-align:middle;">' + (row.maLo || '') + '</td>';
             html += '<td class="text-end" style="vertical-align:middle;">' + (row.doAmW || '') + '</td>';

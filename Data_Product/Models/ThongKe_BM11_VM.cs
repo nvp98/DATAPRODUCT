@@ -16,6 +16,7 @@ namespace Data_Product.Models
         public string? TenPhongBan_BN { get; set; }
         public string? TenXuong_BN { get; set; }
         public string? TenVatTu { get; set; }
+        public string? TenNhomVatTu { get; set; }
         public string? DonViTinh { get; set; }
         public string? MaLo { get; set; }
         public double DoAm_W { get; set; }

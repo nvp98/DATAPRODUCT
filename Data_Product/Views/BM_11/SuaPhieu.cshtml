@@ -287,7 +287,8 @@
                                     <thead>
                                         <tr style="font-size:14px;">
                                             <th width="50px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">TT</th>
-                                            <th class="text-center" rowspan="3" width="500px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="350px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Tên NVL 2</th>
                                             <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
                                             <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
                                             <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
@@ -319,6 +320,9 @@
                                                 @{
                                                     int count = item.ID_CT_BBGN + 100;
                                                     var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item.ID_VatTu).FirstOrDefault();
+                                                    var NhomVT_SP = ID_VT?.ID_NhomVatTu.HasValue == true
+                                                        ? _context.Tbl_NhomVatTu.Where(x => x.ID_NhomVatTu == ID_VT.ID_NhomVatTu).FirstOrDefault()
+                                                        : null;
                                                     //var ID_MaLo = _context.Tbl_MaLo.Where(x => x.TenMaLo.Contains(item.MaLo.Trim())).FirstOrDefault();
                                                     var ID_PB = _context.Tbl_PhongBan.Where(x => x.ID_PhongBan == ID_BBGN.ID_PhongBan_BG).FirstOrDefault();
                                                     var List = _context.Tbl_VatTu.ToList();
@@ -355,6 +359,9 @@
                                                             
                                                         }
                                                     </select>
+                                                </td>
+                                                <td style="font-size:14px;vertical-align:middle;padding:4px;" id="nhom_@count">
+                                                    @NhomVT_SP?.TenNhomVatTu
                                                 </td>
                                                 <td class="text-center" style="font-size:14px;vertical-align:middle;">
                                                     <input class='form-control' cols='20' id='donvitinh_@count' name='donvitinh_@count' placeholder='Đơn vị tính' rows='1' value=" @ID_VT?.DonViTinh" disabled="disabled"></input>
@@ -512,6 +519,7 @@
                                                                                 }
                                                                                 </select>
                                                                             </td>
+                                                                            <td style='font-size:14px;vertical-align:middle;padding:4px;' id='nhom_${i}'></td>
                                                                              <td >
                                                                                      <select class="form-control marginTB5 SelectDV" name="NoiDung_${i}" id="NoiDung_${i}" disabled="disabled">
                                                                                     <option value ='null'>--Đơn vị tính--</option>
@@ -600,6 +608,9 @@
                 else {
                     $("#lo_" + id).empty();
                 }
+            });
+            $.get("/BM_11/GetNhomVatTu", { IDVatTu: $(this).val() }, function (data) {
+                $("#nhom_" + id).text(data.tenNhomVatTu);
             });
             $("#NoiDung_" + id).trigger("chosen:updated");
         }

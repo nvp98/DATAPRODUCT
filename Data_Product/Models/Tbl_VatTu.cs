@@ -13,6 +13,7 @@ namespace Data_Product.Models
         public string? TenVatTu_Sap { get; set; }
         public string? DonViTinh { get; set; }
         public int? ID_NhomVatTu { get; set; }
+        public int? HienThiBM { get; set; }
         [NotMapped]
         public string? TenNhomVatTu { get; set; }
         public string? PhongBan { get; set; }

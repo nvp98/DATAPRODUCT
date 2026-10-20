@@ -401,7 +401,8 @@
                                     <thead>
                                         <tr style="font-size:14px;">
                                             <th width="30px" rowspan="3" style="vertical-align:middle;background-color: #f9f9f9">STT</th>
-                                            <th class="text-center" rowspan="3" width="400px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Tên nguyên/ nhiên/ phụ liệu</th>
+                                            <th class="text-center" rowspan="3" width="150px" style="vertical-align:middle;background-color: #f9f9f9">Tên NVL 2</th>
                                             <th class="text-center" rowspan="3" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Đơn vị tính</th>
                                             <th class="text-center" rowspan="3" width="300px" style="vertical-align:middle;background-color: #f9f9f9">Lô</th>
                                             <th class="text-center" colspan="5" width="200px" style="vertical-align:middle;background-color: #f9f9f9">Khối lượng vào/ra trong kíp</th>
@@ -517,11 +518,12 @@
                                                                               @foreach (var item in ViewBag.VTList)
                                                                                 {
                                                                                   <option value='@item.Value'>@item.Text</option>
-                                                                                  
+
                                                                                 }
                                                                             </select>
-                        
+
                                                                         </td>
+                                                                        <td id="nhom_${i}" style="font-size:14px;vertical-align:middle;padding:4px;"></td>
                                                                          <td >
                                                                                 <select class="form-control marginTB5 SelectDV" name="NoiDung_${i}" id="NoiDung_${i}" disabled="disabled">
                                                                                    <option value ='null'>--Đơn vị tính--</option>
@@ -592,11 +594,14 @@
                     $("#NoiDung_" + id).empty();
                     $.each(data1, function (index, row) {
                         $("#NoiDung_" + id).append("<option value ='" + row.iD_VatTu + "' selected>" + row.donViTinh + "</option>")
-                    });            
+                    });
                 }
                 else {
                     $("#NoiDung_" + id).empty();
                 }
+            });
+            $.get("/BM_11/GetNhomVatTu", { IDVatTu: $(this).val() }, function (data) {
+                $("#nhom_" + id).text(data.tenNhomVatTu);
             });
             $.get("/BM_11/MaLo", { IDVatTu: $(this).val() }, function (data1) {
                 $("#lo_" + id).empty();

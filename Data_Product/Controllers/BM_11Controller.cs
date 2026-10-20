@@ -288,11 +288,15 @@ namespace Data_Product.Controllers
         {
             var res = await (from a in _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == id)
                              join vt in _context.Tbl_VatTu on a.ID_VatTu equals vt.ID_VatTu
+                             join nhom in _context.Tbl_NhomVatTu on vt.ID_NhomVatTu equals nhom.ID_NhomVatTu into nhomGroup
+                             from nhom in nhomGroup.DefaultIfEmpty()
                              select new Tbl_ChiTiet_BienBanGiaoNhan
                              {
                                  ID_CT_BBGN = a.ID_CT_BBGN,
                                  ID_VatTu = a.ID_VatTu,
                                  TenVatTu = vt.TenVatTu,
+                                 TenNhomVatTu = nhom != null ? nhom.TenNhomVatTu : null,
+                                 HienThiBM = vt.HienThiBM,
                                  DonViTinh = vt.DonViTinh,
                                  MaLo = a.MaLo,
                                  DoAm_W = (double)a.DoAm_W,
@@ -1512,6 +1516,15 @@ namespace Data_Product.Controllers
 
             return Json(dvt);
         }
+        public IActionResult GetNhomVatTu(int IDVatTu)
+        {
+            var vt = _context.Tbl_VatTu.Where(x => x.ID_VatTu == IDVatTu).FirstOrDefault();
+            if (vt == null) return Json(new { tenNhomVatTu = "", hienThiBM = 0 });
+            var nhom = vt.ID_NhomVatTu.HasValue
+                ? _context.Tbl_NhomVatTu.Where(x => x.ID_NhomVatTu == vt.ID_NhomVatTu).FirstOrDefault()
+                : null;
+            return Json(new { tenNhomVatTu = nhom?.TenNhomVatTu ?? "", hienThiBM = vt.HienThiBM ?? 0 });
+        }
         public async Task<IActionResult> MaLo(int IDVatTu)
         {
             var dvt = await (from a in _context.Tbl_MaLo.Where(x => x.ID_TinhTrang == 1)
@@ -1958,6 +1971,14 @@ namespace Data_Product.Controllers
                 IXLWorksheet Worksheet = Workbook.Worksheet("BBGN");
                 var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == BBGN_ID).FirstOrDefault();
                 var Data = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == BBGN_ID).ToList();
+                Worksheet.Column(6).InsertColumnsBefore(1);
+                Worksheet.Cell(7, 6).Value = "Tên NVL 2";
+                Worksheet.Cell(7, 6).Style.Font.SetFontName("Times New Roman");
+                Worksheet.Cell(7, 6).Style.Font.SetFontSize(13);
+                Worksheet.Cell(7, 6).Style.Font.Bold = true;
+                Worksheet.Cell(7, 6).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                Worksheet.Cell(7, 6).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                Worksheet.Cell(7, 6).Style.Alignment.WrapText = true;
                 int row = 8, stt = 0, icol = 1;
                 if (Data.Count > 0)
                 {
@@ -2003,9 +2024,18 @@ namespace Data_Product.Controllers
                         }
 
                         var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item.ID_VatTu).FirstOrDefault();
+                        var NhomVT = ID_VT?.ID_NhomVatTu.HasValue == true
+                            ? _context.Tbl_NhomVatTu.Where(x => x.ID_NhomVatTu == ID_VT.ID_NhomVatTu).FirstOrDefault()
+                            : null;
 
                         icol++;
                         Worksheet.Cell(row, icol).Value = ID_VT.TenVatTu;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = NhomVT?.TenNhomVatTu ?? "";
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -2122,10 +2152,10 @@ namespace Data_Product.Controllers
 
                     }
 
-                    Worksheet.Range("A7:T" + (row)).Style.Font.SetFontName("Times New Roman");
-                    Worksheet.Range("A7:T" + (row)).Style.Font.SetFontSize(13);
-                    Worksheet.Range("A7:T" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                    Worksheet.Range("A7:T" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                    Worksheet.Range("A7:U" + (row)).Style.Font.SetFontName("Times New Roman");
+                    Worksheet.Range("A7:U" + (row)).Style.Font.SetFontSize(13);
+                    Worksheet.Range("A7:U" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    Worksheet.Range("A7:U" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
 
                     Workbook.SaveAs(fileNamemaunew);
@@ -2166,6 +2196,14 @@ namespace Data_Product.Controllers
                 if (begind != null) startDay = (DateTime)begind;
                 if (endd != null) endDay = (DateTime)endd;
 
+                Worksheet.Column(6).InsertColumnsBefore(1);
+                Worksheet.Cell(7, 6).Value = "Tên NVL 2";
+                Worksheet.Cell(7, 6).Style.Font.SetFontName("Times New Roman");
+                Worksheet.Cell(7, 6).Style.Font.SetFontSize(13);
+                Worksheet.Cell(7, 6).Style.Font.Bold = true;
+                Worksheet.Cell(7, 6).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                Worksheet.Cell(7, 6).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                Worksheet.Cell(7, 6).Style.Alignment.WrapText = true;
                 int row = 8, stt = 0, icol = 1;
                 var BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => !x.IsDelete).ToList();
                 if (startDay != null & endDay != null)
@@ -2266,9 +2304,18 @@ namespace Data_Product.Controllers
                         }
 
                         var ID_VT = _context.Tbl_VatTu.Where(x => x.ID_VatTu == item.ID_VatTu).FirstOrDefault();
+                        var NhomVT_All = ID_VT?.ID_NhomVatTu.HasValue == true
+                            ? _context.Tbl_NhomVatTu.Where(x => x.ID_NhomVatTu == ID_VT.ID_NhomVatTu).FirstOrDefault()
+                            : null;
 
                         icol++;
                         Worksheet.Cell(row, icol).Value = ID_VT?.TenVatTu;
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = NhomVT_All?.TenNhomVatTu ?? "";
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -3055,6 +3102,10 @@ namespace Data_Product.Controllers
                 join vt in _context.Tbl_VatTu.AsNoTracking()
                     on b.ID_VatTu equals vt.ID_VatTu
 
+                join nhom in _context.Tbl_NhomVatTu.AsNoTracking()
+                    on vt.ID_NhomVatTu equals nhom.ID_NhomVatTu into nhomGroup
+                from nhom in nhomGroup.DefaultIfEmpty()
+
                 join pbBG in _context.Tbl_PhongBan.AsNoTracking()
                     on a.ID_PhongBan_BG equals pbBG.ID_PhongBan
 
@@ -3077,6 +3128,7 @@ namespace Data_Product.Controllers
                     a,
                     b,
                     vt,
+                    nhom,
                     pbBG,
                     pbBN,
                     xBG,
@@ -3128,6 +3180,7 @@ namespace Data_Product.Controllers
                     TenXuong_BN = x.xBN.TenXuong,
 
                     TenVatTu = x.vt.TenVatTu,
+                    TenNhomVatTu = x.nhom != null ? x.nhom.TenNhomVatTu : null,
                     DonViTinh = x.vt.DonViTinh,
 
                     MaLo = x.b.MaLo,
@@ -3167,6 +3220,7 @@ namespace Data_Product.Controllers
                     xuongBN = x.TenXuong_BN ?? "",
 
                     tenVatTu = x.TenVatTu ?? "",
+                    tenNhomVatTu = x.TenNhomVatTu ?? "",
                     dvt = x.DonViTinh ?? "",
 
                     maLo = x.MaLo ?? "",
@@ -3286,13 +3340,15 @@ namespace Data_Product.Controllers
                     from a in bienBanQuery
                     join b in chiTietQuery on a.ID_BBGN equals b.ID_BBGN
                     join vt in _context.Tbl_VatTu.AsNoTracking() on b.ID_VatTu equals vt.ID_VatTu
+                    join nhom in _context.Tbl_NhomVatTu.AsNoTracking() on vt.ID_NhomVatTu equals nhom.ID_NhomVatTu into nhomGroup
+                    from nhom in nhomGroup.DefaultIfEmpty()
                     join pbBG in _context.Tbl_PhongBan.AsNoTracking() on a.ID_PhongBan_BG equals pbBG.ID_PhongBan
                     join pbBN in _context.Tbl_PhongBan.AsNoTracking() on a.ID_PhongBan_BN equals pbBN.ID_PhongBan
                     join xBG in _context.Tbl_Xuong.AsNoTracking() on a.ID_Xuong_BG equals xBG.ID_Xuong
                     join xBN in _context.Tbl_Xuong.AsNoTracking() on a.ID_Xuong_BN equals xBN.ID_Xuong
                     join kip in _context.Tbl_Kip.AsNoTracking() on a.ID_Kip equals kip.ID_Kip into kipGroup
                     from kip in kipGroup.DefaultIfEmpty()
-                    select new { a, b, vt, pbBG, pbBN, xBG, xBN, kip };
+                    select new { a, b, vt, nhom, pbBG, pbBN, xBG, xBN, kip };
 
                 if (!string.IsNullOrWhiteSpace(search))
                 {
@@ -3311,6 +3367,15 @@ namespace Data_Product.Controllers
                 }
 
                 var data = await exportQuery.OrderByDescending(x => x.a.ThoiGianXuLyBG).ToListAsync();
+
+                Worksheet.Column(6).InsertColumnsBefore(1);
+                Worksheet.Cell(7, 6).Value = "Tên NVL 2";
+                Worksheet.Cell(7, 6).Style.Font.SetFontName("Times New Roman");
+                Worksheet.Cell(7, 6).Style.Font.SetFontSize(13);
+                Worksheet.Cell(7, 6).Style.Font.Bold = true;
+                Worksheet.Cell(7, 6).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                Worksheet.Cell(7, 6).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                Worksheet.Cell(7, 6).Style.Alignment.WrapText = true;
 
                 int row = 8, stt = 0, icol;
                 foreach (var item in data)
@@ -3339,6 +3404,12 @@ namespace Data_Product.Controllers
                     icol++;
 
                     Worksheet.Cell(row, icol).Value = item.vt?.TenVatTu ?? "";
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.nhom?.TenNhomVatTu ?? "";
                     Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                     Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;

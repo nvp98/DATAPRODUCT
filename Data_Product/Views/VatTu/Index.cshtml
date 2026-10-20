@@ -122,6 +122,7 @@
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Tên BP/NM</th>
                                         <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Đơn vị tính</th>
                                         <th class="text-center"    width="200px" style="vertical-align:middle;background-color: #f7f7f7;">Nhóm vật tư</th>
+                                        <th class="text-center"    width="120px" style="vertical-align:middle;background-color: #f7f7f7;">Hiển thị BM</th>
                                         <th class="text-center"    width="100px" style="vertical-align:middle;background-color: #f7f7f7;">Tình trạng</th>
                                         <th class="text-center"    width="130px" style="vertical-align:middle;background-color: #f7f7f7;">Thao tác</th>
                                     </tr>
@@ -149,6 +150,9 @@
                                             </td>
                                             <td style="font-size:14px;">@item.DonViTinh </td>
                                             <td style="font-size:14px;">@item.TenNhomVatTu </td>
+                                            <td class="text-center" style="font-size:14px;">
+                                                @(item.HienThiBM == 1 ? "Nhóm VT" : "NVL")
+                                            </td>
                                             @if (item.ID_TrangThai == 1)
                                             {
                                                 <td class="text-center" style="font-size:14px;">
