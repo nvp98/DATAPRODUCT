@@ -2035,10 +2035,24 @@ namespace Data_Product.Controllers
 
                 //ttgEntitiesCanTinh.Add(ttg);
                 // Cập nhật dữ liệu chung
-                ttg.KLThungVaGang_Thoi = tgDto.KLThungVaGang_Thoi;
-                ttg.KLThung_Thoi = tgDto.KLThung_Thoi;
-                ttg.KL_phe = tgDto.KLPhe;
-                ttg.KLGang_Thoi = tgDto.KLGang_Thoi;
+                // Làm tròn 2 input về 2 chữ số TRƯỚC khi trừ, khớp scale decimal của DB, rồi tự tính lại
+                // KLGang_Thoi ở server (không tin giá trị client gửi) để tránh lệch do làm tròn không đồng bộ.
+                var klThungVaGangThoi = tgDto.KLThungVaGang_Thoi.HasValue
+                    ? Math.Round(tgDto.KLThungVaGang_Thoi.Value, 2, MidpointRounding.AwayFromZero)
+                    : (decimal?)null;
+                var klThungThoi = tgDto.KLThung_Thoi.HasValue
+                    ? Math.Round(tgDto.KLThung_Thoi.Value, 2, MidpointRounding.AwayFromZero)
+                    : (decimal?)null;
+                var klPhe = tgDto.KLPhe.HasValue
+                    ? Math.Round(tgDto.KLPhe.Value, 2, MidpointRounding.AwayFromZero)
+                    : (decimal?)null;
+
+                ttg.KLThungVaGang_Thoi = klThungVaGangThoi;
+                ttg.KLThung_Thoi = klThungThoi;
+                ttg.KL_phe = klPhe;
+                ttg.KLGang_Thoi = (klThungVaGangThoi.HasValue && klThungThoi.HasValue)
+                    ? Math.Round(klThungVaGangThoi.Value - klThungThoi.Value - (klPhe ?? 0), 2, MidpointRounding.AwayFromZero)
+                    : (decimal?)null;
                 ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
                 ttg.GhiChu = tgDto.GhiChu;
                 ttg.ID_MeThoi = tgDto.ID_MeThoi;
@@ -2055,19 +2069,45 @@ namespace Data_Product.Controllers
                         .Where(x => maThungList.Contains(x.MaThungThep) &&
                                     x.ID_TrangThai != (int)TinhTrang.DaChot)
                         .ToListAsync();
-                    foreach (var thungGang in tgDto.DanhSachThungGang)
+                    for (int i = 0; i < tgDto.DanhSachThungGang.Count; i++)
                     {
+                        var thungGang = tgDto.DanhSachThungGang[i];
                         var entity = gangList.FirstOrDefault(x => x.MaThungThep == thungGang.MaThungThep);
                         if (entity == null) continue;
 
-                        entity.T_KLGangLong = thungGang.T_KLGangLong;
-                        entity.T_KLThungVaGang = thungGang.T_KLThungVaGang;
-                        entity.T_KLThungChua = thungGang.T_KLThungChua;
+                        // Làm tròn 2 input về 2 chữ số TRƯỚC khi trừ, khớp scale decimal(10,2) của DB,
+                        // tránh lệch do EF tự làm tròn T_KLThungVaGang/T_KLThungChua mà không đồng bộ với T_KLGangLong.
+                        var klThungVaGang = thungGang.T_KLThungVaGang.HasValue
+                            ? Math.Round(thungGang.T_KLThungVaGang.Value, 2, MidpointRounding.AwayFromZero)
+                            : (decimal?)null;
+                        var klThungChua = thungGang.T_KLThungChua.HasValue
+                            ? Math.Round(thungGang.T_KLThungChua.Value, 2, MidpointRounding.AwayFromZero)
+                            : (decimal?)null;
+
+                        decimal? klGangLong = (klThungVaGang.HasValue && klThungChua.HasValue)
+                            ? klThungVaGang.Value - klThungChua.Value
+                            : null;
+
+                        // Hàng đầu nhóm TTG: trừ KLPhe (chỉ làm giảm, không bao giờ làm tăng)
+                        if (i == 0 && klGangLong.HasValue && tgDto.KLPhe.HasValue && tgDto.KLPhe.Value > 0)
+                        {
+                            klGangLong -= tgDto.KLPhe.Value;
+                        }
+
+                        entity.T_KLThungVaGang = klThungVaGang;
+                        entity.T_KLThungChua = klThungChua;
+                        entity.T_KLGangLong = klGangLong.HasValue
+                            ? Math.Round(klGangLong.Value, 2, MidpointRounding.AwayFromZero)
+                            : (decimal?)null;
                         entity.NhietDo = thungGang.NhietDo;
                         entity.NhietDoGangVaoHRC = thungGang.NhietDoGangVaoHRC;
 
                         maThungThepCanTinhToan.Add(thungGang.MaThungGang);
                     }
+
+                    // Tính lại tổng từ các T_KLGangLong vừa được server tính lại (đã tròn 2 chữ số),
+                    // không dùng tổng client gửi lên để tránh lệch khi 2 input bị DB tự làm tròn.
+                    ttg.Tong_KLGangNhan = gangList.Sum(x => x.T_KLGangLong ?? 0);
                 }
             }
             // Lưu thay đổi

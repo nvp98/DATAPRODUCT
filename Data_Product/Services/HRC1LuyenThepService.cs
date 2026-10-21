@@ -895,6 +895,19 @@ namespace Data_Product.Services
             entity.Ca = dto.Ca;
             entity.NgaySanXuat = dto.NgaySanXuat;
 
+            // Làm tròn 2 input về 2 chữ số TRƯỚC khi trừ, khớp scale decimal(18,2) mặc định của EF,
+            // và luôn tự tính lại KLGang từ 2 giá trị đã tròn (không tin giá trị client gửi lên)
+            // để tránh lệch do EF tự làm tròn KLThungVaGang/KLThung mà không đồng bộ với KLGang.
+            var klThungVaGang = dto.KLThungVaGang.HasValue
+                ? Math.Round(dto.KLThungVaGang.Value, 2, MidpointRounding.AwayFromZero)
+                : (decimal?)null;
+            var klThung = dto.KLThung.HasValue
+                ? Math.Round(dto.KLThung.Value, 2, MidpointRounding.AwayFromZero)
+                : (decimal?)null;
+            var klGang = (klThungVaGang.HasValue && klThung.HasValue)
+                ? Math.Round(klThungVaGang.Value - klThung.Value, 2, MidpointRounding.AwayFromZero)
+                : (decimal?)null;
+
             /* =========================
              *  XỬ LÝ THEO LOẠI MẺ
              * ========================= */
@@ -905,18 +918,18 @@ namespace Data_Product.Services
                     {
                         entity.MeThoi = maMeThoi;
                     }
-                    entity.KLThungVaGang = dto.KLThungVaGang;
-                    entity.KLThung = dto.KLThung;
-                    entity.KLGang = dto.KLGang;
+                    entity.KLThungVaGang = klThungVaGang;
+                    entity.KLThung = klThung;
+                    entity.KLGang = klGang;
                     return;
 
                 case LoaiMe.Con:
                     entity.ID_MeThoi = dto.ID_MeThoi;
                     entity.MeThoi = maMeThoi;
 
-                    entity.KLThungVaGang = dto.KLThungVaGang;
-                    entity.KLThung = dto.KLThung;
-                    entity.KLGang = dto.KLGang;
+                    entity.KLThungVaGang = klThungVaGang;
+                    entity.KLThung = klThung;
+                    entity.KLGang = klGang;
 
                     entity.SoThung = dto.SoThung;
                     entity.ThoiDiemRot = dto.ThoiDiemRot;
@@ -930,18 +943,18 @@ namespace Data_Product.Services
                     {
                         entity.NgayTao = ngayTaoTheoThoiDiem;
                     }
-                    entity.ID_MeThoi = dto.ID_MeThoi; 
+                    entity.ID_MeThoi = dto.ID_MeThoi;
                     entity.MeThoi = maMeThoi;
 
-                    entity.KLThungVaGang = dto.KLThungVaGang;
-                    entity.KLThung = dto.KLThung;
-                    entity.KLGang = dto.KLGang;
+                    entity.KLThungVaGang = klThungVaGang;
+                    entity.KLThung = klThung;
+                    entity.KLGang = klGang;
 
                     entity.SoThung = dto.SoThung;
                     entity.ThoiDiemRot = dto.ThoiDiemRot;
                     entity.LyDo = dto.LyDo;
 
-                    return;                
+                    return;
             }
         }
 
