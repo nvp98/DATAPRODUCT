@@ -2007,28 +2007,35 @@
         // Tính khối lượng vào lò thổi khi nhập vào KL Thùng & gang lỏng vào lò thổi
         $('#IDtbXuLySoLieu').on('input', '.KLThungVaGangLongVaoLoThoi, .KLThungVaoLoThoi, .KLPhe', function () {
             const $row = $(this).closest('tr');
-            const KLThungVaGangLongVaoLoThoi = parseFloat($row.find('.KLThungVaGangLongVaoLoThoi').val());
-            const KLThungVaoLoThoi = parseFloat($row.find('.KLThungVaoLoThoi').val());
-            const KL_phe = parseFloat($row.find('.KLPhe').val());
+            // Làm tròn 2 input về 2 chữ số TRƯỚC khi trừ, khớp scale decimal sẽ được lưu ở DB,
+            // tránh hiển thị số khác với giá trị thực sự được lưu/tính lại ở server.
+            const KLThungVaGangLongVaoLoThoi = round2(parseFloat($row.find('.KLThungVaGangLongVaoLoThoi').val()));
+            const KLThungVaoLoThoi = round2(parseFloat($row.find('.KLThungVaoLoThoi').val()));
+            const KL_phe = round2(parseFloat($row.find('.KLPhe').val()));
 
             if (
                 !isNaN(KLThungVaGangLongVaoLoThoi) &&
                 !isNaN(KLThungVaoLoThoi) &&
                 !isNaN(KL_phe)
             ) {
-                const result = KLThungVaGangLongVaoLoThoi - KLThungVaoLoThoi - KL_phe;
+                const result = round2(KLThungVaGangLongVaoLoThoi - KLThungVaoLoThoi - KL_phe);
                 $row.find('.KLVaoLoThoi').text(result.toFixed(2));
                 sumKLGangThoi();
             } else {
                 $row.find('.KLVaoLoThoi').text("0.00");
             }
-          
+
         });
 
-       
+        function round2(x) {
+            return Math.round((x + Number.EPSILON) * 100) / 100;
+        }
+
         function tinhKLGangLong($row) {
-            const KLThungVaGangLong = parseFloat($row.find('.KhoiLuongThungVaGangLong').val());
-            const KLThung = parseFloat($row.find('.KhoiLuongThung').val());
+            // Làm tròn 2 input về 2 chữ số TRƯỚC khi trừ, khớp với scale decimal(10,2) sẽ được
+            // lưu ở DB, tránh hiển thị số khác với giá trị thực sự được lưu/tính lại ở server.
+            const KLThungVaGangLong = round2(parseFloat($row.find('.KhoiLuongThungVaGangLong').val()));
+            const KLThung = round2(parseFloat($row.find('.KhoiLuongThung').val()));
 
             // Hàng đầu nhóm TTG được đánh dấu cố định lúc render (data-ttghead),
             // không suy luận lại bằng $(...).first() theo thứ tự DOM tại thời điểm tính,
@@ -2038,13 +2045,13 @@
             let KLGangLong = 0;
 
             if (!isNaN(KLThungVaGangLong) && !isNaN(KLThung)) {
-                KLGangLong = KLThungVaGangLong - KLThung;
+                KLGangLong = round2(KLThungVaGangLong - KLThung);
 
                 if (isFirstRow) {
                     const rawKLPhe = parseFloat($row.find('.KLPhe').val());
                     // KLPhe chỉ được phép làm GIẢM KLGangLong, không bao giờ làm tăng
                     const KLPhe = (!isNaN(rawKLPhe) && rawKLPhe > 0) ? rawKLPhe : 0;
-                    KLGangLong -= KLPhe;
+                    KLGangLong = round2(KLGangLong - KLPhe);
                 }
             }
 
@@ -3425,11 +3432,12 @@
 
     $('#IDtbThungThepHRC1AT').on('input', '.txt-klThungVaGang, .txt-klThung', function () {
         const $row = $(this).closest('tr');
-        const KLThungVaGangLong = parseFloat($row.find('.txt-klThungVaGang').val());
-        const KLThung = parseFloat($row.find('.txt-klThung').val());
-            
+        // Làm tròn 2 input về 2 chữ số TRƯỚC khi trừ, khớp với giá trị thực sự sẽ được lưu ở DB
+        const KLThungVaGangLong = round2(parseFloat($row.find('.txt-klThungVaGang').val()));
+        const KLThung = round2(parseFloat($row.find('.txt-klThung').val()));
+
         if (!isNaN(KLThungVaGangLong) && !isNaN(KLThung)) {
-            KLGangLong = KLThungVaGangLong - KLThung;
+            KLGangLong = round2(KLThungVaGangLong - KLThung);
             $row.find('.txt-klGang').val(KLGangLong.toFixed(2));
         }
     });
