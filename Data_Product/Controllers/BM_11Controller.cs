@@ -1971,14 +1971,6 @@ namespace Data_Product.Controllers
                 IXLWorksheet Worksheet = Workbook.Worksheet("BBGN");
                 var ID_BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => x.ID_BBGN == BBGN_ID).FirstOrDefault();
                 var Data = _context.Tbl_ChiTiet_BienBanGiaoNhan.Where(x => x.ID_BBGN == BBGN_ID).ToList();
-                Worksheet.Column(6).InsertColumnsBefore(1);
-                Worksheet.Cell(7, 6).Value = "Tên NVL 2";
-                Worksheet.Cell(7, 6).Style.Font.SetFontName("Times New Roman");
-                Worksheet.Cell(7, 6).Style.Font.SetFontSize(13);
-                Worksheet.Cell(7, 6).Style.Font.Bold = true;
-                Worksheet.Cell(7, 6).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                Worksheet.Cell(7, 6).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                Worksheet.Cell(7, 6).Style.Alignment.WrapText = true;
                 int row = 8, stt = 0, icol = 1;
                 if (Data.Count > 0)
                 {
@@ -2034,11 +2026,6 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = NhomVT?.TenNhomVatTu ?? "";
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
                         var ID_Lo = _context.Tbl_MaLo.Where(x => x.TenMaLo == item.MaLo).FirstOrDefault();
                         icol++;
@@ -2149,13 +2136,19 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = NhomVT?.TenNhomVatTu ?? "";
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
 
                     }
 
-                    Worksheet.Range("A7:U" + (row)).Style.Font.SetFontName("Times New Roman");
-                    Worksheet.Range("A7:U" + (row)).Style.Font.SetFontSize(13);
-                    Worksheet.Range("A7:U" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                    Worksheet.Range("A7:U" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                    Worksheet.Range("A7:T" + (row)).Style.Font.SetFontName("Times New Roman");
+                    Worksheet.Range("A7:T" + (row)).Style.Font.SetFontSize(13);
+                    Worksheet.Range("A7:T" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    Worksheet.Range("A7:T" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
 
                     Workbook.SaveAs(fileNamemaunew);
@@ -2196,14 +2189,6 @@ namespace Data_Product.Controllers
                 if (begind != null) startDay = (DateTime)begind;
                 if (endd != null) endDay = (DateTime)endd;
 
-                Worksheet.Column(6).InsertColumnsBefore(1);
-                Worksheet.Cell(7, 6).Value = "Tên NVL 2";
-                Worksheet.Cell(7, 6).Style.Font.SetFontName("Times New Roman");
-                Worksheet.Cell(7, 6).Style.Font.SetFontSize(13);
-                Worksheet.Cell(7, 6).Style.Font.Bold = true;
-                Worksheet.Cell(7, 6).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                Worksheet.Cell(7, 6).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                Worksheet.Cell(7, 6).Style.Alignment.WrapText = true;
                 int row = 8, stt = 0, icol = 1;
                 var BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => !x.IsDelete).ToList();
                 if (startDay != null & endDay != null)
@@ -2314,11 +2299,7 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
-                        icol++;
-                        Worksheet.Cell(row, icol).Value = NhomVT_All?.TenNhomVatTu ?? "";
-                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                        Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
+
 
                         var ID_Lo = _context.Tbl_MaLo.Where(x => x.TenMaLo == item.MaLo).FirstOrDefault();
                         icol++;
@@ -2451,7 +2432,9 @@ namespace Data_Product.Controllers
                         {
                             Worksheet.Cell(row, icol).Value = "PKH Hủy phiếu";
                         }
-                        //Worksheet.Cell(row, icol).Value = "Hoàn thành";
+
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = NhomVT_All?.TenNhomVatTu ?? ID_VT?.TenVatTu;
                         Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
@@ -2461,10 +2444,10 @@ namespace Data_Product.Controllers
 
                 }
 
-                Worksheet.Range("A7:T" + (row)).Style.Font.SetFontName("Times New Roman");
-                Worksheet.Range("A7:T" + (row)).Style.Font.SetFontSize(13);
-                Worksheet.Range("A7:T" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                Worksheet.Range("A7:T" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                Worksheet.Range("A7:U" + (row)).Style.Font.SetFontName("Times New Roman");
+                Worksheet.Range("A7:U" + (row)).Style.Font.SetFontSize(13);
+                Worksheet.Range("A7:U" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                Worksheet.Range("A7:U" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 // Áp dụng định dạng cho một cột
                 //Worksheet.Columns(8,10).Style.NumberFormat.Format = "0.000";
                 Worksheet.Column(8).Style.NumberFormat.Format = "0.000";
@@ -3368,15 +3351,6 @@ namespace Data_Product.Controllers
 
                 var data = await exportQuery.OrderByDescending(x => x.a.ThoiGianXuLyBG).ToListAsync();
 
-                Worksheet.Column(6).InsertColumnsBefore(1);
-                Worksheet.Cell(7, 6).Value = "Tên NVL 2";
-                Worksheet.Cell(7, 6).Style.Font.SetFontName("Times New Roman");
-                Worksheet.Cell(7, 6).Style.Font.SetFontSize(13);
-                Worksheet.Cell(7, 6).Style.Font.Bold = true;
-                Worksheet.Cell(7, 6).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                Worksheet.Cell(7, 6).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                Worksheet.Cell(7, 6).Style.Alignment.WrapText = true;
-
                 int row = 8, stt = 0, icol;
                 foreach (var item in data)
                 {
@@ -3409,11 +3383,7 @@ namespace Data_Product.Controllers
                     Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
                     icol++;
 
-                    Worksheet.Cell(row, icol).Value = item.nhom?.TenNhomVatTu ?? "";
-                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                    Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
-                    icol++;
+
 
                     Worksheet.Cell(row, icol).Value = item.b.MaLo ?? "";
                     Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
@@ -3485,6 +3455,7 @@ namespace Data_Product.Controllers
                     Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     icol++;
 
+
                     string trangThai = item.a.ID_TrangThai_BBGN switch
                     {
                         0 => "Đang xử lý",
@@ -3498,12 +3469,18 @@ namespace Data_Product.Controllers
                     Worksheet.Cell(row, icol).Value = trangThai;
                     Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
                     Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    icol++;
+
+                    Worksheet.Cell(row, icol).Value = item.nhom?.TenNhomVatTu ?? item.vt?.TenVatTu;
+                    Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
+                    Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
                 }
 
-                Worksheet.Range("A7:T" + row).Style.Font.SetFontName("Times New Roman");
-                Worksheet.Range("A7:T" + row).Style.Font.SetFontSize(13);
-                Worksheet.Range("A7:T" + row).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                Worksheet.Range("A7:T" + row).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                Worksheet.Range("A7:U" + row).Style.Font.SetFontName("Times New Roman");
+                Worksheet.Range("A7:U" + row).Style.Font.SetFontSize(13);
+                Worksheet.Range("A7:U" + row).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                Worksheet.Range("A7:U" + row).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 Worksheet.Column(8).Style.NumberFormat.Format = "0.000";
                 Worksheet.Column(9).Style.NumberFormat.Format = "0.00";
                 Worksheet.Column(10).Style.NumberFormat.Format = "0.000";
