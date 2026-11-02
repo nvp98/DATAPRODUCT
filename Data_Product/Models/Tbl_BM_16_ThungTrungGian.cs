@@ -29,6 +29,13 @@ namespace Data_Product.Models
 
         public decimal? KLThungVaGangTruocKR { get; set; }
 
+        // Snapshot dữ liệu cân BOF/KR tự động tại thời điểm Lưu (theo mẻ thổi đang chọn),
+        // dùng để so sánh với 3 cột phía trên nhằm highlight ô đã bị sửa tay + hiển thị tooltip giá trị gốc.
+        public decimal? KLThungVaGangTruocKR_Auto { get; set; }
+        public decimal? KLThungVaGang_Thoi_Auto { get; set; }
+        public decimal? KLThung_Thoi_Auto { get; set; }
+        public int? ID_BOF_KR_Weight { get; set; }
+
         public bool? IsNhap { get; set; }
         public string? NoiNhan { get; set; }
         //public string? MeThoi { get; set; }

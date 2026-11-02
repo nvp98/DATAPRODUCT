@@ -63,6 +63,10 @@ namespace Data_Product.Models.ModelView
         public decimal? KLThungVaGangTruocKR { get; set; }
         public bool? IsNhap { get; set; }
 
+        public decimal? KLThungVaGangTruocKR_Auto { get; set; }
+        public decimal? KLThungVaGang_Thoi_Auto { get; set; }
+        public decimal? KLThung_Thoi_Auto { get; set; }
+
         public DateTime? NgayTaoTTG { get; set; }
 
         public int? ID_MeThoi { get; set; }

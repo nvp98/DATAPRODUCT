@@ -186,6 +186,11 @@
         padding: 5px 5px;
     }
 
+    .table_tbx.auto-edited {
+        background-color: #fff3b0;
+        border-color: #e6c200;
+    }
+
     .status-card {
         height: 35px;
         width: 80px;
@@ -594,6 +599,13 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-6 col-12 d-flex justify-content-end filter-item">
+                                    @if (PhongBan == "HRC2")
+                                    {
+                                        <button class="btn btn-outline-secondary btn-sm px-3 me-2" id="btnSyncBofKrWeight"
+                                                title="Gọi lại API nhà máy để đồng bộ dữ liệu cân BOF/KR cho đúng ngày đang chọn ở trên (dùng khi xử lý lại ngày cũ, ngoài phạm vi job tự động)">
+                                            <i class="bi bi-arrow-repeat"></i> Đồng bộ dữ liệu cân
+                                        </button>
+                                    }
                                     <button class="btn btn-primary btn-sm px-4" id="btnSeachThungDaNhan">Tìm kiếm</button>
                                 </div>
                             </div>
@@ -993,7 +1005,7 @@
 
             return `
                 <div class="status-card ${bgClass}">
-                <span class="status-text small pt-2 ps-1"">
+                <span class="status-text small pt-2 ps-1">
                         ${label}
                     </span>
                 </div>
@@ -1115,19 +1127,19 @@
               row += `
                 <td class="hrc2">${actionHtml}</td>
                 <td class="col-ganglongtruockr">
-                    ${((isNhap ?? true) && !isCopyTTG) ? `<input ${disabled} style="max-width: 75px" class="table_tbx KLThungVaGangTruocKR" type="number" min="0"
-                         name="klThungVaGangTruocKR" value="${tg.klThungVaGangTruocKR ?? ''}"/>` : ''}
+                    ${((isNhap ?? true) && !isCopyTTG) ? `<input ${disabled} style="max-width: 75px" class="table_tbx KLThungVaGangTruocKR auto-fillable" type="number" min="0"
+                         name="klThungVaGangTruocKR" data-auto-field="klThungVaGangTruocKR" data-auto-value="${tg.klThungVaGangTruocKR_Auto ?? ''}" value="${tg.klThungVaGangTruocKR ?? ''}"/>` : ''}
                 </td>
                 <td class="col-gangnhan tong_KL_GangNhan">${isCopyTTG ? '':tg.tong_KLGangNhan ?? 0}</td>
                 <td class="col-sothungtg">${tg.soThungTG ?? ''}</td>
 
                 <td class="col-thungvagangthoi">
-                  <input style="max-width: 75px" ${disabledInputKL || disabledHRC1} class="table_tbx KLThungVaGangLongVaoLoThoi" type="number" min="0"
-                         name="klThungVaGang_Thoi" value="${tg.klThungVaGang_Thoi ?? ''}"/>
+                  <input style="max-width: 75px" ${disabledInputKL || disabledHRC1} class="table_tbx KLThungVaGangLongVaoLoThoi auto-fillable" type="number" min="0"
+                         name="klThungVaGang_Thoi" data-auto-field="klThungVaGang_Thoi" data-auto-value="${tg.klThungVaGang_Thoi_Auto ?? ''}" value="${tg.klThungVaGang_Thoi ?? ''}"/>
                 </td>
                 <td class="col-thungthoi">
-                  <input ${disabledInputKL || disabledHRC1} class="table_tbx KLThungVaoLoThoi" type="number" min="0"
-                         name="klThung_Thoi" value="${tg.klThung_Thoi ?? ''}"/>
+                  <input style="max-width: 75px;" ${disabledInputKL || disabledHRC1} class="table_tbx KLThungVaoLoThoi auto-fillable" type="number" min="0" 
+                         name="klThung_Thoi" data-auto-field="klThung_Thoi" data-auto-value="${tg.klThung_Thoi_Auto ?? ''}" value="${tg.klThung_Thoi ?? ''}"/>
                 </td>
                 <td class="col-phe">
                   <input ${disabled} class="table_tbx KLPhe" type="number" min="0" name="kl_phe"
@@ -1241,6 +1253,7 @@
         safe(sumKLGangLong);
         safe(sumKLGangThoi);
         safe(applyColumnVisibility);
+        safe(applyAutoHighlightAll);
 
         function safe(fn){ if(typeof fn==='function') fn(); }
     }
@@ -1610,6 +1623,147 @@
                 }
             });
         }
+
+        // ==== Highlight ô đã bị sửa tay so với dữ liệu cân BOF/KR tự động ====
+        // Chỉ áp dụng cho HRC2 - HRC1 dùng luồng Móc nối riêng, không liên quan tới cân BOF/KR.
+        function applyAutoHighlightAll() {
+            if (phongBanGlobal !== "HRC2") return;
+            $('#IDtbXuLySoLieu .auto-fillable').each(function () {
+                refreshAutoHighlight($(this));
+            });
+        }
+
+        function refreshAutoHighlight($input) {
+            const el = $input[0];
+            const autoRaw = $input.attr('data-auto-value');
+            const autoVal = (autoRaw === undefined || autoRaw === '') ? null : parseFloat(autoRaw);
+            const curRaw = $input.val();
+            const curVal = (curRaw === undefined || curRaw === '') ? null : parseFloat(curRaw);
+
+            const isEdited = autoVal !== null && curVal !== null && Math.abs(curVal - autoVal) > 0.004;
+            $input.toggleClass('auto-edited', isEdited);
+
+            // Dùng Bootstrap Tooltip (thay vì title gốc - dễ bị trình duyệt trễ/không hiện) để
+            // chắc chắn hiện được và hiện được đủ cả 2 giá trị: cân tự động + đã sửa tay.
+            const existingTooltip = (typeof bootstrap !== 'undefined') ? bootstrap.Tooltip.getInstance(el) : null;
+            if (existingTooltip) existingTooltip.dispose();
+            $input.removeAttr('title');
+
+            if (isEdited) {
+                const tooltipText = `Cân tự động: ${autoVal.toFixed(2)} — Đã sửa thành: ${curVal.toFixed(2)}`;
+                $input.attr('data-bs-toggle', 'tooltip').attr('data-bs-placement', 'top').attr('title', tooltipText);
+                if (typeof bootstrap !== 'undefined') {
+                    new bootstrap.Tooltip(el);
+                }
+            } else {
+                $input.removeAttr('data-bs-toggle').removeAttr('data-bs-placement');
+            }
+        }
+
+        // Người dùng tự gõ lại ô đã auto-fill -> cập nhật highlight ngay (chỉ HRC2)
+        $(document).on('input', '#IDtbXuLySoLieu .auto-fillable', function () {
+            if (phongBanGlobal !== "HRC2") return;
+            refreshAutoHighlight($(this));
+        });
+
+        function fillAutoField($row, selector, autoVal) {
+            const $input = $row.find(selector);
+            if (!$input.length) return;
+
+            const val = (autoVal === null || autoVal === undefined) ? '' : autoVal;
+            $input.attr('data-auto-value', val);
+            // trigger('input') để các handler tính toán khác (KL vào lò thổi, tổng...) đang bind theo event input cũng chạy lại
+            $input.val(val).trigger('input');
+            refreshAutoHighlight($input);
+        }
+
+        // Dùng sau khi bấm "Đồng bộ dữ liệu cân": mẻ đang hiển thị trước đó CHƯA có dữ liệu
+        // cân (ô trống) -> giờ có rồi thì fill như auto-fill bình thường. Mẻ đã có giá trị
+        // trong ô (do đã auto-fill từ trước hoặc người dùng nhập tay) -> KHÔNG ghi đè giá trị
+        // đang hiển thị, chỉ cập nhật data-auto-value rồi tô vàng nếu khác (refreshAutoHighlight).
+        function fillOrHighlightAutoField($row, selector, autoVal) {
+            if (autoVal === null || autoVal === undefined) return;
+
+            const $input = $row.find(selector);
+            if (!$input.length) return;
+
+            const curRaw = $input.val();
+            if (curRaw === undefined || curRaw === '') {
+                fillAutoField($row, selector, autoVal);
+                return;
+            }
+
+            $input.attr('data-auto-value', autoVal);
+            refreshAutoHighlight($input);
+        }
+
+        // Sau khi bấm nút đồng bộ dữ liệu cân: dò lại từng mẻ đang hiển thị ở bảng Xử lý số
+        // liệu xem đã có dữ liệu cân BOF/KR chưa, fill/tô vàng tương ứng (xem 2 hàm trên). Chỉ HRC2.
+        function recheckAutoFillAfterSync() {
+            if (phongBanGlobal !== "HRC2") return;
+            const idLoThoi = parseInt($('#IDLoThoi').val()) || null;
+            if (!idLoThoi) return;
+
+            $('#IDtbXuLySoLieu tr').each(function () {
+                const $row = $(this);
+                const $select = $row.find('.selectMeThoi');
+                if (!$select.length) return;
+
+                const maMeThoi = $select.find('option:selected').text().trim();
+                if (!maMeThoi || maMeThoi === '-- Mẻ thổi --') return;
+
+                $.ajax({
+                    url: '/BM_GangThoi_Thep/GetBofKrWeightTheoMe',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ ID_LoThoi: idLoThoi, MaMeThoi: maMeThoi }),
+                    success: function (res) {
+                        if (!res || !res.success || !res.found) return;
+
+                        fillOrHighlightAutoField($row, 'input[name="klThungVaGangTruocKR"]', res.data.klThungVaGangTruocKR);
+                        fillOrHighlightAutoField($row, 'input[name="klThungVaGang_Thoi"]', res.data.klThungVaGang_Thoi);
+                        fillOrHighlightAutoField($row, 'input[name="klThung_Thoi"]', res.data.klThung_Thoi);
+
+                        if (typeof sumKLGangThoi === 'function') sumKLGangThoi();
+                    },
+                    error: function () {
+                        console.warn('Không tra được dữ liệu cân BOF/KR cho mẻ ' + maMeThoi);
+                    }
+                });
+            });
+        }
+
+        // Chọn mẻ thổi ở màn Xử lý số liệu (HRC2) -> tra dữ liệu cân BOF/KR và fill vào 3 ô,
+        // chỉ fill vào input (chưa lưu DB) - người dùng vẫn sửa tay được bình thường.
+        // Chỉ áp dụng cho HRC2 - HRC1 dùng luồng Móc nối tự động riêng, không liên quan tới cân BOF/KR.
+        $('#IDtbXuLySoLieu').on('select2:select', '.selectMeThoi', function (e) {
+            if (phongBanGlobal !== "HRC2") return;
+
+            const $row = $(this).closest('tr');
+            const idLoThoi = parseInt($('#IDLoThoi').val()) || null;
+            const maMeThoi = e.params && e.params.data ? e.params.data.text : null;
+
+            if (!idLoThoi || !maMeThoi) return;
+
+            $.ajax({
+                url: '/BM_GangThoi_Thep/GetBofKrWeightTheoMe',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ ID_LoThoi: idLoThoi, MaMeThoi: maMeThoi }),
+                success: function (res) {
+                    if (!res || !res.success || !res.found) return;
+
+                    fillAutoField($row, 'input[name="klThungVaGangTruocKR"]', res.data.klThungVaGangTruocKR);
+                    fillAutoField($row, 'input[name="klThungVaGang_Thoi"]', res.data.klThungVaGang_Thoi);
+                    fillAutoField($row, 'input[name="klThung_Thoi"]', res.data.klThung_Thoi);
+
+                    if (typeof sumKLGangThoi === 'function') sumKLGangThoi();
+                },
+                error: function () {
+                    console.warn('Không tra được dữ liệu cân BOF/KR cho mẻ ' + maMeThoi);
+                }
+            });
+        });
 
         // function getAllSelectedMeThoiIds() {
         //         const ids = [];
@@ -2115,6 +2269,40 @@
             if(phongBanGlobal == "HRC1"){
                 LoadDanhSachThungThepHRC1AT();
             }
+        });
+
+        // Đồng bộ thủ công dữ liệu cân BOF/KR cho đúng ngày đang chọn ở filter
+        // (dùng khi xử lý lại ngày cũ, ngoài phạm vi 2 ngày mà job tự động đang kéo).
+        $('#btnSyncBofKrWeight').click(function () {
+            const ngay = $('#IDNgayNhan').val();
+            if (!ngay) {
+                alert('Vui lòng chọn ngày làm việc trước khi đồng bộ.');
+                return;
+            }
+
+            const $btn = $(this);
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                url: '/BM_GangThoi_Thep/SyncBofKrWeightNgay',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ Ngay: ngay }),
+                success: function (res) {
+                    if (res && res.success) {
+                        alert(`Đã đồng bộ ${res.count} bản ghi cân cho ngày ${ngay}.`);
+                        recheckAutoFillAfterSync();
+                    } else {
+                        alert('Đồng bộ thất bại.');
+                    }
+                },
+                error: function (xhr) {
+                    alert('Lỗi đồng bộ dữ liệu cân: ' + (xhr.responseText || 'không xác định'));
+                },
+                complete: function () {
+                    $btn.prop('disabled', false);
+                }
+            });
         });
 
             // Luu KR

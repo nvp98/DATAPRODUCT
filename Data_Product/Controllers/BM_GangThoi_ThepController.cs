@@ -35,14 +35,16 @@ namespace Data_Product.Controllers
         private readonly IChiaGangService _chiaGangService;
         private readonly IHRC1LuyenThepService _hrc1LuyenThepService;
         private readonly INhanGangService _nhanGangService;
+        private readonly IBofKrWeightSyncService _bofKrWeightSyncService;
 
-        public BM_GangThoi_ThepController(DataContext _context, ICompositeViewEngine viewEngine, IChiaGangService chiaGangService, IHRC1LuyenThepService hrc1LuyenThepService, INhanGangService nhanGangService)
+        public BM_GangThoi_ThepController(DataContext _context, ICompositeViewEngine viewEngine, IChiaGangService chiaGangService, IHRC1LuyenThepService hrc1LuyenThepService, INhanGangService nhanGangService, IBofKrWeightSyncService bofKrWeightSyncService)
         {
             this._context = _context;
             this._chiaGangService = chiaGangService;
             _viewEngine = viewEngine;
             this._hrc1LuyenThepService = hrc1LuyenThepService;
             this._nhanGangService = nhanGangService;
+            this._bofKrWeightSyncService = bofKrWeightSyncService;
         }
 
 
@@ -622,6 +624,9 @@ namespace Data_Product.Controllers
                         KL_phe = ttg.KL_phe,
                         KLGang_Thoi = ttg.KLGang_Thoi,
                         KLThungVaGangTruocKR = ttg.KLThungVaGangTruocKR,
+                        KLThungVaGangTruocKR_Auto = ttg.KLThungVaGangTruocKR_Auto,
+                        KLThungVaGang_Thoi_Auto = ttg.KLThungVaGang_Thoi_Auto,
+                        KLThung_Thoi_Auto = ttg.KLThung_Thoi_Auto,
                         Tong_KLGangNhan = ttg.Tong_KLGangNhan,
                         ID_MeThoi = ttg.ID_MeThoi,
                         MaMeThoi = meThoi != null ? meThoi.MaMeThoi : null,
@@ -1969,6 +1974,12 @@ namespace Data_Product.Controllers
             bool isHRC2 = !isHRC1;
             var ttgSaved = new List<Tbl_BM_16_ThungTrungGian>();
 
+            // Tra sẵn MaMeThoi theo ID_MeThoi để snapshot dữ liệu cân tự động (BOF/KR)
+            var meThoiIds = dsThungTG.Where(x => x.ID_MeThoi.HasValue).Select(x => x.ID_MeThoi.Value).Distinct().ToList();
+            var maMeThoiById = meThoiIds.Count > 0
+                ? await _context.Tbl_MeThoi.Where(x => meThoiIds.Contains(x.ID)).ToDictionaryAsync(x => x.ID, x => x.MaMeThoi)
+                : new Dictionary<int, string>();
+
             if (isHRC1)
             {
                 await XuLyNhietDo_HRC1(dsThungTG);
@@ -2059,6 +2070,32 @@ namespace Data_Product.Controllers
                 ttg.GioChonMe = tgDto.GioChonMe;
                 ttg.NoiNhan = isHRC1 ? "HRC1" : "HRC2";
                 //ttg.KLThungVaGangTruocKR = tgDto.KLThungVaGangTruocKR;
+
+                // Snapshot dữ liệu cân BOF/KR tự động theo mẻ đang chọn (để so sánh highlight khi hiển thị lại).
+                // Luôn tra lại fresh theo mẻ hiện tại, không tin baseline cũ từ lần lưu trước.
+                // Chỉ áp dụng cho HRC2 - HRC1 dùng luồng Móc nối tự động riêng (tính khối lượng từ mẻ AT,
+                // không liên quan tới cân BOF/KR), không snapshot để tránh tô vàng "đã sửa tay" sai cho HRC1.
+                if (isHRC2)
+                {
+                    Tbl_BM_16_BOF_KR_Weight canRow = null;
+                    if (tgDto.ID_MeThoi.HasValue && maMeThoiById.TryGetValue(tgDto.ID_MeThoi.Value, out var maMeThoiHienTai) && !string.IsNullOrWhiteSpace(maMeThoiHienTai))
+                    {
+                        canRow = await _context.Tbl_BM_16_BOF_KR_Weight
+                            .Where(x => x.LoThoi == ttg.ID_LoThoi && x.MeThoi == maMeThoiHienTai)
+                            .OrderByDescending(x => x.ID)
+                            .FirstOrDefaultAsync();
+                    }
+
+                    ttg.KLThungVaGangTruocKR_Auto = canRow?.KLThungVaGangTruocKR;
+                    ttg.KLThungVaGang_Thoi_Auto = canRow?.KLThungVaGangTruocBOF.HasValue == true
+                        ? Math.Round(canRow.KLThungVaGangTruocBOF.Value, 2, MidpointRounding.AwayFromZero)
+                        : (decimal?)null;
+                    ttg.KLThung_Thoi_Auto = canRow?.KLThung.HasValue == true
+                        ? Math.Round(canRow.KLThung.Value, 2, MidpointRounding.AwayFromZero)
+                        : (decimal?)null;
+                    ttg.ID_BOF_KR_Weight = canRow?.ID;
+                }
+
                 ttgSaved.Add(ttg);
 
                 if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
@@ -2993,6 +3030,65 @@ namespace Data_Product.Controllers
             {
                 return StatusCode(500, "Lỗi xử lý trên server: " + ex.Message);
             }
+        }
+
+        // Đồng bộ thủ công dữ liệu cân BOF/KR cho 1 ngày cụ thể - dùng khi user lùi lại 1 ngày cũ
+        // (ngoài cửa sổ 2 ngày mà job định kỳ đang kéo) để cập nhật/hiệu chỉnh số liệu.
+        [HttpPost]
+        public async Task<IActionResult> SyncBofKrWeightNgay([FromBody] SyncBofKrWeightNgayDto payload)
+        {
+            if (payload == null || payload.Ngay == default)
+                return BadRequest("Thiếu ngày cần đồng bộ.");
+
+            try
+            {
+                var count = await _bofKrWeightSyncService.SyncAsync(payload.Ngay.Date, payload.Ngay.Date);
+                return Ok(new { success = true, count });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Lỗi đồng bộ dữ liệu cân: " + ex.Message);
+            }
+        }
+
+        // HRC2: tra cứu dữ liệu cân BOF/KR theo mẻ thổi đã chọn, chỉ trả về để fill input,
+        // không ghi DB (không móc nối, không đánh dấu IsUsed) - xem Tbl_BM_16_BOF_KR_Weight.
+        [HttpPost]
+        public async Task<IActionResult> GetBofKrWeightTheoMe([FromBody] GetBofKrWeightTheoMeDto payload)
+        {
+            if (payload == null || payload.ID_LoThoi <= 0 || string.IsNullOrWhiteSpace(payload.MaMeThoi))
+                return BadRequest("Thiếu idLoThoi hoặc mã mẻ thổi.");
+
+            var row = await _context.Tbl_BM_16_BOF_KR_Weight
+                .Where(x => x.LoThoi == payload.ID_LoThoi && x.MeThoi == payload.MaMeThoi)
+                .OrderByDescending(x => x.ID)
+                .FirstOrDefaultAsync();
+
+            if (row == null)
+                return Ok(new { success = true, found = false });
+
+            var klThungVaGangThoi = row.KLThungVaGangTruocBOF.HasValue
+                ? Math.Round(row.KLThungVaGangTruocBOF.Value, 2, MidpointRounding.AwayFromZero)
+                : (decimal?)null;
+            var klThungThoi = row.KLThung.HasValue
+                ? Math.Round(row.KLThung.Value, 2, MidpointRounding.AwayFromZero)
+                : (decimal?)null;
+            var klGangThoi = (klThungVaGangThoi.HasValue && klThungThoi.HasValue)
+                ? Math.Round(klThungVaGangThoi.Value - klThungThoi.Value, 2, MidpointRounding.AwayFromZero)
+                : (decimal?)null;
+
+            return Ok(new
+            {
+                success = true,
+                found = true,
+                data = new
+                {
+                    klThungVaGangTruocKR = row.KLThungVaGangTruocKR,
+                    klThungVaGang_Thoi = klThungVaGangThoi,
+                    klThung_Thoi = klThungThoi,
+                    klGang_Thoi = klGangThoi
+                }
+            });
         }
 
         [HttpPost]
