@@ -46,8 +46,28 @@ builder.Services.AddHttpClient<IV2AuthService, V2AuthService>();
 builder.Services.AddDbContext<DataContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionString") ?? throw new InvalidOperationException("Connection string 'ConnectionString' not found.")));
 
-builder.Services.AddScoped<IHRC1LuyenThepService, HRC1LuyenThepService>(); 
+builder.Services.AddScoped<IHRC1LuyenThepService, HRC1LuyenThepService>();
 builder.Services.AddScoped<INhanGangService, NhanGangService>();
+
+// Đồng bộ dữ liệu cân BOF/KR từ API nhà máy cho HRC2 (GET bof-heat-crane-weight/view).
+// Dùng cho cả đồng bộ tay (SyncBofKrWeightNgay) và job tự động chạy mỗi 5 phút bên dưới.
+builder.Services.AddHttpClient<IBofKrWeightSyncService, BofKrWeightSyncService>();
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionJobFactory();
+
+    var bofKrJobKey = new JobKey("SyncBofKrWeightJob");
+    q.AddJob<SyncBofKrWeightJob>(opts => opts.WithIdentity(bofKrJobKey));
+    q.AddTrigger(opts => opts
+        .ForJob(bofKrJobKey)
+        .WithIdentity("SyncBofKrWeightJob-trigger")
+        .WithSimpleSchedule(x => x
+            .WithIntervalInMinutes(5)
+            .RepeatForever()));
+});
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
 ////Đăng ký BackgroundService tự động tạo phiếu
 //builder.Services.AddHostedService<TaoPhieuTuDongBackgroundService>();
 //builder.Services.AddQuartz(q =>
