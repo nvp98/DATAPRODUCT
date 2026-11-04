@@ -1759,7 +1759,8 @@ namespace Data_Product.Controllers
             }
         }
 
-        private async Task XuLyNhietDo_HRC1(List<ThungTrungGianDto> ds)
+#if false // ===== CODE CŨ (N+1: 1 query/nhóm MaChia + 1 query/thùng không nhóm) — giữ để so sánh =====
+        private async Task XuLyNhietDo_HRC1_Old(List<ThungTrungGianDto> ds)
         {
             // Gom nhóm theo MaChia (chỉ nhóm có MaChia)
             var groups = ds
@@ -1811,8 +1812,66 @@ namespace Data_Product.Controllers
                     dbRow.NhietDo = thung.NhietDo;
             }
         }
+#endif
 
-        private async Task XuLyNhietDo_HRC2(List<ThungTrungGianDto> ds)
+        // ===== CODE MỚI: gộp toàn bộ (nhóm MaChia + không nhóm) vào 1 dictionary trong memory,
+        // rồi chỉ 1 query DB duy nhất cho cả batch, thay vì 1 query/nhóm + 1 query/thùng không nhóm.
+        private async Task XuLyNhietDo_HRC1(List<ThungTrungGianDto> ds)
+        {
+            // Giá trị NhietDo mong muốn cho từng MaThungThep (gộp cả nhóm MaChia và không nhóm)
+            var desiredNhietDo = new Dictionary<string, decimal?>();
+
+            var groups = ds
+                .Where(x => !string.IsNullOrEmpty(x.MaChia))
+                .GroupBy(x => x.MaChia);
+
+            foreach (var group in groups)
+            {
+                var items = group.ToList();
+
+                // Lấy nhiệt độ từ thùng đầu tiên có NhietDo trong nhóm
+                decimal? nhietDoChung = items
+                    .SelectMany(x => x.DanhSachThungGang)
+                    .Select(x => x.NhietDo)
+                    .FirstOrDefault(x => x.HasValue);
+
+                foreach (var item in items)
+                {
+                    foreach (var thung in item.DanhSachThungGang)
+                    {
+                        thung.NhietDo = nhietDoChung;
+                        desiredNhietDo[thung.MaThungThep] = nhietDoChung;
+                    }
+                }
+            }
+
+            // Xử lý thùng không có MaChia (giữ nguyên giá trị FE)
+            var noGroup = ds.Where(x => string.IsNullOrEmpty(x.MaChia));
+            foreach (var item in noGroup)
+            {
+                var thung = item.DanhSachThungGang.FirstOrDefault();
+                if (thung == null) continue;
+
+                desiredNhietDo[thung.MaThungThep] = thung.NhietDo;
+            }
+
+            if (desiredNhietDo.Count == 0) return;
+
+            // 1 query DB duy nhất cho toàn bộ batch (thay vì 1 query/nhóm + 1 query/thùng không nhóm)
+            var maThungs = desiredNhietDo.Keys.ToList();
+            var dbRows = await _context.Tbl_BM_16_GangLong
+                .Where(x => maThungs.Contains(x.MaThungThep))
+                .ToListAsync();
+
+            foreach (var db in dbRows)
+            {
+                if (desiredNhietDo.TryGetValue(db.MaThungThep, out var nhietDo))
+                    db.NhietDo = nhietDo;
+            }
+        }
+
+#if false // ===== CODE CŨ (N+1: query Tbl_BM_16_ChiaGang 1 LẦN/ITEM, lặp lại nhiều lần cho cùng 1 MaChia) =====
+        private async Task XuLyNhietDo_HRC2_Old(List<ThungTrungGianDto> ds)
         {
             // Lọc các item có MaChia
             var dsCoChia = ds.Where(x => !string.IsNullOrEmpty(x.MaChia)).ToList();
@@ -1856,8 +1915,54 @@ namespace Data_Product.Controllers
                 // THÙNG KHÔNG THUỘC NHÓM → GIỮ NGUYÊN, do không cần xử lý
             }
         }
+#endif
 
-        private async Task XuLyNhietDoGangVaoHRC_HRC1(List<ThungTrungGianDto> ds)
+        // ===== CODE MỚI: 1 query DB duy nhất cho TẤT CẢ MaChia liên quan, rồi duyệt theo từng
+        // MaChia DUY NHẤT (Distinct) thay vì duyệt theo từng item (tránh query/xử lý lặp lại
+        // nhiều lần cho các item cùng chung 1 MaChia).
+        private async Task XuLyNhietDo_HRC2(List<ThungTrungGianDto> ds)
+        {
+            var dsCoChia = ds.Where(x => !string.IsNullOrEmpty(x.MaChia)).ToList();
+            if (!dsCoChia.Any()) return;
+
+            var maChiaList = dsCoChia.Select(x => x.MaChia).Distinct().ToList();
+
+            var chiaGangRows = await _context.Tbl_BM_16_ChiaGang
+                .Where(x => maChiaList.Contains(x.MaChiaGang))
+                .Select(x => new { x.MaChiaGang, x.MaThungThep })
+                .ToListAsync();
+
+            var thungGroupDbByMaChia = chiaGangRows
+                .GroupBy(x => x.MaChiaGang)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.MaThungThep).ToHashSet());
+
+            foreach (var maChia in maChiaList)
+            {
+                if (!thungGroupDbByMaChia.TryGetValue(maChia, out var thungGroupDB) || thungGroupDB.Count == 0)
+                    continue;
+
+                var thungTrongPayload = ds
+                    .SelectMany(p => p.DanhSachThungGang)
+                    .Where(x => thungGroupDB.Contains(x.MaThungThep))
+                    .ToList();
+
+                if (!thungTrongPayload.Any())
+                    continue;
+
+                decimal? nhietDoChung = thungTrongPayload
+                    .Where(x => x.NhietDo.HasValue)
+                    .Select(x => x.NhietDo)
+                    .FirstOrDefault();
+
+                foreach (var item in thungTrongPayload)
+                {
+                    item.NhietDo = nhietDoChung;
+                }
+            }
+        }
+
+#if false // ===== CODE CŨ (N+1: 1 query/nhóm MaChia + 1 query/thùng không nhóm) — giữ để so sánh =====
+        private async Task XuLyNhietDoGangVaoHRC_HRC1_Old(List<ThungTrungGianDto> ds)
         {
             // Gom nhóm theo MaChia (chỉ nhóm có MaChia)
             var groups = ds
@@ -1909,8 +2014,62 @@ namespace Data_Product.Controllers
                     dbRow.NhietDoGangVaoHRC = thung.NhietDoGangVaoHRC;
             }
         }
+#endif
 
-        private async Task XuLyNhietDoGangVaoHRC_HRC2(List<ThungTrungGianDto> ds)
+        // ===== CODE MỚI: gộp toàn bộ (nhóm MaChia + không nhóm) vào 1 dictionary trong memory,
+        // rồi chỉ 1 query DB duy nhất cho cả batch.
+        private async Task XuLyNhietDoGangVaoHRC_HRC1(List<ThungTrungGianDto> ds)
+        {
+            var desiredNhietDoGangVaoHRC = new Dictionary<string, decimal?>();
+
+            var groups = ds
+                .Where(x => !string.IsNullOrEmpty(x.MaChia))
+                .GroupBy(x => x.MaChia);
+
+            foreach (var group in groups)
+            {
+                var items = group.ToList();
+
+                decimal? nhietDoChung = items
+                    .SelectMany(x => x.DanhSachThungGang)
+                    .Select(x => x.NhietDoGangVaoHRC)
+                    .FirstOrDefault(x => x.HasValue);
+
+                foreach (var item in items)
+                {
+                    foreach (var thung in item.DanhSachThungGang)
+                    {
+                        thung.NhietDoGangVaoHRC = nhietDoChung;
+                        desiredNhietDoGangVaoHRC[thung.MaThungThep] = nhietDoChung;
+                    }
+                }
+            }
+
+            var noGroup = ds.Where(x => string.IsNullOrEmpty(x.MaChia));
+            foreach (var item in noGroup)
+            {
+                var thung = item.DanhSachThungGang.FirstOrDefault();
+                if (thung == null) continue;
+
+                desiredNhietDoGangVaoHRC[thung.MaThungThep] = thung.NhietDoGangVaoHRC;
+            }
+
+            if (desiredNhietDoGangVaoHRC.Count == 0) return;
+
+            var maThungs = desiredNhietDoGangVaoHRC.Keys.ToList();
+            var dbRows = await _context.Tbl_BM_16_GangLong
+                .Where(x => maThungs.Contains(x.MaThungThep))
+                .ToListAsync();
+
+            foreach (var db in dbRows)
+            {
+                if (desiredNhietDoGangVaoHRC.TryGetValue(db.MaThungThep, out var nhietDo))
+                    db.NhietDoGangVaoHRC = nhietDo;
+            }
+        }
+
+#if false // ===== CODE CŨ (N+1: query Tbl_BM_16_ChiaGang 1 LẦN/ITEM, lặp lại nhiều lần cho cùng 1 MaChia) =====
+        private async Task XuLyNhietDoGangVaoHRC_HRC2_Old(List<ThungTrungGianDto> ds)
         {
             // Lọc các item có MaChia
             var dsCoChia = ds.Where(x => !string.IsNullOrEmpty(x.MaChia)).ToList();
@@ -1954,9 +2113,54 @@ namespace Data_Product.Controllers
                 // THÙNG KHÔNG THUỘC NHÓM → GIỮ NGUYÊN, do không cần xử lý
             }
         }
+#endif
 
+        // ===== CODE MỚI: 1 query DB duy nhất cho TẤT CẢ MaChia liên quan, duyệt theo MaChia
+        // DUY NHẤT thay vì theo từng item.
+        private async Task XuLyNhietDoGangVaoHRC_HRC2(List<ThungTrungGianDto> ds)
+        {
+            var dsCoChia = ds.Where(x => !string.IsNullOrEmpty(x.MaChia)).ToList();
+            if (!dsCoChia.Any()) return;
+
+            var maChiaList = dsCoChia.Select(x => x.MaChia).Distinct().ToList();
+
+            var chiaGangRows = await _context.Tbl_BM_16_ChiaGang
+                .Where(x => maChiaList.Contains(x.MaChiaGang))
+                .Select(x => new { x.MaChiaGang, x.MaThungThep })
+                .ToListAsync();
+
+            var thungGroupDbByMaChia = chiaGangRows
+                .GroupBy(x => x.MaChiaGang)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.MaThungThep).ToHashSet());
+
+            foreach (var maChia in maChiaList)
+            {
+                if (!thungGroupDbByMaChia.TryGetValue(maChia, out var thungGroupDB) || thungGroupDB.Count == 0)
+                    continue;
+
+                var thungTrongPayload = ds
+                    .SelectMany(p => p.DanhSachThungGang)
+                    .Where(x => thungGroupDB.Contains(x.MaThungThep))
+                    .ToList();
+
+                if (!thungTrongPayload.Any())
+                    continue;
+
+                decimal? nhietDoChung = thungTrongPayload
+                    .Where(x => x.NhietDoGangVaoHRC.HasValue)
+                    .Select(x => x.NhietDoGangVaoHRC)
+                    .FirstOrDefault();
+
+                foreach (var item in thungTrongPayload)
+                {
+                    item.NhietDoGangVaoHRC = nhietDoChung;
+                }
+            }
+        }
+
+#if false // ===== CODE CŨ (nhiều N+1 — xem phân tích kèm theo) — giữ lại để so sánh trước khi áp dụng =====
         [HttpPost]
-        public async Task<IActionResult> Luu([FromBody] List<ThungTrungGianDto> dsThungTG)
+        public async Task<IActionResult> Luu_Old([FromBody] List<ThungTrungGianDto> dsThungTG)
         {
             var maThungThepCanTinhToan = new HashSet<string>();
             var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
@@ -2165,6 +2369,389 @@ namespace Data_Product.Controllers
             /* ========= PHASE 1 – SAVE SAFE ========= */
 
             //await _context.SaveChangesAsync();
+            var successIds = new List<int>();
+            var errors = new List<string>();
+            ///* ========= PHASE 2 – LOAD TỔ HỢP DB ========= */
+            var ttgGoc = ttgSaved.Where(x => !x.IsCopy).ToList();
+            var ttgIds = ttgGoc.Select(x => x.ID).ToList();
+
+            var gangByTtg = await LoadGangByTtgAsync(ttgIds);
+
+            // 4️⃣ Build input tổ hợp
+            var inputKeys = new List<(string NoiNhan, string SoThungTG, string GroupKey)>();
+            foreach (var ttg in ttgGoc)
+            {
+                if (gangByTtg.TryGetValue(ttg.ID, out var gang))
+                {
+                    inputKeys.Add((ttg.NoiNhan, ttg.SoThungTG, BuildGroupKey(gang)));
+                }
+            }
+
+            var toHopDb = await LoadToHopDbByInputAsync(inputKeys);
+
+            // 5️⃣ Check trùng + set KL trước KR
+            var accepted = new List<(Tbl_BM_16_ThungTrungGian ttg, HashSet<string> gang)>();
+            var affectedIds = new HashSet<int>();
+
+            foreach (var dto in dsThungTG.Where(x => !x.IsCopy))
+            {
+                var ttg = ttgGoc.FirstOrDefault(x => x.MaThungTG == dto.MaThungTG);
+                if (ttg == null) continue;
+
+                affectedIds.Add(ttg.ID);
+
+                if (!dto.KLThungVaGangTruocKR.HasValue || dto.KLThungVaGangTruocKR.Value == 0)
+                {
+                    ttg.KLThungVaGangTruocKR = null;
+                    continue;
+                }
+
+                if (!gangByTtg.TryGetValue(ttg.ID, out var gang) || gang.Count == 0)
+                {
+                    errors.Add($"TTG {ttg.SoThungTG}: chưa có danh sách gang");
+                    continue;
+                }
+
+                if (CheckTrungToHop(ttg, gang, accepted, toHopDb))
+                {
+                    errors.Add($"TTG {ttg.SoThungTG}: trùng tổ hợp – không cho nhập KL trước KR");
+                    continue;
+                }
+
+                ttg.KLThungVaGangTruocKR = dto.KLThungVaGangTruocKR;
+                accepted.Add((ttg, gang));
+                successIds.Add(ttg.ID);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // 6️⃣ Call store
+            if (affectedIds.Any())
+            {
+                var tvp = new DataTable();
+                tvp.Columns.Add("ID_TTG", typeof(int));
+                foreach (var id in affectedIds)
+                    tvp.Rows.Add(id);
+
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC dbo.SP_BM16_Calc_KLXiKR @ListID_TTG",
+                    new SqlParameter("@ListID_TTG", tvp)
+                    {
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "dbo.TVP_ID_TTG"
+                    });
+            }
+
+            return Ok(new { success = true, saved = successIds, errors });
+        }
+#endif
+
+        // ===== CODE MỚI: gộp các N+1 trong vòng lặp chính (resolve TTG, check "đã chốt", tra cân
+        // BOF/KR, tra gang theo mã thùng thép) thành vài query BATCH trước vòng lặp, thay vì await DB
+        // bên trong foreach cho từng dòng. KHÔNG đổi logic/điều kiện/công thức nghiệp vụ so với bản cũ.
+        //
+        // CHƯA ĐỘNG tới: vòng lặp gọi _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync — vẫn N+1
+        // bên trong service dùng chung này. Để ngoài phạm vi sửa lần này vì rủi ro cao hơn (service
+        // này được gọi ở nhiều chỗ khác, cần một việc riêng để batch).
+        [HttpPost]
+        public async Task<IActionResult> Luu([FromBody] List<ThungTrungGianDto> dsThungTG)
+        {
+            var maThungThepCanTinhToan = new HashSet<string>();
+            var tenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
+
+            var taiKhoan = await _context.Tbl_TaiKhoan
+                .FirstOrDefaultAsync(x => x.TenTaiKhoan == tenTaiKhoan);
+
+            if (taiKhoan == null)
+                return BadRequest("Không tìm thấy tài khoản.");
+
+            var danhSachBiBoQua = new List<string>();
+
+            // Xác định loại nghiệp vụ
+            bool isHRC1 = dsThungTG.Any(x => x.PhongBan == "HRC1");
+            bool isHRC2 = !isHRC1;
+            var ttgSaved = new List<Tbl_BM_16_ThungTrungGian>();
+
+            // Tra sẵn MaMeThoi theo ID_MeThoi để snapshot dữ liệu cân tự động (BOF/KR)
+            var meThoiIds = dsThungTG.Where(x => x.ID_MeThoi.HasValue).Select(x => x.ID_MeThoi.Value).Distinct().ToList();
+            var maMeThoiById = meThoiIds.Count > 0
+                ? await _context.Tbl_MeThoi.Where(x => meThoiIds.Contains(x.ID)).ToDictionaryAsync(x => x.ID, x => x.MaMeThoi)
+                : new Dictionary<int, string>();
+
+            if (isHRC1)
+            {
+                await XuLyNhietDo_HRC1(dsThungTG);
+                await XuLyNhietDoGangVaoHRC_HRC1(dsThungTG);
+            }
+            else
+            {
+                await XuLyNhietDo_HRC2(dsThungTG);
+                await XuLyNhietDoGangVaoHRC_HRC2(dsThungTG);
+            }
+
+            // ===== BATCH 1: resolve toàn bộ TTG gốc + copy bằng 2 query, thay vì 1 query/dòng =====
+            var copyKeys = dsThungTG
+                .Where(x => x.IsCopy && !string.IsNullOrEmpty(x.MaThungTG_Copy))
+                .Select(x => x.MaThungTG_Copy)
+                .Distinct()
+                .ToList();
+            var origKeys = dsThungTG
+                .Where(x => !x.IsCopy)
+                .Select(x => x.MaThungTG)
+                .Distinct()
+                .ToList();
+
+            var existingCopyTtgs = copyKeys.Count > 0
+                ? await _context.Tbl_BM_16_ThungTrungGian
+                    .Where(x => x.IsCopy && copyKeys.Contains(x.MaThungTG_Copy))
+                    .ToListAsync()
+                : new List<Tbl_BM_16_ThungTrungGian>();
+            var copyTtgByKey = existingCopyTtgs
+                .GroupBy(x => x.MaThungTG_Copy)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var existingOrigTtgs = origKeys.Count > 0
+                ? await _context.Tbl_BM_16_ThungTrungGian
+                    .Where(x => !x.IsCopy && origKeys.Contains(x.MaThungTG))
+                    .ToListAsync()
+                : new List<Tbl_BM_16_ThungTrungGian>();
+            var origTtgByKey = existingOrigTtgs
+                .GroupBy(x => x.MaThungTG)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            // ===== BATCH 2: check "đã chốt" 1 lần cho TẤT CẢ TTG đã tồn tại, thay vì 1 AnyAsync/dòng.
+            // TTG mới tạo (ID = 0, chưa save) chắc chắn chưa có gang nào "đã chốt" trỏ tới nên bỏ qua
+            // không tra, không đổi kết quả so với bản cũ. =====
+            var existingTtgIds = existingCopyTtgs.Select(x => x.ID)
+                .Concat(existingOrigTtgs.Select(x => x.ID))
+                .ToList();
+            var lockedTtgIds = existingTtgIds.Count > 0
+                ? (await _context.Tbl_BM_16_GangLong
+                    .Where(x => x.ID_TTG.HasValue
+                                && existingTtgIds.Contains(x.ID_TTG.Value)
+                                && x.ID_TrangThai == (int)TinhTrang.DaChot)
+                    .Select(x => x.ID_TTG.Value)
+                    .Distinct()
+                    .ToListAsync())
+                  .ToHashSet()
+                : new HashSet<int>();
+
+            // ===== Resolve/tạo ttg cho từng dòng — thuần trong memory, không còn await DB trong vòng lặp này =====
+            var resolvedTtgByDto = new Dictionary<ThungTrungGianDto, Tbl_BM_16_ThungTrungGian>();
+            foreach (var tgDto in dsThungTG)
+            {
+                Tbl_BM_16_ThungTrungGian ttg;
+
+                if (tgDto.IsCopy && !string.IsNullOrEmpty(tgDto.MaThungTG_Copy))
+                {
+                    if (!copyTtgByKey.TryGetValue(tgDto.MaThungTG_Copy, out ttg))
+                    {
+                        ttg = new Tbl_BM_16_ThungTrungGian
+                        {
+                            MaThungTG = tgDto.MaThungTG,
+                            SoThungTG = tgDto.SoThungTG,
+                            MaThungTG_Copy = tgDto.MaThungTG_Copy,
+                            NgayNhan = tgDto.NgayNhan,
+                            CaNhan = tgDto.CaNhan,
+                            ID_LoThoi = tgDto.ID_LoThoi,
+                            GioChonMe = tgDto.GioChonMe,
+                            ID_NguoiNhan = taiKhoan.ID_TaiKhoan,
+                            NgayTaoTTG = DateTime.Now,
+                            Tong_KLGangNhan = null,
+                            IsCopy = true
+                        };
+                        _context.Add(ttg);
+                        // Cache ngay: nếu nhiều dòng trong batch cùng MaThungTG_Copy sẽ dùng chung 1 entity
+                        // (bản cũ query lại DB mỗi dòng, chưa thấy entity vừa Add ở dòng trước nên có thể
+                        // tạo trùng — cache này an toàn hơn, không coi là thay đổi hành vi nghiệp vụ).
+                        copyTtgByKey[tgDto.MaThungTG_Copy] = ttg;
+                    }
+                }
+                else
+                {
+                    if (!origTtgByKey.TryGetValue(tgDto.MaThungTG, out ttg))
+                        continue; // giữ nguyên hành vi cũ: TTG gốc không tồn tại → bỏ qua dòng này
+                }
+
+                resolvedTtgByDto[tgDto] = ttg;
+            }
+
+            // ===== BATCH 3 (HRC2): tra cân BOF/KR 1 lần cho toàn bộ cặp (LoThoi, MeThoi) cần dùng,
+            // thay vì 1 query/dòng =====
+            var bofKrMap = new Dictionary<(int LoThoi, string MeThoi), Tbl_BM_16_BOF_KR_Weight>();
+            if (isHRC2)
+            {
+                var pairs = new HashSet<(int LoThoi, string MeThoi)>();
+                foreach (var tgDto in dsThungTG)
+                {
+                    if (!resolvedTtgByDto.TryGetValue(tgDto, out var ttg)) continue;
+                    if (tgDto.ID_MeThoi.HasValue
+                        && maMeThoiById.TryGetValue(tgDto.ID_MeThoi.Value, out var maMeThoiHienTai)
+                        && !string.IsNullOrWhiteSpace(maMeThoiHienTai))
+                    {
+                        pairs.Add((ttg.ID_LoThoi, maMeThoiHienTai));
+                    }
+                }
+
+                if (pairs.Count > 0)
+                {
+                    var loThoiList = pairs.Select(p => p.LoThoi).Distinct().ToList();
+                    var meThoiList = pairs.Select(p => p.MeThoi).Distinct().ToList();
+
+                    var allCanRows = await _context.Tbl_BM_16_BOF_KR_Weight
+                        .Where(x => loThoiList.Contains(x.LoThoi) && meThoiList.Contains(x.MeThoi))
+                        .ToListAsync();
+
+                    bofKrMap = allCanRows
+                        .Where(x => pairs.Contains((x.LoThoi, x.MeThoi)))
+                        .GroupBy(x => (x.LoThoi, x.MeThoi))
+                        .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.ID).First());
+                }
+            }
+
+            // ===== BATCH 4: gang theo mã thùng thép — 1 query cho TOÀN BỘ batch, thay vì 1 query/TTG =====
+            var allMaThungThepForGang = dsThungTG
+                .Where(x => !x.IsCopy && x.DanhSachThungGang?.Any() == true)
+                .SelectMany(x => x.DanhSachThungGang.Select(t => t.MaThungThep))
+                .Distinct()
+                .ToList();
+
+            var gangByMaThungThep = allMaThungThepForGang.Count > 0
+                ? (await _context.Tbl_BM_16_GangLong
+                    .Where(x => allMaThungThepForGang.Contains(x.MaThungThep) && x.ID_TrangThai != (int)TinhTrang.DaChot)
+                    .ToListAsync())
+                  .GroupBy(x => x.MaThungThep)
+                  .ToDictionary(g => g.Key, g => g.First())
+                : new Dictionary<string, Tbl_BM_16_GangLong>();
+
+            // ===== Vòng lặp chính — chỉ còn xử lý in-memory + ghi field, KHÔNG còn await DB bên trong =====
+            foreach (var tgDto in dsThungTG)
+            {
+                if (!resolvedTtgByDto.TryGetValue(tgDto, out var ttg))
+                    continue;
+
+                bool coGangDaChot = ttg.ID != 0 && lockedTtgIds.Contains(ttg.ID);
+                if (coGangDaChot)
+                {
+                    danhSachBiBoQua.Add(tgDto.IsCopy ? tgDto.MaThungTG_Copy : tgDto.MaThungTG);
+                    continue;
+                }
+
+                // Cập nhật dữ liệu chung
+                // Làm tròn 2 input về 2 chữ số TRƯỚC khi trừ, khớp scale decimal của DB, rồi tự tính lại
+                // KLGang_Thoi ở server (không tin giá trị client gửi) để tránh lệch do làm tròn không đồng bộ.
+                var klThungVaGangThoi = tgDto.KLThungVaGang_Thoi.HasValue
+                    ? Math.Round(tgDto.KLThungVaGang_Thoi.Value, 2, MidpointRounding.AwayFromZero)
+                    : (decimal?)null;
+                var klThungThoi = tgDto.KLThung_Thoi.HasValue
+                    ? Math.Round(tgDto.KLThung_Thoi.Value, 2, MidpointRounding.AwayFromZero)
+                    : (decimal?)null;
+                var klPhe = tgDto.KLPhe.HasValue
+                    ? Math.Round(tgDto.KLPhe.Value, 2, MidpointRounding.AwayFromZero)
+                    : (decimal?)null;
+
+                ttg.KLThungVaGang_Thoi = klThungVaGangThoi;
+                ttg.KLThung_Thoi = klThungThoi;
+                ttg.KL_phe = klPhe;
+                ttg.KLGang_Thoi = (klThungVaGangThoi.HasValue && klThungThoi.HasValue)
+                    ? Math.Round(klThungVaGangThoi.Value - klThungThoi.Value - (klPhe ?? 0), 2, MidpointRounding.AwayFromZero)
+                    : (decimal?)null;
+                ttg.Tong_KLGangNhan = tgDto.Tong_KLGangNhan;
+                ttg.GhiChu = tgDto.GhiChu;
+                ttg.ID_MeThoi = tgDto.ID_MeThoi;
+                ttg.GioChonMe = tgDto.GioChonMe;
+                ttg.NoiNhan = isHRC1 ? "HRC1" : "HRC2";
+
+                // Snapshot dữ liệu cân BOF/KR tự động theo mẻ đang chọn (để so sánh highlight khi hiển thị lại).
+                // Luôn tra lại fresh theo mẻ hiện tại, không tin baseline cũ từ lần lưu trước.
+                // Chỉ áp dụng cho HRC2 - HRC1 dùng luồng Móc nối tự động riêng (tính khối lượng từ mẻ AT,
+                // không liên quan tới cân BOF/KR), không snapshot để tránh tô vàng "đã sửa tay" sai cho HRC1.
+                if (isHRC2)
+                {
+                    Tbl_BM_16_BOF_KR_Weight canRow = null;
+                    if (tgDto.ID_MeThoi.HasValue
+                        && maMeThoiById.TryGetValue(tgDto.ID_MeThoi.Value, out var maMeThoiHienTai)
+                        && !string.IsNullOrWhiteSpace(maMeThoiHienTai))
+                    {
+                        bofKrMap.TryGetValue((ttg.ID_LoThoi, maMeThoiHienTai), out canRow);
+                    }
+
+                    ttg.KLThungVaGangTruocKR_Auto = canRow?.KLThungVaGangTruocKR;
+                    ttg.KLThungVaGang_Thoi_Auto = canRow?.KLThungVaGangTruocBOF.HasValue == true
+                        ? Math.Round(canRow.KLThungVaGangTruocBOF.Value, 2, MidpointRounding.AwayFromZero)
+                        : (decimal?)null;
+                    ttg.KLThung_Thoi_Auto = canRow?.KLThung.HasValue == true
+                        ? Math.Round(canRow.KLThung.Value, 2, MidpointRounding.AwayFromZero)
+                        : (decimal?)null;
+                    ttg.ID_BOF_KR_Weight = canRow?.ID;
+                }
+
+                ttgSaved.Add(ttg);
+
+                if (!tgDto.IsCopy && tgDto.DanhSachThungGang?.Any() == true)
+                {
+                    decimal tongKLGangNhan = 0;
+                    for (int i = 0; i < tgDto.DanhSachThungGang.Count; i++)
+                    {
+                        var thungGang = tgDto.DanhSachThungGang[i];
+                        if (!gangByMaThungThep.TryGetValue(thungGang.MaThungThep, out var entity))
+                            continue;
+
+                        // Làm tròn 2 input về 2 chữ số TRƯỚC khi trừ, khớp scale decimal(10,2) của DB,
+                        // tránh lệch do EF tự làm tròn T_KLThungVaGang/T_KLThungChua mà không đồng bộ với T_KLGangLong.
+                        var klThungVaGang = thungGang.T_KLThungVaGang.HasValue
+                            ? Math.Round(thungGang.T_KLThungVaGang.Value, 2, MidpointRounding.AwayFromZero)
+                            : (decimal?)null;
+                        var klThungChua = thungGang.T_KLThungChua.HasValue
+                            ? Math.Round(thungGang.T_KLThungChua.Value, 2, MidpointRounding.AwayFromZero)
+                            : (decimal?)null;
+
+                        decimal? klGangLong = (klThungVaGang.HasValue && klThungChua.HasValue)
+                            ? klThungVaGang.Value - klThungChua.Value
+                            : null;
+
+                        // Hàng đầu nhóm TTG: trừ KLPhe (chỉ làm giảm, không bao giờ làm tăng)
+                        if (i == 0 && klGangLong.HasValue && tgDto.KLPhe.HasValue && tgDto.KLPhe.Value > 0)
+                        {
+                            klGangLong -= tgDto.KLPhe.Value;
+                        }
+
+                        entity.T_KLThungVaGang = klThungVaGang;
+                        entity.T_KLThungChua = klThungChua;
+                        entity.T_KLGangLong = klGangLong.HasValue
+                            ? Math.Round(klGangLong.Value, 2, MidpointRounding.AwayFromZero)
+                            : (decimal?)null;
+                        entity.NhietDo = thungGang.NhietDo;
+                        entity.NhietDoGangVaoHRC = thungGang.NhietDoGangVaoHRC;
+
+                        tongKLGangNhan += entity.T_KLGangLong ?? 0;
+                        maThungThepCanTinhToan.Add(thungGang.MaThungGang);
+                    }
+
+                    // Tính lại tổng từ các T_KLGangLong vừa được server tính lại (đã tròn 2 chữ số),
+                    // không dùng tổng client gửi lên để tránh lệch khi 2 input bị DB tự làm tròn.
+                    ttg.Tong_KLGangNhan = tongKLGangNhan;
+                }
+            }
+
+            // Lưu thay đổi
+            await _context.SaveChangesAsync();
+
+            // Sau cùng tính toán lại các thùng gang.
+            // GHI CHÚ: vòng lặp này CHƯA được batch — mỗi mã thùng gang vẫn gọi riêng
+            // _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync, và bản thân service đó cũng có
+            // N+1 bên trong. Để ngoài phạm vi sửa lần này vì rủi ro cao hơn (service dùng chung ở
+            // nhiều chỗ khác) — cần một việc riêng để batch nó.
+            foreach (var ma in maThungThepCanTinhToan)
+            {
+                try
+                {
+                    await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(ma);
+                }
+                catch { }
+            }
+
+            /* ========= PHASE 1 – SAVE SAFE ========= */
             var successIds = new List<int>();
             var errors = new List<string>();
             ///* ========= PHASE 2 – LOAD TỔ HỢP DB ========= */
