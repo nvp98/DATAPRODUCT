@@ -1290,7 +1290,7 @@
             const isNumber = val => val !== null && !isNaN(val);
 
             if (isNumber(sum_klGangChiaCR) && sum_klGangChiaCR !== 0 && isNumber(sum_klGangCCTVaXi) && sum_klGangCCTVaXi !== 0) {
-                const result = ((sum_klGangChiaCR - sum_klGangCCTVaXi) / sum_klGangChiaCR) * 100;
+                const result = ((sum_klGangCCTVaXi- sum_klGangChiaCR) / sum_klGangCCTVaXi) * 100;
                 return result.toFixed(1);
             }
 
