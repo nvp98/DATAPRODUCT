@@ -1674,7 +1674,43 @@ namespace Data_Product.Controllers
             {
                 int page = dto.PageNumber.Value;
                 int pageSize = dto.PageSize.Value;
-                orderedQuery = orderedQuery.Skip((page - 1) * pageSize).Take(pageSize);
+
+                // Phân trang theo NHÓM MaThungGang (không theo dòng), để tránh cắt ngang
+                // các dòng của cùng 1 thùng gang ra 2 trang khác nhau — vốn sẽ làm
+                // tinhTongTheoMaThungGang()/PhanTramKLChenhLech() ở client tính sai vì
+                // chỉ nhìn thấy dữ liệu của trang hiện tại.
+                // Chỉ lấy cột khóa sort (không join) để nhẹ, rồi group/sort trong memory.
+                var rowKeys = await totalScope
+                    .Select(x => new { x.ID, x.MaThungGang, x.NgayTao, x.ID_Locao, x.G_Ca })
+                    .ToListAsync();
+
+                // Dòng không có MaThungGang thì coi là 1 nhóm riêng biệt (không gộp các dòng null lại với nhau)
+                var orderedGroupKeys = rowKeys
+                    .GroupBy(x => x.MaThungGang ?? $"__row_{x.ID}")
+                    .Select(g => new
+                    {
+                        g.Key,
+                        IsNullGroup = g.First().MaThungGang == null,
+                        NullRowId = g.First().ID,
+                        NgayTao = g.Max(x => x.NgayTao),
+                        ID_Locao = g.Min(x => x.ID_Locao),
+                        G_Ca = g.Max(x => x.G_Ca)
+                    })
+                    .OrderByDescending(g => g.NgayTao)
+                    .ThenBy(g => g.ID_Locao)
+                    .ThenByDescending(g => g.G_Ca)
+                    .ThenByDescending(g => g.Key)
+                    .ToList();
+
+                totalRecords = orderedGroupKeys.Count; // để client tính số trang theo số NHÓM, không theo số dòng
+
+                var pagedGroups = orderedGroupKeys.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+                var pagedRealKeys = pagedGroups.Where(g => !g.IsNullGroup).Select(g => g.Key).ToList();
+                var pagedNullIds = pagedGroups.Where(g => g.IsNullGroup).Select(g => g.NullRowId).ToList();
+
+                orderedQuery = orderedQuery.Where(x =>
+                    (x.MaThungGang != null && pagedRealKeys.Contains(x.MaThungGang)) ||
+                    (x.MaThungGang == null && pagedNullIds.Contains(x.ID)));
             }
 
             // 4) Lấy dữ liệu hiển thị (page scope) — JOIN query giống hệt bản cũ

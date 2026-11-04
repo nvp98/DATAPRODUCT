@@ -2384,6 +2384,8 @@ namespace Data_Product.Controllers
                         })
                         .ToList();
 
+                    var maThungGangCanTinhLai = new HashSet<string>();
+
                     foreach (var grp in groups)
                     {
                         var thungsCungSoMe = listThung
@@ -2436,6 +2438,9 @@ namespace Data_Product.Controllers
 
                                 // Cập nhật trạng thái: 3 = Đã xử lý, 1 = Chưa xử lý
                                 thung.G_ID_TrangThai = duDuLieu ? 3 : 1;
+
+                                if (!string.IsNullOrEmpty(thung.MaThungGang))
+                                    maThungGangCanTinhLai.Add(thung.MaThungGang);
                             }
                         }
 
@@ -2479,6 +2484,12 @@ namespace Data_Product.Controllers
                     }
 
                     await _context.SaveChangesAsync();
+
+                    foreach (var maThungGang in maThungGangCanTinhLai)
+                    {
+                        await _chiaGangService.KiemTraVaTinhLaiTheoMaThungGangAsync(maThungGang);
+                    }
+
                     await txn.CommitAsync();
 
                     return Ok(new { success = true, message = "Đã cập nhật khối lượng theo Số mẻ." });

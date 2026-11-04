@@ -628,7 +628,10 @@
                         <div class="col-9 d-flex justify-content-end">
                             <button class="btn btn-warning btn-sm px-4" id="BtnChiaGang" >Gộp Thùng</button>
                             <button class="btn btn-warning btn-sm px-4" id="BtnAnHien">Ẩn/Hiện</button>
-                            <button class="btn btn-warning btn-sm px-4" id="BtnLuu">Lưu</button>
+                            <button class="btn btn-warning btn-sm px-4" id="BtnLuu">
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" style="display:none;"></span>
+                                <span class="btn-text">Lưu</span>
+                            </button>
                             <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuExcel">Xuất Excel</button>
                             <button class="btn btn-success btn-sm px-4" id="BtnXuatPhieuPDF">Xuất PDF</button>
                             <button class="btn btn-primary" onclick="loadModalTaoMe()">Tạo Mẻ thổi</button>
@@ -1104,7 +1107,7 @@
                            name="t_KLThungVaGang" ${disabled || disabledHRC1} value="${thung.t_KLThungVaGang ?? ''}"/>
                   </td>
                   <td class="col-thung">
-                    <input class="table_tbx KhoiLuongThung" type="number" min="0"
+                    <input style="max-width: 75px" class="table_tbx KhoiLuongThung" type="number" min="0"
                            name="t_KLThungChua" ${disabled || disabledHRC1} value="${thung.t_KLThungChua ?? ''}"/>
                   </td>
                   <td class="col-ganglong KLGangLong">${thung.t_KLGangLong ?? '0'}</td>
@@ -2870,6 +2873,11 @@
                 return;
             }
 
+            const $btn = $('#BtnLuu');
+            $btn.prop('disabled', true);
+            $btn.find('.spinner-border').show();
+            $btn.find('.btn-text').text('Đang lưu...');
+
             $.ajax({
                 url: "/BM_GangThoi_Thep/Luu",
                 type: "POST",
@@ -2888,6 +2896,11 @@
                 error: function (error) {
                     alert(error.responseText);
                     ReLoad();
+                },
+                complete: function () {
+                    $btn.prop('disabled', false);
+                    $btn.find('.spinner-border').hide();
+                    $btn.find('.btn-text').text('Lưu');
                 }
             });
         }
