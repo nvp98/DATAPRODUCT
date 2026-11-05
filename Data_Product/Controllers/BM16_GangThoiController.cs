@@ -2026,16 +2026,28 @@ namespace Data_Product.Controllers
             }
 
             var list = await query
-                .Select(x => x.BKMIS_SoMe.Trim())
+                .Select(x => new
+
+                {
+                    BKMIS_SoMe = x.BKMIS_SoMe.Trim() ,
+                    BKMIS_Gio  = x.BKMIS_Gio
+
+                })
                 .Distinct()
-                .OrderBy(x => x)
+                .OrderBy(x => x.BKMIS_SoMe)
+                .ThenBy(x => x.BKMIS_Gio)
                 .Take(take)
                 .ToListAsync();
 
             if (select2)
             {
 
-                var result = list.Select(v => new { id = v, text = v });
+                var result = list.Select(v => new 
+                    { 
+                        id = v.BKMIS_SoMe,
+                        text = v.BKMIS_SoMe, 
+                        gio = v.BKMIS_Gio 
+                    });
                 return Ok(result);
             }
 

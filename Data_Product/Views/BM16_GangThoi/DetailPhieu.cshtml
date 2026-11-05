@@ -602,6 +602,11 @@
 			$select.select2({
 				width: '100%',
 				placeholder: 'Chọn Số mẻ',
+					templateResult: item => {
+						if (!item.id || !item.gio) return item.text;
+						return $('<span></span>').text(`${item.text} - ${item.gio}`);
+					},
+					templateSelection: item => item.text,
 				allowClear: true,
 				dropdownParent: $('#doubleAutoCollapse'),
 				ajax: {
