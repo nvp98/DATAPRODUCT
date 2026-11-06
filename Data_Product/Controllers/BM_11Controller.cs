@@ -2190,6 +2190,9 @@ namespace Data_Product.Controllers
                 if (endd != null) endDay = (DateTime)endd;
 
                 int row = 8, stt = 0, icol = 1;
+                Worksheet.Cell(7, 22).Value = "Phiếu đã check";
+                Worksheet.Cell(7, 22).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                Worksheet.Cell(7, 22).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                 var BBGN = _context.Tbl_BienBanGiaoNhan.Where(x => !x.IsDelete).ToList();
                 if (startDay != null & endDay != null)
                 {
@@ -2224,6 +2227,10 @@ namespace Data_Product.Controllers
 
                 var TenTaiKhoan = User.FindFirstValue(ClaimTypes.Name);
                 var TaiKhoan = _context.Tbl_TaiKhoan.Where(x => x.TenTaiKhoan == TenTaiKhoan).FirstOrDefault();
+                var checkedBBGNIds = _context.Tbl_PKHXuLyPhieu
+                    .Where(x => x.ID_TaiKhoan == TaiKhoan.ID_TaiKhoan && x.ID_BBGN != null)
+                    .Select(x => x.ID_BBGN)
+                    .ToHashSet();
                 // check phòng ban list
                 List<int> ListPBInt = new List<int>();
                 List<string> ListPB = new List<string>();
@@ -2439,15 +2446,19 @@ namespace Data_Product.Controllers
                         Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                         Worksheet.Cell(row, icol).Style.Alignment.WrapText = true;
 
+                        icol++;
+                        Worksheet.Cell(row, icol).Value = checkedBBGNIds.Contains(ID_BBGN.ID_BBGN) ? "Đã check" : "";
+                        Worksheet.Cell(row, icol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        Worksheet.Cell(row, icol).Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
 
                     }
 
                 }
 
-                Worksheet.Range("A7:U" + (row)).Style.Font.SetFontName("Times New Roman");
-                Worksheet.Range("A7:U" + (row)).Style.Font.SetFontSize(13);
-                Worksheet.Range("A7:U" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                Worksheet.Range("A7:U" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                Worksheet.Range("A7:V" + (row)).Style.Font.SetFontName("Times New Roman");
+                Worksheet.Range("A7:V" + (row)).Style.Font.SetFontSize(13);
+                Worksheet.Range("A7:V" + (row)).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                Worksheet.Range("A7:V" + (row)).Style.Border.InsideBorder = XLBorderStyleValues.Thin;
                 // Áp dụng định dạng cho một cột
                 //Worksheet.Columns(8,10).Style.NumberFormat.Format = "0.000";
                 Worksheet.Column(8).Style.NumberFormat.Format = "0.000";
